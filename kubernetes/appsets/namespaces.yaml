@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: namespaces
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    - git:
+        repoURL: https://github.com/bafulton/homelab.git
+        revision: main
+        files:
+          - path: kubernetes/namespaces/*.yaml
+  template:
+    metadata:
+      name: '{{ .path.basename }}'  # eg, "argocd" from "argocd.yaml"
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/bafulton/homelab.git
+        targetRevision: main
+        path: '{{ .path }}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd  # required field, but doesn't matter for namespaces
+      syncPolicy:
+        automated: {}

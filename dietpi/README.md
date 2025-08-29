@@ -1,0 +1,2 @@
+# homelab/dietpi
+Dietpi configs

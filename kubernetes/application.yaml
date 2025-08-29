@@ -1,0 +1,23 @@
+# The root application for ArgoCD, through which
+# all other applications will be created.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: applications
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bafulton/homelab
+    targetRevision: main
+    path: kubernetes/appsets
+    directory:
+      recurse: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+   syncPolicy:
+     automated: {}
