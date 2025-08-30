@@ -17,9 +17,7 @@ echo "==> Building Helm dependencies for infra/argocd"
 helm dependency update infra/argocd
 
 echo "==> Installing ArgoCD with Helm"
-helm install argocd infra/argocd \
-  -n argocd \
-  -f infra/argocd/values.yaml
+helm install argocd infra/argocd -n argocd -f infra/argocd/values.yaml
 
 echo "==> Waiting for core ArgoCD deployments to be ready"
 wait_dep () {
