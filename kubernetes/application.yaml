@@ -1,5 +1,5 @@
 # The root application for ArgoCD, through which
-# all other applications will be created.
+# all other applications are created.
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
