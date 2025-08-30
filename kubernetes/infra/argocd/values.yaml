@@ -1,0 +1,12 @@
+server:
+  ingress:
+    enabled: true
+    hosts:
+      - argocd.local
+
+configs:
+  params:
+    server.insecure: true
+
+applicationSet:
+  enabled: true
