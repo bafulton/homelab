@@ -19,10 +19,11 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/you/your-repo
+        repoURL: https://github.com/bafulton/homelab
         targetRevision: main
         path: '{{ .path }}'  # eg, kubernetes/infra/argocd
         helm:
+          ignoreMissingValueFiles: true
           valueFiles:
             - values.yaml
       destination:
