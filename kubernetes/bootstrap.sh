@@ -35,8 +35,10 @@ wait_dep argocd-dex-server
 wait_dep argocd-redis
 
 echo "==> Applying your root Argo CD Application"
-kubectl apply -f application.yaml
+kubectl apply -f bootstrap.yaml
 
 echo "✓ Bootstrap complete."
-echo "Tip: To get the initial admin password, run:"
-echo "kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo"
+
+echo "==> ArgoCD initial admin password:"
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath='{.data.password}' | base64 -d; echo
