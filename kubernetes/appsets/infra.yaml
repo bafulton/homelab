@@ -23,10 +23,6 @@ spec:
         repoURL: https://github.com/bafulton/homelab
         targetRevision: main
         path: '{{ .path.path }}'  # eg, kubernetes/infra/argocd
-        helm:
-          ignoreMissingValueFiles: true
-          valueFiles:
-            - values.yaml
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
