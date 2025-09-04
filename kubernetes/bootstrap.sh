@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # This script bootstraps Argo CD into kubernetes via Helm using
-# the internal wrapper chart) and then spins up the app-of-appsets.
+# the internal wrapper chart and then spins up the app-of-appsets.
 # You should only run it once.
 
 set -euo pipefail
