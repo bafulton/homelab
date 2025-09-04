@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/bafulton/homelab
+        revision: main
+        directories:
+          - path: kubernetes/apps/*
+  template:
+    metadata:
+      name: '{{ .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
+      annotations:
+        argocd.argoproj.io/sync-wave: "10"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/bafulton/homelab
+        targetRevision: main
+        path: '{{ .path }}'  # eg, kubernetes/apps/plex
+        helm:
+          ignoreMissingValueFiles: true
+          valueFiles:
+            - values.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
+      syncPolicy:
+        automated: {}
