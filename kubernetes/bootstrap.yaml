@@ -1,5 +1,6 @@
-# The root application for ArgoCD, through which
-# all other applications are created.
+# The root application for ArgoCD, through which all other
+# applications are created. The app is created during the
+# cluster bootstrap process, and should not be modified.
 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
