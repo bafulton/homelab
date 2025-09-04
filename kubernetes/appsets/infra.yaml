@@ -22,7 +22,7 @@ spec:
       source:
         repoURL: https://github.com/bafulton/homelab
         targetRevision: main
-        path: '{{ .path }}'  # eg, kubernetes/infra/argocd
+        path: '{{ .path.path }}'  # eg, kubernetes/infra/argocd
         helm:
           ignoreMissingValueFiles: true
           valueFiles:

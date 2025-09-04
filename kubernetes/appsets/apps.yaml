@@ -22,7 +22,7 @@ spec:
       source:
         repoURL: https://github.com/bafulton/homelab
         targetRevision: main
-        path: '{{ .path }}'  # eg, kubernetes/apps/plex
+        path: '{{ .path.path }}'  # eg, kubernetes/apps/plex
         helm:
           ignoreMissingValueFiles: true
           valueFiles:
