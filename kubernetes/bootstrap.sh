@@ -13,11 +13,11 @@ helm repo update >/dev/null
 echo "==> Making sure namespace 'argocd' exists"
 kubectl get namespace argocd >/dev/null 2>&1 || kubectl create namespace argocd
 
-echo "==> Building Helm dependencies for infra/argocd"
-helm dependency update infra/argocd
+echo "==> Building Helm dependencies for argocd"
+helm dependency update apps/argocd
 
 echo "==> Installing ArgoCD with Helm"
-helm install argocd infra/argocd -n argocd -f infra/argocd/values.yaml
+helm install argocd apps/argocd -n argocd -f apps/argocd/values.yaml
 
 echo "==> Waiting for core ArgoCD deployments to be ready"
 wait_dep () {
@@ -35,7 +35,7 @@ wait_dep argocd-dex-server
 wait_dep argocd-redis
 
 echo "==> Applying your root Argo CD Application"
-kubectl apply -f application.yaml
+kubectl apply -f apps.yaml
 
 echo "✓ Bootstrap complete."
 echo "Tip: To get the initial admin password, run:"
