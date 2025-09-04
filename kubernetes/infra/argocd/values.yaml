@@ -1,12 +1,13 @@
-server:
-  ingress:
+argo-cd:
+  server:
+    ingress:
+      enabled: true
+    service:
+      loadBalancerIP: 192.168.0.201
+
+  configs:
+    params:
+      server.insecure: true
+
+  applicationSet:
     enabled: true
-  service:
-    loadBalancerIP: 192.168.0.201
-
-configs:
-  params:
-    server.insecure: true
-
-applicationSet:
-  enabled: true
