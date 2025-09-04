@@ -28,3 +28,5 @@ spec:
         namespace: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
       syncPolicy:
         automated: {}
+        syncOptions:
+          - CreateNamespace=true

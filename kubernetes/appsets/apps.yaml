@@ -28,3 +28,5 @@ spec:
         namespace: '{{ .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
       syncPolicy:
         automated: {}
+        syncOptions:
+          - CreateNamespace=true
