@@ -13,7 +13,7 @@ spec:
           - path: kubernetes/namespaces/*.yaml
   template:
     metadata:
-      name: '{{.path.basenameNormalized}}'  # eg, "argocd" from "argocd.yaml"
+      name: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "argocd.yaml"
       annotations:
         argocd.argoproj.io/sync-wave: "0"
     spec:
@@ -21,7 +21,7 @@ spec:
       source:
         repoURL: https://github.com/bafulton/homelab.git
         targetRevision: main
-        path: '{{.path}}'
+        path: '{{ .path }}'
       destination:
         server: https://kubernetes.default.svc
         namespace: argocd  # required field, but doesn't matter for namespaces
