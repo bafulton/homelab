@@ -13,7 +13,7 @@ spec:
           - path: kubernetes/namespaces/*.yaml
   template:
     metadata:
-      name: '{{ .path.basenameNormalized | trimSuffix ".yaml" }}-namespace'  # eg, "argocd-namespace" from "argocd.yaml"
+      name: '{{ .path.filenameNormalized | trimSuffix ".yaml" }}-namespace'  # eg, "argocd-namespace" from "argocd.yaml"
       annotations:
         argocd.argoproj.io/sync-wave: "0"
     spec:
