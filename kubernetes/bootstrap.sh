@@ -13,7 +13,7 @@ helm repo update >/dev/null
 echo "==> Making sure namespace 'argocd' exists"
 kubectl get namespace argocd >/dev/null 2>&1 || kubectl create namespace argocd
 
-echo "==> Building Helm dependencies for infra/argocd"
+echo "==> Building Helm dependencies for argocd"
 helm dependency update infra/argocd
 
 echo "==> Installing ArgoCD with Helm"
