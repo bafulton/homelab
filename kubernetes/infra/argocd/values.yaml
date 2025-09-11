@@ -3,9 +3,14 @@ argo-cd:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
   server:
-    service:
-      type: LoadBalancer
-      loadBalancerIP: 192.168.0.201
+    ingress:
+      enabled: true
+      ingressClassName: traefik  # <-- Traefik should watch this class
+      hosts:
+        - argocd.local
+      paths:
+        - /
+      pathType: Prefix
 
   configs:
     params:
