@@ -2,10 +2,13 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
+  global:
+    domain: argocd.local
+
   server:
     ingress:
       enabled: true
-      ingressClassName: traefik  # <-- Traefik should watch this class
+      ingressClassName: traefik
       hosts:
         - argocd.local
       paths:
