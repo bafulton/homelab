@@ -9,9 +9,7 @@ argo-cd:
     ingress:
       enabled: true
       ingressClassName: traefik
-      hosts:
-        - argocd.local
-      paths:
+      path:
         - /
       pathType: Prefix
 
