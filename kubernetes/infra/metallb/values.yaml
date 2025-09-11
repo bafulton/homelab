@@ -8,6 +8,6 @@ advertisement:
   ipAddressPools:
     - default-pool
 
-metallb:
+# metallb:
   # A complete list of values can be found here:
   # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
