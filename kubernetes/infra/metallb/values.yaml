@@ -7,3 +7,7 @@ advertisement:
   name: default
   ipAddressPools:
     - default-pool
+
+metallb:
+  # A complete list of values can be found here:
+  # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
