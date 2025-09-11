@@ -27,6 +27,6 @@ spec:
         server: https://kubernetes.default.svc
         namespace: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
       syncPolicy:
-        automated: {}
+        # automated: {}
         syncOptions:
           - CreateNamespace=true
