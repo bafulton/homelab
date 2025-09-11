@@ -35,7 +35,7 @@ wait_dep argocd-dex-server
 wait_dep argocd-redis
 
 echo "==> Applying your root Argo CD Application"
-kubectl apply -f bootstrap.yaml
+kubectl apply -f applications.yaml
 
 echo "✓ Bootstrap complete."
 
