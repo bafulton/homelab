@@ -6,6 +6,10 @@ argo-cd:
     domain: argocd.local
 
   server:
+    service:
+      type: LoadBalancer
+      loadBalancerIP: 192.168.0.201
+
     ingress:
       enabled: true
       ingressClassName: traefik
