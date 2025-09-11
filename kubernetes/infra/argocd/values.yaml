@@ -13,8 +13,7 @@ argo-cd:
     ingress:
       enabled: true
       ingressClassName: traefik
-      path:
-        - /
+      path: /
       pathType: Prefix
 
   configs:
