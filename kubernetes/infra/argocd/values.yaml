@@ -3,7 +3,7 @@ argo-cd:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
   global:
-    domain: argocd.local
+    domain: argocd.homelab
 
   server:
     # service:
