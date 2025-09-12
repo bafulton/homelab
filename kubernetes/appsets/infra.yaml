@@ -10,11 +10,14 @@ spec:
     - git:
         repoURL: https://github.com/bafulton/homelab
         revision: main
-        directories:
-          - path: kubernetes/infra/*
+        files:
+          - path: kubernetes/infra/*/values.yaml
+            jsonPointers:
+              - /name
+              - /namespace
   template:
     metadata:
-      name: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
+      name: '{{ .name | default .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
       annotations:
         argocd.argoproj.io/sync-wave: "-10"
     spec:
@@ -25,7 +28,7 @@ spec:
         path: '{{ .path.path }}'  # eg, kubernetes/infra/argocd
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
+        namespace: '{{ .namespace | default .path.basenameNormalized }}'
       syncPolicy:
         # automated: {}
         syncOptions:
