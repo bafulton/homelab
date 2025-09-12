@@ -7,4 +7,4 @@ traefik:
   # Useful examples here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md
 
-  priorityClassName: "system-cluster-critical"
+  priorityClassName: "system-node-critical"
