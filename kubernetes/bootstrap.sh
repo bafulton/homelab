@@ -17,6 +17,7 @@ echo "==> Building Helm dependencies for argocd"
 helm dependency update infra/argocd
 
 echo "==> Installing ArgoCD with Helm"
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 helm install argocd infra/argocd -n argocd -f infra/argocd/values.yaml
 
 echo "==> Waiting for core ArgoCD deployments to be ready"
