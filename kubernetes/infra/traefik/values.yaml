@@ -1,5 +1,5 @@
 dashboard:
-  enabled: false
+  enabled: false  # only enable temporarily to debug route issues
 
 traefik:
   # A complete list of values can be found here:
