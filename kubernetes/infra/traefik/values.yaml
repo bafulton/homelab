@@ -1,6 +1,6 @@
 namespace: kube-system
 
-# traefik:
+traefik:
   # A complete list of values can be found here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
   # 
@@ -8,3 +8,6 @@ namespace: kube-system
   # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md
 
   # priorityClassName: "system-node-critical"
+  resources:
+    requests:
+      memory: 70Mi
