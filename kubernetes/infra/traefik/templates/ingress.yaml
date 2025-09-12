@@ -16,19 +16,19 @@ spec:
               service:
                 name: traefik
                 port:
-                  number: 8000
+                  number: 9000
           - path: /api
             pathType: Prefix
             backend:
               service:
                 name: traefik
                 port:
-                  number: 8000
+                  number: 9000
           - path: /
             pathType: Prefix
             backend:
               service:
                 name: traefik
                 port:
-                  number: 8000
+                  number: 9000
 {{- end }}

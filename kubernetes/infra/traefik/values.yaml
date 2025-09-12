@@ -17,3 +17,5 @@ traefik:
     web:
       expose:
         default: true
+    traefik:
+      port: 9000
