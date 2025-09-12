@@ -12,3 +12,7 @@ traefik:
 
   additionalArguments:
   - "--api.dashboard=true"
+
+  ingressRoute:
+    dashboard:
+      enabled: true
