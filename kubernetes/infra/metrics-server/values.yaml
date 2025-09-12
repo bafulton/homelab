@@ -1,6 +1,3 @@
-name: metrics-server
-namespace: metrics-server
-
 # metrics-server:
   # A complete list of values can be found here:
   # https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
