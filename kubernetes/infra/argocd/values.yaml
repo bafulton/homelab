@@ -1,3 +1,6 @@
+name: argocd
+namespace: argocd
+
 argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml

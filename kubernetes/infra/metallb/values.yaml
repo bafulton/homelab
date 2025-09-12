@@ -1,3 +1,6 @@
+name: metallb
+namespace: metallb
+
 pool:
   name: default-pool
   addresses:
