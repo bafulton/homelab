@@ -1,6 +1,3 @@
-dashboard:
-  enabled: false  # only enable temporarily to debug route issues
-
 traefik:
   # A complete list of values can be found here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
