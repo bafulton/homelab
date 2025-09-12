@@ -8,8 +8,3 @@ kubernetes-dashboard:
       hosts:
         - kubernetes.homelab
       ingressClassName: traefik
-
-  kong:
-    proxy:
-      http:
-        enabled: true
