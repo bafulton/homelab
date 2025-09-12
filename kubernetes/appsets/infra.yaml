@@ -10,11 +10,8 @@ spec:
     - git:
         repoURL: https://github.com/bafulton/homelab
         revision: main
-        files:
-          - path: kubernetes/infra/*/values.yaml
-            jsonPointers:
-              - /name
-              - /namespace
+        directories:
+          - path: kubernetes/infra/*
   template:
     metadata:
       name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
