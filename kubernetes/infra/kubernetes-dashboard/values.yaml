@@ -8,3 +8,5 @@ kubernetes-dashboard:
       hosts:
         - kubernetes.homelab
       ingressClassName: traefik
+      tls:
+        enabled: false
