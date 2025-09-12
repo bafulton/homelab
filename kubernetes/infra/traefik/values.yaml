@@ -16,3 +16,6 @@ traefik:
   ingressRoute:
     dashboard:
       enabled: true
+      entryPoints:
+        - web
+      matchRule: Host(`traefik.homelab`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))
