@@ -9,8 +9,3 @@ metrics-server:
   resources:
     requests:
       memory: 70Mi
-
-  tmpVolume:
-    emptyDir:
-      name: tmp-dir
-      mountPath: /tmp
