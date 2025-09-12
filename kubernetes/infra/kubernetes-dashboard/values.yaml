@@ -2,8 +2,9 @@ kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
 
-  ingress:
-    enabled: true
-    hosts:
-      - kubernetes.homelab
-    ingressClassName: traefik
+  app:
+    ingress:
+      enabled: true
+      hosts:
+        - kubernetes.homelab
+      ingressClassName: traefik
