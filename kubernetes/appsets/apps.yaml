@@ -10,11 +10,11 @@ spec:
     - git:
         repoURL: https://github.com/bafulton/homelab
         revision: main
-        directories:
-          - path: kubernetes/apps/*
+        files:
+          - path: kubernetes/apps/*/values.yaml
   template:
     metadata:
-      name: '{{ .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
+      name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
       annotations:
         argocd.argoproj.io/sync-wave: "0"
     spec:
@@ -25,7 +25,7 @@ spec:
         path: '{{ .path.path }}'  # eg, kubernetes/apps/plex
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{ .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
+        namespace: '{{ get . "namespace" | default .path.basenameNormalized }}'
       syncPolicy:
         automated: {}
         syncOptions:
