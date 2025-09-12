@@ -9,4 +9,4 @@ spec:
 {{- range .Values.advertisement.ipAddressPools }}
     - {{ . | quote }}
 {{- end }}
-{{- end }}
+{{- end 
