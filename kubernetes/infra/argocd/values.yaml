@@ -2,19 +2,19 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
-  # global:
-  #   domain: argocd.homelab
+  global:
+    domain: argocd.homelab
 
   server:
-    service:
-      type: LoadBalancer
-      loadBalancerIP: 192.168.0.201
+    # service:
+    #   type: LoadBalancer
+    #   loadBalancerIP: 192.168.0.201
 
-    # ingress:
-    #   enabled: true
-    #   ingressClassName: traefik
-    #   path: /
-    #   pathType: Prefix
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      path: /
+      pathType: Prefix
 
   configs:
     params:
