@@ -5,3 +5,7 @@ metrics-server:
   # https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
 
   priorityClassName: "system-node-critical"
+
+  resources:
+    requests:
+      memory: 70Mi
