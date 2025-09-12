@@ -12,3 +12,10 @@ traefik:
 
   additionalArguments:
   - "--api.dashboard=true"
+
+  ports:
+    web:
+      expose: true
+    traefik:
+      expose: true
+      port: 9000
