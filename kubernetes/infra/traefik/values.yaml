@@ -9,3 +9,6 @@ traefik:
   # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md
 
   priorityClassName: "system-cluster-critical"
+
+  additionalArguments:
+  - "--api.dashboard=true"
