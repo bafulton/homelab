@@ -1,3 +1,4 @@
+{{- if and .Values.advertisement.name .Values.advertisement.ipAddressPools }}
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
@@ -7,4 +8,5 @@ spec:
   ipAddressPools:
 {{- range .Values.advertisement.ipAddressPools }}
     - {{ . | quote }}
+{{- end }}
 {{- end }}
