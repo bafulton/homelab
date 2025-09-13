@@ -15,4 +15,4 @@ traefik:
       enabled: true  # only enable temporarily to debug routing issues
       entryPoints:
         - web
-      matchRule: Host(`traefik.homelab`)
+      matchRule: Host(`traefik.home`)
