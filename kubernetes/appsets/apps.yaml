@@ -16,7 +16,7 @@ spec:
     metadata:
       name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
       annotations:
-        argocd.argoproj.io/sync-wave: "0"
+        argocd.argoproj.io/sync-wave: '{{ get . "syncWave" | default 0 }}'
     spec:
       project: default
       source:
