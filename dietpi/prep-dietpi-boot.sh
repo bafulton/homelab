@@ -16,8 +16,8 @@ set -euo pipefail
 #     - Append cgroup flags to cmdline.txt (if missing).
 #     - Prompt for device hostname and post-install script URL,
 #       and write them into dietpi.txt.
-#     - Prompt for Tailscale/Kubernetes secrets and write them
-#       into post-install.env on the boot partition.
+#     - Prompt for Tailscale/Kubernetes secrets and role (server/agent),
+#       and write them into post-install.env on the boot partition.
 #
 #   After running, eject the media, insert it into your device,
 #   and power on. DietPi will pick up the settings and execute
@@ -67,6 +67,7 @@ append_cmdline_flag_if_missing() {
   fi
 }
 
+lower() { tr '[:upper:]' '[:lower:]'; }
 
 # --- main ------------------------------------------------------------------
 
@@ -96,17 +97,35 @@ read -rp "URL to DietPi post-install script: " POST_INSTALL_URL
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_NET_HOSTNAME" "$DEVICE_NAME"
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_CUSTOM_SCRIPT_EXEC" "$POST_INSTALL_URL"
 
-info "Collecting secrets for post-install.env..."
+info "Collecting secrets and role for post-install.env..."
 read -rp "Tailscale auth key: " TS_AUTH_KEY
 [[ -n "${TS_AUTH_KEY:-}" ]] || err "Tailscale auth key cannot be empty."
 
 # -s for silent password input; show prompt first
-echo -n "Kubernetes password: "
-read -rs KUBE_PASSWORD
+echo -n "K3s password: "
+read -rs K3S_PASSWORD
 echo
-[[ -n "${KUBE_PASSWORD:-}" ]] || err "Kubernetes password cannot be empty."
+[[ -n "${K3S_PASSWORD:-}" ]] || err "K3s password cannot be empty."
 
-read -rp "K3s server URL [leave blank if this is the server]: " KUBE_SERVER_URL
+# Ask role and (if agent) ask for server address
+K3S_ROLE=""
+K3S_SERVER_URL=""
+
+while :; do
+  read -rp "Is this node a k3s server or agent? [server/agent]: " ROLE_IN
+  ROLE_IN="$(echo "${ROLE_IN:-}" | lower)"
+  if [[ "$ROLE_IN" == "server" ]]; then
+    K3S_ROLE="server"
+    break
+  elif [[ "$ROLE_IN" == "agent" ]]; then
+    K3S_ROLE="agent"
+    read -rp "Enter the k3s server Tailscale IP or URL (e.g., 100.x.x.x or https://...): " K3S_SERVER_URL
+    [[ -n "${K3S_SERVER_URL:-}" ]] || err "Server address is required for agent role."
+    break
+  else
+    echo "Please type 'server' or 'agent'."
+  fi
+done
 
 info "Writing $ENV_FILE..."
 cat > "$ENV_FILE" <<EOF
@@ -114,8 +133,9 @@ cat > "$ENV_FILE" <<EOF
 # This file should be deleted by the post-install script.
 
 TS_AUTH_KEY=${TS_AUTH_KEY}
-KUBE_PASSWORD=${KUBE_PASSWORD}
-KUBE_SERVER_URL=${KUBE_SERVER_URL}
+K3S_ROLE=${K3S_ROLE}
+K3S_PASSWORD=${K3S_PASSWORD}
+K3S_SERVER_URL=${K3S_SERVER_URL}
 EOF
 
 chmod 600 "$ENV_FILE"
