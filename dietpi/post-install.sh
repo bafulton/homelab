@@ -16,7 +16,7 @@ set -euo pipefail
 #   GITOPS_REPO_URL        (required if K3S_ROLE=server)
 #   BOOTSTRAP_SCRIPT_PATH  (required if K3S_ROLE=server)
 
-ENV_FILE="/post-install.env"
+ENV_FILE="/boot/post-install.env"
 
 log()  { printf "\n==> $*\n"; }
 warn() { printf "\n[warn] $*\n"; }
