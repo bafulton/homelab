@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# ============================================================================
+# DietPi Post-Flash Script
+# ============================================================================
+# 
 # Prepares a freshly-flashed DietPi boot partition for k3s + Tailscale.
 #
 # Usage:

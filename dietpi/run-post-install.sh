@@ -4,6 +4,7 @@ set -euo pipefail
 # ============================================================================
 # DietPi Post-Install Script
 # ============================================================================
+#
 # Reads config from /boot/post-install.env, installs Tailscale and k3s
 # (server/agent), optionally installs Helm + Argo CD (for server role), then
 # securely deletes post-install.env.
@@ -15,10 +16,6 @@ set -euo pipefail
 #   K3S_SERVER_URL         (required if K3S_ROLE=agent)
 #   GITOPS_REPO_URL        (required if K3S_ROLE=server)
 #   BOOTSTRAP_SCRIPT_PATH  (required if K3S_ROLE=server)
-#
-# This script is designed to be idempotent; re-runs try to "do-the-right-thing" without blowing up.
-#
-# Tested on DietPi (Debian-based). Requires network connectivity.
 
 log() { echo -e "\e[1;32m==>\e[0m $*"; }
 warn() { echo -e "\e[1;33m[warn]\e[0m $*"; }
