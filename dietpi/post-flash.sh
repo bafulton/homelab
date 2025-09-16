@@ -69,7 +69,7 @@ lower() { tr '[:upper:]' '[:lower:]'; }
 
 # --- main ------------------------------------------------------------------
 
-BOOT_MNT="${1:-}"
+BOOT_MNT="${1%/}"
 [[ -n "$BOOT_MNT" ]] || err "Usage: $0 /path/to/boot-partition"
 
 CMDLINE_TXT="$BOOT_MNT/cmdline.txt"
@@ -121,7 +121,7 @@ replace_or_add_kv "$DIETPI_TXT" "CONFIG_NTP_MIRROR" "debian.pool.ntp.org"
 replace_or_add_kv "$DIETPI_TXT" "SOFTWARE_DISABLE_SSH_PASSWORD_LOGINS" "1"
 
 log "Collecting secrets and role for post-install.env..."
-echo -n "Tailscale auth key: "
+echo -n "Tailscale auth key (tskey-auth-...): "
 read -rs TS_AUTH_KEY
 echo
 [[ -n "${TS_AUTH_KEY:-}" ]] || err "Tailscale auth key cannot be empty."
