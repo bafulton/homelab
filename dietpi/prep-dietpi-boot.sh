@@ -12,21 +12,15 @@ set -euo pipefail
 #
 #         ./prep-dietpi-boot.sh /path/to/boot
 #
-#   This will:
-#     - Append cgroup flags to cmdline.txt (if missing).
-#     - Prompt for device hostname and post-install script URL,
-#       and write them into dietpi.txt.
-#     - Prompt for Tailscale/Kubernetes secrets and role (server/agent),
-#       and write them into post-install.env on the boot partition.
-#
-#   After running, eject the media, insert it into your device,
-#   and power on. DietPi will pick up the settings and execute
-#   your custom post-install script.
+#   4. After running, eject the media, insert it into your device,
+#      and power on. DietPi will pick up the settings and execute
+#      your custom post-install script.
 
 # --- helpers ---------------------------------------------------------------
 
-err() { echo "[error]: $*" >&2; exit 1; }
-info() { echo "[info]: $*"; }
+log()  { echo -e "\e[1;32m==>\e[0m $*"; }
+warn() { echo -e "\e[1;33m[warn]\e[0m $*"; }
+err()  { echo -e "\e[1;31m[err]\e[0m  $*" >&2; exit 1; }
 
 require_file() {
   local p="$1"
@@ -81,12 +75,12 @@ ENV_FILE="$BOOT_MNT/post-install.env"
 require_file "$CMDLINE_TXT"
 require_file "$DIETPI_TXT"
 
-info "Updating kernel cgroup flags in cmdline.txt..."
+log "Updating kernel cgroup flags in cmdline.txt..."
 append_cmdline_flag_if_missing "$CMDLINE_TXT" "cgroup_enable=cpuset"
 append_cmdline_flag_if_missing "$CMDLINE_TXT" "cgroup_enable=memory"
 append_cmdline_flag_if_missing "$CMDLINE_TXT" "cgroup_memory=1"
 
-info "Collecting settings to write into dietpi.txt..."
+log "Collecting settings to write into dietpi.txt..."
 read -rp "Device name (e.g., rpi5a): " DEVICE_NAME
 [[ -n "${DEVICE_NAME:-}" ]] || err "Device name cannot be empty."
 
@@ -97,7 +91,7 @@ read -rp "URL to DietPi post-install script: " POST_INSTALL_URL
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_NET_HOSTNAME" "$DEVICE_NAME"
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_CUSTOM_SCRIPT_EXEC" "$POST_INSTALL_URL"
 
-info "Collecting secrets and role for post-install.env..."
+log "Collecting secrets and role for post-install.env..."
 read -rp "Tailscale auth key: " TS_AUTH_KEY
 [[ -n "${TS_AUTH_KEY:-}" ]] || err "Tailscale auth key cannot be empty."
 
@@ -107,40 +101,51 @@ read -rs K3S_PASSWORD
 echo
 [[ -n "${K3S_PASSWORD:-}" ]] || err "K3s password cannot be empty."
 
-# Ask role and (if agent) ask for server address
 K3S_ROLE=""
 K3S_SERVER_URL=""
+GITOPS_REPO_URL=""
+BOOTSTRAP_SCRIPT_PATH=""
 
 while :; do
   read -rp "Is this node a k3s server or agent? [server/agent]: " ROLE_IN
   ROLE_IN="$(echo "${ROLE_IN:-}" | lower)"
   if [[ "$ROLE_IN" == "server" ]]; then
     K3S_ROLE="server"
+    read -rp "GitOps repo URL (e.g., https://github.com/you/homelab.git): " GITOPS_REPO_URL
+    [[ -n "${GITOPS_REPO_URL:-}" ]] || err "GitOps repo URL is required."
+    read -rp "Path to the bootstrap script in the gitops repo (e.g., kubernetes/bootstrap.sh): " BOOTSTRAP_SCRIPT_PATH
+    [[ -n "${BOOTSTRAP_SCRIPT_PATH:-}" ]] || err "Path to bootstrap script is required."
     break
   elif [[ "$ROLE_IN" == "agent" ]]; then
     K3S_ROLE="agent"
     read -rp "Enter the k3s server Tailscale IP or URL (e.g., 100.x.x.x or https://...): " K3S_SERVER_URL
-    [[ -n "${K3S_SERVER_URL:-}" ]] || err "Server address is required for agent role."
+    [[ -n "${K3S_SERVER_URL:-}" ]] || err "Server address is required."
     break
   else
     echo "Please type 'server' or 'agent'."
   fi
 done
 
-info "Writing $ENV_FILE..."
-cat > "$ENV_FILE" <<EOF
-# Plaintext environment for post-install script.
-# This file should be deleted by the post-install script.
-
-TS_AUTH_KEY=${TS_AUTH_KEY}
-K3S_ROLE=${K3S_ROLE}
-K3S_PASSWORD=${K3S_PASSWORD}
-K3S_SERVER_URL=${K3S_SERVER_URL}
-EOF
+log "Writing $ENV_FILE..."
+{
+  echo "# Plaintext environment for post-install script."
+  echo "# This file should be deleted by the post-install script."
+  echo
+  echo "TS_AUTH_KEY=${TS_AUTH_KEY}"
+  echo "K3S_ROLE=${K3S_ROLE}"
+  echo "K3S_PASSWORD=${K3S_PASSWORD}"
+  if [[ "$K3S_ROLE" == "agent" ]]; then
+    echo "K3S_SERVER_URL=${K3S_SERVER_URL}"
+  fi
+  if [[ "$K3S_ROLE" == "server" ]]; then
+    echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
+    echo "BOOTSTRAP_SCRIPT_PATH=${BOOTSTRAP_SCRIPT_PATH}"
+  fi
+} > "$ENV_FILE"
 
 chmod 600 "$ENV_FILE"
 
-info "Done!"
+log "Done!"
 echo "  - Updated: $CMDLINE_TXT"
 echo "  - Updated: $DIETPI_TXT"
 echo "  - Created: $ENV_FILE"
