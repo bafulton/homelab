@@ -16,11 +16,11 @@ set -euo pipefail
 #   GITOPS_REPO_URL        (required if K3S_ROLE=server)
 #   BOOTSTRAP_SCRIPT_PATH  (required if K3S_ROLE=server)
 
-ENV_FILE="$(dirname "$0")/post-install.env"
+ENV_FILE="/post-install.env"
 
-log()  { printf "/n==> $*"; }
-warn() { printf "[warn] $*"; }
-err()  { printf "[err]  $*" >&2; exit 1; }
+log()  { printf "\n==> $*\n"; }
+warn() { printf "\n[warn] $*\n"; }
+err()  { printf "\n[err]  $*\n" >&2; exit 1; }
 
 require_root() {
   if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
