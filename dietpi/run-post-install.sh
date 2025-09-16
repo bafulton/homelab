@@ -137,10 +137,6 @@ install_k3s_agent() {
 install_k3s_server() {
   local ts_ip="$(get_tailscale_ipv4)"
 
-  if [[ -z "$ts_ip" ]]; then
-    err "Could not determine Tailscale IPv4 address."
-  fi
-
   if systemctl is-active --quiet k3s; then
     log "k3s server already running; skipping install"
   else
