@@ -144,6 +144,7 @@ log "Writing $ENV_FILE..."
 } > "$ENV_FILE"
 
 chmod 600 "$ENV_FILE"
+sync
 
 log "Done!"
 echo "  - Updated: $CMDLINE_TXT"
