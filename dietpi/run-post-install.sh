@@ -148,6 +148,8 @@ install_k3s_server() {
       --write-kubeconfig-mode 644 \
       --token "${K3S_PASSWORD}" \
       --bind-address "${ts_ip}" \
+      --node-ip "${ts_ip}" \
+      --tls-san "${ts_ip}" \
       --disable-cloud-controller \
       --disable servicelb \
       --disable local-storage \
