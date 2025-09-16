@@ -1,3 +1,5 @@
+syncWave: "-10"
+
 pool:
   name: default-pool
   addresses:
