@@ -22,9 +22,9 @@ set -euo pipefail
 
 # --- helpers ---------------------------------------------------------------
 
-log()  { echo -e "\e[1;32m==>\e[0m $*"; }
-warn() { echo -e "\e[1;33m[warn]\e[0m $*"; }
-err()  { echo -e "\e[1;31m[err]\e[0m  $*" >&2; exit 1; }
+log()  { echo "==> $*"; }
+warn() { echo "[warn] $*"; }
+err()  { echo "[err]  $*" >&2; exit 1; }
 
 require_file() {
   local p="$1"

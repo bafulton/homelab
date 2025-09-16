@@ -18,21 +18,19 @@ set -euo pipefail
 
 ENV_FILE="$(dirname "$0")/post-install.env"
 
-log() { echo -e "\e[1;32m==>\e[0m $*"; }
-warn() { echo -e "\e[1;33m[warn]\e[0m $*"; }
-err() { echo -e "\e[1;31m[err]\e[0m $*"; }
+log()  { echo "==> $*"; }
+warn() { echo "[warn] $*"; }
+err()  { echo "[err]  $*" >&2; exit 1; }
 
 require_root() {
   if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
     err "This script must run as root."
-    exit 1
   fi
 }
 
 load_env() {
   if [[ ! -f "$ENV_FILE" ]]; then
     err "Missing $ENV_FILE"
-    exit 1
   fi
   log "Loading configuration from ${ENV_FILE}"
   # shellcheck disable=SC1090
@@ -47,15 +45,14 @@ validate_env() {
   : "${K3S_PASSWORD:?K3S_PASSWORD is required.}"
   case "${K3S_ROLE}" in
     agent)
-      [[ -z "${K3S_SERVER_URL:-}" ]] && { err "Agent role requires K3S_SERVER_URL"; exit 1; }
+      [[ -z "${K3S_SERVER_URL:-}" ]] && { err "Agent role requires K3S_SERVER_URL"; }
       ;;
     server)
-      [[ -z "${GITOPS_REPO_URL:-}" ]] && { err "Server role requires GITOPS_REPO_URL"; exit 1; }
-      [[ -z "${BOOTSTRAP_SCRIPT_PATH:-}" ]] && { err "Server role requires BOOTSTRAP_SCRIPT_PATH"; exit 1; }
+      [[ -z "${GITOPS_REPO_URL:-}" ]] && { err "Server role requires GITOPS_REPO_URL"; }
+      [[ -z "${BOOTSTRAP_SCRIPT_PATH:-}" ]] && { err "Server role requires BOOTSTRAP_SCRIPT_PATH"; }
       ;;
     *)
       err "K3S_ROLE must be 'server' or 'agent' (got: ${K3S_ROLE})"
-      exit 1
       ;;
   esac
 }
@@ -136,7 +133,6 @@ install_k3s_server() {
   ts_ip="$(get_tailscale_ipv4)"
   if [[ -z "$ts_ip" ]]; then
     err "Could not determine Tailscale IPv4 address."
-    exit 1
   fi
 
   if systemctl is-active --quiet k3s; then
@@ -164,7 +160,6 @@ run_bootstrap_script() {
 
   if [[ ! -f "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" ]]; then
     err "Bootstrap script not found: ${workdir}/${BOOTSTRAP_SCRIPT_PATH}"
-    exit 1
   fi
 
   # Optional: wait for apiserver to be responsive (avoids races on tiny Pis)
