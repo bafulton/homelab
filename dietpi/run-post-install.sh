@@ -6,8 +6,7 @@ set -euo pipefail
 # ============================================================================
 #
 # Reads config from /boot/post-install.env, installs Tailscale and k3s
-# (server/agent), optionally installs Helm + Argo CD (for server role), then
-# securely deletes post-install.env.
+# (server/agent), then securely deletes post-install.env.
 #
 # Expected variables in post-install.env:
 #   TS_AUTH_KEY
@@ -17,162 +16,171 @@ set -euo pipefail
 #   GITOPS_REPO_URL        (required if K3S_ROLE=server)
 #   BOOTSTRAP_SCRIPT_PATH  (required if K3S_ROLE=server)
 
+ENV_FILE="$(dirname "$0")/post-install.env"
+
 log() { echo -e "\e[1;32m==>\e[0m $*"; }
 warn() { echo -e "\e[1;33m[warn]\e[0m $*"; }
-err() { echo -e "\e[1;31m[err]\e[0m  $*" >&2; }
+err() { echo -e "\e[1;31m[err]\e[0m $*"; }
 
 require_root() {
-  if [[ "$(id -u)" -ne 0 ]]; then
-    err "Please run as root."
+  if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+    err "This script must run as root."
     exit 1
   fi
 }
 
-# --- Locate and load post-install.env ---
 load_env() {
-  local candidates=(
-    "/boot/post-install.env"
-    "/post-install.env"
-    "/root/post-install.env"
-  )
-  local env_file=""
-  for f in "${candidates[@]}"; do
-    if [[ -f "$f" ]]; then
-      env_file="$f"
-      break
-    fi
-  done
-  if [[ -z "${env_file}" ]]; then
-    err "post-install.env not found in /boot, /, or /root."
+  if [[ ! -f "$ENV_FILE" ]]; then
+    err "Missing $ENV_FILE"
     exit 1
   fi
   log "Loading configuration from ${env_file}"
   # shellcheck disable=SC1090
   set -o allexport
-  source "${env_file}"
+  source "$ENV_FILE"
   set +o allexport
-  POST_INSTALL_ENV_PATH="${env_file}"
 }
 
-# --- Validate required vars ---
 validate_env() {
   : "${TS_AUTH_KEY:?TS_AUTH_KEY is required.}"
   : "${K3S_ROLE:?K3S_ROLE is required (server|agent).}"
   : "${K3S_PASSWORD:?K3S_PASSWORD is required.}"
   case "${K3S_ROLE}" in
-    server)
-      : "${GITOPS_REPO_URL:?GITOPS_REPO_URL is required for server role.}"
-      : "${BOOTSTRAP_SCRIPT_PATH:?BOOTSTRAP_SCRIPT_PATH is required for server role.}"
-      ;;
     agent)
-      : "${K3S_SERVER_URL:?K3S_SERVER_URL is required for agent role.}"
+      [[ -z "${K3S_SERVER_URL:-}" ]] && { err "Agent role requires K3S_SERVER_URL"; exit 1; }
+      ;;
+    server)
+      [[ -z "${GITOPS_REPO_URL:-}" ]] && { err "Server role requires GITOPS_REPO_URL"; exit 1; }
+      [[ -z "${BOOTSTRAP_SCRIPT_PATH:-}" ]] && { err "Server role requires BOOTSTRAP_SCRIPT_PATH"; exit 1; }
       ;;
     *)
-      err "K3S_ROLE must be 'server' or 'agent', got '${K3S_ROLE}'."
+      err "K3S_ROLE must be 'server' or 'agent' (got: ${K3S_ROLE})"
       exit 1
       ;;
   esac
 }
 
-# --- Tailscale install + up ---
-install_and_up_tailscale() {
+apt_install_if_missing() {
+  # Usage: apt_install_if_missing pkg1 pkg2 ...
+  local pkgs_to_install=()
+  for pkg in "$@"; do
+    if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+      pkgs_to_install+=("$pkg")
+    fi
+  done
+  if (( ${#pkgs_to_install[@]} > 0 )); then
+    log "Installing packages: ${pkgs_to_install[*]}"
+    apt-get update -y
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${pkgs_to_install[@]}"
+  fi
+}
+
+install_tailscale() {
   if ! command -v tailscale >/dev/null 2>&1; then
-    log "Installing Tailscale..."
+    log "Installing Tailscale"
+    apt_install_if_missing curl
     curl -fsSL https://tailscale.com/install.sh | sh
   else
-    log "Tailscale already installed."
+    log "Tailscale already installed"
   fi
 
-  systemctl enable --now tailscaled >/dev/null 2>&1 || true
+  systemctl enable --now tailscaled
 
-  # Bring Tailscale up using provided key (idempotently).
-  if tailscale status >/dev/null 2>&1; then
-    log "Tailscale already up."
+  # If not logged in, bring it up. Use minimal logging; do not echo key.
+  if ! tailscale status --peers=false >/dev/null 2>&1; then
+    log "Bringing up Tailscale (with SSH access)"
+    # --reset ensures we apply the provided flags even if prior state exists.
+    tailscale up --reset --ssh --auth-key "${TS_AUTH_KEY}"
   else
-    log "Authenticating to Tailscale..."
-    # --ssh enables SSH over Tailscale to this node
-    tailscale up --ssh --auth-key="${TS_AUTH_KEY}"
+    log "Tailscale already up; skipping tailscale up"
   fi
 }
 
-get_tailscale_ip() {
-  # Prefer IPv4 TS IP
-  local ip=""
-  for i in {1..10}; do
+get_tailscale_ipv4() {
+  # Prefer 100.64.0.0/10 address
+  local ip
+  ip="$(tailscale ip -4 2>/dev/null | grep -E '^100\.' | head -n1 || true)"
+  if [[ -z "$ip" ]]; then
+    # fallback to first IPv4 tailscale IP
     ip="$(tailscale ip -4 2>/dev/null | head -n1 || true)"
-    if [[ -n "$ip" ]]; then
-      echo "$ip"
-      return 0
-    fi
-    sleep 2
-  done
-  return 1
+  fi
+  echo "$ip"
 }
 
-# --- install k3s as agent ---
 install_k3s_agent() {
-  log "Installing k3s (agent)..."
-  # If already installed, skip.
+  local server="${K3S_SERVER_URL}"
+  # Normalize to https://host:6443 if user gave just host or host:port
+  if [[ "$server" != https://* ]]; then
+    # strip any trailing :6443 if present, we’ll add standardized form
+    server="${server%:6443}"
+    server="https://${server}:6443"
+  fi
+
   if systemctl is-active --quiet k3s-agent; then
-    log "k3s-agent already running; skipping install."
+    log "k3s agent already running; skipping install"
     return
   fi
-  # shellcheck disable=SC2153
+
+  log "Installing k3s agent -> ${server}"
   curl -sfL https://get.k3s.io | \
-    K3S_URL="${K3S_SERVER_URL}:6443" \
+    K3S_URL="${server}" \
     K3S_TOKEN="${K3S_PASSWORD}" \
     sh -
-  log "k3s agent installation complete."
+
+  systemctl enable --now k3s-agent
 }
 
-# --- install k3s as server ---
 install_k3s_server() {
-  log "Installing k3s (server)..."
-  if systemctl is-active --quiet k3s; then
-    log "k3s server already running; skipping install."
-    return
+  # Determine Tailscale IP and use it as bind-address
+  local ts_ip
+  ts_ip="$(get_tailscale_ipv4)"
+  if [[ -z "$ts_ip" ]]; then
+    err "Could not determine Tailscale IPv4 address."
+    exit 1
   fi
 
-  # Derive K3S_SERVER_URL from Tailscale IP for bind-address
-  local ts_ip
-  ts_ip="$(get_tailscale_ip)" || {
-    err "Unable to retrieve Tailscale IP."
-    exit 1
-  }
-  export K3S_SERVER_URL="${ts_ip}"
+  if systemctl is-active --quiet k3s; then
+    log "k3s server already running; skipping install"
+  else
+    log "Installing k3s server (bind ${ts_ip})"
+    curl -sfL https://get.k3s.io | sh -s - \
+      --write-kubeconfig-mode 644 \
+      --token "${K3S_PASSWORD}" \
+      --bind-address "${ts_ip}" \
+      --disable-cloud-controller \
+      --disable servicelb \
+      --disable local-storage \
+      --disable traefik \
+      --disable metrics-server
 
-  log "Using Tailscale IP ${K3S_SERVER_URL} as k3s bind-address."
-
-  curl -sfL https://get.k3s.io | sh -s - \
-    --write-kubeconfig-mode 644 \
-    --token "${K3S_PASSWORD}" \
-    --bind-address "${K3S_SERVER_URL}" \
-    --disable-cloud-controller \
-    --disable servicelb \
-    --disable local-storage \
-    --disable
-
-  export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
-  log "Waiting for k3s API to become ready..."
-  for i in {1..60}; do
-    if kubectl version --output=yaml >/dev/null 2>&1; then
-      break
-    fi
-    sleep 2
-  done
-  kubectl cluster-info
-  log "k3s server installation complete."
+    systemctl enable --now k3s
+  fi
 }
 
-# --- Securely remove env file ---
+run_bootstrap_script() {
+  apt_install_if_missing git
+  local workdir="~/root/gitops-$(date +%s)"
+  log "Cloning GitOps repo: ${GITOPS_REPO_URL}"
+  git clone --depth=1 "${GITOPS_REPO_URL}" "${workdir}"
+
+  if [[ ! -f "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" ]]; then
+    err "Bootstrap script not found: ${workdir}/${BOOTSTRAP_SCRIPT_PATH}"
+    exit 1
+  fi
+
+  log "Running bootstrap: ${BOOTSTRAP_SCRIPT_PATH}"
+  chmod +x "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" || true
+  (cd "${workdir}" && bash "${BOOTSTRAP_SCRIPT_PATH}")
+}
+
 secure_delete_env() {
-  local f="${POST_INSTALL_ENV_PATH:-}"
-  if [[ -n "$f" && -f "$f" ]]; then
-    log "Deleting ${f}"
+  if [[ -f "$ENV_FILE" ]]; then
+    log "Deleting ${ENV_FILE}"
+    # Prefer shred if available
     if command -v shred >/dev/null 2>&1; then
-      shred -u "$f" || rm -f "$f"
+      shred -u "$ENV_FILE" || rm -f "$ENV_FILE"
     else
-      rm -f "$f"
+      rm -f "$ENV_FILE"
     fi
   fi
 }
@@ -181,8 +189,8 @@ main() {
   require_root
   load_env
   validate_env
-  install_base_deps
-  install_and_up_tailscale
+
+  install_tailscale
 
   case "${K3S_ROLE}" in
     agent)
@@ -190,12 +198,13 @@ main() {
       ;;
     server)
       install_k3s_server
-      # todo: install git, clone repo, and run bootstrap script
+      run_bootstrap_script
       ;;
   esac
 
   secure_delete_env
-  log "All done."
+  log "All done!"
 }
 
 main "$@"
+
