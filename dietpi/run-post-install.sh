@@ -5,7 +5,7 @@ set -euo pipefail
 # DietPi Post-Install Script
 # ============================================================================
 #
-# Reads config from /boot/post-install.env, installs Tailscale and k3s
+# Reads config from /post-install.env, installs Tailscale and k3s
 # (server/agent), then securely deletes post-install.env.
 #
 # Expected variables in post-install.env:
@@ -75,7 +75,6 @@ apt_install_if_missing() {
 install_tailscale() {
   if ! command -v tailscale >/dev/null 2>&1; then
     log "Installing Tailscale"
-    apt_install_if_missing curl
     curl -fsSL https://tailscale.com/install.sh | sh
   else
     log "Tailscale already installed"
@@ -192,6 +191,9 @@ main() {
   require_root
   load_env
   validate_env
+
+  # tailscale and k3s installs need curl
+  apt_install_if_missing curl
 
   install_tailscale
 
