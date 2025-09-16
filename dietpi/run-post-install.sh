@@ -34,7 +34,7 @@ load_env() {
     err "Missing $ENV_FILE"
     exit 1
   fi
-  log "Loading configuration from ${env_file}"
+  log "Loading configuration from ${ENV_FILE}"
   # shellcheck disable=SC1090
   set -o allexport
   source "$ENV_FILE"
@@ -152,20 +152,28 @@ install_k3s_server() {
       --disable local-storage \
       --disable traefik \
       --disable metrics-server
-
     systemctl enable --now k3s
   fi
 }
 
 run_bootstrap_script() {
   apt_install_if_missing git
-  local workdir="~/root/gitops-$(date +%s)"
+  local workdir="/root/gitops-$(date +%s)"  # FIX: correct path; no quoted ~
   log "Cloning GitOps repo: ${GITOPS_REPO_URL}"
   git clone --depth=1 "${GITOPS_REPO_URL}" "${workdir}"
 
   if [[ ! -f "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" ]]; then
     err "Bootstrap script not found: ${workdir}/${BOOTSTRAP_SCRIPT_PATH}"
     exit 1
+  fi
+
+  # Optional: wait for apiserver to be responsive (avoids races on tiny Pis)
+  if command -v kubectl >/dev/null 2>&1; then
+    log "Waiting for Kubernetes API to become ready..."
+    for i in {1..30}; do
+      if kubectl get nodes >/dev/null 2>&1; then break; fi
+      sleep 2
+    done
   fi
 
   log "Running bootstrap: ${BOOTSTRAP_SCRIPT_PATH}"
@@ -207,4 +215,3 @@ main() {
 }
 
 main "$@"
-
