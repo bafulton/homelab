@@ -106,16 +106,12 @@ get_tailscale_ipv4() {
     # fallback to first IPv4 tailscale IP
     ip="$(tailscale ip -4 2>/dev/null | head -n1 || true)"
   fi
+  [[ -n "$ip" ]] || err "Could not determine Tailscale IPv4 address."
   echo "$ip"
 }
 
 install_k3s_agent() {
-  # Determine Tailscale IP and use it as bind-address
-  local ts_ip
-  ts_ip="$(get_tailscale_ipv4)"
-  if [[ -z "$ts_ip" ]]; then
-    err "Could not determine Tailscale IPv4 address."
-  fi
+  local ts_ip="$(get_tailscale_ipv4)"
 
   local server="${K3S_SERVER_URL}"
   # Normalize to https://host:6443 if user gave just host or host:port
@@ -139,9 +135,8 @@ install_k3s_agent() {
 }
 
 install_k3s_server() {
-  # Determine Tailscale IP and use it as bind-address
-  local ts_ip
-  ts_ip="$(get_tailscale_ipv4)"
+  local ts_ip="$(get_tailscale_ipv4)"
+
   if [[ -z "$ts_ip" ]]; then
     err "Could not determine Tailscale IPv4 address."
   fi
