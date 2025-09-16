@@ -90,6 +90,12 @@ install_tailscale() {
   else
     log "Tailscale already up; skipping tailscale up"
   fi
+
+  # Wait for a tailscale IP
+  for i in {1..15}; do
+    if tailscale ip -4 | grep -qE '^[0-9]'; then break; fi
+    sleep 1
+  done
 }
 
 get_tailscale_ipv4() {
