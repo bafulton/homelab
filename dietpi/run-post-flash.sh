@@ -22,9 +22,9 @@ set -euo pipefail
 
 # --- helpers ---------------------------------------------------------------
 
-log()  { echo "==> $*"; }
-warn() { echo "[warn] $*"; }
-err()  { echo "[err]  $*" >&2; exit 1; }
+log()  { printf "\n==> $*\n"; }
+warn() { printf "\n[warn] $*\n"; }
+err()  { printf "\n[err]  $*\n" >&2; exit 1; }
 
 require_file() {
   local p="$1"
@@ -88,15 +88,42 @@ log "Collecting settings to write into dietpi.txt..."
 read -rp "Device name (e.g., rpi5a): " DEVICE_NAME
 [[ -n "${DEVICE_NAME:-}" ]] || err "Device name cannot be empty."
 
+# -s for silent password input; show prompt first
+echo -n "Device password: "
+read -rs DEVICE_PASSWORD
+echo
+[[ -n "${DEVICE_PASSWORD:-}" ]] || err "Device password cannot be empty."
+
 read -rp "URL to DietPi post-install script: " POST_INSTALL_URL
 [[ -n "${POST_INSTALL_URL:-}" ]] || err "Post-install script URL cannot be empty."
 
 # Write values to dietpi.txt
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_NET_HOSTNAME" "$DEVICE_NAME"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_GLOBAL_PASSWORD" "$DEVICE_PASSWORD"
 replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_CUSTOM_SCRIPT_EXEC" "$POST_INSTALL_URL"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_KEYBOARD_LAYOUT" "us"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_NET_WIFI_COUNTRY_CODE" "US"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_SWAPFILE_SIZE" "0"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_HEADLESS" "1"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_RAMLOG_MAXSIZE" "200"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_BROWSER_INDEX" "0"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_AUTOSTART_TARGET_INDEX" "7"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_AUTOSTART_LOGIN_USER" "dietpi"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_SSH_SERVER_INDEX" "0"
+replace_or_add_kv "$DIETPI_TXT" "AUTO_SETUP_AUTOMATED" "1"
+replace_or_add_kv "$DIETPI_TXT" "SURVEY_OPTED_IN" "0"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_G_CHECK_URL_ATTEMPTS" "5"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_CHECK_CONNECTION_IP" "8.8.8.8"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_CHECK_DNS_DOMAIN" "google.com"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_SERIAL_CONSOLE_ENABLE" "0"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_ENABLE_IPV6" "0"
+replace_or_add_kv "$DIETPI_TXT" "CONFIG_NTP_MIRROR" "debian.pool.ntp.org"
+replace_or_add_kv "$DIETPI_TXT" "SOFTWARE_DISABLE_SSH_PASSWORD_LOGINS" "1"
 
 log "Collecting secrets and role for post-install.env..."
-read -rp "Tailscale auth key: " TS_AUTH_KEY
+echo -n "Tailscale auth key: "
+read -rs TS_AUTH_KEY
+echo
 [[ -n "${TS_AUTH_KEY:-}" ]] || err "Tailscale auth key cannot be empty."
 
 # -s for silent password input; show prompt first

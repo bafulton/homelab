@@ -18,9 +18,9 @@ set -euo pipefail
 
 ENV_FILE="$(dirname "$0")/post-install.env"
 
-log()  { echo "==> $*"; }
-warn() { echo "[warn] $*"; }
-err()  { echo "[err]  $*" >&2; exit 1; }
+log()  { printf "/n==> $*"; }
+warn() { printf "[warn] $*"; }
+err()  { printf "[err]  $*" >&2; exit 1; }
 
 require_root() {
   if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
