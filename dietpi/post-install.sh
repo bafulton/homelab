@@ -40,19 +40,22 @@ load_env() {
 }
 
 validate_env() {
-  : "${TS_AUTH_KEY:?TS_AUTH_KEY is required.}"
-  : "${K3S_ROLE:?K3S_ROLE is required (server|agent).}"
-  : "${K3S_PASSWORD:?K3S_PASSWORD is required.}"
+  log "Validating env vars"
+
+  [[ -n "${TS_AUTH_KEY:-}"   ]] || err "TS_AUTH_KEY is required."
+  [[ -n "${K3S_ROLE:-}"      ]] || err "K3S_ROLE is required (server|agent)."
+  [[ -n "${K3S_PASSWORD:-}"  ]] || err "K3S_PASSWORD is required."
+
   case "${K3S_ROLE}" in
     agent)
-      [[ -z "${K3S_SERVER_URL:-}" ]] && { err "Agent role requires K3S_SERVER_URL"; }
+      [[ -n "${K3S_SERVER_URL:-}" ]] || err "Agent role requires K3S_SERVER_URL"
       ;;
     server)
-      [[ -z "${GITOPS_REPO_URL:-}" ]] && { err "Server role requires GITOPS_REPO_URL"; }
-      [[ -z "${BOOTSTRAP_SCRIPT_PATH:-}" ]] && { err "Server role requires BOOTSTRAP_SCRIPT_PATH"; }
+      [[ -n "${GITOPS_REPO_URL:-}"       ]] || err "Server role requires GITOPS_REPO_URL"
+      [[ -n "${BOOTSTRAP_SCRIPT_PATH:-}" ]] || err "Server role requires BOOTSTRAP_SCRIPT_PATH"
       ;;
     *)
-      err "K3S_ROLE must be 'server' or 'agent' (got: ${K3S_ROLE})"
+      err "K3S_ROLE must be 'server' or 'agent' (got: ${K3S_ROLE@Q})"
       ;;
   esac
 }
