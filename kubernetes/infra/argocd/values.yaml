@@ -4,6 +4,10 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
+  global:
+    # controlled by tailscale annotation instead
+    domain: ""
+
   server:
     ingress:
       enabled: true
