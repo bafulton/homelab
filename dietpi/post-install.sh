@@ -53,6 +53,8 @@ validate_env() {
     server)
       [[ -n "${GITOPS_REPO_URL:-}"       ]] || err "Server role requires GITOPS_REPO_URL"
       [[ -n "${BOOTSTRAP_SCRIPT_PATH:-}" ]] || err "Server role requires BOOTSTRAP_SCRIPT_PATH"
+      [[ -n "${TS_CLIENT_ID:-}"          ]] || err "Server role requires TS_CLIENT_ID"
+      [[ -n "${TS_CLIENT_SECRET:-}"      ]] || err "Server role requires TS_CLIENT_SECRET"
       ;;
     *)
       err "K3S_ROLE must be 'server' or 'agent' (got: ${K3S_ROLE@Q})"
@@ -166,6 +168,34 @@ install_k3s_server() {
   fi
 }
 
+create_kubernetes_secrets() {
+  log "Creating a secret for the Argo CD admin password"
+
+  argocd_password_hash=$(
+    htpasswd -nbBC 10 "" "$ARGOCD_PASSWORD" | tr -d ':\n'
+  )
+
+  kubectl create namespace argocd \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  kubectl create secret generic argocd-secret \
+    -n argocd \
+    --from-literal=admin.password="$argocd_password_hash" \
+    --from-literal=admin.passwordMtime="$(date +%FT%T%Z)" \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  log "Creating a secret for Tailscale Operator's client credentials"
+
+  kubectl create namespace tailscale \
+    --dry-run=client -o yaml | kubectl apply -f -
+
+  kubectl create secret generic operator-oauth \
+    -n tailscale \
+    --from-literal=client_id="$TS_CLIENT_ID" \
+    --from-literal=client_secret="$TS_CLIENT_SECRET" \
+    --dry-run=client -o yaml | kubectl apply -f -
+}
+
 run_bootstrap_script() {
   apt_install_if_missing git
 
@@ -211,6 +241,7 @@ main() {
       ;;
     server)
       install_k3s_server
+      create_kubernetes_secrets
       run_bootstrap_script
       ;;
   esac
