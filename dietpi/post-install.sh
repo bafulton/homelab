@@ -201,17 +201,20 @@ run_bootstrap_script() {
   apt_install_if_missing git
 
   local repo_dir="${HOME}/gitops"
-  local script_path="${repo_dir}/${BOOTSTRAP_SCRIPT_PATH}"
-
+ 
   log "Cloning GitOps repo: ${GITOPS_REPO_URL}"
   git clone --depth=1 "${GITOPS_REPO_URL}" "${repo_dir}"
 
+  local script_path="${repo_dir}/${BOOTSTRAP_SCRIPT_PATH}"
   if [[ ! -f "${script_path}" ]]; then
     err "Bootstrap script not found: ${script_path}"
   fi
 
+  local script_dir="$(dirname "${script_path}")"
+  local script_file="$(basename "${script_path}")"
+
   log "Running bootstrap: ${script_path}"
-  (cd "${repo_dir}" && bash "${BOOTSTRAP_SCRIPT_PATH}")
+  (cd "${script_dir}" && bash "${script_file}")
 }
 
 secure_delete_env() {
