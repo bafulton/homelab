@@ -32,10 +32,10 @@ log "Making sure 'argocd' namespace exists"
 kubectl get namespace argocd >/dev/null 2>&1 || kubectl create namespace argocd
 
 log "Building Helm dependencies for Argo CD"
-helm dependency update infra/argocd
+helm dependency update kubernetes/infra/argocd
 
 log "Installing Argo CD with Helm"
-helm install argocd infra/argocd -n argocd
+helm install argocd kubernetes/infra/argocd -n argocd
 
 log "Waiting for core Argo CD deployments to be ready"
 wait_dep () {
