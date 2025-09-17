@@ -171,6 +171,7 @@ install_k3s_server() {
 create_kubernetes_secrets() {
   log "Creating a secret for the Argo CD admin password"
 
+  apt_install_if_missing apache2-utils
   argocd_password_hash=$(
     htpasswd -nbBC 10 "" "$ARGOCD_PASSWORD" | tr -d ':\n'
   )
