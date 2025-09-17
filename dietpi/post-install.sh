@@ -134,7 +134,6 @@ install_k3s_agent() {
     --server "${server}" \
     --token "${K3S_PASSWORD}" \
     --node-ip "${ts_ip}"
-  systemctl enable --now k3s-agent
 }
 
 install_k3s_server() {
@@ -155,32 +154,33 @@ install_k3s_server() {
       --disable local-storage \
       --disable traefik \
       --disable metrics-server
-    systemctl enable --now k3s
+
+    # wait for apiserver to be responsive
+    if command -v kubectl >/dev/null 2>&1; then
+      log "Waiting for Kubernetes API to become ready..."
+      for i in {1..30}; do
+        if kubectl get nodes >/dev/null 2>&1; then break; fi
+        sleep 2
+      done
+    fi
   fi
 }
 
 run_bootstrap_script() {
   apt_install_if_missing git
-  local workdir="/root/gitops-$(date +%s)"  # FIX: correct path; no quoted ~
+
+  local repo_dir="${HOME}/gitops"
+  local script_path="${repo_dir}/${BOOTSTRAP_SCRIPT_PATH}"
+
   log "Cloning GitOps repo: ${GITOPS_REPO_URL}"
-  git clone --depth=1 "${GITOPS_REPO_URL}" "${workdir}"
+  git clone --depth=1 "${GITOPS_REPO_URL}" "${repo_dir}"
 
-  if [[ ! -f "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" ]]; then
-    err "Bootstrap script not found: ${workdir}/${BOOTSTRAP_SCRIPT_PATH}"
+  if [[ ! -f "${script_path}" ]]; then
+    err "Bootstrap script not found: ${script_path}"
   fi
 
-  # Optional: wait for apiserver to be responsive (avoids races on tiny Pis)
-  if command -v kubectl >/dev/null 2>&1; then
-    log "Waiting for Kubernetes API to become ready..."
-    for i in {1..30}; do
-      if kubectl get nodes >/dev/null 2>&1; then break; fi
-      sleep 2
-    done
-  fi
-
-  log "Running bootstrap: ${BOOTSTRAP_SCRIPT_PATH}"
-  chmod +x "${workdir}/${BOOTSTRAP_SCRIPT_PATH}" || true
-  (cd "${workdir}" && bash "${BOOTSTRAP_SCRIPT_PATH}")
+  log "Running bootstrap: ${script_path}"
+  (cd "${repo_dir}" && bash "${BOOTSTRAP_SCRIPT_PATH}")
 }
 
 secure_delete_env() {
