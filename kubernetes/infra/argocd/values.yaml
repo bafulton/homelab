@@ -4,10 +4,6 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
-  configs:
-    secret:
-      createSecret: false
-
   global:
     domain: argocd.home
 
@@ -19,6 +15,9 @@ argo-cd:
       pathType: Prefix
 
   configs:
+    secret:
+      createSecret: false
+
     params:
       server.insecure: true
 
