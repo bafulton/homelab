@@ -8,8 +8,8 @@ kubernetes-dashboard:
     ingress:
       enabled: true
       hosts:
-        - kubernetes.home
-      ingressClassName: traefik
+        - kubernetes
+      ingressClassName: tailscale
       tls:
         enabled: false
 

@@ -5,12 +5,12 @@ argo-cd:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
   global:
-    domain: argocd.home
+    domain: argocd
 
   server:
     ingress:
       enabled: true
-      ingressClassName: traefik
+      ingressClassName: tailscale
       path: /
       pathType: Prefix
 
