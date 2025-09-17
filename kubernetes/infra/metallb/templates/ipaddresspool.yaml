@@ -3,7 +3,6 @@ apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
   name: {{ .Values.pool.name }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
 spec:
   addresses:
 {{- range .Values.pool.addresses }}
