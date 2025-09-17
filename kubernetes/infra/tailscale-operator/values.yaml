@@ -1,0 +1,17 @@
+namespace: tailscale
+syncWave: "-10"
+
+tailscale-operator:
+  # A complete list of values can be found here:
+  # https://github.com/tailscale/tailscale/blob/main/cmd/k8s-operator/deploy/chart/values.yaml
+
+  # Do NOT set oauth.clientId / oauth.clientSecret — leaving this empty
+  # tells the chart to use the existing Secret named "operator-oauth".
+  oauth: {}
+
+  operatorConfig:
+    # ACL tag that operator will be tagged with. The operator must be made
+    # owner of these tags.
+    # (This is default, but it's good to make it explicit.)
+    defaultTags:
+      - "tag:k8s-operator"
