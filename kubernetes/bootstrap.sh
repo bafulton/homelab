@@ -19,6 +19,7 @@ if ! command -v helm >/dev/null 2>&1; then
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
   curl -fsSL -o "$tmp/get_helm.sh" https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  chmod +x "$tmp/get_helm.sh"
   "$tmp/get_helm.sh"
 fi
 log "Helm version: $(helm version --short 2>/dev/null || echo 'unknown')"
