@@ -140,18 +140,40 @@ BOOTSTRAP_SCRIPT_PATH=""
 while :; do
   read -rp "Is this node a k3s server or agent? [server/agent]: " ROLE_IN
   ROLE_IN="$(echo "${ROLE_IN:-}" | lower)"
+
   if [[ "$ROLE_IN" == "server" ]]; then
     K3S_ROLE="server"
+
     read -rp "GitOps repo URL (e.g., https://github.com/you/homelab.git): " GITOPS_REPO_URL
     [[ -n "${GITOPS_REPO_URL:-}" ]] || err "GitOps repo URL is required."
+
     read -rp "Path to the bootstrap script in the gitops repo (e.g., kubernetes/bootstrap.sh): " BOOTSTRAP_SCRIPT_PATH
     [[ -n "${BOOTSTRAP_SCRIPT_PATH:-}" ]] || err "Path to bootstrap script is required."
+
+    echo -n "Tailscale client ID: "
+    read -rs TS_CLIENT_ID
+    echo
+    [[ -n "${TS_CLIENT_ID:-}" ]] || err "Tailscale client ID cannot be empty."
+
+    echo -n "Tailscale client secret (tskey-client-...): "
+    read -rs TS_CLIENT_SECRET
+    echo
+    [[ -n "${TS_CLIENT_SECRET:-}" ]] || err "Tailscale client secret cannot be empty."
+
+    echo -n "Argo CD password: "
+    read -rs ARGOCD_PASSWORD
+    echo
+    [[ -n "${ARGOCD_PASSWORD:-}" ]] || err "Argo CD password cannot be empty."
+
     break
+
   elif [[ "$ROLE_IN" == "agent" ]]; then
     K3S_ROLE="agent"
     read -rp "Enter the k3s server Tailscale IP or URL (e.g., 100.x.x.x or https://...): " K3S_SERVER_URL
-    [[ -n "${K3S_SERVER_URL:-}" ]] || err "Server address is required."
+    [[ -n "${K3S_SERVER_URL:-}" ]] || err "K3s server IP or URL is required."
+
     break
+
   else
     echo "Please type 'server' or 'agent'."
   fi
@@ -171,6 +193,9 @@ log "Writing $ENV_FILE..."
   if [[ "$K3S_ROLE" == "server" ]]; then
     echo "GITOPS_REPO_URL=${GITOPS_REPO_URL}"
     echo "BOOTSTRAP_SCRIPT_PATH=${BOOTSTRAP_SCRIPT_PATH}"
+    echo "TS_CLIENT_ID=${TS_CLIENT_ID}"
+    echo "TS_CLIENT_SECRET=${TS_CLIENT_SECRET}"
+    echo "ARGOCD_PASSWORD=${ARGOCD_PASSWORD}"
   fi
 } > "$ENV_FILE"
 
