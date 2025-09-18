@@ -11,10 +11,3 @@ traefik:
 
   additionalArguments:
   - "--api.dashboard=true"
-
-  ingressRoute:
-    dashboard:
-      enabled: true  # only enable temporarily to debug routing issues
-      entryPoints:
-        - web
-      matchRule: Host(`traefik.home`)
