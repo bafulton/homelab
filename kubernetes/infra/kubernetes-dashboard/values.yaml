@@ -8,15 +8,6 @@ kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
 
-  app:
-    ingress:
-      enabled: true
-      hosts:
-        - kubernetes.home
-      ingressClassName: traefik
-      tls:
-        enabled: false
-
   kong:
     proxy:
       http:
