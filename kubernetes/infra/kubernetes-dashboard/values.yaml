@@ -2,7 +2,7 @@ syncWave: "0"
 
 tailscale:
   enabled: true
-  hostname: kube-dashoard
+  hostname: kubernetes
 
 kubernetes-dashboard:
   # A complete list of values can be found here:
