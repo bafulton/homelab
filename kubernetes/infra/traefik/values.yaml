@@ -14,7 +14,7 @@ traefik:
 
   ingressRoute:
     dashboard:
-      enabled: false  # only enable temporarily to debug routing issues
+      enabled: true  # only enable temporarily to debug routing issues
       entryPoints:
         - web
       matchRule: Host(`traefik.home`)
