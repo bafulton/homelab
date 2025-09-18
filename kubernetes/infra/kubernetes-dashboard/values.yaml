@@ -1,5 +1,10 @@
 syncWave: "0"
 
+tailscale:
+  enabled: true
+  hostname: kubernetes
+  https_mode: "terminate"  # "passthrough" (443->443) or "terminate" (443->80)
+
 kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
