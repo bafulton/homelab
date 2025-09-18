@@ -11,19 +11,18 @@ spec:
   type: LoadBalancer
   loadBalancerClass: tailscale
   selector:
-    app.kubernetes.io/component: app
-    app.kubernetes.io/instance: "{{ .Values.name | default kubernetes-dashboard }}"
+    app.kubernetes.io/instance: "{{ .Release.Name }}"
     app.kubernetes.io/name: kong
   ports:
-    {{- if eq .Values.tailscale.https_mode "terminate" }}
+  {{- if eq .Values.tailscale.https_mode "terminate" }}
     # Tailscale terminates HTTPS and forwards HTTP to Kong
     - name: https
       port: 443
       targetPort: 80
-    {{- else }}
+  {{- else }}
     # End-to-end TLS to Kong (default)
     - name: https
       port: 443
       targetPort: 443
-    {{- end }}
+  {{- end }}
 {{- end }}
