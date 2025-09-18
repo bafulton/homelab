@@ -5,15 +5,12 @@ argo-cd:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
   global:
-    # controlled by tailscale annotation instead
-    domain: ""
+    domain: argocd.home
 
   server:
     ingress:
       enabled: true
-      ingressClassName: tailscale
-      annotations:
-        tailscale.com/hostname: argocd
+      ingressClassName: traefik
       path: /
       pathType: Prefix
 
