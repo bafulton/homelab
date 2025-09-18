@@ -12,7 +12,7 @@ spec:
   loadBalancerClass: tailscale
   selector:
     app.kubernetes.io/instance: "{{ .Release.Name }}"
-    app.kubernetes.io/name: kubernetes-dashboard-kong
+    app.kubernetes.io/name: kong
   ports:
     - name: http
       port: 80
