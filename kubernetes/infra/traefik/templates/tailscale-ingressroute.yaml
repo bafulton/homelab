@@ -8,7 +8,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: PathPrefix(`/`) || PathPrefix(`/dashboard`) || PathPrefix(`/api`)
+    - match: PathPrefix(`/`)
       kind: Rule
       services:
         - name: api@internal
