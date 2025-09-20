@@ -4,6 +4,10 @@ tailscale:
   enabled: true
   hostname: kube-dashboard
 
+adminUser:
+  enabled: true
+  longLived: true
+
 kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
