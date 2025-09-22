@@ -1,4 +1,5 @@
 syncWave: "0"
+serverSideApply: true
 
 kube-prometheus-stack:
   # A complete list of values can be found here:
