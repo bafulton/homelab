@@ -14,12 +14,6 @@ netdata:
   sd:
     child:
       enabled: false
-      resources:
-        requests:
-          cpu: 25m
-          memory: 100Mi
-        limits:
-          memory: 150Mi
 
   parent:
     enabled: false
@@ -27,7 +21,7 @@ netdata:
   child:
     resources:
       requests:
-        cpu: 25m
+        cpu: 250m
         memory: 200Mi
       limits:
         memory: 300Mi
@@ -43,7 +37,7 @@ netdata:
   k8sState:
     resources:
       requests:
-        cpu: 25m
+        cpu: 100m
         memory: 100Mi
       limits:
         memory: 200Mi
