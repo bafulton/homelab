@@ -50,6 +50,10 @@ netdata:
       stream:
         enabled: false
 
+    # todo: enable after installing longhorn
+    persistence:
+      enabled: false
+
     claiming:
       enabled: true
       <<: *claim
