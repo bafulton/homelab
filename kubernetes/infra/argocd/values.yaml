@@ -15,7 +15,7 @@ argo-cd:
       createSecret: false
 
     params:
-      server.insecure: true
+      server.insecure: false
 
   applicationSet:
     enabled: true
