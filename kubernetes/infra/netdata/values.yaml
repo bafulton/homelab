@@ -28,9 +28,9 @@ netdata:
     resources:
       requests:
         cpu: 25m
-        memory: 50Mi
-      limits:
         memory: 100Mi
+      limits:
+        memory: 200Mi
 
     configs:
       stream:
@@ -44,9 +44,9 @@ netdata:
     resources:
       requests:
         cpu: 25m
-        memory: 100Mi
+        memory: 50Mi
       limits:
-        memory: 200Mi
+        memory: 100Mi
 
     configs:
       stream:
