@@ -9,17 +9,12 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
-  server:
-    service:
-      annotations:
-        tailscale.com/expose: "true"
-        tailscale.com/hostname: "argocd"
-
   configs:
     secret:
       createSecret: false
 
     params:
+      # insecure, but behind the tailscale (https) ingress
       server.insecure: true
 
   applicationSet:
