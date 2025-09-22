@@ -17,5 +17,11 @@ argo-cd:
     params:
       server.insecure: false
 
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: "tailscale"
+      hostname: argocd-test
+
   applicationSet:
     enabled: true
