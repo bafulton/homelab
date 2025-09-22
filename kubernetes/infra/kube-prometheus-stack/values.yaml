@@ -11,12 +11,12 @@ kube-prometheus-stack:
   alertmanager:
     enabled: false
 
-  grafana:
-    ingress:
-      enabled: true
-      ingressClassName: tailscale
-      hosts:
-        - grafana
+  # grafana:
+  #   ingress:
+  #     enabled: true
+  #     ingressClassName: tailscale
+  #     hosts:
+  #       - grafana
 
   kubeEtcd:
     # todo: enable (see comments in values file)
