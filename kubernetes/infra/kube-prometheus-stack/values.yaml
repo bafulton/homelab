@@ -12,6 +12,17 @@ kube-prometheus-stack:
 
   grafana:
     enabled: false
+    resources:
+      requests:
+        cpu: 25m
+        memory: 100Mi
+      limits:
+      memory: 200Mi
+    # ingress:
+    #   enabled: true
+    #   ingressClassName: tailscale
+    #   hosts:
+    #     - grafana
 
   kubeControllerManager:
     enabled: false
@@ -24,3 +35,51 @@ kube-prometheus-stack:
 
   kubeProxy:
     enabled: false
+
+  prometheus:
+    prometheusSpec:
+      # tolerations: []
+      retention: 1d
+      scrapeInterval: 30s
+      evaluationInterval: 30s
+      walCompression: true
+      sampleLimit: 50000
+      targetLimit: 2000
+      resources:
+        requests:
+          cpu: 100m
+          memory: 400Mi
+        limits:
+          memory: 400Mi
+
+    # ingress:
+    #   enabled: true
+    #   ingressClassName: tailscale
+    #   hosts:
+    #     - prometheus
+
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 100Mi
+      limits:
+        memory: 100Mi
+
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 100Mi
+      limits:
+        memory: 100Mi
+
+  prometheus-node-exporter:
+    extraArgs:
+      - --collector.thermal_zone
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+      limits:
+        memory: 50Mi
