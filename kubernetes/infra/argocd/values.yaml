@@ -2,8 +2,7 @@ syncWave: "-20"
 
 tailscale:
   enabled: true
-  ingress:
-    hostname: argocd
+  hostname: argocd
 
 argo-cd:
   # A complete list of values can be found here:
