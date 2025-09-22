@@ -30,3 +30,6 @@ spec:
         automated: {}
         syncOptions:
           - CreateNamespace=true
+          {{- if eq (get . "serverSideApply") true }}
+          - ServerSideApply=true
+          {{- end }}
