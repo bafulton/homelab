@@ -1,3 +1,4 @@
+namespace: monitoring
 syncWave: "0"
 serverSideApply: true  # large CRDs; hits size limit on client-side apply
 
