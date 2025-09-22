@@ -1,0 +1,26 @@
+syncWave: "0"
+
+kube-prometheus-stack:
+  # A complete list of values can be found here:
+  # https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
+
+  defaultRules:
+    create: false
+
+  alertmanager:
+    enabled: false
+
+  grafana:
+    enabled: false
+
+  kubeControllerManager:
+    enabled: false
+
+  kubeEtcd:
+    enabled: false
+
+  kubeScheduler:
+    enabled: false
+
+  kubeProxy:
+    enabled: false
