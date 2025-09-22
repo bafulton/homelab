@@ -12,5 +12,5 @@ spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-        - '{{ .Values.tailscale.hostname | default "argocd-server" }}'
+        - "{{ .Values.tailscale.hostname }}"
 {{- end }}
