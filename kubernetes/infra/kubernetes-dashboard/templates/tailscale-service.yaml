@@ -3,15 +3,10 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kubernetes-dashboard-tailscale
-  labels:
-    app.kubernetes.io/part-of: kubernetes-dashboard
-  annotations:
-    tailscale.com/hostname: "{{ .Values.tailscale.hostname }}"
 spec:
-  type: LoadBalancer
-  loadBalancerClass: tailscale
+  type: ClusterIP
   selector:
-    app.kubernetes.io/instance: "{{ .Release.Name }}"
+    app.kubernetes.io/instance: kubernetes-dashboard
     app.kubernetes.io/name: kong
   ports:
     - name: http
