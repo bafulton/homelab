@@ -1,0 +1,10 @@
+apiVersion: v2
+name: netdata
+description: Wrapper Helm chart for Netdata
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies:
+  - name: netdata
+    version: 3.7.146
+    repository: netdata https://netdata.github.io/helmchart/
