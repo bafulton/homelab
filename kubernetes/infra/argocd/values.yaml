@@ -15,7 +15,7 @@ argo-cd:
       createSecret: false
 
     params:
-      server.insecure: false
+      server.insecure: true
 
   server:
     ingress:
