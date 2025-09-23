@@ -1,8 +1,9 @@
 syncWave: "0"
 
 claimData: &claim
-  token: "Wxz8Pc3J35qyanIzNDuH17QIJkbcjXQMVnB6BLSkT3bpNKYZmzz6cNVVkNNasv-M"
+  token: "HvTw0V016pqyQRqGuLPLyB8501KjYZZ93hQGIywm3lOfxPwFVWYfK_PYHzDihMbDIABX-q-Wxz8Pc3J35qyanIzNDuH17QIJkbcjXQMVnB6BLSkT3bpNKYZmzz6cNVVkNNasv-M"
   rooms: "3733cd36-6305-45e9-af5b-d172ca1ff4b7"
+  url: "https://app.netdata.cloud"
 
 netdata:
   # A complete list of values can be found here:
