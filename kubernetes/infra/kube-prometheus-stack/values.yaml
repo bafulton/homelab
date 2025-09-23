@@ -28,13 +28,9 @@ kube-prometheus-stack:
 
   prometheus:
     prometheusSpec:
-      # tolerations: []
-      retention: 1d
+      retention: 3d
       scrapeInterval: 30s
       evaluationInterval: 30s
-      walCompression: true
-      sampleLimit: 50000
-      targetLimit: 2000
       resources:
         requests:
           cpu: 100m
