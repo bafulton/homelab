@@ -14,16 +14,16 @@ kube-prometheus-stack:
 
   grafana:
     enabled: false
+    ingress:
+      enabled: false
+      # ingressClassName: tailscale
+      # hosts:
+      #   - grafana
     resources:
       requests:
         cpu: 50m
         memory: 128Mi
       limits:
-    # ingress:
-    #   enabled: true
-    #   ingressClassName: tailscale
-    #   hosts:
-    #     - grafana
         memory: 256Mi
 
   prometheus:
