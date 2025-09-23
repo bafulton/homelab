@@ -26,18 +26,6 @@ kube-prometheus-stack:
     #   hosts:
     #     - grafana
 
-  kubeControllerManager:
-    enabled: false
-
-  kubeEtcd:
-    enabled: false
-
-  kubeScheduler:
-    enabled: false
-
-  kubeProxy:
-    enabled: false
-
   prometheus:
     prometheusSpec:
       # tolerations: []
@@ -85,3 +73,15 @@ kube-prometheus-stack:
         memory: 50Mi
       limits:
         memory: 50Mi
+
+  kubeControllerManager:
+    enabled: false
+
+  kubeEtcd:
+    enabled: false
+
+  kubeScheduler:
+    enabled: false
+
+  kubeProxy:
+    enabled: false
