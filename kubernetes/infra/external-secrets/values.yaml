@@ -1,4 +1,5 @@
 syncWave: "-15"
+serverSideApply: true
 
 external-secrets:
   # A complete list of values can be found here:
