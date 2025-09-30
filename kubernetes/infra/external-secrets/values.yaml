@@ -1,0 +1,11 @@
+syncWave: "-15"
+
+external-secrets:
+  # A complete list of values can be found here:
+  # https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
+
+  # nameOverride: external-secrets
+  # fullnameOverride: external-secrets
+
+  bitwarden-sdk-server:
+    enabled: true
