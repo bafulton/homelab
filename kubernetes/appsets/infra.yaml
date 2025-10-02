@@ -30,6 +30,11 @@ spec:
         automated: {}
         syncOptions:
           - CreateNamespace=true
-          {{- if ((get . "serverSideApply" | default false) | toBool) }}
-          - ServerSideApply=true
-          {{- end }}
+    templatePatch: |
+      {{- if (get . "serverSideApply") }}
+      spec:
+        syncPolicy:
+          syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+      {{- end }}
