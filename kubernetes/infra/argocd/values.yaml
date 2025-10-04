@@ -1,4 +1,4 @@
-syncWave: "-20"
+syncWave: "-25"
 
 tailscale:
   enabled: true
