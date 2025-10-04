@@ -1,0 +1,8 @@
+syncWave: "-20"
+serverSideApply: true
+
+cert-manager:
+  # A complete list of values can be found here:
+  # https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
+
+  
