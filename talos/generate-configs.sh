@@ -129,10 +129,6 @@ print_summary() {
   printf "  %s/talosconfig\n" "${OUTPUT_DIR}"
   printf "\nSecrets file (back up securely!):\n"
   printf "  %s\n" "${SECRETS_FILE}"
-
-  printf "\nNext steps:\n"
-  printf "  1. Boot your Talos nodes\n"
-  printf "  2. Run: ./apply-configs.sh\n"
 }
 
 main() {
