@@ -102,15 +102,29 @@ This creates:
 
 ## Step 3: Flash Images
 
+Use [balenaEtcher](https://etcher.balena.io/) to flash images.
+
 ### x86/amd64 Nodes (Mini PCs, NUCs, etc.)
-Flash the amd64 image to a USB drive or the internal drive.
+Flash the amd64 image to a USB drive or the internal drive using balenaEtcher.
 
 ### Raspberry Pis
-Flash the arm64 image to SD cards:
-```bash
-# On macOS
-sudo dd if=talos-arm64-rpi.img of=/dev/diskN bs=4M status=progress
-```
+
+#### One-time EEPROM Update (Pi 4 and Pi 5 only)
+
+Before flashing Talos for the first time, update the Pi's bootloader firmware:
+
+1. Open **Raspberry Pi Imager**
+2. Choose OS → **Misc utility images** → **Bootloader** → **SD Card Boot**
+3. Flash to a spare SD card
+4. Insert SD card into the Pi and power on
+5. Wait 10+ seconds - green LED blinks rapidly on success (screen shows green if HDMI connected)
+6. Power off and remove the SD card
+
+This only needs to be done **once per Pi**. Pi 3 models don't need this step.
+
+#### Flash Talos Image
+
+Use balenaEtcher to flash the Talos arm64 image to your SD cards.
 
 ## Step 4: Boot Nodes and Apply Configs
 
