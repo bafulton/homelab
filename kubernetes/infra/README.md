@@ -20,41 +20,29 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 Understanding how traffic flows in a bare-metal Kubernetes cluster:
 
 ```mermaid
-flowchart TB
-    subgraph internet[Internet]
-        X[No public exposure]
-    end
-
-    subgraph tailnet[Your Tailnet]
-        laptop[Laptop / Phone]
-    end
-
-    subgraph lan[Local Network]
-        landevice[Devices on LAN]
+flowchart LR
+    subgraph external[External Access]
+        laptop[Devices on Tailnet]
+        lan[Devices on LAN]
     end
 
     subgraph k8s[Kubernetes Cluster]
-        subgraph ingress[Ingress Layer]
-            ts[Tailscale Operator]
-            traefik[Traefik]
-            metallb[MetalLB]
-        end
-
+        ts[Tailscale<br/>Operator]
+        metallb[MetalLB]
+        traefik[Traefik]
         svc[Services]
         pods[Pods]
-        coredns[CoreDNS]
-
-        ts -->|exposes on tailnet| svc
-        traefik -->|routes by host/path| svc
-        metallb -->|assigns LAN IPs| traefik
-        svc --> pods
-        coredns -.->|DNS for pod-to-pod| pods
     end
 
-    internet -.->|blocked| k8s
-    laptop -->|argocd.tailnet.ts.net| ts
-    landevice -->|192.168.x.x| metallb
+    laptop -->|argocd.my-tailnet.ts.net| ts
+    lan -->|192.168.x.x| metallb
+    metallb --> traefik
+    ts --> svc
+    traefik -->|routes by host/path| svc
+    svc --> pods
 ```
+
+**Note:** There is no public internet exposure. Access is either via Tailscale (from anywhere on your tailnet) or via LAN IPs (physical network only).
 
 ### CoreDNS (built into Kubernetes)
 Provides DNS for pods and services inside the cluster. When a pod calls `http://my-service:8080`, CoreDNS resolves `my-service` to the Service's ClusterIP.
