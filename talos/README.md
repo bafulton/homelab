@@ -95,7 +95,7 @@ This creates:
 
 Use [balenaEtcher](https://etcher.balena.io/) to flash images to SD cards or USB drives.
 
-### Raspberry Pi: One-time EEPROM Update (Pi 4/5 only)
+### Raspberry Pi 4/5: One-time EEPROM Update
 
 Before flashing Talos, update the bootloader firmware using **Raspberry Pi Imager**:
 
@@ -104,7 +104,7 @@ Before flashing Talos, update the bootloader firmware using **Raspberry Pi Image
 3. Wait 10+ seconds - green LED blinks rapidly on success
 4. Power off and remove the SD card
 
-Only needed once per Pi. Pi 3 models can skip this.
+This is only needed once per Pi. Pi 3 models can skip this.
 
 ## Step 4: Boot Nodes and Apply Configs
 
