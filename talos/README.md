@@ -184,7 +184,7 @@ This creates:
 - `generated/worker-<hostname>.yaml` - One per worker node
 - `generated/talosconfig` - Your talosctl client config
 
-**Note**: The `generated/` directory contains secrets and should NOT be committed to git.
+**Important**: The `generated/` directory contains secrets and should NOT be committed to git. However, you should back up these files securely (e.g., password manager, encrypted backup) - you'll need them for disaster recovery or adding nodes later.
 
 ## Step 4: Boot Nodes and Apply Configs
 
