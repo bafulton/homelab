@@ -143,7 +143,7 @@ machine:
 
 Configuration uses [Talhelper](https://budimanjojo.github.io/talhelper/latest/), which generates Talos configs from a declarative `talconfig.yaml` file.
 
-### 3.1 Configure your environment
+### Configure your environment
 
 Create a `.env` file with your secrets:
 
@@ -159,7 +159,7 @@ TAILNET_NAME=catfish-mountain
 TS_AUTHKEY=tskey-auth-xxxxx
 ```
 
-### 3.2 Customize talconfig.yaml (if needed)
+### Customize talconfig.yaml (if needed)
 
 The `talconfig.yaml` file defines your cluster. Review and adjust:
 
@@ -167,7 +167,7 @@ The `talconfig.yaml` file defines your cluster. Review and adjust:
 - **Talos/Kubernetes versions** - Update if you want specific versions
 - **Patches** - Add or remove patches as needed
 
-### 3.3 Generate configs
+### Generate configs
 
 Run the generator script:
 
