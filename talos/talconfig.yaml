@@ -60,12 +60,12 @@ patches:
             - 100.64.0.0/10
 
   # Tailscale extension configuration
+  # Note: TS_HOSTNAME is omitted - Tailscale will use the machine hostname
   - |-
     machine:
       files:
         - content: |
             TS_AUTHKEY={{ env "TS_AUTHKEY" }}
-            TS_HOSTNAME={{ .hostname }}
             TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
             TS_STATE_DIR=/var/lib/tailscale
           path: /var/etc/tailscale/auth.env
@@ -95,8 +95,8 @@ controlPlane:
       cluster:
         apiServer:
           certSANs:
-            - {{ .hostname }}.catfish-mountain.ts.net
-            - {{ .hostname }}
+            - beelink.catfish-mountain.ts.net
+            - beelink
             - 127.0.0.1
 
     # Disable in-tree cloud provider
