@@ -146,6 +146,36 @@ cleanup_patches() {
   rm -f "${OUTPUT_DIR}"/*-patch.yaml
 }
 
+install_talosconfig() {
+  local talos_dir="${HOME}/.talos"
+  local config_file="${talos_dir}/config"
+  local endpoint="${CONTROLPLANE_HOSTNAME}.${TAILNET_NAME}.ts.net"
+
+  printf "\nInstall talosconfig to %s? [Y/n] " "${config_file}"
+  read -r install_confirm
+  if [[ "${install_confirm,,}" == "n" ]]; then
+    log "Skipping talosconfig installation"
+    return
+  fi
+
+  # Backup existing config if present
+  if [[ -f "${config_file}" ]]; then
+    local backup="${config_file}.backup.$(date +%Y%m%d%H%M%S)"
+    log "Backing up existing config to ${backup}"
+    cp "${config_file}" "${backup}"
+  fi
+
+  # Create directory if needed
+  mkdir -p "${talos_dir}"
+
+  # Copy and configure
+  cp "${OUTPUT_DIR}/talosconfig" "${config_file}"
+  talosctl config endpoint "${endpoint}"
+  talosctl config node "${endpoint}"
+
+  log "talosconfig installed and configured for ${endpoint}"
+}
+
 print_summary() {
   log "Config generation complete!"
 
@@ -164,13 +194,9 @@ print_summary() {
   for hostname in "${WORKER_HOSTNAMES[@]}"; do
     printf "       talosctl apply-config --insecure --nodes <LAN-IP> --file %s/worker-%s.yaml\n" "${OUTPUT_DIR}" "${hostname}"
   done
-  printf "  4. Configure talosctl:\n"
-  printf "       cp %s/talosconfig ~/.talos/config\n" "${OUTPUT_DIR}"
-  printf "       talosctl config endpoint %s.%s.ts.net\n" "${CONTROLPLANE_HOSTNAME}" "${TAILNET_NAME}"
-  printf "       talosctl config node %s.%s.ts.net\n" "${CONTROLPLANE_HOSTNAME}" "${TAILNET_NAME}"
-  printf "  5. Bootstrap the cluster:\n"
+  printf "  4. Bootstrap the cluster:\n"
   printf "       talosctl bootstrap\n"
-  printf "  6. Get kubeconfig:\n"
+  printf "  5. Get kubeconfig:\n"
   printf "       talosctl kubeconfig\n"
 }
 
@@ -182,6 +208,7 @@ main() {
   generate_patches
   generate_talos_configs
   cleanup_patches
+  install_talosconfig
   print_summary
 }
 

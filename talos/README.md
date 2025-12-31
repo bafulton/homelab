@@ -90,7 +90,14 @@ Tailscale Auth Key:
   Workers:        rpi3 rpi5
   Cluster endpoint: https://beelink.catfish-mountain.ts.net:6443
 
-Proceed? [Y/n]
+Proceed? [Y/n] y
+
+==> Generating Talos configs for cluster: homelab
+...
+
+Install talosconfig to /Users/you/.talos/config? [Y/n] y
+
+==> talosconfig installed and configured for beelink.catfish-mountain.ts.net
 ```
 
 This creates:
@@ -153,20 +160,9 @@ Nodes will reboot and Tailscale will come up.
 
 **Tip**: The `generate-configs.sh` script prints the exact commands with your hostnames at the end.
 
-## Step 5: Configure talosctl
+## Step 5: Bootstrap the Cluster
 
-```bash
-# Set up your talosctl config
-cp generated/talosconfig ~/.talos/config
-
-# Update endpoints to use Tailscale (replace with your control plane hostname and tailnet)
-talosctl config endpoint <CONTROL_PLANE>.<TAILNET>.ts.net
-talosctl config node <CONTROL_PLANE>.<TAILNET>.ts.net
-```
-
-## Step 6: Bootstrap the Cluster
-
-Run this **once** on the control plane node:
+Run this **once** to initialize the Kubernetes cluster:
 
 ```bash
 talosctl bootstrap
@@ -177,7 +173,7 @@ Wait for the cluster to come up:
 talosctl health
 ```
 
-## Step 7: Get Kubeconfig
+## Step 6: Get Kubeconfig
 
 ```bash
 talosctl kubeconfig -f ~/.kube/config
@@ -190,7 +186,7 @@ kubectl get nodes
 
 You should see all your nodes in Ready state.
 
-## Step 8: Create Pre-Bootstrap Secrets
+## Step 7: Create Pre-Bootstrap Secrets
 
 Before ArgoCD syncs the infrastructure, create the required secrets:
 
@@ -213,7 +209,7 @@ kubectl create secret generic operator-oauth \
   --from-literal=client_secret="your-ts-client-secret"
 ```
 
-## Step 9: Bootstrap GitOps
+## Step 8: Bootstrap GitOps
 
 ```bash
 cd ../kubernetes/
@@ -234,7 +230,7 @@ kubectl -n argocd rollout status deploy/argocd-server --timeout=5m
 kubectl apply -f applications.yaml
 ```
 
-## Step 10: Verify Everything
+## Step 9: Verify Everything
 
 ```bash
 # Check all nodes
