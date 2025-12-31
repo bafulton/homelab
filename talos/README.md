@@ -19,10 +19,72 @@ Example configuration:
 
 ## Prerequisites
 
+### Local Tools
+
 - [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) installed
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
-- Tailscale auth key (create at https://login.tailscale.com/admin/settings/keys)
-- Tailscale OAuth client credentials (for the in-cluster operator)
+
+### Tailscale Setup
+
+You'll need two sets of credentials from Tailscale:
+
+1. **Auth Key** - For nodes to join your tailnet at the OS level
+2. **OAuth Client** - For the in-cluster Tailscale Operator to manage services
+
+#### 1. Create an Auth Key
+
+Go to [Tailscale Admin → Settings → Keys](https://login.tailscale.com/admin/settings/keys) and create an auth key:
+
+- **Reusable**: Yes (so you can use it for multiple nodes)
+- **Ephemeral**: No (nodes should persist in your tailnet)
+- **Tags**: Add a tag like `tag:k8s-node` (you'll need to define this in ACLs first)
+
+Save this key - you'll enter it during `generate-configs.sh`.
+
+#### 2. Configure ACLs
+
+Go to [Tailscale Admin → Access Controls](https://login.tailscale.com/admin/acls/file) and ensure you have the required tags and SSH rules. Minimal example:
+
+```jsonc
+{
+  "tagOwners": {
+    "tag:k8s-operator": [],
+    "tag:k8s": ["tag:k8s-operator"],
+    "tag:k8s-node": []
+  },
+  "grants": [
+    // For a homelab, allow all connections (adjust as needed)
+    {
+      "src": ["*"],
+      "dst": ["*"],
+      "ip": ["*"]
+    }
+  ],
+  "ssh": [
+    // Allow SSH to k8s nodes
+    {
+      "action": "accept",
+      "src": ["autogroup:member"],
+      "dst": ["tag:k8s-node"],
+      "users": ["root"]
+    }
+  ]
+}
+```
+
+- `tag:k8s-node` - Applied to cluster nodes via the auth key
+- `tag:k8s-operator` - Used by the in-cluster operator's OAuth client
+- `tag:k8s` - Owned by the operator, applied to services it exposes
+
+#### 3. Create OAuth Client Credentials
+
+Go to [Tailscale Admin → Settings → OAuth clients](https://login.tailscale.com/admin/settings/oauth) and create a new OAuth client:
+
+- **Description**: Something like "Kubernetes Operator"
+- **Tags**: Select `tag:k8s-operator` (devices created by the operator will get this tag)
+- **Scopes**: The operator needs write access to create devices
+
+Save the **Client ID** and **Client Secret** - you'll enter these during `bootstrap.sh`.
 
 ## Step 1: Generate Images from Talos Image Factory
 
