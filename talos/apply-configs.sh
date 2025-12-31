@@ -227,8 +227,9 @@ print_summary() {
   log "Configs applied!"
 
   printf "\nNodes will now reboot and Tailscale will come up.\n"
-  printf "This may take a few minutes.\n"
-  printf "\nOnce nodes are back online, run:\n"
+  printf "Wait 2-3 minutes, then verify nodes are reachable:\n"
+  printf "  talosctl health\n"
+  printf "\nOnce healthy, run:\n"
   printf "  ./bootstrap.sh\n"
 }
 

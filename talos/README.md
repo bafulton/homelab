@@ -26,7 +26,7 @@ Example configuration:
 
 ## Step 1: Generate Images from Talos Image Factory
 
-Go to https://factory.talos.dev and create images for each architecture you need.
+Go to https://factory.talos.dev and create an image for each architecture you need (e.g., one amd64 image for your mini PC, one arm64 image for Raspberry Pis).
 
 ### Required Extensions
 
@@ -129,7 +129,11 @@ Which node is 'controlplane'?
   ...
 ```
 
-Nodes will reboot and Tailscale will come up.
+Nodes will reboot and Tailscale will come up. Wait 2-3 minutes, then verify nodes are reachable via Tailscale:
+
+```bash
+talosctl health
+```
 
 ## Step 5: Bootstrap the Cluster
 

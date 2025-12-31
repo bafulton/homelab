@@ -42,6 +42,18 @@ check_dependencies() {
   log "kubectl: $(kubectl version --client -o json 2>/dev/null | grep -o '"gitVersion":"[^"]*"' | head -1 || echo 'unknown')"
 }
 
+check_talos_reachable() {
+  log "Checking Talos API is reachable"
+
+  if ! talosctl version >/dev/null 2>&1; then
+    err "Cannot reach Talos API. Make sure:
+  1. Nodes have rebooted after apply-configs.sh
+  2. Tailscale is running on the nodes
+  3. Your talosctl config points to the correct endpoint
+     (Run: talosctl config info)"
+  fi
+}
+
 bootstrap_talos() {
   log "Bootstrapping Talos cluster"
 
@@ -228,6 +240,7 @@ print_summary() {
 
 main() {
   check_dependencies
+  check_talos_reachable
   bootstrap_talos
   get_kubeconfig
   install_helm

@@ -28,6 +28,17 @@ check_dependencies() {
   if (( ${#missing[@]} > 0 )); then
     err "Missing required tools: ${missing[*]}"
   fi
+
+  # Check for patches directory
+  if [[ ! -d "${PATCHES_DIR}" ]]; then
+    err "Patches directory not found: ${PATCHES_DIR}"
+  fi
+  if [[ ! -f "${PATCHES_DIR}/controlplane.yaml" ]]; then
+    err "Control plane patch not found: ${PATCHES_DIR}/controlplane.yaml"
+  fi
+  if [[ ! -f "${PATCHES_DIR}/worker.yaml" ]]; then
+    err "Worker patch not found: ${PATCHES_DIR}/worker.yaml"
+  fi
 }
 
 prompt_config() {
