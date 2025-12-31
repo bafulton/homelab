@@ -39,6 +39,8 @@ nodes:
     controlPlane: false
     ipAddress: rpi5.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # SD card
+    # Image Factory schematic with extensions: intel-ucode, iscsi-tools, tailscale, util-linux-tools
+    talosImageURL: factory.talos.dev/installer/012427dcde4d2c4eff11f55adf2f20679292fcdffb76b5700dd022c813908b07:v1.12.0
 
 # ------------------------------------------------------------------------------
 # Patches - Applied to ALL nodes
