@@ -123,7 +123,7 @@ confirm_config() {
 
   printf "\nProceed? [Y/n] "
   read -r confirm
-  if [[ "${confirm,,}" == "n" ]]; then
+  if [[ "${confirm}" =~ ^[Nn]$ ]]; then
     err "Aborted by user"
   fi
 }
@@ -194,7 +194,7 @@ install_talosconfig() {
 
   printf "\nInstall talosconfig to %s? [Y/n] " "${config_file}"
   read -r install_confirm
-  if [[ "${install_confirm,,}" == "n" ]]; then
+  if [[ "${install_confirm}" =~ ^[Nn]$ ]]; then
     log "Skipping talosconfig installation"
     return
   fi

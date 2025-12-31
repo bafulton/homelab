@@ -87,7 +87,7 @@ detect_subnet() {
     printf "Detected subnet: %s\n" "$subnet"
     printf "Use this subnet? [Y/n] "
     read -r confirm
-    if [[ "${confirm,,}" == "n" ]]; then
+    if [[ "${confirm}" =~ ^[Nn]$ ]]; then
       printf "Enter subnet to scan (e.g., 192.168.1.0/24): "
       read -r subnet
     fi
@@ -205,7 +205,7 @@ confirm_apply() {
 
   printf "\nApply configs? [Y/n] "
   read -r confirm
-  if [[ "${confirm,,}" == "n" ]]; then
+  if [[ "${confirm}" =~ ^[Nn]$ ]]; then
     err "Aborted by user"
   fi
 }
