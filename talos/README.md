@@ -128,13 +128,10 @@ For PCs with internal drives (NVMe, SSD), use the ISO to boot and install:
 
 1. Download the **ISO** from Image Factory
 2. Flash the ISO to a USB drive with balenaEtcher
-3. Boot the PC from the USB drive (may need to adjust BIOS boot order)
-4. Talos boots into maintenance mode (running in RAM, waiting for config)
-5. Proceed to Step 4 - `apply-configs.sh` will install Talos to the internal drive
-6. After config is applied, Talos installs to the internal drive and reboots
-7. Remove the USB drive
 
-The install disk is auto-detected. If for some reason you need to specify it explicitly, add this to your patch:
+When you boot from the USB in Step 4, Talos will run in maintenance mode. After applying configs, it installs to the internal drive and reboots - then you can remove the USB.
+
+Talos should automatically detect the correct install disk. If for some reason you need to manually specify the install disk, you can add this to your patch:
 ```yaml
 machine:
   install:
