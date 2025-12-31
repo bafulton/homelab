@@ -154,7 +154,8 @@ scan_for_nodes() {
       fi
 
       # Summarize disk info (get disks output: NODE NAMESPACE TYPE ID VERSION SIZE ...)
-      disk_summary=$(echo "$disks_output" | tail -n +2 | grep -v '^[[:space:]]*$' | awk '{printf "%s (%s) ", $4, $6}' || true)
+      # When NODE is blank, columns shift: $3=ID, $5=size number, $6=size unit
+      disk_summary=$(echo "$disks_output" | tail -n +2 | grep -v '^[[:space:]]*$' | awk '{printf "%s (%s %s) ", $3, $5, $6}' || true)
       disk_summary="${disk_summary:0:60}"
 
       FOUND_NODES+=("$ip")
