@@ -36,3 +36,5 @@ See [`talos/README.md`](talos/README.md) for the complete bootstrap guide.
 | External Secrets | Secrets management (Bitwarden) |
 | Kubernetes Dashboard | Cluster web UI |
 | Metrics Server | Resource metrics for HPA/VPA |
+
+See [`kubernetes/infra/README.md`](kubernetes/infra/README.md) for networking overview and component details.
