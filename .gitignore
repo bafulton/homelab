@@ -1,3 +1,6 @@
 .DS_Store
 
 charts/
+
+# Talos generated configs contain secrets
+talos/generated/

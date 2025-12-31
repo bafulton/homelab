@@ -1,0 +1,41 @@
+# Talos Worker Patch
+#
+# This patch is applied to worker nodes.
+# Requires environment variables:
+#   - TS_AUTHKEY: Tailscale auth key
+#   - HOSTNAME: Node hostname
+#   - TAILNET_NAME: Tailscale tailnet name (without .ts.net)
+#
+# Processed by generate-configs.sh
+
+machine:
+  network:
+    hostname: ${HOSTNAME}
+    nameservers:
+      - 100.100.100.100  # Tailscale MagicDNS resolver
+
+  # Configure kubelet to prefer Tailscale IPs
+  kubelet:
+    nodeIP:
+      validSubnets:
+        - 100.64.0.0/10  # Tailscale CGNAT range
+
+  # Tailscale extension configuration
+  files:
+    - content: |
+        TS_AUTHKEY=${TS_AUTHKEY}
+        TS_HOSTNAME=${HOSTNAME}
+        TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
+        TS_STATE_DIR=/var/lib/tailscale
+      path: /var/etc/tailscale/auth.env
+      permissions: 0o600
+
+  # Kernel modules for Longhorn
+  kernel:
+    modules:
+      - name: iscsi_tcp
+
+  # Sysctls for container networking
+  sysctls:
+    net.core.somaxconn: "65535"
+    net.core.netdev_max_backlog: "4096"
