@@ -184,7 +184,7 @@ Example output:
 
 Generated configs in clusterconfig/
 
-Install talosconfig to ~/.talos/config? [Y/n] y
+Install talosconfig to /Users/you/.talos/config? [Y/n] y
 
 ==> talosconfig installed and configured for beelink.catfish-mountain.ts.net
 
