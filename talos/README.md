@@ -152,10 +152,9 @@ cd talos/
 cp .env.example .env
 ```
 
-Edit `.env` to add your values:
+Edit `.env` to add your Tailscale auth key:
 ```bash
 # talos/.env (git-ignored)
-TAILNET_NAME=catfish-mountain
 TS_AUTHKEY=tskey-auth-xxxxx
 ```
 
@@ -211,7 +210,8 @@ To add a new worker node:
      # ... existing nodes ...
      - hostname: new-node
        controlPlane: false
-       ipAddress: new-node.{{ env "TAILNET_NAME" }}.ts.net
+       ipAddress: new-node.catfish-mountain.ts.net
+       installDisk: /dev/mmcblk0  # or appropriate disk
    ```
 
 2. Regenerate configs: `./generate-configs.sh`

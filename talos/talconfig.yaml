@@ -13,7 +13,7 @@
 clusterName: homelab
 talosVersion: v1.12.0
 kubernetesVersion: v1.34.3
-endpoint: https://beelink.{{ env "TAILNET_NAME" }}.ts.net:6443
+endpoint: https://beelink.catfish-mountain.ts.net:6443
 
 allowSchedulingOnControlPlanes: true
 
@@ -23,20 +23,21 @@ cniConfig:
 # ------------------------------------------------------------------------------
 # Nodes
 # ------------------------------------------------------------------------------
+# NOTE: Update the tailnet name below if you fork this repo
 nodes:
   - hostname: beelink
     controlPlane: true
-    ipAddress: beelink.{{ env "TAILNET_NAME" }}.ts.net
+    ipAddress: beelink.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # eMMC, not the NVMe SSD
 
   - hostname: rpi3
     controlPlane: false
-    ipAddress: rpi3.{{ env "TAILNET_NAME" }}.ts.net
+    ipAddress: rpi3.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # SD card
 
   - hostname: rpi5
     controlPlane: false
-    ipAddress: rpi5.{{ env "TAILNET_NAME" }}.ts.net
+    ipAddress: rpi5.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # SD card
 
 # ------------------------------------------------------------------------------
@@ -94,7 +95,7 @@ controlPlane:
       cluster:
         apiServer:
           certSANs:
-            - {{ .hostname }}.{{ env "TAILNET_NAME" }}.ts.net
+            - {{ .hostname }}.catfish-mountain.ts.net
             - {{ .hostname }}
             - 127.0.0.1
 

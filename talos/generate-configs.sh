@@ -13,7 +13,7 @@ set -euo pipefail
 # Prerequisites:
 #   - talhelper: brew install budimanjojo/tap/talhelper
 #   - talosctl:  brew install siderolabs/tap/talosctl
-#   - .env file with TS_AUTHKEY and TAILNET_NAME
+#   - .env file with TS_AUTHKEY
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
@@ -37,9 +37,6 @@ load_env() {
   # Validate required variables
   if [[ -z "${TS_AUTHKEY:-}" ]]; then
     err "TS_AUTHKEY is required in .env file"
-  fi
-  if [[ -z "${TAILNET_NAME:-}" ]]; then
-    err "TAILNET_NAME is required in .env file"
   fi
 }
 
@@ -106,20 +103,14 @@ install_talosconfig() {
   # Copy the generated talosconfig
   cp "${generated_config}" "${config_file}"
 
-  # Extract control plane hostname from talconfig.yaml
-  # Look for node entries and find one with controlPlane: true
-  local cp_hostname
-  cp_hostname=$(awk '
-    /- hostname:/ { hostname = $3 }
-    /controlPlane: true/ { if (hostname) { print hostname; exit } }
-  ' "${SCRIPT_DIR}/talconfig.yaml")
+  # Extract endpoint from talconfig.yaml (e.g., https://beelink.catfish-mountain.ts.net:6443)
+  local full_endpoint
+  full_endpoint=$(awk '/^endpoint:/{print $2}' "${SCRIPT_DIR}/talconfig.yaml")
 
-  if [[ -z "${cp_hostname}" ]]; then
-    # Fallback: use first hostname in the file
-    cp_hostname=$(awk '/- hostname:/{print $3; exit}' "${SCRIPT_DIR}/talconfig.yaml")
-  fi
+  # Strip https:// prefix and :port suffix to get just the hostname
+  local endpoint
+  endpoint=$(echo "${full_endpoint}" | sed -e 's|https://||' -e 's|:[0-9]*$||')
 
-  local endpoint="${cp_hostname}.${TAILNET_NAME}.ts.net"
   talosctl config endpoint "${endpoint}"
   talosctl config node "${endpoint}"
 
