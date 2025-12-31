@@ -4,3 +4,6 @@ charts/
 
 # Talos generated configs contain secrets
 talos/generated/
+
+# Environment file with secrets
+talos/.env

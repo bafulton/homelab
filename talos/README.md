@@ -183,8 +183,20 @@ This creates:
 - `generated/controlplane.yaml` - For your control plane node
 - `generated/worker-<hostname>.yaml` - One per worker node
 - `generated/talosconfig` - Your talosctl client config
+- `generated/secrets.yaml` - Cluster secrets (CA certs, keys, tokens)
 
 **Important**: The `generated/` directory contains secrets and should NOT be committed to git. However, you should back up these files securely (e.g., password manager, encrypted backup) - you'll need them for disaster recovery or adding nodes later.
+
+### Using a .env file (optional)
+
+To avoid entering secrets interactively each time, create a `.env` file:
+
+```bash
+# talos/.env (git-ignored)
+TS_AUTHKEY=tskey-auth-xxxxx
+```
+
+The script will source this file if present and skip prompting for values that are already set.
 
 ## Step 4: Boot Nodes and Apply Configs
 

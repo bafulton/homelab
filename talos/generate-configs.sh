@@ -6,19 +6,33 @@ set -euo pipefail
 # ============================================================================
 #
 # Generates Talos machine configs for a homelab Kubernetes cluster.
-# Prompts for all configuration interactively to avoid storing secrets
-# in bash history and to allow customization per deployment.
+# Prompts for configuration interactively, or reads from .env file.
 #
 # Usage: ./generate-configs.sh
+#
+# Optional: Create a .env file with secrets to avoid interactive prompts:
+#   TS_AUTHKEY=tskey-auth-xxxxx
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PATCHES_DIR="${SCRIPT_DIR}/patches"
 OUTPUT_DIR="${SCRIPT_DIR}/generated"
+ENV_FILE="${SCRIPT_DIR}/.env"
+SECRETS_FILE="${OUTPUT_DIR}/secrets.yaml"
 
 CLUSTER_NAME="homelab"
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
+
+load_env() {
+  if [[ -f "${ENV_FILE}" ]]; then
+    log "Loading environment from .env file"
+    set -a
+    # shellcheck source=/dev/null
+    source "${ENV_FILE}"
+    set +a
+  fi
+}
 
 check_dependencies() {
   local missing=()
@@ -77,14 +91,19 @@ prompt_config() {
 }
 
 prompt_secrets() {
-  log "Secrets (input is hidden)"
+  log "Secrets"
 
-  printf "Tailscale Auth Key: "
-  read -rs TS_AUTHKEY
-  printf "\n"
+  # Skip prompt if already set (e.g., from .env file)
+  if [[ -n "${TS_AUTHKEY:-}" ]]; then
+    printf "  Tailscale Auth Key: (loaded from .env)\n"
+  else
+    printf "Tailscale Auth Key (hidden): "
+    read -rs TS_AUTHKEY
+    printf "\n"
 
-  if [[ -z "${TS_AUTHKEY}" ]]; then
-    err "Tailscale auth key is required"
+    if [[ -z "${TS_AUTHKEY}" ]]; then
+      err "Tailscale auth key is required"
+    fi
   fi
 
   export TS_AUTHKEY
@@ -132,9 +151,19 @@ generate_patches() {
 generate_talos_configs() {
   log "Generating Talos configs for cluster: ${CLUSTER_NAME}"
 
+  # Generate or reuse cluster secrets
+  if [[ -f "${SECRETS_FILE}" ]]; then
+    log "Using existing secrets from ${SECRETS_FILE}"
+  else
+    log "Generating new cluster secrets"
+    mkdir -p "${OUTPUT_DIR}"
+    talosctl gen secrets -o "${SECRETS_FILE}"
+  fi
+
   # Generate control plane config
   talosctl gen config "${CLUSTER_NAME}" "${CLUSTER_ENDPOINT}" \
     --output-dir "${OUTPUT_DIR}" \
+    --with-secrets "${SECRETS_FILE}" \
     --config-patch-control-plane "@${OUTPUT_DIR}/controlplane-patch.yaml" \
     --force
 
@@ -144,6 +173,7 @@ generate_talos_configs() {
 
     talosctl gen config "${CLUSTER_NAME}" "${CLUSTER_ENDPOINT}" \
       --output-dir "${OUTPUT_DIR}" \
+      --with-secrets "${SECRETS_FILE}" \
       --output-types worker \
       --config-patch-worker "@${OUTPUT_DIR}/worker-${hostname}-patch.yaml" \
       --force
@@ -196,14 +226,11 @@ print_summary() {
     printf "  %s/worker-%s.yaml\n" "${OUTPUT_DIR}" "${hostname}"
   done
   printf "  %s/talosconfig\n" "${OUTPUT_DIR}"
-
-  printf "\nNext steps:\n"
-  printf "  1. Flash Talos images to your devices\n"
-  printf "  2. Boot nodes, then run: ./apply-configs.sh\n"
-  printf "  3. Once nodes reboot, run: ./bootstrap.sh\n"
+  printf "  %s/secrets.yaml  (cluster CA & keys - back up securely!)\n" "${OUTPUT_DIR}"
 }
 
 main() {
+  load_env
   check_dependencies
   prompt_config
   prompt_secrets
