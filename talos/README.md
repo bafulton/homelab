@@ -22,7 +22,7 @@ Example configuration:
 ### Local Tools
 
 - [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) - `brew install siderolabs/tap/talosctl`
-- [talhelper](https://budimanjojo.github.io/talhelper/latest/) - `brew install budimanjojo/tap/talhelper`
+- [talhelper](https://budimanjojo.github.io/talhelper/latest/) - `brew install talhelper`
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) - `brew install kubectl`
 
 ### Tailscale Setup
