@@ -1,8 +1,15 @@
 # Kubernetes Dashboard
 
-## Long-lived login token
+Web-based UI for managing and troubleshooting your cluster.
 
-To login to the dashboard, you will need to provide a bearer token. Here's how to get it:
-```yaml
+## Access
+
+Exposed via Tailscale at `https://kubernetes-dashboard.<tailnet>.ts.net`
+
+## Authentication
+
+To login, you'll need a bearer token. Get it with:
+
+```bash
 kubectl get secret kube-dashboard-admin -n kubernetes-dashboard -o jsonpath="{.data.token}" | base64 -d
 ```

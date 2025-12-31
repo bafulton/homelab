@@ -213,7 +213,7 @@ The script will:
 7. Verify the deployment
 
 Once complete, ArgoCD will begin syncing your infrastructure. Access the UI via Tailscale:
-- `https://argocd.<TAILNET>.ts.net`
+- `https://argocd.<tailnet>.ts.net`
 - Username: `admin`
 - Password: (what you entered during bootstrap)
 
@@ -240,7 +240,7 @@ talosctl upgrade --image factory.talos.dev/installer/[your-image-id]:vX.Y.Z
 
 ### Reset a node (wipe and rejoin)
 ```bash
-talosctl reset --nodes <NODE>.<TAILNET>.ts.net --graceful=false
+talosctl reset --nodes <node>.<tailnet>.ts.net --graceful=false
 ```
 
 ---
@@ -255,7 +255,7 @@ talosctl logs tailscale --nodes <node>
 ### Kubernetes API unreachable
 Make sure you're using the Tailscale hostname/IP, not the LAN IP:
 ```bash
-talosctl config endpoint <CONTROL_PLANE>.<TAILNET>.ts.net
+talosctl config endpoint <controlplane>.<tailnet>.ts.net
 ```
 
 ### Node not joining cluster

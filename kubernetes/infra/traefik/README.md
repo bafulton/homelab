@@ -8,7 +8,7 @@ The Traefik dashboard is exposed via Tailscale at `https://traefik.<tailnet>.ts.
 
 ## Usage
 
-Traefik handles Ingress resources. For services exposed via Tailscale, use the `tailscale` ingress class instead (see tailscale-operator).
+Traefik handles Ingress resources. For services exposed via Tailscale, use the `tailscale` ingress class instead (see [tailscale-operator](../tailscale-operator)).
 
 For internal routing or advanced features (middleware, TCP/UDP routing), use Traefik's CRDs:
 
