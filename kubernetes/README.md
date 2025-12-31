@@ -11,14 +11,6 @@ kubernetes/
 │   ├── infra.yaml      # Generates apps for each chart in infra/
 │   └── apps.yaml       # Generates apps for each chart in apps/
 ├── infra/              # Infrastructure Helm charts
-│   ├── argocd/
-│   ├── cert-manager/
-│   ├── external-secrets/
-│   ├── kubernetes-dashboard/
-│   ├── metallb/
-│   ├── metrics-server/
-│   ├── tailscale-operator/
-│   └── traefik/
 └── apps/               # User application Helm charts
 ```
 
