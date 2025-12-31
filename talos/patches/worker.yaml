@@ -30,7 +30,7 @@ machine:
       path: /var/etc/tailscale/auth.env
       permissions: 0o600
 
-  # Kernel modules for Longhorn
+  # Kernel modules for Longhorn (comment out if not using Longhorn)
   kernel:
     modules:
       - name: iscsi_tcp

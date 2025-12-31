@@ -8,7 +8,6 @@ with Tailscale for secure node-to-node communication.
 This setup creates a Kubernetes cluster where:
 - All nodes communicate over Tailscale (your private mesh network)
 - The control plane node also runs workloads (no taint)
-- Longhorn-ready with iSCSI support
 - GitOps-driven via ArgoCD
 
 Example configuration:
@@ -28,17 +27,28 @@ Example configuration:
 
 ## Step 1: Generate Images from Talos Image Factory
 
-Go to https://factory.talos.dev and create two images:
+Go to https://factory.talos.dev and create images for each architecture you need.
+
+### Required Extensions
+
+| Extension | Purpose |
+|-----------|---------|
+| `siderolabs/tailscale` | **Required.** Establishes mesh network before Kubernetes starts. |
+
+### Optional Extensions
+
+| Extension | When needed |
+|-----------|-------------|
+| `siderolabs/iscsi-tools` | Required if using **Longhorn** for storage |
+| `siderolabs/util-linux-tools` | Required if using **Longhorn** (provides `nsenter`) |
+| `siderolabs/intel-ucode` | Optional. CPU microcode updates for Intel CPUs |
+| `siderolabs/amd-ucode` | Optional. CPU microcode updates for AMD CPUs |
 
 ### amd64 Image (Mini PCs, NUCs, Intel/AMD machines)
 
 1. Select Talos version (latest stable)
 2. Select architecture: **amd64**
-3. Select extensions:
-   - `siderolabs/tailscale`
-   - `siderolabs/iscsi-tools`
-   - `siderolabs/util-linux-tools`
-   - `siderolabs/intel-ucode` (if Intel CPU) or `siderolabs/amd-ucode` (if AMD CPU)
+3. Select extensions (at minimum `siderolabs/tailscale`)
 4. Download the appropriate image for your boot method (ISO, raw disk image, etc.)
 
 ### arm64 Image (Raspberry Pi)
@@ -46,10 +56,7 @@ Go to https://factory.talos.dev and create two images:
 1. Select Talos version (latest stable)
 2. Select architecture: **arm64**
 3. Select **Raspberry Pi** as the platform
-4. Select extensions:
-   - `siderolabs/tailscale`
-   - `siderolabs/iscsi-tools`
-   - `siderolabs/util-linux-tools`
+4. Select extensions (at minimum `siderolabs/tailscale`)
 5. Download the raw disk image for SD card flashing
 
 ## Step 2: Generate Machine Configs
@@ -288,7 +295,7 @@ talosctl logs kubelet --nodes <node>
 ```
 
 ### Longhorn issues
-Verify iSCSI is loaded:
+If using Longhorn, verify iSCSI is loaded (requires `iscsi-tools` extension and uncommenting kernel module in patches):
 ```bash
 talosctl read /proc/modules --nodes <node> | grep iscsi
 ```
