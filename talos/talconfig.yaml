@@ -1,0 +1,103 @@
+# Talos Cluster Configuration
+#
+# This file defines the entire cluster configuration for Talhelper.
+# Secrets are provided via environment variables (see .env.example).
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in your values
+#   2. Run: talhelper genconfig
+#   3. Apply configs to nodes
+#
+# Docs: https://budimanjojo.github.io/talhelper/latest/
+
+clusterName: homelab
+talosVersion: v1.12.0
+kubernetesVersion: v1.34.3
+endpoint: https://beelink.{{ env "TAILNET_NAME" }}.ts.net:6443
+
+allowSchedulingOnControlPlanes: true
+
+cniConfig:
+  name: flannel
+
+# ------------------------------------------------------------------------------
+# Nodes
+# ------------------------------------------------------------------------------
+nodes:
+  - hostname: beelink
+    controlPlane: true
+    ipAddress: beelink.{{ env "TAILNET_NAME" }}.ts.net
+
+  - hostname: rpi3
+    controlPlane: false
+    ipAddress: rpi3.{{ env "TAILNET_NAME" }}.ts.net
+
+  - hostname: rpi5
+    controlPlane: false
+    ipAddress: rpi5.{{ env "TAILNET_NAME" }}.ts.net
+
+# ------------------------------------------------------------------------------
+# Patches - Applied to ALL nodes
+# ------------------------------------------------------------------------------
+patches:
+  # Networking: Use Tailscale MagicDNS
+  - |-
+    machine:
+      network:
+        nameservers:
+          - 100.100.100.100
+
+  # Kubelet: Use Tailscale IPs for node addresses
+  - |-
+    machine:
+      kubelet:
+        nodeIP:
+          validSubnets:
+            - 100.64.0.0/10
+
+  # Tailscale extension configuration
+  - |-
+    machine:
+      files:
+        - content: |
+            TS_AUTHKEY={{ env "TS_AUTHKEY" }}
+            TS_HOSTNAME={{ .hostname }}
+            TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
+            TS_STATE_DIR=/var/lib/tailscale
+          path: /var/etc/tailscale/auth.env
+          permissions: 0o600
+
+  # Kernel modules for Longhorn storage
+  - |-
+    machine:
+      kernel:
+        modules:
+          - name: iscsi_tcp
+
+  # Sysctls for container networking
+  - |-
+    machine:
+      sysctls:
+        net.core.somaxconn: "65535"
+        net.core.netdev_max_backlog: "4096"
+
+# ------------------------------------------------------------------------------
+# Control Plane Patches
+# ------------------------------------------------------------------------------
+controlPlane:
+  patches:
+    # API server certificate SANs for Tailscale access
+    - |-
+      cluster:
+        apiServer:
+          certSANs:
+            - {{ .hostname }}.{{ env "TAILNET_NAME" }}.ts.net
+            - {{ .hostname }}
+            - 127.0.0.1
+
+    # Disable in-tree cloud provider
+    - |-
+      cluster:
+        controllerManager:
+          extraArgs:
+            cloud-provider: external

@@ -2,195 +2,89 @@
 set -euo pipefail
 
 # ============================================================================
-# Talos Config Generator
+# Talos Config Generator (Talhelper Wrapper)
 # ============================================================================
 #
-# Generates Talos machine configs for a homelab Kubernetes cluster.
-# Prompts for configuration interactively, or reads from .env file.
+# Generates Talos machine configs using Talhelper.
+# Configuration is defined in talconfig.yaml, secrets in .env file.
 #
 # Usage: ./generate-configs.sh
 #
-# Optional: Create a .env file with secrets to avoid interactive prompts:
-#   TS_AUTHKEY=tskey-auth-xxxxx
+# Prerequisites:
+#   - talhelper: brew install budimanjojo/tap/talhelper
+#   - talosctl:  brew install siderolabs/tap/talosctl
+#   - .env file with TS_AUTHKEY and TAILNET_NAME
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PATCHES_DIR="${SCRIPT_DIR}/patches"
-OUTPUT_DIR="${SCRIPT_DIR}/generated"
 ENV_FILE="${SCRIPT_DIR}/.env"
-SECRETS_FILE="${OUTPUT_DIR}/secrets.yaml"
-
-CLUSTER_NAME="homelab"
+SECRETS_FILE="${SCRIPT_DIR}/talsecret.yaml"
+OUTPUT_DIR="${SCRIPT_DIR}/clusterconfig"
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
 
 load_env() {
-  if [[ -f "${ENV_FILE}" ]]; then
-    log "Loading environment from .env file"
-    set -a
-    # shellcheck source=/dev/null
-    source "${ENV_FILE}"
-    set +a
+  if [[ ! -f "${ENV_FILE}" ]]; then
+    err "Missing .env file. Copy .env.example to .env and fill in your values."
+  fi
+
+  log "Loading environment from .env file"
+  set -a
+  # shellcheck source=/dev/null
+  source "${ENV_FILE}"
+  set +a
+
+  # Validate required variables
+  if [[ -z "${TS_AUTHKEY:-}" ]]; then
+    err "TS_AUTHKEY is required in .env file"
+  fi
+  if [[ -z "${TAILNET_NAME:-}" ]]; then
+    err "TAILNET_NAME is required in .env file"
   fi
 }
 
 check_dependencies() {
   local missing=()
-  command -v talosctl >/dev/null 2>&1 || missing+=("talosctl")
-  command -v envsubst >/dev/null 2>&1 || missing+=("envsubst (gettext)")
+  command -v talhelper >/dev/null 2>&1 || missing+=("talhelper (brew install budimanjojo/tap/talhelper)")
+  command -v talosctl >/dev/null 2>&1 || missing+=("talosctl (brew install siderolabs/tap/talosctl)")
 
   if (( ${#missing[@]} > 0 )); then
-    err "Missing required tools: ${missing[*]}"
+    err "Missing required tools:\n  ${missing[*]}"
   fi
 
-  # Check for patches directory
-  if [[ ! -d "${PATCHES_DIR}" ]]; then
-    err "Patches directory not found: ${PATCHES_DIR}"
-  fi
-  if [[ ! -f "${PATCHES_DIR}/controlplane.yaml" ]]; then
-    err "Control plane patch not found: ${PATCHES_DIR}/controlplane.yaml"
-  fi
-  if [[ ! -f "${PATCHES_DIR}/worker.yaml" ]]; then
-    err "Worker patch not found: ${PATCHES_DIR}/worker.yaml"
+  if [[ ! -f "${SCRIPT_DIR}/talconfig.yaml" ]]; then
+    err "talconfig.yaml not found in ${SCRIPT_DIR}"
   fi
 }
 
-prompt_config() {
-  log "Cluster Configuration"
-
-  # Tailnet name
-  printf "Tailscale tailnet name (e.g., catfish-mountain): "
-  read -r TAILNET_NAME
-  if [[ -z "${TAILNET_NAME}" ]]; then
-    err "Tailnet name is required"
-  fi
-  # Strip .ts.net suffix if user accidentally included it
-  TAILNET_NAME="${TAILNET_NAME%.ts.net}"
-  export TAILNET_NAME
-
-  # Control plane hostname
-  printf "Control plane node hostname (e.g., beelink): "
-  read -r CONTROLPLANE_HOSTNAME
-  if [[ -z "${CONTROLPLANE_HOSTNAME}" ]]; then
-    err "Control plane hostname is required"
-  fi
-  export CONTROLPLANE_HOSTNAME
-
-  # Derive the cluster endpoint
-  CLUSTER_ENDPOINT="https://${CONTROLPLANE_HOSTNAME}.${TAILNET_NAME}.ts.net:6443"
-  export CLUSTER_ENDPOINT
-
-  # Worker hostnames (optional - can be empty for single-node cluster)
-  printf "Worker node hostnames (space-separated, e.g., rpi3 rpi5, or leave empty): "
-  read -r worker_input
-  if [[ -n "${worker_input}" ]]; then
-    read -r -a WORKER_HOSTNAMES <<< "${worker_input}"
-  else
-    WORKER_HOSTNAMES=()
-  fi
-}
-
-prompt_secrets() {
-  log "Secrets"
-
-  # Skip prompt if already set (e.g., from .env file)
-  if [[ -n "${TS_AUTHKEY:-}" ]]; then
-    printf "  Tailscale Auth Key: (loaded from .env)\n"
-  else
-    printf "Tailscale Auth Key (hidden): "
-    read -rs TS_AUTHKEY
-    printf "\n"
-
-    if [[ -z "${TS_AUTHKEY}" ]]; then
-      err "Tailscale auth key is required"
-    fi
-  fi
-
-  export TS_AUTHKEY
-}
-
-confirm_config() {
-  log "Configuration Summary"
-
-  printf "  Tailnet:        %s.ts.net\n" "${TAILNET_NAME}"
-  printf "  Control plane:  %s\n" "${CONTROLPLANE_HOSTNAME}"
-  if (( ${#WORKER_HOSTNAMES[@]} > 0 )); then
-    printf "  Workers:        %s\n" "${WORKER_HOSTNAMES[*]}"
-  else
-    printf "  Workers:        (none - single node cluster)\n"
-  fi
-  printf "  Cluster endpoint: %s\n" "${CLUSTER_ENDPOINT}"
-
-  printf "\nProceed? [Y/n] "
-  read -r confirm
-  if [[ "${confirm}" =~ ^[Nn]$ ]]; then
-    err "Aborted by user"
-  fi
-}
-
-generate_patches() {
-  log "Processing patches with envsubst"
-
-  mkdir -p "${OUTPUT_DIR}"
-
-  # Control plane patch
-  HOSTNAME="${CONTROLPLANE_HOSTNAME}" \
-    envsubst '${TS_AUTHKEY} ${HOSTNAME} ${TAILNET_NAME}' \
-    < "${PATCHES_DIR}/controlplane.yaml" \
-    > "${OUTPUT_DIR}/controlplane-patch.yaml"
-
-  # Worker patches (one per node)
-  for hostname in "${WORKER_HOSTNAMES[@]}"; do
-    HOSTNAME="${hostname}" \
-      envsubst '${TS_AUTHKEY} ${HOSTNAME} ${TAILNET_NAME}' \
-      < "${PATCHES_DIR}/worker.yaml" \
-      > "${OUTPUT_DIR}/worker-${hostname}-patch.yaml"
-  done
-}
-
-generate_talos_configs() {
-  log "Generating Talos configs for cluster: ${CLUSTER_NAME}"
-
-  # Generate or reuse cluster secrets
+generate_secrets() {
   if [[ -f "${SECRETS_FILE}" ]]; then
     log "Using existing secrets from ${SECRETS_FILE}"
   else
     log "Generating new cluster secrets"
-    mkdir -p "${OUTPUT_DIR}"
-    talosctl gen secrets -o "${SECRETS_FILE}"
+    talhelper gensecret > "${SECRETS_FILE}"
+    printf "  Created: %s\n" "${SECRETS_FILE}"
+    printf "  IMPORTANT: Back up this file securely - it contains cluster CA & keys!\n"
   fi
-
-  # Generate control plane config
-  talosctl gen config "${CLUSTER_NAME}" "${CLUSTER_ENDPOINT}" \
-    --output-dir "${OUTPUT_DIR}" \
-    --with-secrets "${SECRETS_FILE}" \
-    --config-patch-control-plane "@${OUTPUT_DIR}/controlplane-patch.yaml" \
-    --force
-
-  # Generate worker configs (one per node)
-  for hostname in "${WORKER_HOSTNAMES[@]}"; do
-    log "Generating worker config for ${hostname}"
-
-    talosctl gen config "${CLUSTER_NAME}" "${CLUSTER_ENDPOINT}" \
-      --output-dir "${OUTPUT_DIR}" \
-      --with-secrets "${SECRETS_FILE}" \
-      --output-types worker \
-      --config-patch-worker "@${OUTPUT_DIR}/worker-${hostname}-patch.yaml" \
-      --force
-
-    mv "${OUTPUT_DIR}/worker.yaml" "${OUTPUT_DIR}/worker-${hostname}.yaml"
-  done
 }
 
-cleanup_patches() {
-  # Remove intermediate patch files (they contain secrets)
-  rm -f "${OUTPUT_DIR}"/*-patch.yaml
+generate_configs() {
+  log "Generating Talos configs with Talhelper"
+
+  cd "${SCRIPT_DIR}"
+  talhelper genconfig
+
+  printf "\nGenerated configs in %s/\n" "${OUTPUT_DIR}"
 }
 
 install_talosconfig() {
   local talos_dir="${HOME}/.talos"
   local config_file="${talos_dir}/config"
-  local endpoint="${CONTROLPLANE_HOSTNAME}.${TAILNET_NAME}.ts.net"
+  local generated_config="${OUTPUT_DIR}/talosconfig"
+
+  if [[ ! -f "${generated_config}" ]]; then
+    err "talosconfig not found at ${generated_config}"
+  fi
 
   printf "\nInstall talosconfig to %s? [Y/n] " "${config_file}"
   read -r install_confirm
@@ -209,8 +103,11 @@ install_talosconfig() {
   # Create directory if needed
   mkdir -p "${talos_dir}"
 
-  # Copy and configure
-  cp "${OUTPUT_DIR}/talosconfig" "${config_file}"
+  # Copy the generated talosconfig
+  cp "${generated_config}" "${config_file}"
+
+  # Configure endpoint and node (control plane hostname from talconfig)
+  local endpoint="beelink.${TAILNET_NAME}.ts.net"
   talosctl config endpoint "${endpoint}"
   talosctl config node "${endpoint}"
 
@@ -221,23 +118,25 @@ print_summary() {
   log "Config generation complete!"
 
   printf "\nGenerated files:\n"
-  printf "  %s/controlplane.yaml  (%s)\n" "${OUTPUT_DIR}" "${CONTROLPLANE_HOSTNAME}"
-  for hostname in "${WORKER_HOSTNAMES[@]}"; do
-    printf "  %s/worker-%s.yaml\n" "${OUTPUT_DIR}" "${hostname}"
+  for f in "${OUTPUT_DIR}"/*.yaml; do
+    if [[ -f "$f" ]]; then
+      printf "  %s\n" "$f"
+    fi
   done
   printf "  %s/talosconfig\n" "${OUTPUT_DIR}"
-  printf "  %s/secrets.yaml  (cluster CA & keys - back up securely!)\n" "${OUTPUT_DIR}"
+  printf "\nSecrets file (back up securely!):\n"
+  printf "  %s\n" "${SECRETS_FILE}"
+
+  printf "\nNext steps:\n"
+  printf "  1. Boot your Talos nodes\n"
+  printf "  2. Run: ./apply-configs.sh\n"
 }
 
 main() {
   load_env
   check_dependencies
-  prompt_config
-  prompt_secrets
-  confirm_config
-  generate_patches
-  generate_talos_configs
-  cleanup_patches
+  generate_secrets
+  generate_configs
   install_talosconfig
   print_summary
 }

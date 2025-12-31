@@ -3,7 +3,8 @@
 charts/
 
 # Talos generated configs contain secrets
-talos/generated/
+talos/clusterconfig/
+talos/talsecret.yaml
 
 # Environment file with secrets
 talos/.env

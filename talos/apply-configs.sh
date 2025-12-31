@@ -11,7 +11,8 @@ set -euo pipefail
 # Usage: ./apply-configs.sh
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GENERATED_DIR="${SCRIPT_DIR}/generated"
+GENERATED_DIR="${SCRIPT_DIR}/clusterconfig"
+CLUSTER_NAME="homelab"
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
@@ -24,32 +25,38 @@ check_dependencies() {
 
 check_generated_configs() {
   if [[ ! -d "${GENERATED_DIR}" ]]; then
-    err "Generated configs not found. Run ./generate-configs.sh first."
+    err "Generated configs not found in ${GENERATED_DIR}. Run ./generate-configs.sh first."
   fi
 
-  if [[ ! -f "${GENERATED_DIR}/controlplane.yaml" ]]; then
-    err "controlplane.yaml not found in ${GENERATED_DIR}. Run ./generate-configs.sh first."
+  # Check for at least one config file
+  local config_count
+  config_count=$(find "${GENERATED_DIR}" -name "${CLUSTER_NAME}-*.yaml" 2>/dev/null | wc -l)
+  if [[ "${config_count}" -eq 0 ]]; then
+    err "No config files found in ${GENERATED_DIR}. Run ./generate-configs.sh first."
   fi
 }
 
 discover_configs() {
-  CONTROLPLANE_CONFIG="${GENERATED_DIR}/controlplane.yaml"
+  # Talhelper generates configs named: <cluster>-<hostname>.yaml
+  # e.g., homelab-beelink.yaml, homelab-rpi3.yaml
+  CONFIG_NAMES=()
+  CONFIG_FILES=()
 
-  WORKER_CONFIGS=()
-  WORKER_NAMES=()
-  for f in "${GENERATED_DIR}"/worker-*.yaml; do
+  for f in "${GENERATED_DIR}"/${CLUSTER_NAME}-*.yaml; do
     if [[ -f "$f" ]]; then
-      WORKER_CONFIGS+=("$f")
-      WORKER_NAMES+=("$(basename "$f" .yaml | sed 's/^worker-//')")
+      # Extract hostname from filename (e.g., homelab-beelink.yaml -> beelink)
+      local hostname
+      hostname=$(basename "$f" .yaml | sed "s/^${CLUSTER_NAME}-//")
+      CONFIG_NAMES+=("$hostname")
+      CONFIG_FILES+=("$f")
     fi
   done
 
-  CONFIG_NAMES=("controlplane")
-  CONFIG_FILES=("${CONTROLPLANE_CONFIG}")
-  for i in "${!WORKER_CONFIGS[@]}"; do
-    CONFIG_NAMES+=("${WORKER_NAMES[$i]}")
-    CONFIG_FILES+=("${WORKER_CONFIGS[$i]}")
-  done
+  if [[ ${#CONFIG_FILES[@]} -eq 0 ]]; then
+    err "No config files found matching ${CLUSTER_NAME}-*.yaml in ${GENERATED_DIR}"
+  fi
+
+  log "Found configs for: ${CONFIG_NAMES[*]}"
 }
 
 detect_subnet() {

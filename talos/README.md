@@ -21,8 +21,9 @@ Example configuration:
 
 ### Local Tools
 
-- [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) installed
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
+- [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) - `brew install siderolabs/tap/talosctl`
+- [talhelper](https://budimanjojo.github.io/talhelper/latest/) - `brew install budimanjojo/tap/talhelper`
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) - `brew install kubectl`
 
 ### Tailscale Setup
 
@@ -140,63 +141,82 @@ machine:
 
 ## Step 3: Generate Machine Configs
 
-Run the config generator script. It will prompt for your configuration interactively:
+Configuration uses [Talhelper](https://budimanjojo.github.io/talhelper/latest/), which generates Talos configs from a declarative `talconfig.yaml` file.
+
+### 3.1 Configure your environment
+
+Create a `.env` file with your secrets:
 
 ```bash
 cd talos/
+cp .env.example .env
+```
+
+Edit `.env` to add your values:
+```bash
+# talos/.env (git-ignored)
+TAILNET_NAME=catfish-mountain
+TS_AUTHKEY=tskey-auth-xxxxx
+```
+
+### 3.2 Customize talconfig.yaml (if needed)
+
+The `talconfig.yaml` file defines your cluster. Review and adjust:
+
+- **Node hostnames** - Update the `nodes:` section if your hostnames differ
+- **Talos/Kubernetes versions** - Update if you want specific versions
+- **Patches** - Add or remove patches as needed
+
+### 3.3 Generate configs
+
+Run the generator script:
+
+```bash
 ./generate-configs.sh
 ```
 
-The script will prompt for:
-1. **Tailnet name** - Your Tailscale network (e.g., `catfish-mountain`)
-2. **Control plane hostname** - Name for your control plane node (e.g., `beelink`)
-3. **Worker hostnames** - Space-separated names for worker nodes (e.g., `rpi3 rpi5`)
-4. **Tailscale auth key** - Hidden input, won't appear in bash history
-
-Example session:
+Example output:
 ```
-==> Cluster Configuration
-Tailscale tailnet name (e.g., catfish-mountain): catfish-mountain
-Control plane node hostname (e.g., beelink): beelink
-Worker node hostnames (space-separated, e.g., rpi3 rpi5): rpi3 rpi5
+==> Loading environment from .env file
 
-==> Secrets (input is hidden)
-Tailscale Auth Key:
+==> Using existing secrets from talsecret.yaml
 
-==> Configuration Summary
-  Tailnet:        catfish-mountain.ts.net
-  Control plane:  beelink
-  Workers:        rpi3 rpi5
-  Cluster endpoint: https://beelink.catfish-mountain.ts.net:6443
+==> Generating Talos configs with Talhelper
 
-Proceed? [Y/n] y
-
-==> Generating Talos configs for cluster: homelab
-...
+Generated configs in clusterconfig/
 
 Install talosconfig to /Users/you/.talos/config? [Y/n] y
 
 ==> talosconfig installed and configured for beelink.catfish-mountain.ts.net
+
+==> Config generation complete!
 ```
 
 This creates:
-- `generated/controlplane.yaml` - For your control plane node
-- `generated/worker-<hostname>.yaml` - One per worker node
-- `generated/talosconfig` - Your talosctl client config
-- `generated/secrets.yaml` - Cluster secrets (CA certs, keys, tokens)
+- `clusterconfig/homelab-beelink.yaml` - Control plane config
+- `clusterconfig/homelab-rpi3.yaml` - Worker config
+- `clusterconfig/homelab-rpi5.yaml` - Worker config
+- `clusterconfig/talosconfig` - Your talosctl client config
+- `talsecret.yaml` - Cluster secrets (CA certs, keys, tokens)
 
-**Important**: The `generated/` directory contains secrets and should NOT be committed to git. However, you should back up these files securely (e.g., password manager, encrypted backup) - you'll need them for disaster recovery or adding nodes later.
+**Important**: The `clusterconfig/` directory and `talsecret.yaml` contain secrets and should NOT be committed to git. Back up `talsecret.yaml` securely (e.g., password manager) - you'll need it for disaster recovery or regenerating configs.
 
-### Using a .env file (optional)
+### Adding a new node later
 
-To avoid entering secrets interactively each time, create a `.env` file:
+To add a new worker node:
 
-```bash
-# talos/.env (git-ignored)
-TS_AUTHKEY=tskey-auth-xxxxx
-```
+1. Add the node to `talconfig.yaml`:
+   ```yaml
+   nodes:
+     # ... existing nodes ...
+     - hostname: new-node
+       controlPlane: false
+       ipAddress: new-node.{{ env "TAILNET_NAME" }}.ts.net
+   ```
 
-The script will source this file if present and skip prompting for values that are already set.
+2. Regenerate configs: `./generate-configs.sh`
+3. Flash and boot the new device with Talos
+4. Apply the new config: `talosctl apply-config --insecure -n <ip> -f clusterconfig/homelab-new-node.yaml`
 
 ## Step 4: Boot Nodes and Apply Configs
 
