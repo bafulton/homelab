@@ -106,8 +106,20 @@ install_talosconfig() {
   # Copy the generated talosconfig
   cp "${generated_config}" "${config_file}"
 
-  # Configure endpoint and node (control plane hostname from talconfig)
-  local endpoint="beelink.${TAILNET_NAME}.ts.net"
+  # Extract control plane hostname from talconfig.yaml
+  # Look for node entries and find one with controlPlane: true
+  local cp_hostname
+  cp_hostname=$(awk '
+    /- hostname:/ { hostname = $3 }
+    /controlPlane: true/ { if (hostname) { print hostname; exit } }
+  ' "${SCRIPT_DIR}/talconfig.yaml")
+
+  if [[ -z "${cp_hostname}" ]]; then
+    # Fallback: use first hostname in the file
+    cp_hostname=$(awk '/- hostname:/{print $3; exit}' "${SCRIPT_DIR}/talconfig.yaml")
+  fi
+
+  local endpoint="${cp_hostname}.${TAILNET_NAME}.ts.net"
   talosctl config endpoint "${endpoint}"
   talosctl config node "${endpoint}"
 

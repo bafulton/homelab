@@ -230,13 +230,15 @@ Run the apply script - it will scan for Talos nodes and show their MAC addresses
 
 Example output:
 ```
+==> Found configs for: beelink rpi3 rpi5
+
 ==> Scanning for Talos nodes on 192.168.1.0/24
   Found: 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
   Found: 192.168.1.51 | MAC: e4:5f:01:xx:xx:xx | Disks: /dev/mmcblk0 (32GB)
   Found: 192.168.1.52 | MAC: 2c:cf:67:xx:xx:xx | Disks: /dev/mmcblk0 (64GB)
 
 ==> Match nodes to configs
-Which node is 'controlplane'?
+Which node is 'beelink'?
   [1] 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
   ...
 ```
@@ -317,7 +319,7 @@ talosctl logs kubelet --nodes <node>
 ```
 
 ### Longhorn issues
-If using Longhorn, verify iSCSI is loaded (requires `iscsi-tools` extension and uncommenting kernel module in patches):
+If using Longhorn, verify iSCSI is loaded (requires `iscsi-tools` extension in your Talos image):
 ```bash
 talosctl read /proc/modules --nodes <node> | grep iscsi
 ```
