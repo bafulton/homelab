@@ -118,21 +118,26 @@ scan_for_nodes() {
   for i in {1..254}; do
     local ip="${base_ip}.${i}"
 
+    # Show progress
+    printf "\r  Checking %s...    " "$ip"
+
     # Quick check if host is up (timeout 1 second)
     if ! ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
       continue
     fi
 
+    printf "\r  %s is up, checking for Talos...    " "$ip"
+
     # Try to get Talos info
     local disks_output
-    if disks_output=$(talosctl disks --insecure -n "$ip" 2>/dev/null); then
+    if disks_output=$(talosctl get disks -n "$ip" -i 2>/dev/null); then
       # It's a Talos node! Get more info
       local mac="unknown"
       local disk_summary=""
 
       # Get MAC address from links
       local links_output
-      if links_output=$(talosctl get links --insecure -n "$ip" -o yaml 2>/dev/null); then
+      if links_output=$(talosctl get links -n "$ip" -i -o yaml 2>/dev/null); then
         # Extract MAC of first physical interface (usually eth0 or enp*)
         mac=$(echo "$links_output" | grep -A5 'kind: ethernet' | grep 'hardwareAddr:' | head -1 | awk '{print $2}')
         if [[ -z "$mac" ]]; then
@@ -140,8 +145,8 @@ scan_for_nodes() {
         fi
       fi
 
-      # Summarize disk info
-      disk_summary=$(echo "$disks_output" | tail -n +2 | awk '{printf "%s (%s) ", $1, $3}' | head -c 60)
+      # Summarize disk info (get disks output: NODE NAMESPACE TYPE ID VERSION SIZE ...)
+      disk_summary=$(echo "$disks_output" | tail -n +2 | grep -v '^[[:space:]]*$' | awk '{printf "%s (%s) ", $4, $6}' | head -c 60)
 
       FOUND_NODES+=("$ip")
       FOUND_MACS+=("${mac:-unknown}")
@@ -151,11 +156,14 @@ scan_for_nodes() {
     fi
   done
 
+  # Clear the progress line
+  printf "\r                                        \r"
+
   if [[ ${#FOUND_NODES[@]} -eq 0 ]]; then
     err "No Talos nodes found on ${SUBNET}. Make sure nodes are booted and on the network."
   fi
 
-  printf "\nFound %d Talos node(s)\n" "${#FOUND_NODES[@]}"
+  printf "Found %d Talos node(s)\n" "${#FOUND_NODES[@]}"
 }
 
 match_nodes_to_configs() {
@@ -224,9 +232,9 @@ apply_configs() {
     local config="${CONFIG_FILES[$i]}"
 
     log "Applying config for ${CONFIG_NAMES[$i]} to ${ip}"
-    talosctl apply-config --insecure \
-      --nodes "$ip" \
-      --file "$config"
+    talosctl apply-config -i \
+      -n "$ip" \
+      -f "$config"
   done
 }
 
