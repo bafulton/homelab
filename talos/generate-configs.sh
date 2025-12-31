@@ -184,20 +184,12 @@ print_summary() {
   for hostname in "${WORKER_HOSTNAMES[@]}"; do
     printf "  %s/worker-%s.yaml\n" "${OUTPUT_DIR}" "${hostname}"
   done
-  printf "  %s/talosconfig  (talosctl client config)\n" "${OUTPUT_DIR}"
+  printf "  %s/talosconfig\n" "${OUTPUT_DIR}"
 
   printf "\nNext steps:\n"
   printf "  1. Flash Talos images to your devices\n"
-  printf "  2. Boot nodes and find their LAN IPs\n"
-  printf "  3. Apply configs:\n"
-  printf "       talosctl apply-config --insecure --nodes <LAN-IP> --file %s/controlplane.yaml\n" "${OUTPUT_DIR}"
-  for hostname in "${WORKER_HOSTNAMES[@]}"; do
-    printf "       talosctl apply-config --insecure --nodes <LAN-IP> --file %s/worker-%s.yaml\n" "${OUTPUT_DIR}" "${hostname}"
-  done
-  printf "  4. Bootstrap the cluster:\n"
-  printf "       talosctl bootstrap\n"
-  printf "  5. Get kubeconfig:\n"
-  printf "       talosctl kubeconfig\n"
+  printf "  2. Boot nodes, then run: ./apply-configs.sh\n"
+  printf "  3. Once nodes reboot, run: ./bootstrap.sh\n"
 }
 
 main() {

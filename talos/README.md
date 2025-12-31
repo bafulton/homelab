@@ -110,28 +110,13 @@ This is only needed once per Pi. Pi 3 models can skip this.
 
 Boot all nodes. They'll get DHCP addresses on your local network initially.
 
-Find the nodes on your network:
-```bash
-talosctl disks --insecure --nodes 192.168.x.x
-```
-
-Apply configs (use local LAN IPs for initial config, since Tailscale isn't up yet):
+Run the apply script and enter the LAN IP of each node when prompted:
 
 ```bash
-# Control plane node
-talosctl apply-config --insecure \
-  --nodes <CONTROL_PLANE_LAN_IP> \
-  --file generated/controlplane.yaml
-
-# Worker nodes (repeat for each)
-talosctl apply-config --insecure \
-  --nodes <WORKER_LAN_IP> \
-  --file generated/worker-<hostname>.yaml
+./apply-configs.sh
 ```
 
 Nodes will reboot and Tailscale will come up.
-
-**Tip**: The `generate-configs.sh` script prints the exact commands with your hostnames at the end.
 
 ## Step 5: Bootstrap the Cluster
 
