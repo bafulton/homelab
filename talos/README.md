@@ -43,21 +43,6 @@ Go to https://factory.talos.dev and create images for each architecture you need
 | `siderolabs/intel-ucode` | Optional. CPU microcode updates for Intel CPUs |
 | `siderolabs/amd-ucode` | Optional. CPU microcode updates for AMD CPUs |
 
-### amd64 Image (Mini PCs, NUCs, Intel/AMD machines)
-
-1. Select Talos version (latest stable)
-2. Select architecture: **amd64**
-3. Select extensions (at minimum `siderolabs/tailscale`)
-4. Download the appropriate image for your boot method (ISO, raw disk image, etc.)
-
-### arm64 Image (Raspberry Pi)
-
-1. Select Talos version (latest stable)
-2. Select architecture: **arm64**
-3. Select **Raspberry Pi** as the platform
-4. Select extensions (at minimum `siderolabs/tailscale`)
-5. Download the raw disk image for SD card flashing
-
 ## Step 2: Generate Machine Configs
 
 Run the config generator script. It will prompt for your configuration interactively:
@@ -108,29 +93,18 @@ This creates:
 
 ## Step 3: Flash Images
 
-Use [balenaEtcher](https://etcher.balena.io/) to flash images.
+Use [balenaEtcher](https://etcher.balena.io/) to flash images to SD cards or USB drives.
 
-### x86/amd64 Nodes (Mini PCs, NUCs, etc.)
-Flash the amd64 image to a USB drive or the internal drive using balenaEtcher.
+### Raspberry Pi: One-time EEPROM Update (Pi 4/5 only)
 
-### Raspberry Pis
+Before flashing Talos, update the bootloader firmware using **Raspberry Pi Imager**:
 
-#### One-time EEPROM Update (Pi 4 and Pi 5 only)
+1. Choose OS → **Misc utility images** → **Bootloader** → **SD Card Boot**
+2. Flash to an SD card, insert into Pi, and power on
+3. Wait 10+ seconds - green LED blinks rapidly on success
+4. Power off and remove the SD card
 
-Before flashing Talos for the first time, update the Pi's bootloader firmware:
-
-1. Open **Raspberry Pi Imager**
-2. Choose OS → **Misc utility images** → **Bootloader** → **SD Card Boot**
-3. Flash to a spare SD card
-4. Insert SD card into the Pi and power on
-5. Wait 10+ seconds - green LED blinks rapidly on success (screen shows green if HDMI connected)
-6. Power off and remove the SD card
-
-This only needs to be done **once per Pi**. Pi 3 models don't need this step.
-
-#### Flash Talos Image
-
-Use balenaEtcher to flash the Talos arm64 image to your SD cards.
+Only needed once per Pi. Pi 3 models can skip this.
 
 ## Step 4: Boot Nodes and Apply Configs
 
