@@ -27,6 +27,8 @@ nodes:
   - hostname: beelink
     controlPlane: true
     ipAddress: beelink.{{ env "TAILNET_NAME" }}.ts.net
+    installDiskSelector:
+      busPath: /dev/mmcblk*
 
   - hostname: rpi3
     controlPlane: false
