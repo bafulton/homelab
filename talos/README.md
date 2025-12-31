@@ -21,9 +21,8 @@ Example configuration:
 
 - [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) installed
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
-- [Helm](https://helm.sh/docs/intro/install/) installed
 - Tailscale auth key (create at https://login.tailscale.com/admin/settings/keys)
-- Tailscale OAuth client credentials for the operator
+- Tailscale OAuth client credentials (for the in-cluster operator)
 
 ## Step 1: Generate Images from Talos Image Factory
 
@@ -162,44 +161,20 @@ Nodes will reboot and Tailscale will come up.
 
 ## Step 5: Bootstrap the Cluster
 
-Run this **once** to initialize the Kubernetes cluster:
-
-```bash
-talosctl bootstrap
-```
-
-Wait for the cluster to come up:
-```bash
-talosctl health
-```
-
-## Step 6: Get Kubeconfig
-
-```bash
-talosctl kubeconfig -f ~/.kube/config
-```
-
-Verify cluster access:
-```bash
-kubectl get nodes
-```
-
-You should see all your nodes in Ready state.
-
-## Step 7: Bootstrap GitOps
-
-Run the bootstrap script to set up ArgoCD and start syncing infrastructure:
+Run the bootstrap script to initialize the cluster and set up GitOps:
 
 ```bash
 ./bootstrap.sh
 ```
 
 The script will:
-1. Prompt for secrets (ArgoCD admin password, Tailscale OAuth credentials)
-2. Create the required Kubernetes secrets
-3. Install ArgoCD via Helm
-4. Apply the root GitOps application
-5. Verify the deployment
+1. Bootstrap the Talos cluster (`talosctl bootstrap`)
+2. Retrieve and install kubeconfig
+3. Prompt for secrets (ArgoCD admin password, Tailscale OAuth credentials)
+4. Create the required Kubernetes secrets
+5. Install ArgoCD via Helm
+6. Apply the root GitOps application
+7. Verify the deployment
 
 Once complete, ArgoCD will begin syncing your infrastructure. Access the UI via Tailscale:
 - `https://argocd.<TAILNET>.ts.net`
@@ -233,17 +208,6 @@ talosctl reset --nodes <NODE>.<TAILNET>.ts.net --graceful=false
 ```
 
 ---
-
-## Differences from DietPi/K3s Setup
-
-| Aspect | DietPi + K3s | Talos |
-|--------|--------------|-------|
-| SSH access | Yes | No (API only via talosctl) |
-| Package manager | apt | None (immutable OS) |
-| Kubernetes dist | K3s | Upstream Kubernetes |
-| Config method | Shell scripts | Declarative YAML |
-| Updates | apt upgrade + k3s upgrade | talosctl upgrade |
-| Kubeconfig path | /etc/rancher/k3s/k3s.yaml | Via talosctl kubeconfig |
 
 ## Troubleshooting
 

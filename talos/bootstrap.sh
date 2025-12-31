@@ -5,15 +5,17 @@ set -euo pipefail
 # Talos Cluster Bootstrap Script
 # ============================================================================
 #
-# Bootstraps GitOps infrastructure on a fresh Talos Kubernetes cluster.
-# Run this after the cluster is up and you have kubeconfig access.
+# Fully bootstraps a Talos Kubernetes cluster with GitOps infrastructure.
+# Run this after applying Talos configs and nodes have rebooted.
 #
 # This script:
-#   1. Prompts for required secrets (ArgoCD password, Tailscale OAuth)
-#   2. Creates pre-bootstrap Kubernetes secrets
-#   3. Installs ArgoCD via Helm
-#   4. Applies the root GitOps application
-#   5. Verifies the deployment
+#   1. Bootstraps the Talos cluster (talosctl bootstrap)
+#   2. Retrieves kubeconfig
+#   3. Prompts for required secrets (ArgoCD password, Tailscale OAuth)
+#   4. Creates pre-bootstrap Kubernetes secrets
+#   5. Installs ArgoCD via Helm
+#   6. Applies the root GitOps application
+#   7. Verifies the deployment
 #
 # Usage: ./bootstrap.sh
 
@@ -28,16 +30,60 @@ err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
 check_dependencies() {
   log "Checking dependencies"
 
+  if ! command -v talosctl >/dev/null 2>&1; then
+    err "talosctl is required but not installed. See: https://www.talos.dev/latest/introduction/getting-started/#talosctl"
+  fi
+
   if ! command -v kubectl >/dev/null 2>&1; then
     err "kubectl is required but not installed. See: https://kubernetes.io/docs/tasks/tools/"
   fi
 
-  # Verify cluster access
-  if ! kubectl cluster-info >/dev/null 2>&1; then
-    err "Cannot connect to Kubernetes cluster. Make sure your kubeconfig is set up correctly."
+  log "talosctl: $(talosctl version --client 2>/dev/null | grep -o 'Tag:.*' | head -1 || echo 'unknown')"
+  log "kubectl: $(kubectl version --client -o json 2>/dev/null | grep -o '"gitVersion":"[^"]*"' | head -1 || echo 'unknown')"
+}
+
+bootstrap_talos() {
+  log "Bootstrapping Talos cluster"
+
+  # Check if already bootstrapped by trying to get kubeconfig
+  if talosctl kubeconfig /dev/null 2>/dev/null; then
+    log "Cluster already bootstrapped, skipping talosctl bootstrap"
+  else
+    talosctl bootstrap
+    log "Waiting for Kubernetes API to be ready..."
+    sleep 10
+  fi
+}
+
+get_kubeconfig() {
+  log "Retrieving kubeconfig"
+
+  local kubeconfig_path="${HOME}/.kube/config"
+  mkdir -p "$(dirname "${kubeconfig_path}")"
+
+  # Backup existing kubeconfig if present
+  if [[ -f "${kubeconfig_path}" ]]; then
+    local backup="${kubeconfig_path}.backup.$(date +%Y%m%d%H%M%S)"
+    log "Backing up existing kubeconfig to ${backup}"
+    cp "${kubeconfig_path}" "${backup}"
   fi
 
-  # Install Helm if missing
+  talosctl kubeconfig -f "${kubeconfig_path}"
+  log "Kubeconfig written to ${kubeconfig_path}"
+
+  # Wait for cluster to be accessible
+  log "Waiting for cluster to be accessible..."
+  local retries=30
+  while ! kubectl cluster-info >/dev/null 2>&1; do
+    retries=$((retries - 1))
+    if [[ ${retries} -le 0 ]]; then
+      err "Timed out waiting for cluster to be accessible"
+    fi
+    sleep 5
+  done
+}
+
+install_helm() {
   if ! command -v helm >/dev/null 2>&1; then
     log "Installing Helm"
     tmp="$(mktemp -d)"
@@ -48,8 +94,6 @@ check_dependencies() {
     trap - EXIT
     rm -rf "$tmp"
   fi
-
-  log "kubectl: $(kubectl version --client -o json | grep -o '"gitVersion":"[^"]*"' | head -1 || echo 'unknown')"
   log "helm: $(helm version --short 2>/dev/null || echo 'unknown')"
 }
 
@@ -184,6 +228,9 @@ print_summary() {
 
 main() {
   check_dependencies
+  bootstrap_talos
+  get_kubeconfig
+  install_helm
   prompt_secrets
   create_secrets
   bootstrap_argocd
