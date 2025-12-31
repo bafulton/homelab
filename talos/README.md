@@ -84,9 +84,9 @@ Go to [Tailscale Admin → Settings → OAuth clients](https://login.tailscale.c
 
 Save the **Client ID** and **Client Secret** - you'll enter these during `bootstrap.sh`.
 
-## Step 1: Generate Images from Talos Image Factory
+## Step 1: Generate and Download Images from Talos Image Factory
 
-Go to https://factory.talos.dev and create an image for each architecture you need.
+Go to https://factory.talos.dev and create and download an image for each device architecture in your cluster.
 
 ### Required Extensions
 
@@ -153,7 +153,7 @@ This creates:
 
 ## Step 3: Flash Images
 
-Use [balenaEtcher](https://etcher.balena.io/) to flash images to SD cards or USB drives.
+Use [balenaEtcher](https://etcher.balena.io/) to flash the Talos images to SD cards or USB drives.
 
 ### Raspberry Pi 4/5: One-time EEPROM Update
 
