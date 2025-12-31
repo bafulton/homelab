@@ -68,6 +68,11 @@ generate_secrets() {
 generate_configs() {
   log "Generating Talos configs with Talhelper"
 
+  # Clean output directory to remove stale configs from previous runs
+  if [[ -d "${OUTPUT_DIR}" ]]; then
+    rm -rf "${OUTPUT_DIR}"
+  fi
+
   cd "${SCRIPT_DIR}"
   talhelper genconfig
 
