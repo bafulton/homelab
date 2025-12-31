@@ -1,6 +1,19 @@
 # Infrastructure Components
 
-This directory contains Helm charts for cluster infrastructure.
+This directory contains Helm charts for cluster infrastructure, deployed via ArgoCD.
+
+## Components
+
+| Component | Purpose | Exposed via |
+|-----------|---------|-------------|
+| [argocd](./argocd) | GitOps continuous delivery - syncs cluster state from this repo | Tailscale |
+| [cert-manager](./cert-manager) | TLS certificate management with a self-signed homelab CA | - |
+| [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
+| [kubernetes-dashboard](./kubernetes-dashboard) | Web UI for cluster management | Tailscale |
+| [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
+| [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
+| [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
+| [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
 
 ## Networking Overview
 
