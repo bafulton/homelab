@@ -27,17 +27,17 @@ nodes:
   - hostname: beelink
     controlPlane: true
     ipAddress: beelink.{{ env "TAILNET_NAME" }}.ts.net
-    # Ensure talos is installed on the beelink's eMMC disk, not an NVME SSD
-    installDiskSelector:
-      busPath: /dev/mmcblk*
+    installDisk: /dev/mmcblk0  # eMMC, not the NVMe SSD
 
   - hostname: rpi3
     controlPlane: false
     ipAddress: rpi3.{{ env "TAILNET_NAME" }}.ts.net
+    installDisk: /dev/mmcblk0  # SD card
 
   - hostname: rpi5
     controlPlane: false
     ipAddress: rpi5.{{ env "TAILNET_NAME" }}.ts.net
+    installDisk: /dev/mmcblk0  # SD card
 
 # ------------------------------------------------------------------------------
 # Patches - Applied to ALL nodes
