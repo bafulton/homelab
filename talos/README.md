@@ -103,7 +103,45 @@ Go to https://factory.talos.dev and create and download an image for each device
 | `siderolabs/intel-ucode` | Optional. CPU microcode updates for Intel CPUs |
 | `siderolabs/amd-ucode` | Optional. CPU microcode updates for AMD CPUs |
 
-## Step 2: Generate Machine Configs
+## Step 2: Flash Images
+
+Use [balenaEtcher](https://etcher.balena.io/) to flash Talos images.
+
+### Raspberry Pi (and other SBCs)
+
+1. Download the **raw disk image** (`.raw.xz`) from Image Factory
+2. Flash directly to the SD card with balenaEtcher
+3. Insert the SD card and boot - Talos runs from the SD card
+
+**Pi 4/5 only:** Update the bootloader firmware first (one-time):
+1. Open **Raspberry Pi Imager**
+2. Choose OS → **Misc utility images** → **Bootloader** → **SD Card Boot**
+3. Flash to an SD card, insert into Pi, power on
+4. Wait 10+ seconds - green LED blinks rapidly on success
+5. Power off, remove SD card, then flash Talos
+
+Pi 3 models can skip the EEPROM update.
+
+### PCs (Mini PCs, NUCs, servers)
+
+For PCs with internal drives (NVMe, SSD), use the ISO to boot and install:
+
+1. Download the **ISO** from Image Factory
+2. Flash the ISO to a USB drive with balenaEtcher
+3. Boot the PC from the USB drive (may need to adjust BIOS boot order)
+4. Talos boots into maintenance mode (running in RAM, waiting for config)
+5. Proceed to Step 4 - `apply-configs.sh` will install Talos to the internal drive
+6. After config is applied, Talos installs to the internal drive and reboots
+7. Remove the USB drive
+
+The install disk is auto-detected. If for some reason you need to specify it explicitly, add this to your patch:
+```yaml
+machine:
+  install:
+    disk: /dev/nvme0n1  # adjust for your hardware
+```
+
+## Step 3: Generate Machine Configs
 
 Run the config generator script. It will prompt for your configuration interactively:
 
@@ -150,44 +188,6 @@ This creates:
 - `generated/talosconfig` - Your talosctl client config
 
 **Note**: The `generated/` directory contains secrets and should NOT be committed to git.
-
-## Step 3: Flash Images
-
-Use [balenaEtcher](https://etcher.balena.io/) to flash Talos images.
-
-### Raspberry Pi (and other SBCs)
-
-1. Download the **raw disk image** (`.raw.xz`) from Image Factory
-2. Flash directly to the SD card with balenaEtcher
-3. Insert the SD card and boot - Talos runs from the SD card
-
-**Pi 4/5 only:** Update the bootloader firmware first (one-time):
-1. Open **Raspberry Pi Imager**
-2. Choose OS → **Misc utility images** → **Bootloader** → **SD Card Boot**
-3. Flash to an SD card, insert into Pi, power on
-4. Wait 10+ seconds - green LED blinks rapidly on success
-5. Power off, remove SD card, then flash Talos
-
-Pi 3 models can skip the EEPROM update.
-
-### PCs (Mini PCs, NUCs, servers)
-
-For PCs with internal drives (NVMe, SSD), use the ISO to boot and install:
-
-1. Download the **ISO** from Image Factory
-2. Flash the ISO to a USB drive with balenaEtcher
-3. Boot the PC from the USB drive (may need to adjust BIOS boot order)
-4. Talos boots into maintenance mode (running in RAM, waiting for config)
-5. Proceed to Step 4 - `apply-configs.sh` will install Talos to the internal drive
-6. After config is applied, Talos installs to the internal drive and reboots
-7. Remove the USB drive
-
-The install disk is auto-detected. If for some reason you need to specify it explicitly, add this to your patch:
-```yaml
-machine:
-  install:
-    disk: /dev/nvme0n1  # adjust for your hardware
-```
 
 ## Step 4: Boot Nodes and Apply Configs
 
