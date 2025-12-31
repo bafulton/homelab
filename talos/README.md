@@ -110,10 +110,23 @@ This is only needed once per Pi. Pi 3 models can skip this.
 
 Boot all nodes. They'll get DHCP addresses on your local network initially.
 
-Run the apply script and enter the LAN IP of each node when prompted:
+Run the apply script - it will scan for Talos nodes and show their MAC addresses to help identify them:
 
 ```bash
 ./apply-configs.sh
+```
+
+Example output:
+```
+==> Scanning for Talos nodes on 192.168.1.0/24
+  Found: 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
+  Found: 192.168.1.51 | MAC: e4:5f:01:xx:xx:xx | Disks: /dev/mmcblk0 (32GB)
+  Found: 192.168.1.52 | MAC: 2c:cf:67:xx:xx:xx | Disks: /dev/mmcblk0 (64GB)
+
+==> Match nodes to configs
+Which node is 'controlplane'?
+  [1] 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
+  ...
 ```
 
 Nodes will reboot and Tailscale will come up.

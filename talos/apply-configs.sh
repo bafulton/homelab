@@ -5,8 +5,8 @@ set -euo pipefail
 # Talos Config Applier
 # ============================================================================
 #
-# Applies generated Talos configs to nodes on the local network.
-# Run this after flashing images and booting nodes.
+# Scans for Talos nodes on the local network, displays hardware info
+# (MAC addresses, disks) to help identify them, and applies configs.
 #
 # Usage: ./apply-configs.sh
 
@@ -33,55 +33,175 @@ check_generated_configs() {
 }
 
 discover_configs() {
-  # Find all generated config files
   CONTROLPLANE_CONFIG="${GENERATED_DIR}/controlplane.yaml"
 
   WORKER_CONFIGS=()
+  WORKER_NAMES=()
   for f in "${GENERATED_DIR}"/worker-*.yaml; do
-    [[ -f "$f" ]] && WORKER_CONFIGS+=("$f")
+    if [[ -f "$f" ]]; then
+      WORKER_CONFIGS+=("$f")
+      WORKER_NAMES+=("$(basename "$f" .yaml | sed 's/^worker-//')")
+    fi
+  done
+
+  CONFIG_NAMES=("controlplane")
+  CONFIG_FILES=("${CONTROLPLANE_CONFIG}")
+  for i in "${!WORKER_CONFIGS[@]}"; do
+    CONFIG_NAMES+=("${WORKER_NAMES[$i]}")
+    CONFIG_FILES+=("${WORKER_CONFIGS[$i]}")
   done
 }
 
-prompt_ips() {
-  log "Enter LAN IPs for each node"
-  printf "\nNodes need to be booted and on your local network.\n"
-  printf "Find them with: talosctl disks --insecure --nodes 192.168.x.x\n\n"
+detect_subnet() {
+  log "Detecting local subnet"
 
-  # Control plane
-  local cp_name
-  cp_name=$(basename "${CONTROLPLANE_CONFIG}" .yaml)
-  printf "LAN IP for control plane (%s): " "${cp_name}"
-  read -r CONTROLPLANE_IP
-  if [[ -z "${CONTROLPLANE_IP}" ]]; then
-    err "Control plane IP is required"
+  # Try to get the default route interface and its subnet
+  local subnet=""
+
+  if command -v ip >/dev/null 2>&1; then
+    # Linux
+    local iface
+    iface=$(ip route | grep default | awk '{print $5}' | head -1)
+    if [[ -n "$iface" ]]; then
+      subnet=$(ip -o -f inet addr show "$iface" | awk '{print $4}' | head -1)
+    fi
+  elif command -v route >/dev/null 2>&1; then
+    # macOS
+    local iface
+    iface=$(route -n get default 2>/dev/null | grep interface | awk '{print $2}')
+    if [[ -n "$iface" ]]; then
+      local ip_addr
+      ip_addr=$(ifconfig "$iface" | grep 'inet ' | awk '{print $2}')
+      if [[ -n "$ip_addr" ]]; then
+        # Assume /24 subnet
+        subnet="${ip_addr%.*}.0/24"
+      fi
+    fi
   fi
 
-  # Workers
-  WORKER_IPS=()
-  for config in "${WORKER_CONFIGS[@]}"; do
-    local worker_name
-    worker_name=$(basename "${config}" .yaml | sed 's/^worker-//')
-    printf "LAN IP for %s: " "${worker_name}"
-    read -r ip
-    if [[ -z "${ip}" ]]; then
-      err "IP for ${worker_name} is required"
+  if [[ -z "$subnet" ]]; then
+    printf "Could not auto-detect subnet.\n"
+    printf "Enter subnet to scan (e.g., 192.168.1.0/24): "
+    read -r subnet
+  else
+    printf "Detected subnet: %s\n" "$subnet"
+    printf "Use this subnet? [Y/n] "
+    read -r confirm
+    if [[ "${confirm,,}" == "n" ]]; then
+      printf "Enter subnet to scan (e.g., 192.168.1.0/24): "
+      read -r subnet
     fi
-    WORKER_IPS+=("${ip}")
+  fi
+
+  SUBNET="$subnet"
+}
+
+scan_for_nodes() {
+  log "Scanning for Talos nodes on ${SUBNET}"
+  printf "This may take a minute...\n\n"
+
+  # Extract base IP from subnet (e.g., 192.168.1.0/24 -> 192.168.1)
+  local base_ip="${SUBNET%.*}"
+
+  FOUND_NODES=()
+  FOUND_MACS=()
+  FOUND_DISKS=()
+
+  # Scan common DHCP range (adjust if needed)
+  for i in {1..254}; do
+    local ip="${base_ip}.${i}"
+
+    # Quick check if host is up (timeout 1 second)
+    if ! ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
+      continue
+    fi
+
+    # Try to get Talos info
+    local disks_output
+    if disks_output=$(talosctl disks --insecure -n "$ip" 2>/dev/null); then
+      # It's a Talos node! Get more info
+      local mac="unknown"
+      local disk_summary=""
+
+      # Get MAC address from links
+      local links_output
+      if links_output=$(talosctl get links --insecure -n "$ip" -o yaml 2>/dev/null); then
+        # Extract MAC of first physical interface (usually eth0 or enp*)
+        mac=$(echo "$links_output" | grep -A5 'kind: ethernet' | grep 'hardwareAddr:' | head -1 | awk '{print $2}')
+        if [[ -z "$mac" ]]; then
+          mac=$(echo "$links_output" | grep 'hardwareAddr:' | head -1 | awk '{print $2}')
+        fi
+      fi
+
+      # Summarize disk info
+      disk_summary=$(echo "$disks_output" | tail -n +2 | awk '{printf "%s (%s) ", $1, $3}' | head -c 60)
+
+      FOUND_NODES+=("$ip")
+      FOUND_MACS+=("${mac:-unknown}")
+      FOUND_DISKS+=("${disk_summary:-unknown}")
+
+      printf "  Found: %s | MAC: %s | Disks: %s\n" "$ip" "${mac:-unknown}" "${disk_summary:-unknown}"
+    fi
+  done
+
+  if [[ ${#FOUND_NODES[@]} -eq 0 ]]; then
+    err "No Talos nodes found on ${SUBNET}. Make sure nodes are booted and on the network."
+  fi
+
+  printf "\nFound %d Talos node(s)\n" "${#FOUND_NODES[@]}"
+}
+
+match_nodes_to_configs() {
+  log "Match nodes to configs"
+
+  NODE_ASSIGNMENTS=()
+
+  for config_name in "${CONFIG_NAMES[@]}"; do
+    printf "\nWhich node is '%s'?\n" "$config_name"
+
+    # Show available nodes
+    local available=()
+    for i in "${!FOUND_NODES[@]}"; do
+      # Check if already assigned
+      local assigned=false
+      for a in "${NODE_ASSIGNMENTS[@]:-}"; do
+        if [[ "$a" == "$i" ]]; then
+          assigned=true
+          break
+        fi
+      done
+
+      if [[ "$assigned" == "false" ]]; then
+        available+=("$i")
+        printf "  [%d] %s | MAC: %s | Disks: %s\n" "$((i + 1))" "${FOUND_NODES[$i]}" "${FOUND_MACS[$i]}" "${FOUND_DISKS[$i]}"
+      fi
+    done
+
+    if [[ ${#available[@]} -eq 1 ]]; then
+      # Auto-select if only one left
+      printf "  -> Auto-selecting only remaining node\n"
+      NODE_ASSIGNMENTS+=("${available[0]}")
+    else
+      printf "Enter number: "
+      read -r selection
+      local idx=$((selection - 1))
+
+      if [[ $idx -lt 0 || $idx -ge ${#FOUND_NODES[@]} ]]; then
+        err "Invalid selection"
+      fi
+
+      NODE_ASSIGNMENTS+=("$idx")
+    fi
   done
 }
 
 confirm_apply() {
   log "Configuration Summary"
 
-  printf "\n  Control plane:\n"
-  printf "    %s → %s\n" "${CONTROLPLANE_IP}" "${CONTROLPLANE_CONFIG}"
-
-  if (( ${#WORKER_CONFIGS[@]} > 0 )); then
-    printf "\n  Workers:\n"
-    for i in "${!WORKER_CONFIGS[@]}"; do
-      printf "    %s → %s\n" "${WORKER_IPS[$i]}" "${WORKER_CONFIGS[$i]}"
-    done
-  fi
+  for i in "${!CONFIG_NAMES[@]}"; do
+    local node_idx="${NODE_ASSIGNMENTS[$i]}"
+    printf "  %s -> %s (MAC: %s)\n" "${CONFIG_NAMES[$i]}" "${FOUND_NODES[$node_idx]}" "${FOUND_MACS[$node_idx]}"
+  done
 
   printf "\nApply configs? [Y/n] "
   read -r confirm
@@ -91,18 +211,15 @@ confirm_apply() {
 }
 
 apply_configs() {
-  log "Applying control plane config"
-  talosctl apply-config --insecure \
-    --nodes "${CONTROLPLANE_IP}" \
-    --file "${CONTROLPLANE_CONFIG}"
+  for i in "${!CONFIG_NAMES[@]}"; do
+    local node_idx="${NODE_ASSIGNMENTS[$i]}"
+    local ip="${FOUND_NODES[$node_idx]}"
+    local config="${CONFIG_FILES[$i]}"
 
-  for i in "${!WORKER_CONFIGS[@]}"; do
-    local worker_name
-    worker_name=$(basename "${WORKER_CONFIGS[$i]}" .yaml | sed 's/^worker-//')
-    log "Applying config for ${worker_name}"
+    log "Applying config for ${CONFIG_NAMES[$i]} to ${ip}"
     talosctl apply-config --insecure \
-      --nodes "${WORKER_IPS[$i]}" \
-      --file "${WORKER_CONFIGS[$i]}"
+      --nodes "$ip" \
+      --file "$config"
   done
 }
 
@@ -119,7 +236,9 @@ main() {
   check_dependencies
   check_generated_configs
   discover_configs
-  prompt_ips
+  detect_subnet
+  scan_for_nodes
+  match_nodes_to_configs
   confirm_apply
   apply_configs
   print_summary
