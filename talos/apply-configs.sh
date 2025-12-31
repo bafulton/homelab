@@ -114,39 +114,48 @@ scan_for_nodes() {
   FOUND_MACS=()
   FOUND_DISKS=()
 
+  # Determine timeout command (if available)
+  local timeout_cmd=""
+  if command -v timeout >/dev/null 2>&1; then
+    timeout_cmd="timeout 3"
+  elif command -v gtimeout >/dev/null 2>&1; then
+    timeout_cmd="gtimeout 3"
+  fi
+
   # Scan common DHCP range (adjust if needed)
   for i in {1..254}; do
     local ip="${base_ip}.${i}"
 
-    # Show progress
-    printf "\r  Checking %s...    " "$ip"
+    # Show progress (use fixed width to avoid visual artifacts)
+    printf "\r  Scanning %-15s                    " "$ip"
 
     # Quick check if host is up (timeout 1 second)
     if ! ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
       continue
     fi
 
-    printf "\r  %s is up, checking for Talos...    " "$ip"
+    printf "\r  Scanning %-15s [up, checking Talos]" "$ip"
 
-    # Try to get Talos info
+    # Try to get Talos info (with 3 second timeout if available)
     local disks_output
-    if disks_output=$(talosctl get disks -n "$ip" -i 2>/dev/null); then
+    if disks_output=$($timeout_cmd talosctl get disks -n "$ip" -i 2>/dev/null); then
       # It's a Talos node! Get more info
       local mac="unknown"
       local disk_summary=""
 
       # Get MAC address from links
       local links_output
-      if links_output=$(talosctl get links -n "$ip" -i -o yaml 2>/dev/null); then
+      if links_output=$($timeout_cmd talosctl get links -n "$ip" -i -o yaml 2>/dev/null); then
         # Extract MAC of first physical interface (usually eth0 or enp*)
-        mac=$(echo "$links_output" | grep -A5 'kind: ethernet' | grep 'hardwareAddr:' | head -1 | awk '{print $2}')
+        mac=$(echo "$links_output" | grep -A5 'kind: ethernet' | grep 'hardwareAddr:' | head -1 | awk '{print $2}' || true)
         if [[ -z "$mac" ]]; then
-          mac=$(echo "$links_output" | grep 'hardwareAddr:' | head -1 | awk '{print $2}')
+          mac=$(echo "$links_output" | grep 'hardwareAddr:' | head -1 | awk '{print $2}' || true)
         fi
       fi
 
       # Summarize disk info (get disks output: NODE NAMESPACE TYPE ID VERSION SIZE ...)
-      disk_summary=$(echo "$disks_output" | tail -n +2 | grep -v '^[[:space:]]*$' | awk '{printf "%s (%s) ", $4, $6}' | head -c 60)
+      disk_summary=$(echo "$disks_output" | tail -n +2 | grep -v '^[[:space:]]*$' | awk '{printf "%s (%s) ", $4, $6}' || true)
+      disk_summary="${disk_summary:0:60}"
 
       FOUND_NODES+=("$ip")
       FOUND_MACS+=("${mac:-unknown}")
