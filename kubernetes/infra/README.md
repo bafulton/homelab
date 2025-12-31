@@ -74,7 +74,3 @@ flowchart LR
     traefik -->|app2.homelab.local| app2[app2-service]
     traefik -->|app3.homelab.local/api| app3[app3-service]
 ```
-
-**In this homelab**, most services are exposed via Tailscale (which handles its own routing). Traefik is useful for:
-- LAN-only HTTP services that shouldn't be on Tailscale
-- Routing multiple LAN services through a single MetalLB IP

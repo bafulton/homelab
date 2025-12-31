@@ -44,7 +44,3 @@ ArgoCD syncs resources in order based on sync-wave annotations:
 | 20 | User applications |
 
 This ensures dependencies (like cert-manager) are ready before apps that need them.
-
-## More Information
-
-- [Infrastructure components and networking overview](./infra/README.md)
