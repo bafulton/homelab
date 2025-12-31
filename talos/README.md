@@ -53,7 +53,6 @@ Go to [Tailscale Admin → Access Controls](https://login.tailscale.com/admin/ac
     "tag:k8s-node": []
   },
   "grants": [
-    // For a homelab, allow all connections (adjust as needed)
     {
       "src": ["*"],
       "dst": ["*"],
@@ -61,7 +60,6 @@ Go to [Tailscale Admin → Access Controls](https://login.tailscale.com/admin/ac
     }
   ],
   "ssh": [
-    // Allow SSH to k8s nodes
     {
       "action": "accept",
       "src": ["autogroup:member"],
@@ -88,7 +86,7 @@ Save the **Client ID** and **Client Secret** - you'll enter these during `bootst
 
 ## Step 1: Generate Images from Talos Image Factory
 
-Go to https://factory.talos.dev and create an image for each architecture you need (e.g., one amd64 image for your mini PC, one arm64 image for Raspberry Pis).
+Go to https://factory.talos.dev and create an image for each architecture you need.
 
 ### Required Extensions
 
