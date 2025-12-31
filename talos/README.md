@@ -186,65 +186,25 @@ kubectl get nodes
 
 You should see all your nodes in Ready state.
 
-## Step 7: Create Pre-Bootstrap Secrets
+## Step 7: Bootstrap GitOps
 
-Before ArgoCD syncs the infrastructure, create the required secrets:
-
-```bash
-# ArgoCD admin password
-ARGOCD_PASSWORD="your-argocd-admin-password"
-ARGOCD_PASSWORD_HASH=$(htpasswd -nbBC 10 "" "$ARGOCD_PASSWORD" | tr -d ':\n')
-
-kubectl create namespace argocd
-kubectl create secret generic argocd-secret \
-  -n argocd \
-  --from-literal=admin.password="$ARGOCD_PASSWORD_HASH" \
-  --from-literal=admin.passwordMtime="$(date +%FT%T%Z)"
-
-# Tailscale Operator OAuth credentials
-kubectl create namespace tailscale
-kubectl create secret generic operator-oauth \
-  -n tailscale \
-  --from-literal=client_id="your-ts-client-id" \
-  --from-literal=client_secret="your-ts-client-secret"
-```
-
-## Step 8: Bootstrap GitOps
+Run the bootstrap script to set up ArgoCD and start syncing infrastructure:
 
 ```bash
-cd ../kubernetes/
-
-# Add Helm repos
-helm repo add argo https://argoproj.github.io/argo-helm --force-update
-helm repo update
-
-# Build and install ArgoCD
-helm dependency update infra/argocd
-helm install argocd infra/argocd -n argocd
-
-# Wait for ArgoCD to be ready
-kubectl -n argocd rollout status deploy/argocd-application-controller --timeout=5m
-kubectl -n argocd rollout status deploy/argocd-server --timeout=5m
-
-# Apply the root application (this triggers all other infra)
-kubectl apply -f applications.yaml
+./bootstrap.sh
 ```
 
-## Step 9: Verify Everything
+The script will:
+1. Prompt for secrets (ArgoCD admin password, Tailscale OAuth credentials)
+2. Create the required Kubernetes secrets
+3. Install ArgoCD via Helm
+4. Apply the root GitOps application
+5. Verify the deployment
 
-```bash
-# Check all nodes
-kubectl get nodes -o wide
-
-# Check ArgoCD applications
-kubectl get applications -n argocd
-
-# Check pods across namespaces
-kubectl get pods -A
-```
-
-Access ArgoCD UI via Tailscale once the ingress is ready:
+Once complete, ArgoCD will begin syncing your infrastructure. Access the UI via Tailscale:
 - `https://argocd.<TAILNET>.ts.net`
+- Username: `admin`
+- Password: (what you entered during bootstrap)
 
 ---
 
