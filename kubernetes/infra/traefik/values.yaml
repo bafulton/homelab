@@ -1,5 +1,3 @@
-syncWave: "-10"
-
 tailscale:
   enabled: true
   hostname: traefik

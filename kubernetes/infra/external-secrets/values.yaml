@@ -1,4 +1,3 @@
-syncWave: "-15"
 serverSideApply: true
 
 external-secrets:

@@ -1,5 +1,4 @@
 namespace: kube-system
-syncWave: "0"
 
 metrics-server:
   # A complete list of values can be found here:

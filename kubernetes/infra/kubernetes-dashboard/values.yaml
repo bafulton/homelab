@@ -1,5 +1,3 @@
-syncWave: "0"
-
 tailscale:
   enabled: true
   hostname: kube-dashboard

@@ -3,6 +3,6 @@ kind: ClusterIssuer
 metadata:
   name: selfsigned-bootstrap
   annotations:
-    argocd.argoproj.io/sync-wave: "-19"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   selfSigned: {}

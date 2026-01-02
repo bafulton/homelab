@@ -1,5 +1,3 @@
-syncWave: "-25"
-
 tailscale:
   enabled: true
   hostname: argocd
