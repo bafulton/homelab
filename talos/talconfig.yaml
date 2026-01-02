@@ -63,18 +63,14 @@ patches:
           validSubnets:
             - 100.64.0.0/10
 
-  # Tailscale extension configuration
-  # Note: TS_HOSTNAME is omitted - Tailscale will use the machine hostname
+  # Tailscale extension configuration via ExtensionServiceConfig
   - |-
-    machine:
-      files:
-        - content: |
-            TS_AUTHKEY={{ env "TS_AUTHKEY" }}
-            TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
-            TS_STATE_DIR=/var/lib/tailscale
-          path: /var/etc/tailscale/auth.env
-          permissions: 0o600
-          op: create
+    apiVersion: v1alpha1
+    kind: ExtensionServiceConfig
+    name: tailscale
+    environment:
+      - TS_AUTHKEY={{ env "TS_AUTHKEY" }}
+      - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
 
   # Kernel modules for Longhorn storage
   - |-
