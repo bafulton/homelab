@@ -46,12 +46,13 @@ nodes:
 # Patches - Applied to ALL nodes
 # ------------------------------------------------------------------------------
 patches:
-  # Networking: Use Tailscale MagicDNS
+  # Networking: Use Tailscale MagicDNS with fallback to Google DNS
   - |-
     machine:
       network:
         nameservers:
           - 100.100.100.100
+          - 8.8.8.8
 
   # Kubelet: Use Tailscale IPs for node addresses
   - |-
@@ -72,6 +73,7 @@ patches:
             TS_STATE_DIR=/var/lib/tailscale
           path: /var/etc/tailscale/auth.env
           permissions: 0o600
+          op: create
 
   # Kernel modules for Longhorn storage
   - |-
