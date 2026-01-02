@@ -127,7 +127,7 @@ scan_for_nodes() {
     local ip="${base_ip}.${i}"
 
     # Show progress (use fixed width to avoid visual artifacts)
-    printf "\r  Scanning %-15s                    " "$ip"
+    printf "\r  Scanning %-15s                        " "$ip"
 
     # Quick check if host is up (timeout 1 second)
     if ! ping -c 1 -W 1 "$ip" >/dev/null 2>&1; then
