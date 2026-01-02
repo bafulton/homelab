@@ -6,6 +6,11 @@ metrics-server:
 
   priorityClassName: "system-node-critical"
 
+  # Skip TLS verification for kubelet - required when using Tailscale IPs
+  # since kubelet certs don't include Tailscale IP SANs
+  args:
+    - --kubelet-insecure-tls
+
   resources:
     requests:
       memory: 70Mi
