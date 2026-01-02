@@ -47,6 +47,12 @@ nodes:
 # Patches - Applied to ALL nodes
 # ------------------------------------------------------------------------------
 patches:
+  # Talos API certificate SANs for Tailscale access
+  - |-
+    machine:
+      certSANs:
+        - beelink.catfish-mountain.ts.net
+
   # Networking: Use Tailscale MagicDNS with fallback to Google DNS
   - |-
     machine:
