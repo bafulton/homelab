@@ -134,7 +134,7 @@ scan_for_nodes() {
       continue
     fi
 
-    printf "\r  Scanning %-15s [up, checking Talos]" "$ip"
+    printf "\r  Scanning %-15s [up, checking for Talos]" "$ip"
 
     # Try to get Talos info (with 3 second timeout if available)
     local disks_output
