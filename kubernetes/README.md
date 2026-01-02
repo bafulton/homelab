@@ -32,15 +32,3 @@ kubernetes/
        └── templates/
    ```
 2. Commit and push - ArgoCD will automatically detect and deploy it
-
-## Sync Waves
-
-ArgoCD syncs resources in order based on sync-wave annotations:
-
-| Wave | Resources |
-|------|-----------|
-| 0 | Namespaces |
-| 10 | Infrastructure apps |
-| 20 | User applications |
-
-This ensures dependencies (like cert-manager) are ready before apps that need them.
