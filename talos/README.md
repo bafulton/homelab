@@ -104,6 +104,22 @@ Go to https://factory.talos.dev and create and download an image for each device
 | `siderolabs/intel-ucode` | Optional. CPU microcode updates for Intel CPUs |
 | `siderolabs/amd-ucode` | Optional. CPU microcode updates for AMD CPUs |
 
+### Important: Copy the Schematic ID
+
+After configuring your image, the Image Factory will display a **schematic ID** like:
+```
+Your image schematic ID is: 012427dcde4d2c4eff11f55adf2f20679292fcdffb76b5700dd022c813908b07
+```
+
+**Copy this ID** - you'll need to add it to `talconfig.yaml` so Talos installs the correct image with your extensions. The schematic goes in the `talosImageURL` field for each node:
+
+```yaml
+nodes:
+  - hostname: beelink
+    talosImageURL: factory.talos.dev/installer/<your-schematic-id>
+    # Note: Don't include the version tag - talhelper appends it automatically
+```
+
 ## Step 2: Flash Images
 
 Use [balenaEtcher](https://etcher.balena.io/) to flash Talos images.
@@ -192,9 +208,7 @@ Install talosconfig to /Users/you/.talos/config? [Y/n] y
 ```
 
 This creates:
-- `clusterconfig/homelab-beelink.yaml` - Control plane config
-- `clusterconfig/homelab-rpi3.yaml` - Worker config
-- `clusterconfig/homelab-rpi5.yaml` - Worker config
+- `clusterconfig/homelab-<hostname>.yaml` - Machine config for each node
 - `clusterconfig/talosconfig` - Your talosctl client config
 - `talsecret.yaml` - Cluster secrets (CA certs, keys, tokens)
 
@@ -222,7 +236,11 @@ To add a new worker node:
 
 Boot all nodes. They'll get DHCP addresses on your local network initially.
 
-Run the apply script - it will scan for Talos nodes and show their MAC addresses to help identify them:
+**Note:** If reinstalling on a system that previously had Talos, you'll see a boot menu:
+- Select **"Talos (Reset system disk)"** to wipe the existing installation
+- Then reboot and select **"Talos"** to enter maintenance mode
+
+Run the apply script - it will scan for Talos nodes and show their MAC addresses and disks to help identify them:
 
 ```bash
 ./apply-configs.sh
@@ -233,17 +251,19 @@ Example output:
 ==> Found configs for: beelink rpi3 rpi5
 
 ==> Scanning for Talos nodes on 192.168.1.0/24
-  Found: 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
   Found: 192.168.1.51 | MAC: e4:5f:01:xx:xx:xx | Disks: /dev/mmcblk0 (32GB)
   Found: 192.168.1.52 | MAC: 2c:cf:67:xx:xx:xx | Disks: /dev/mmcblk0 (64GB)
+  Found: 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: mmcblk0 (62 GB) nvme0n1 (2 TB)
 
 ==> Match nodes to configs
 Which node is 'beelink'?
-  [1] 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: /dev/nvme0n1 (256GB)
+  [1] 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: mmcblk0 (62 GB) nvme0n1 (2 TB)
   ...
 ```
 
-Nodes will reboot and Tailscale will come up. Wait 2-3 minutes, then verify nodes are reachable via Tailscale:
+After applying, **remove the USB drive** and the node will reboot into Talos from the internal drive.
+
+Wait 2-3 minutes for Tailscale to connect, then verify the node is reachable via Tailscale:
 
 ```bash
 talosctl health
@@ -284,7 +304,7 @@ talosctl services
 ### View logs
 ```bash
 talosctl logs kubelet
-talosctl logs tailscale
+talosctl logs ext-tailscale  # Tailscale extension service
 ```
 
 ### Upgrade Talos
@@ -303,7 +323,7 @@ talosctl reset --nodes <node>.<tailnet>.ts.net --graceful=false
 
 ### Tailscale not connecting
 ```bash
-talosctl logs tailscale --nodes <node>
+talosctl logs ext-tailscale --nodes <node>
 ```
 
 ### Kubernetes API unreachable
