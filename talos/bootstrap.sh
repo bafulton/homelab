@@ -57,13 +57,29 @@ check_talos_reachable() {
 bootstrap_talos() {
   log "Bootstrapping Talos cluster"
 
-  # Check if already bootstrapped by trying to get kubeconfig
-  if talosctl kubeconfig /dev/null 2>/dev/null; then
-    log "Cluster already bootstrapped, skipping talosctl bootstrap"
+  # Check if already bootstrapped by verifying etcd is running
+  local etcd_state
+  etcd_state=$(talosctl services 2>/dev/null | grep -E '^\S+\s+etcd\s+' | awk '{print $3}')
+
+  if [[ "${etcd_state}" == "Running" ]]; then
+    log "Cluster already bootstrapped (etcd is running), skipping talosctl bootstrap"
   else
     talosctl bootstrap
-    log "Waiting for Kubernetes API to be ready..."
-    sleep 10
+    log "Waiting for etcd to start..."
+    # Wait for etcd to be running
+    local retries=30
+    while true; do
+      etcd_state=$(talosctl services 2>/dev/null | grep -E '^\S+\s+etcd\s+' | awk '{print $3}')
+      if [[ "${etcd_state}" == "Running" ]]; then
+        break
+      fi
+      retries=$((retries - 1))
+      if [[ ${retries} -le 0 ]]; then
+        err "Timed out waiting for etcd to start"
+      fi
+      sleep 5
+    done
+    log "etcd is running"
   fi
 }
 
