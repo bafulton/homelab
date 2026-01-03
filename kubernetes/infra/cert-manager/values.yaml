@@ -1,6 +1,6 @@
 namespace: cert-manager
 serverSideApply: true
-syncWave: "-3"
+syncWave: "-4"
 
 cert-manager:
   # A complete list of values can be found here:
