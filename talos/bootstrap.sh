@@ -150,6 +150,12 @@ prompt_secrets() {
   if [[ -z "${TS_CLIENT_SECRET}" ]]; then
     err "Tailscale OAuth Client Secret is required"
   fi
+
+  # Bitwarden Secrets Manager access token
+  printf "Bitwarden Secrets Manager Access Token (or press Enter to skip): "
+  read -rs BW_ACCESS_TOKEN
+  printf "\n"
+  # This one is optional - external-secrets will be degraded without it but cluster still works
 }
 
 create_secrets() {
@@ -185,6 +191,20 @@ create_secrets() {
     --from-literal=client_id="${TS_CLIENT_ID}" \
     --from-literal=client_secret="${TS_CLIENT_SECRET}" \
     --dry-run=client -o yaml | kubectl apply -f -
+
+  # Bitwarden Secrets Manager access token (optional)
+  if [[ -n "${BW_ACCESS_TOKEN}" ]]; then
+    log "Creating Bitwarden Secrets Manager access token"
+    kubectl create namespace external-secrets \
+      --dry-run=client -o yaml | kubectl apply -f -
+
+    kubectl create secret generic bitwarden-access-token \
+      -n external-secrets \
+      --from-literal=token="${BW_ACCESS_TOKEN}" \
+      --dry-run=client -o yaml | kubectl apply -f -
+  else
+    warn "Skipping Bitwarden secret - external-secrets will be degraded until manually configured"
+  fi
 }
 
 bootstrap_argocd() {
