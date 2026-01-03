@@ -1,3 +1,4 @@
+namespace: cert-manager
 serverSideApply: true
 
 cert-manager:

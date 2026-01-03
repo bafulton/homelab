@@ -1,3 +1,5 @@
+namespace: metallb
+
 # IP pool for LoadBalancer services. Customize for your network:
 # - Must be in your LAN subnet
 # - Must not overlap with DHCP range or other static IPs
