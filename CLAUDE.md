@@ -2,6 +2,10 @@
 
 This document provides context for Claude Code sessions working on this repository.
 
+## Git Workflow
+
+**Always create PRs. Never commit directly to main.** The main branch is protected - direct pushes are blocked by GitHub.
+
 ## Project Overview
 
 GitOps-driven Kubernetes homelab running on Talos Linux with Tailscale networking.
