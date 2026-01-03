@@ -12,4 +12,6 @@ traefik:
   priorityClassName: "system-cluster-critical"
 
   additionalArguments:
-  - "--api.insecure=true"
+    # Expose dashboard without TLS - safe because it's behind Tailscale Ingress
+    # which provides HTTPS termination. Do not expose directly to internet.
+    - "--api.insecure=true"

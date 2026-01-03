@@ -16,7 +16,8 @@ argo-cd:
       createSecret: false
 
     params:
-      # insecure, but behind the tailscale (https) ingress
+      # Disable TLS on ArgoCD server - safe because it's behind Tailscale Ingress
+      # which provides HTTPS termination. Do not expose directly to internet.
       server.insecure: true
 
   applicationSet:
