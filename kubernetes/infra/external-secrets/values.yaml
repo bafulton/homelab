@@ -1,5 +1,9 @@
 serverSideApply: true
 
+bitwarden:
+  organizationID: b477a98e-cb7f-4b49-8fa7-af7401259de0
+  projectID: e44c9c43-4e46-4d9f-8fca-b363002069d4
+
 external-secrets:
   # A complete list of values can be found here:
   # https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
