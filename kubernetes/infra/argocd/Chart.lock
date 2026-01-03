@@ -2,5 +2,8 @@ dependencies:
 - name: argo-cd
   repository: https://argoproj.github.io/argo-helm
   version: 8.0.0
-digest: sha256:6382c8fcc9158852366e1771b8c969fe6fa3e59e2a1942e01e9a9c91a9e8ae19
-generated: "2026-01-02T00:12:40.466155-05:00"
+- name: tailscale-ingress
+  repository: file://../../../charts/tailscale-ingress
+  version: 1.0.0
+digest: sha256:5cccb94e5c060fa8f59eb277502b1225f1ffa06002182cb6e4f9c2623e983398
+generated: "2026-01-03T13:18:10.276714-05:00"
