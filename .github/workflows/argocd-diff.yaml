@@ -37,7 +37,15 @@ jobs:
 
       - name: Post diff as comment
         run: |
-          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff.md --edit-last || \
-          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff.md
+          # Remove Summary and Stats sections, keep only the diffs
+          sed -n '/^@@ Application/,/^Stats:/{ /^Stats:/d; p }' output/diff.md > output/diff-clean.md
+
+          # Fall back to original if cleaning produced empty output
+          if [ ! -s output/diff-clean.md ]; then
+            cp output/diff.md output/diff-clean.md
+          fi
+
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff-clean.md --edit-last || \
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff-clean.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
