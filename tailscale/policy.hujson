@@ -1,0 +1,48 @@
+{
+  // Define grants that govern access for users, groups, autogroups, tags,
+  // Tailscale IP addresses, and subnet ranges.
+  "grants": [
+    // Allow all connections.
+    {
+      "src": ["*"],
+      "dst": ["*"],
+      "ip": ["*"],
+    },
+  ],
+
+  // Define users and devices that can use Tailscale SSH.
+  "ssh": [
+    // Allow all users to SSH into their own devices in check mode.
+    {
+      "action": "check",
+      "src": ["autogroup:member"],
+      "dst": ["autogroup:self"],
+      "users": ["autogroup:nonroot", "root"],
+    },
+    // Allow all users to access devices with the k8s-node tag.
+    {
+      "action": "accept",
+      "src": ["autogroup:member"],
+      "dst": ["tag:k8s-node"],
+      "users": ["autogroup:nonroot", "root"],
+    },
+  ],
+
+  // Define tags and their owners.
+  "tagOwners": {
+    // Kubernetes operator manages k8s-tagged devices
+    "tag:k8s-operator": [],
+    "tag:k8s": ["tag:k8s-operator"],
+    // Applied to cluster nodes during bootstrap
+    "tag:k8s-node": [],
+  },
+
+  // Define special attributes for tagged devices.
+  "nodeAttrs": [
+    // Allow k8s-operator to expose services via Funnel (public internet)
+    {
+      "target": ["tag:k8s"],
+      "attr": ["funnel"],
+    },
+  ],
+}
