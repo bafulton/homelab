@@ -2,6 +2,11 @@ tailscale:
   enabled: true
   hostname: argocd
 
+webhook:
+  enabled: true
+  hostname: argocd-webhook
+  bitwardenSecretId: "1386d7aa-4c3c-4e6e-ac7f-b3c70119021a"
+
 argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
