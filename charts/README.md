@@ -14,8 +14,10 @@ Reference these charts as dependencies in your app's `Chart.yaml`:
 
 ```yaml
 dependencies:
-  - name: tailscale-ingress
+  - name: <chart-name>
     version: 1.0.0
-    repository: file://../../../../charts/tailscale-ingress
-    condition: tailscale-ingress.enabled
+    repository: file://../../../charts/<chart-name>
+    condition: <chart-name>.enabled
 ```
+
+See each chart's README for configuration details.

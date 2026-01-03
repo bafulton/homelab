@@ -17,7 +17,7 @@ Add as a dependency in your `Chart.yaml`:
 dependencies:
   - name: tailscale-ingress
     version: 1.0.0
-    repository: file://../../../../charts/tailscale-ingress
+    repository: file://../../../charts/tailscale-ingress
     condition: tailscale-ingress.enabled
 ```
 
