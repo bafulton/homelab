@@ -1,4 +1,5 @@
 namespace: tailscale
+syncWave: "-2"
 
 tailscale-operator:
   # A complete list of values can be found here:

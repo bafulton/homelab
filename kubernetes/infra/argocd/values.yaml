@@ -1,4 +1,5 @@
 namespace: argocd
+syncWave: "-1"
 
 tailscale-ingress:
   enabled: true

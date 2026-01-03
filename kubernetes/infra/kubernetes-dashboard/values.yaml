@@ -1,4 +1,5 @@
 namespace: kubernetes-dashboard
+syncWave: "-1"
 
 tailscale-ingress:
   enabled: true
