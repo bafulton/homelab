@@ -1,8 +1,16 @@
 namespace: traefik
 
-tailscale:
+tailscale-ingress:
   enabled: true
-  hostname: traefik
+  ingresses:
+    - name: tailscale
+      hostname: traefik
+      service:
+        create: true
+        targetPort: 8080
+        targetSelector:
+          app.kubernetes.io/instance: traefik-traefik
+          app.kubernetes.io/name: traefik
 
 traefik:
   # A complete list of values can be found here:

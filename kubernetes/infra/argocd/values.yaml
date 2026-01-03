@@ -1,12 +1,21 @@
 namespace: argocd
 
-tailscale:
+tailscale-ingress:
   enabled: true
-  hostname: argocd
+  ingresses:
+    - name: tailscale
+      hostname: argocd
+      service:
+        name: argocd-server
+    - name: webhook
+      hostname: argocd-webhook
+      service:
+        name: argocd-server
+      funnel:
+        enabled: true
+        path: /api/webhook
 
 webhook:
-  enabled: true
-  hostname: argocd-webhook
   bitwardenSecretId: "1386d7aa-4c3c-4e6e-ac7f-b3c70119021a"
 
 argo-cd:

@@ -8,3 +8,7 @@ dependencies:
   - name: argo-cd
     version: 8.0.0
     repository: https://argoproj.github.io/argo-helm
+  - name: tailscale-ingress
+    version: 1.0.0
+    repository: file://../../../../charts/tailscale-ingress
+    condition: tailscale-ingress.enabled

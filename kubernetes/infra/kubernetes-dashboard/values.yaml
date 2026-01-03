@@ -1,8 +1,16 @@
 namespace: kubernetes-dashboard
 
-tailscale:
+tailscale-ingress:
   enabled: true
-  hostname: kube-dashboard
+  ingresses:
+    - name: tailscale
+      hostname: kube-dashboard
+      service:
+        create: true
+        targetPort: 8000
+        targetSelector:
+          app.kubernetes.io/instance: kubernetes-dashboard
+          app.kubernetes.io/name: kong
 
 adminUser:
   enabled: true
