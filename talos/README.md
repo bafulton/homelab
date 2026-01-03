@@ -83,7 +83,27 @@ Go to [Tailscale Admin → Settings → OAuth clients](https://login.tailscale.c
 - **Tags**: Select `tag:k8s-operator` (devices created by the operator will get this tag)
 - **Scopes**: The operator needs write access to create devices
 
-Save the **Client ID** and **Client Secret** - you'll enter these during `bootstrap.sh`.
+Save the **Client ID** and **Client Secret** - you'll need to add these to Bitwarden Secrets Manager (see next section).
+
+#### 4. Add OAuth Credentials to Bitwarden Secrets Manager
+
+The Tailscale operator credentials are managed via External Secrets, pulling from Bitwarden Secrets Manager. Before running `bootstrap.sh`, you need to:
+
+1. **Create two secrets in Bitwarden Secrets Manager:**
+   - One containing the OAuth Client ID
+   - One containing the OAuth Client Secret
+
+2. **Update `kubernetes/infra/tailscale-operator/values.yaml`** with the Bitwarden secret UUIDs:
+   ```yaml
+   oauth:
+     bitwardenSecretIds:
+       clientId: "<uuid-of-client-id-secret>"
+       clientSecret: "<uuid-of-client-secret-secret>"
+   ```
+
+3. **Commit and push** the values.yaml change before bootstrapping
+
+During bootstrap, you'll also be prompted for a **Bitwarden Secrets Manager Access Token**. Create this at [Bitwarden → Secrets Manager → Machine Accounts](https://vault.bitwarden.com) with read access to the project containing your secrets.
 
 ## Step 1: Generate and Download Images from Talos Image Factory
 
@@ -280,7 +300,7 @@ Run the bootstrap script to initialize the cluster and set up GitOps:
 The script will:
 1. Bootstrap the Talos cluster (`talosctl bootstrap`)
 2. Retrieve and install kubeconfig
-3. Prompt for secrets (ArgoCD admin password, Tailscale OAuth credentials)
+3. Prompt for secrets (ArgoCD admin password and Bitwarden access token)
 4. Create the required Kubernetes secrets
 5. Install ArgoCD via Helm
 6. Apply the root GitOps application

@@ -34,4 +34,12 @@ The service will be available at `https://my-service.<tailnet>.ts.net`
 
 ## Credentials
 
-OAuth credentials are created during cluster bootstrap (stored in `operator-oauth` secret in the `tailscale` namespace).
+OAuth credentials are pulled from Bitwarden Secrets Manager via ExternalSecret. The `operator-oauth` secret in the `tailscale` namespace contains `client_id` and `client_secret`.
+
+To set up, add the Bitwarden secret IDs to `values.yaml`:
+```yaml
+oauth:
+  bitwardenSecretIds:
+    clientId: "<bitwarden-secret-uuid>"
+    clientSecret: "<bitwarden-secret-uuid>"
+```
