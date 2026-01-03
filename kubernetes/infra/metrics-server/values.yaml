@@ -10,7 +10,3 @@ metrics-server:
   # since kubelet certs don't include Tailscale IP SANs
   args:
     - --kubelet-insecure-tls
-
-  resources:
-    requests:
-      memory: 70Mi
