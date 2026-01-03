@@ -1,0 +1,13 @@
+# List of Tailscale ingresses to create
+ingresses: []
+  # - name: main                # Suffix for resource names (e.g., myapp-main)
+  #   hostname: myapp           # Tailscale hostname (becomes myapp.<tailnet>.ts.net)
+  #   service:
+  #     name: myapp-server      # Existing service name (omit if create=true)
+  #     port: 80                # Service port (default: 80)
+  #     create: false           # Set true to create a new Service
+  #     targetSelector: {}      # Pod selector (required if create=true)
+  #     targetPort: 80          # Pod port (default: 80, required if create=true)
+  #   funnel:                   # Optional: expose to public internet
+  #     enabled: true
+  #     path: /api/webhook      # Optional: restrict to specific path

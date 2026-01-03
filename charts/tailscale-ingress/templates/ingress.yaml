@@ -1,0 +1,34 @@
+{{- range .Values.ingresses }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $.Release.Name }}-{{ .name }}
+  {{- if and .funnel .funnel.enabled }}
+  annotations:
+    tailscale.com/funnel: "true"
+  {{- end }}
+spec:
+  ingressClassName: tailscale
+  {{- if and .funnel .funnel.enabled .funnel.path }}
+  rules:
+    - http:
+        paths:
+          - path: {{ .funnel.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .service.name }}
+                port:
+                  number: {{ .service.port | default 80 }}
+  {{- else }}
+  defaultBackend:
+    service:
+      name: {{ if .service.create }}{{ $.Release.Name }}-{{ .name }}{{ else }}{{ .service.name }}{{ end }}
+      port:
+        number: {{ .service.port | default 80 }}
+  {{- end }}
+  tls:
+    - hosts:
+        - {{ .hostname }}
+{{- end }}

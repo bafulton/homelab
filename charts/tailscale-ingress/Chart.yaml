@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tailscale-ingress
+description: Reusable Tailscale Ingress and Service resources
+type: application
+version: 1.0.0
