@@ -1,6 +1,7 @@
 .DS_Store
 
-charts/
+# Helm dependency charts (downloaded by helm dep update)
+kubernetes/**/charts/
 
 # Talos generated configs contain secrets
 talos/clusterconfig/
