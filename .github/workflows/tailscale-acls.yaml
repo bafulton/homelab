@@ -1,0 +1,64 @@
+name: Tailscale ACLs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tailscale/policy.hujson'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tailscale/policy.hujson'
+
+jobs:
+  acls:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for OIDC token
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get OIDC token from GitHub
+        id: github_oidc
+        run: |
+          JWT=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${{ vars.TS_AUDIENCE }}" | jq -r '.value')
+          echo "jwt=$JWT" >> "$GITHUB_OUTPUT"
+
+      - name: Exchange for Tailscale API token
+        id: tailscale_token
+        run: |
+          RESPONSE=$(curl -s -X POST https://api.tailscale.com/api/v2/oauth/token-exchange \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=${{ vars.TS_CLIENT_ID }}" \
+            -d "jwt=${{ steps.github_oidc.outputs.jwt }}")
+
+          ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
+          if [ "$ACCESS_TOKEN" = "null" ] || [ -z "$ACCESS_TOKEN" ]; then
+            echo "Failed to get Tailscale token:"
+            echo "$RESPONSE" | jq .
+            exit 1
+          fi
+
+          echo "::add-mask::$ACCESS_TOKEN"
+          echo "token=$ACCESS_TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Test ACL
+        if: github.event_name == 'pull_request'
+        uses: tailscale/gitops-acl-action@v1
+        with:
+          api-key: ${{ steps.tailscale_token.outputs.token }}
+          tailnet: ${{ vars.TS_TAILNET }}
+          policy-file: tailscale/policy.hujson
+          action: test
+
+      - name: Apply ACL
+        if: github.event_name == 'push'
+        uses: tailscale/gitops-acl-action@v1
+        with:
+          api-key: ${{ steps.tailscale_token.outputs.token }}
+          tailnet: ${{ vars.TS_TAILNET }}
+          policy-file: tailscale/policy.hujson
+          action: apply
