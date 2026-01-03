@@ -18,7 +18,7 @@ metadata:
 spec:
   refreshInterval: 1h
   secretStoreRef:
-    name: bitwarden
+    name: bitwarden-secretsmanager
     kind: ClusterSecretStore
   target:
     name: my-secret
