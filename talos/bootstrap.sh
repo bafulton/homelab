@@ -11,11 +11,14 @@ set -euo pipefail
 # This script:
 #   1. Bootstraps the Talos cluster (talosctl bootstrap)
 #   2. Retrieves kubeconfig
-#   3. Prompts for required secrets (ArgoCD password, Tailscale OAuth)
+#   3. Prompts for required secrets (ArgoCD password, Tailscale OAuth, Bitwarden token)
 #   4. Creates pre-bootstrap Kubernetes secrets
 #   5. Installs ArgoCD via Helm
 #   6. Applies the root GitOps application
 #   7. Verifies the deployment
+#
+# The script is idempotent - it skips secrets that already exist and only
+# prompts for missing ones. Safe to re-run on an existing cluster.
 #
 # Usage: ./bootstrap.sh
 
@@ -26,6 +29,13 @@ KUBERNETES_DIR="${REPO_ROOT}/kubernetes"
 log()  { printf "\n==> %s\n" "$*"; }
 warn() { printf "[warn] %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
+
+# Check if a Kubernetes secret exists
+secret_exists() {
+  local namespace="$1"
+  local name="$2"
+  kubectl get secret -n "${namespace}" "${name}" >/dev/null 2>&1
+}
 
 check_dependencies() {
   log "Checking dependencies"
@@ -126,84 +136,138 @@ install_helm() {
 }
 
 prompt_secrets() {
-  log "Collecting secrets (input is hidden)"
+  log "Collecting secrets"
+
+  # Initialize variables
+  ARGOCD_PASSWORD=""
+  TS_CLIENT_ID=""
+  TS_CLIENT_SECRET=""
+  BW_ACCESS_TOKEN=""
+  SKIP_ARGOCD_SECRET=false
+  SKIP_TAILSCALE_SECRET=false
+  SKIP_BITWARDEN_SECRET=false
 
   # ArgoCD admin password
-  printf "ArgoCD admin password: "
-  read -rs ARGOCD_PASSWORD
-  printf "\n"
-  if [[ -z "${ARGOCD_PASSWORD}" ]]; then
-    err "ArgoCD password is required"
+  if secret_exists argocd argocd-secret; then
+    printf "ArgoCD secret already exists. Update it? [y/N]: "
+    read -r response
+    if [[ "${response}" =~ ^[Yy]$ ]]; then
+      SKIP_ARGOCD_SECRET=false
+    else
+      printf "    Keeping existing ArgoCD secret\n"
+      SKIP_ARGOCD_SECRET=true
+    fi
+  fi
+
+  if [[ "${SKIP_ARGOCD_SECRET}" == "false" ]]; then
+    printf "ArgoCD admin password: "
+    read -rs ARGOCD_PASSWORD
+    printf "\n"
+    if [[ -z "${ARGOCD_PASSWORD}" ]]; then
+      err "ArgoCD password is required"
+    fi
   fi
 
   # Tailscale OAuth credentials
-  printf "Tailscale OAuth Client ID: "
-  read -rs TS_CLIENT_ID
-  printf "\n"
-  if [[ -z "${TS_CLIENT_ID}" ]]; then
-    err "Tailscale OAuth Client ID is required"
+  if secret_exists tailscale operator-oauth; then
+    printf "Tailscale OAuth secret already exists. Update it? [y/N]: "
+    read -r response
+    if [[ "${response}" =~ ^[Yy]$ ]]; then
+      SKIP_TAILSCALE_SECRET=false
+    else
+      printf "    Keeping existing Tailscale secret\n"
+      SKIP_TAILSCALE_SECRET=true
+    fi
   fi
 
-  printf "Tailscale OAuth Client Secret: "
-  read -rs TS_CLIENT_SECRET
-  printf "\n"
-  if [[ -z "${TS_CLIENT_SECRET}" ]]; then
-    err "Tailscale OAuth Client Secret is required"
+  if [[ "${SKIP_TAILSCALE_SECRET}" == "false" ]]; then
+    printf "Tailscale OAuth Client ID: "
+    read -rs TS_CLIENT_ID
+    printf "\n"
+    if [[ -z "${TS_CLIENT_ID}" ]]; then
+      err "Tailscale OAuth Client ID is required"
+    fi
+
+    printf "Tailscale OAuth Client Secret: "
+    read -rs TS_CLIENT_SECRET
+    printf "\n"
+    if [[ -z "${TS_CLIENT_SECRET}" ]]; then
+      err "Tailscale OAuth Client Secret is required"
+    fi
   fi
 
   # Bitwarden Secrets Manager access token
-  printf "Bitwarden Secrets Manager Access Token (or press Enter to skip): "
-  read -rs BW_ACCESS_TOKEN
-  printf "\n"
-  # This one is optional - external-secrets will be degraded without it but cluster still works
+  if secret_exists external-secrets bitwarden-access-token; then
+    printf "Bitwarden access token already exists. Update it? [y/N]: "
+    read -r response
+    if [[ "${response}" =~ ^[Yy]$ ]]; then
+      SKIP_BITWARDEN_SECRET=false
+    else
+      printf "    Keeping existing Bitwarden secret\n"
+      SKIP_BITWARDEN_SECRET=true
+    fi
+  fi
+
+  if [[ "${SKIP_BITWARDEN_SECRET}" == "false" ]]; then
+    printf "Bitwarden Secrets Manager Access Token (or press Enter to skip): "
+    read -rs BW_ACCESS_TOKEN
+    printf "\n"
+    # This one is optional - external-secrets will be degraded without it but cluster still works
+  fi
 }
 
 create_secrets() {
   log "Creating pre-bootstrap secrets"
 
-  # Check for htpasswd (needed for bcrypt hashing)
-  if ! command -v htpasswd >/dev/null 2>&1; then
-    err "htpasswd is required for password hashing. Install apache2-utils (Linux) or it's included with macOS."
+  # ArgoCD namespace and secret
+  if [[ "${SKIP_ARGOCD_SECRET}" == "false" ]]; then
+    # Check for htpasswd (needed for bcrypt hashing)
+    if ! command -v htpasswd >/dev/null 2>&1; then
+      err "htpasswd is required for password hashing. Install apache2-utils (Linux) or it's included with macOS."
+    fi
+
+    # Hash the ArgoCD password with bcrypt
+    local argocd_password_hash
+    argocd_password_hash=$(htpasswd -nbBC 10 "" "${ARGOCD_PASSWORD}" | tr -d ':\n')
+
+    log "Creating ArgoCD admin secret"
+    kubectl create namespace argocd \
+      --dry-run=client -o yaml | kubectl apply -f -
+
+    kubectl create secret generic argocd-secret \
+      -n argocd \
+      --from-literal=admin.password="${argocd_password_hash}" \
+      --from-literal=admin.passwordMtime="$(date +%FT%T%Z)" \
+      --dry-run=client -o yaml | kubectl apply -f -
   fi
 
-  # Hash the ArgoCD password with bcrypt
-  local argocd_password_hash
-  argocd_password_hash=$(htpasswd -nbBC 10 "" "${ARGOCD_PASSWORD}" | tr -d ':\n')
-
-  # ArgoCD namespace and secret
-  log "Creating ArgoCD admin secret"
-  kubectl create namespace argocd \
-    --dry-run=client -o yaml | kubectl apply -f -
-
-  kubectl create secret generic argocd-secret \
-    -n argocd \
-    --from-literal=admin.password="${argocd_password_hash}" \
-    --from-literal=admin.passwordMtime="$(date +%FT%T%Z)" \
-    --dry-run=client -o yaml | kubectl apply -f -
-
   # Tailscale namespace and secret
-  log "Creating Tailscale operator OAuth secret"
-  kubectl create namespace tailscale \
-    --dry-run=client -o yaml | kubectl apply -f -
+  if [[ "${SKIP_TAILSCALE_SECRET}" == "false" ]]; then
+    log "Creating Tailscale operator OAuth secret"
+    kubectl create namespace tailscale \
+      --dry-run=client -o yaml | kubectl apply -f -
 
-  kubectl create secret generic operator-oauth \
-    -n tailscale \
-    --from-literal=client_id="${TS_CLIENT_ID}" \
-    --from-literal=client_secret="${TS_CLIENT_SECRET}" \
-    --dry-run=client -o yaml | kubectl apply -f -
+    kubectl create secret generic operator-oauth \
+      -n tailscale \
+      --from-literal=client_id="${TS_CLIENT_ID}" \
+      --from-literal=client_secret="${TS_CLIENT_SECRET}" \
+      --dry-run=client -o yaml | kubectl apply -f -
+  fi
 
   # Bitwarden Secrets Manager access token (optional)
-  if [[ -n "${BW_ACCESS_TOKEN}" ]]; then
-    log "Creating Bitwarden Secrets Manager access token"
-    kubectl create namespace external-secrets \
-      --dry-run=client -o yaml | kubectl apply -f -
+  if [[ "${SKIP_BITWARDEN_SECRET}" == "false" ]]; then
+    if [[ -n "${BW_ACCESS_TOKEN}" ]]; then
+      log "Creating Bitwarden Secrets Manager access token"
+      kubectl create namespace external-secrets \
+        --dry-run=client -o yaml | kubectl apply -f -
 
-    kubectl create secret generic bitwarden-access-token \
-      -n external-secrets \
-      --from-literal=token="${BW_ACCESS_TOKEN}" \
-      --dry-run=client -o yaml | kubectl apply -f -
-  else
-    warn "Skipping Bitwarden secret - external-secrets will be degraded until manually configured"
+      kubectl create secret generic bitwarden-access-token \
+        -n external-secrets \
+        --from-literal=token="${BW_ACCESS_TOKEN}" \
+        --dry-run=client -o yaml | kubectl apply -f -
+    else
+      warn "Skipping Bitwarden secret - external-secrets will be degraded until manually configured"
+    fi
   fi
 }
 
