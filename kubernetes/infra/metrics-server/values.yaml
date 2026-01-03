@@ -5,6 +5,8 @@ metrics-server:
   # A complete list of values can be found here:
   # https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
 
+  replicas: 1
+
   priorityClassName: "system-node-critical"
 
   # Skip TLS verification for kubelet - required when using Tailscale IPs
