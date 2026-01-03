@@ -6,6 +6,10 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
+  # cluster-admin is intentional for this homelab setup:
+  # - Dashboard is only accessible via Tailscale (not exposed to public internet)
+  # - Authentication still required via service account token
+  # For multi-tenant or production clusters, use a scoped ClusterRole instead.
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
