@@ -1,4 +1,7 @@
 {
+  // Tailscale ACL policy - managed via GitOps
+  // See tailscale/README.md for setup instructions
+
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
