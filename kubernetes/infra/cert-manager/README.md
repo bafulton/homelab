@@ -2,16 +2,25 @@
 
 Automated TLS certificate management for Kubernetes.
 
+## Certificate Hierarchy
+
+```
+selfsigned-bootstrap (ClusterIssuer)
+    └── homelab-root-ca (Certificate, 10yr, RSA-4096)
+            └── homelab-ca (ClusterIssuer)
+                    └── Your certificates
+```
+
 ## Cluster Issuers
 
-This chart creates a self-signed CA for the homelab:
-
-1. `selfsigned-bootstrap` - Bootstrap issuer for creating the root CA
-2. `homelab-ca` - ClusterIssuer that signs certificates using the homelab root CA
+| Issuer | Use Case |
+|--------|----------|
+| `selfsigned-bootstrap` | **Internal only** - Creates the root CA. Do not use directly. |
+| `homelab-ca` | **Use this one** - Signs certificates for your services. |
 
 ## Usage
 
-Reference the issuer in your Ingress or Certificate resources:
+Reference `homelab-ca` in your Certificate resources:
 
 ```yaml
 apiVersion: cert-manager.io/v1
