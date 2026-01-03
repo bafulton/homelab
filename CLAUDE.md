@@ -6,6 +6,11 @@ This document provides context for Claude Code sessions working on this reposito
 
 **Always create PRs. Never commit directly to main.** The main branch is protected - direct pushes are blocked by GitHub.
 
+After merging a PR, always delete the local branch. When asked to merge a PR, include branch cleanup:
+```bash
+gh pr merge <number> --merge && git checkout main && git pull && git branch -d <branch-name>
+```
+
 ## Project Overview
 
 GitOps-driven Kubernetes homelab running on Talos Linux with Tailscale networking.
