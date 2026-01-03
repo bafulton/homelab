@@ -8,6 +8,8 @@ spec:
   isCA: true
   commonName: homelab-root-ca
   secretName: homelab-root-ca
+  duration: 87600h    # 10 years
+  renewBefore: 8760h  # 1 year
   privateKey:
     algorithm: RSA
     size: 2048
