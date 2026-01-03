@@ -5,7 +5,7 @@ metrics-server:
   # A complete list of values can be found here:
   # https://github.com/kubernetes-sigs/metrics-server/blob/master/charts/metrics-server/values.yaml
 
-  replicas: 1
+  replicas: 2
 
   priorityClassName: "system-node-critical"
 
