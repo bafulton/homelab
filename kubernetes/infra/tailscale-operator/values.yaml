@@ -1,6 +1,13 @@
 namespace: tailscale
 syncWave: "-2"
 
+# Bitwarden secret IDs for Tailscale OAuth credentials
+# These pull from Bitwarden Secrets Manager via ExternalSecret
+oauth:
+  bitwardenSecretIds:
+    clientId: "0444abc5-ca33-41a7-a90d-b3c70174b122"
+    clientSecret: "8a0781d1-8c35-42f9-8b6b-b3c70174c7e6"
+
 tailscale-operator:
   # A complete list of values can be found here:
   # https://github.com/tailscale/tailscale/blob/main/cmd/k8s-operator/deploy/chart/values.yaml

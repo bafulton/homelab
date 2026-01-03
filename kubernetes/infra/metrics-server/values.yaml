@@ -1,5 +1,5 @@
 namespace: kube-system
-syncWave: "-3"
+syncWave: "-4"
 
 metrics-server:
   # A complete list of values can be found here:

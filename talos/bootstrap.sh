@@ -11,7 +11,7 @@ set -euo pipefail
 # This script:
 #   1. Bootstraps the Talos cluster (talosctl bootstrap)
 #   2. Retrieves kubeconfig
-#   3. Prompts for required secrets (ArgoCD password, Tailscale OAuth, Bitwarden token)
+#   3. Prompts for required secrets (ArgoCD password and Bitwarden token)
 #   4. Creates pre-bootstrap Kubernetes secrets
 #   5. Installs ArgoCD via Helm
 #   6. Applies the root GitOps application
@@ -140,11 +140,8 @@ prompt_secrets() {
 
   # Initialize variables
   ARGOCD_PASSWORD=""
-  TS_CLIENT_ID=""
-  TS_CLIENT_SECRET=""
   BW_ACCESS_TOKEN=""
   SKIP_ARGOCD_SECRET=false
-  SKIP_TAILSCALE_SECRET=false
   SKIP_BITWARDEN_SECRET=false
 
   # ArgoCD admin password
@@ -165,34 +162,6 @@ prompt_secrets() {
     printf "\n"
     if [[ -z "${ARGOCD_PASSWORD}" ]]; then
       err "ArgoCD password is required"
-    fi
-  fi
-
-  # Tailscale OAuth credentials
-  if secret_exists tailscale operator-oauth; then
-    printf "Tailscale OAuth secret already exists. Update it? [y/N]: "
-    read -r response
-    if [[ "${response}" =~ ^[Yy]$ ]]; then
-      SKIP_TAILSCALE_SECRET=false
-    else
-      printf "    Keeping existing Tailscale secret\n"
-      SKIP_TAILSCALE_SECRET=true
-    fi
-  fi
-
-  if [[ "${SKIP_TAILSCALE_SECRET}" == "false" ]]; then
-    printf "Tailscale OAuth Client ID: "
-    read -rs TS_CLIENT_ID
-    printf "\n"
-    if [[ -z "${TS_CLIENT_ID}" ]]; then
-      err "Tailscale OAuth Client ID is required"
-    fi
-
-    printf "Tailscale OAuth Client Secret: "
-    read -rs TS_CLIENT_SECRET
-    printf "\n"
-    if [[ -z "${TS_CLIENT_SECRET}" ]]; then
-      err "Tailscale OAuth Client Secret is required"
     fi
   fi
 
@@ -238,19 +207,6 @@ create_secrets() {
       -n argocd \
       --from-literal=admin.password="${argocd_password_hash}" \
       --from-literal=admin.passwordMtime="$(date +%FT%T%Z)" \
-      --dry-run=client -o yaml | kubectl apply -f -
-  fi
-
-  # Tailscale namespace and secret
-  if [[ "${SKIP_TAILSCALE_SECRET}" == "false" ]]; then
-    log "Creating Tailscale operator OAuth secret"
-    kubectl create namespace tailscale \
-      --dry-run=client -o yaml | kubectl apply -f -
-
-    kubectl create secret generic operator-oauth \
-      -n tailscale \
-      --from-literal=client_id="${TS_CLIENT_ID}" \
-      --from-literal=client_secret="${TS_CLIENT_SECRET}" \
       --dry-run=client -o yaml | kubectl apply -f -
   fi
 
