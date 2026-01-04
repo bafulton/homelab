@@ -27,10 +27,8 @@ ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/syn
 
 ```mermaid
 flowchart LR
-    subgraph wave4[Wave -4: Foundational]
+    subgraph wave4[Wave -4: TLS]
         cm[cert-manager]
-        mlb[metallb]
-        ms[metrics-server]
     end
 
     subgraph wave3[Wave -3: Secrets]
@@ -38,6 +36,7 @@ flowchart LR
     end
 
     subgraph wave2[Wave -2: Networking]
+        mlb[metallb]
         ts[tailscale-operator]
     end
 
@@ -45,14 +44,17 @@ flowchart LR
         argo[argocd]
         kd[kubernetes-dashboard]
         tf[traefik]
+        tuppr[tuppr]
+        ms[metrics-server]
     end
 
-    subgraph wave0[Wave 0: User Apps]
+    subgraph wave0[Wave 0+: Applications]
         apps[apps/*]
     end
 
     wave4 --> wave3 --> wave2 --> wave1 --> wave0
     cm -.->|TLS cert| es
+    cm -.->|webhook cert| tuppr
     es -.->|OAuth credentials| ts
     ts -.->|Ingress| argo
     ts -.->|Ingress| kd
@@ -61,11 +63,11 @@ flowchart LR
 
 | Wave | Components | Purpose |
 |------|------------|---------|
-| -4 | cert-manager, metallb, metrics-server | Foundational - no dependencies |
-| -3 | external-secrets | Secrets management (needs cert-manager for TLS) |
-| -2 | tailscale-operator | Networking (needs external-secrets for OAuth) |
-| -1 | argocd, kubernetes-dashboard, traefik | Platform services (need tailscale-operator for Ingress) |
-| 0+ | User apps in `apps/` | Default wave for applications |
+| -4 | cert-manager | TLS certificates |
+| -3 | external-secrets | Secrets management |
+| -2 | metallb, tailscale-operator | Networking |
+| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining Infra |
+| 0+ | User apps in `apps/` | Applications |
 
 To set a custom sync wave, add `syncWave: "<number>"` to the app's `values.yaml`.
 

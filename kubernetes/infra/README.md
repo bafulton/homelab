@@ -14,6 +14,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
+| [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
 
 ## Networking Overview
 
