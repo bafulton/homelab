@@ -39,6 +39,8 @@ signoz:
     persistence:
       enabled: true
       size: 20Gi
+    zookeeper:
+      heapSize: 256
 
   signoz:
     persistence:
