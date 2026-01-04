@@ -58,5 +58,11 @@ spec:
             - {{ $ptr | quote }}
             {{- end }}
           {{- end }}
+          {{- if (index $diff "jqPathExpressions") }}
+          jqPathExpressions:
+            {{- range $expr := (index $diff "jqPathExpressions") }}
+            - {{ $expr | quote }}
+            {{- end }}
+          {{- end }}
         {{- end }}
     {{- end }}
