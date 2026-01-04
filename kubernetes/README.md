@@ -27,8 +27,9 @@ ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/syn
 
 ```mermaid
 flowchart LR
-    subgraph wave4[Wave -4: Certificates]
+    subgraph wave4[Wave -4: Foundational]
         cm[cert-manager]
+        lh[longhorn]
     end
 
     subgraph wave3[Wave -3: Secrets]
@@ -63,7 +64,7 @@ flowchart LR
 
 | Wave | Components | Purpose |
 |------|------------|---------|
-| -4 | cert-manager | TLS certificates |
+| -4 | cert-manager, longhorn | TLS certificates, storage |
 | -3 | external-secrets | Secrets management |
 | -2 | metallb, tailscale-operator | Networking |
 | -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining infra |
