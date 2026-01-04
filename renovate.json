@@ -12,19 +12,35 @@
     },
     {
       "customType": "regex",
+      "description": "Track Kubernetes version in talconfig.yaml",
+      "fileMatch": ["talos/talconfig\\.yaml$"],
+      "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "kubernetes/kubernetes",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
       "description": "Track Talos version in TalosUpgrade CR",
       "fileMatch": ["kubernetes/infra/tuppr/templates/talos-upgrade\\.yaml$"],
       "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: talos"],
       "depNameTemplate": "siderolabs/talos",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Kubernetes version in KubernetesUpgrade CR",
+      "fileMatch": ["kubernetes/infra/tuppr/templates/kubernetes-upgrade\\.yaml$"],
+      "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: kubernetes"],
+      "depNameTemplate": "kubernetes/kubernetes",
+      "datasourceTemplate": "github-releases"
     }
   ],
   "packageRules": [
     {
-      "description": "Group Talos upgrades together (talconfig + upgrade CR)",
+      "description": "Group all Talos and Kubernetes upgrades together",
       "matchDatasources": ["github-releases"],
-      "matchPackageNames": ["siderolabs/talos"],
-      "groupName": "talos"
+      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes"],
+      "groupName": "talos-kubernetes"
     }
   ]
 }
