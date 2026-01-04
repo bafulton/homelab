@@ -63,11 +63,11 @@ flowchart LR
 
 | Wave | Components | Purpose |
 |------|------------|---------|
-| -4 | cert-manager | TLS certificates - required by external-secrets and tuppr |
-| -3 | external-secrets | Secrets management (needs cert-manager for TLS) |
-| -2 | metallb, tailscale-operator | Networking - IP allocation and tailnet exposure |
-| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Platform services |
-| 0+ | User apps in `apps/` | Applications - all infrastructure guaranteed ready |
+| -4 | cert-manager | TLS certificates |
+| -3 | external-secrets | Secrets management |
+| -2 | metallb, tailscale-operator | Networking |
+| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining Infra |
+| 0+ | User apps in `apps/` | Applications |
 
 To set a custom sync wave, add `syncWave: "<number>"` to the app's `values.yaml`.
 
