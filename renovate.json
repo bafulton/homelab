@@ -1,6 +1,57 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track Talos version in talconfig.yaml",
+      "fileMatch": ["talos/talconfig\\.yaml$"],
+      "matchStrings": ["talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "siderolabs/talos",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Kubernetes version in talconfig.yaml",
+      "fileMatch": ["talos/talconfig\\.yaml$"],
+      "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "depNameTemplate": "kubernetes/kubernetes",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Talos version in TalosUpgrade CR",
+      "fileMatch": ["kubernetes/infra/tuppr/templates/talos-upgrade\\.yaml$"],
+      "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: talos"],
+      "depNameTemplate": "siderolabs/talos",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Track Kubernetes version in KubernetesUpgrade CR",
+      "fileMatch": ["kubernetes/infra/tuppr/templates/kubernetes-upgrade\\.yaml$"],
+      "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: kubernetes"],
+      "depNameTemplate": "kubernetes/kubernetes",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Automerge minor and patch updates (after CI passes)",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Never automerge major updates",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Group Talos and Kubernetes together, never automerge",
+      "matchDatasources": ["github-releases"],
+      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes"],
+      "groupName": "talos-kubernetes",
+      "automerge": false
+    }
   ]
 }

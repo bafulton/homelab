@@ -1,0 +1,104 @@
+name: Talos-Kubernetes Compatibility Check
+
+on:
+  pull_request:
+    paths:
+      - 'talos/talconfig.yaml'
+      - 'kubernetes/infra/tuppr/templates/talos-upgrade.yaml'
+      - 'kubernetes/infra/tuppr/templates/kubernetes-upgrade.yaml'
+
+jobs:
+  check-compatibility:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract versions from talconfig.yaml
+        id: versions
+        run: |
+          TALOS_VERSION=$(grep 'talosVersion:' talos/talconfig.yaml | awk '{print $2}')
+          K8S_VERSION=$(grep 'kubernetesVersion:' talos/talconfig.yaml | awk '{print $2}')
+
+          echo "talos_version=$TALOS_VERSION" >> $GITHUB_OUTPUT
+          echo "k8s_version=$K8S_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Fetch Talos support matrix from source
+        id: matrix
+        env:
+          TALOS_VERSION: ${{ steps.versions.outputs.talos_version }}
+        run: |
+          # Fetch the constants file from the Talos repo for this version
+          CONSTANTS_URL="https://raw.githubusercontent.com/siderolabs/talos/${TALOS_VERSION}/pkg/machinery/constants/constants.go"
+          echo "Fetching constants from: $CONSTANTS_URL"
+
+          CONSTANTS=$(curl -sL "$CONSTANTS_URL")
+
+          if [ -z "$CONSTANTS" ]; then
+            echo "⚠️  Could not fetch constants file for Talos $TALOS_VERSION"
+            echo "max_k8s_minor=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract DefaultKubernetesVersion (e.g., "1.35.0")
+          DEFAULT_K8S=$(echo "$CONSTANTS" | grep -E 'DefaultKubernetesVersion\s*=' | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+
+          if [ -z "$DEFAULT_K8S" ]; then
+            echo "⚠️  Could not parse DefaultKubernetesVersion from constants"
+            echo "max_k8s_minor=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extract the minor version (e.g., 35 from 1.35.0)
+          MAX_K8S_MINOR=$(echo "$DEFAULT_K8S" | cut -d. -f2)
+
+          # Talos supports 6 Kubernetes minor versions
+          MIN_K8S_MINOR=$((MAX_K8S_MINOR - 5))
+
+          echo "default_k8s=$DEFAULT_K8S" >> $GITHUB_OUTPUT
+          echo "max_k8s_minor=$MAX_K8S_MINOR" >> $GITHUB_OUTPUT
+          echo "min_k8s_minor=$MIN_K8S_MINOR" >> $GITHUB_OUTPUT
+
+          echo "Talos $TALOS_VERSION supports Kubernetes 1.$MIN_K8S_MINOR - 1.$MAX_K8S_MINOR"
+
+      - name: Check Talos-Kubernetes compatibility
+        env:
+          TALOS_VERSION: ${{ steps.versions.outputs.talos_version }}
+          K8S_VERSION: ${{ steps.versions.outputs.k8s_version }}
+          MAX_K8S_MINOR: ${{ steps.matrix.outputs.max_k8s_minor }}
+          MIN_K8S_MINOR: ${{ steps.matrix.outputs.min_k8s_minor }}
+        run: |
+          echo "Checking compatibility:"
+          echo "  Talos: $TALOS_VERSION"
+          echo "  Kubernetes: $K8S_VERSION"
+
+          # If we couldn't fetch the matrix, warn but don't fail
+          if [ -z "$MAX_K8S_MINOR" ]; then
+            echo "⚠️  Could not determine supported Kubernetes versions for Talos $TALOS_VERSION"
+            echo "Please verify compatibility manually before merging."
+            exit 0
+          fi
+
+          # Extract Kubernetes minor version (e.g., 34 from v1.34.3)
+          K8S_MINOR=$(echo "$K8S_VERSION" | sed 's/v1\.\([0-9]*\).*/\1/')
+
+          echo "  Kubernetes minor: $K8S_MINOR"
+          echo "  Supported range: 1.$MIN_K8S_MINOR - 1.$MAX_K8S_MINOR"
+
+          if [ "$K8S_MINOR" -gt "$MAX_K8S_MINOR" ]; then
+            echo ""
+            echo "❌ Error: Kubernetes $K8S_VERSION is too new for Talos $TALOS_VERSION"
+            echo "   Talos $TALOS_VERSION supports Kubernetes 1.$MIN_K8S_MINOR - 1.$MAX_K8S_MINOR"
+            echo ""
+            echo "   You need to upgrade Talos first, or use a lower Kubernetes version."
+            exit 1
+          fi
+
+          if [ "$K8S_MINOR" -lt "$MIN_K8S_MINOR" ]; then
+            echo ""
+            echo "❌ Error: Kubernetes $K8S_VERSION is too old for Talos $TALOS_VERSION"
+            echo "   Talos $TALOS_VERSION supports Kubernetes 1.$MIN_K8S_MINOR - 1.$MAX_K8S_MINOR"
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ Kubernetes $K8S_VERSION is compatible with Talos $TALOS_VERSION"
