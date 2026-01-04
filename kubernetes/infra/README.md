@@ -13,6 +13,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [longhorn](./longhorn) | Distributed block storage for persistent volumes | - |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
+| [signoz](./signoz) | Observability platform (metrics, logs, traces) | Tailscale |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
