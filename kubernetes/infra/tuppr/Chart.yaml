@@ -1,0 +1,10 @@
+apiVersion: v2
+name: tuppr
+description: Wrapper Helm chart for tuppr - Talos and Kubernetes upgrade controller
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies:
+  - name: tuppr
+    version: 0.1.0
+    repository: oci://ghcr.io/home-operations/charts

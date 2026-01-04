@@ -112,3 +112,14 @@ controlPlane:
         controllerManager:
           extraArgs:
             cloud-provider: external
+
+    # Enable Talos API access from Kubernetes for tuppr upgrade controller
+    - |-
+      machine:
+        features:
+          kubernetesTalosAPIAccess:
+            enabled: true
+            allowedRoles:
+              - os:admin
+            allowedKubernetesNamespaces:
+              - tuppr
