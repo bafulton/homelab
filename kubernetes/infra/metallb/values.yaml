@@ -1,5 +1,5 @@
 namespace: metallb
-syncWave: "-4"
+syncWave: "-2"
 
 # IP pool for LoadBalancer services. Customize for your network:
 # - Must be in your LAN subnet
