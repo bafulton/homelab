@@ -38,33 +38,16 @@ GitOps-driven Kubernetes homelab running on Talos Linux with Tailscale networkin
 
 ```
 homelab/
+├── charts/                   # Reusable Helm charts
 ├── talos/                    # Talos Linux configuration
-│   ├── talconfig.yaml        # Declarative cluster config (source of truth)
-│   ├── talsecret.yaml        # Cluster PKI secrets (gitignored)
-│   ├── clusterconfig/        # Generated machine configs (gitignored)
-│   ├── .env                  # TS_AUTHKEY (gitignored)
-│   ├── generate-configs.sh   # Runs talhelper genconfig
-│   ├── apply-configs.sh      # Applies configs to nodes
-│   └── bootstrap.sh          # Bootstraps cluster + ArgoCD
-│
-├── kubernetes/               # GitOps manifests (managed by ArgoCD)
-│   ├── applications.yaml     # Root app-of-apps (applied during bootstrap)
-│   ├── appsets/              # ApplicationSets that generate ArgoCD apps
-│   │   ├── infra.yaml        # Generates apps for infra/
-│   │   └── apps.yaml         # Generates apps for apps/
-│   ├── infra/                # Infrastructure Helm charts
-│   │   ├── argocd/
-│   │   ├── cert-manager/
-│   │   ├── external-secrets/
-│   │   ├── kubernetes-dashboard/
-│   │   ├── longhorn/
-│   │   ├── metallb/
-│   │   ├── metrics-server/
-│   │   ├── signoz/
-│   │   ├── tailscale-operator/
-│   │   ├── traefik/
-│   │   └── tuppr/
-│   └── apps/                 # User applications (none yet)
+├── tailscale/                # Tailscale GitOps config
+└── kubernetes/               # GitOps manifests (managed by ArgoCD)
+    ├── applications.yaml     # Root app-of-apps (applied during bootstrap)
+    ├── appsets/              # ApplicationSets that generate ArgoCD apps
+    │   ├── infra.yaml        # Generates apps for infra/
+    │   └── apps.yaml         # Generates apps for apps/
+    ├── infra/                # Infrastructure Helm charts
+    └── apps/                 # User applications (none yet)
 ```
 
 ## GitOps Pattern
