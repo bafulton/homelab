@@ -52,24 +52,23 @@ Services are exposed via Tailscale Ingress (not traditional Ingress controllers)
 - TLS certificates are automatically provisioned via Let's Encrypt
 - Access via `https://<hostname>.catfish-mountain.ts.net`
 
-Template pattern (`templates/tailscale-ingress.yaml`):
+Use the `tailscale-ingress` shared chart (see `charts/tailscale-ingress/README.md`):
+
 ```yaml
-{{- if .Values.tailscale.enabled }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ .Release.Name }}
-spec:
-  ingressClassName: tailscale
-  defaultBackend:
-    service:
-      name: {{ .Release.Name }}
-      port:
-        number: 80
-  tls:
-    - hosts:
-        - "{{ .Values.tailscale.hostname }}"
-{{- end }}
+# Chart.yaml
+dependencies:
+  - name: tailscale-ingress
+    version: 1.0.0
+    repository: file://../../../charts/tailscale-ingress
+
+# values.yaml
+tailscale-ingress:
+  enabled: true
+  ingresses:
+    - name: tailscale
+      hostname: my-app
+      service:
+        name: my-app-server
 ```
 
 ### PodSecurity
