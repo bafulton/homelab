@@ -39,6 +39,13 @@ Talos and Kubernetes versions are grouped together since Kubernetes compatibilit
 2. [CI validates](.github/workflows/talos-k8s-compatibility.yaml) the Kubernetes version is compatible with the Talos version
 3. After merge, [tuppr](https://github.com/home-operations/tuppr) orchestrates the upgrade safely (node-by-node with health checks)
 
+## Dashboards
+
+- [ArgoCD](https://argocd.catfish-mountain.ts.net) - GitOps deployments
+- [Kubernetes Dashboard](https://kube-dashboard.catfish-mountain.ts.net) - Cluster management
+- [SigNoz](https://signoz.catfish-mountain.ts.net) - Observability (metrics, logs, traces)
+- [Traefik](https://traefik.catfish-mountain.ts.net) - Ingress controller
+
 ## Getting Started
 
 See [`talos/README.md`](talos/README.md) for the complete bootstrap guide.
