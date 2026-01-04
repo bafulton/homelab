@@ -1,0 +1,18 @@
+# Global defaults (can be overridden per-secret)
+defaults:
+  refreshInterval: 1h
+  creationPolicy: Owner
+
+# List of ExternalSecrets to create
+secrets: []
+  # - name: my-secret              # ExternalSecret name (and target secret name by default)
+  #   refreshInterval: 1h          # Override global default
+  #   creationPolicy: Owner        # Owner (default) or Merge
+  #   annotations: {}              # Annotations on the ExternalSecret resource
+  #   labels: {}                   # Labels on the ExternalSecret resource
+  #   target:                      # Optional: customize the generated Secret
+  #     name: custom-secret-name   # Override target secret name (defaults to .name)
+  #     annotations: {}            # Annotations on the generated Secret
+  #     labels: {}                 # Labels on the generated Secret
+  #   data:
+  #     secretKey: bitwardenSecretId   # Maps K8s secret key to Bitwarden secret ID
