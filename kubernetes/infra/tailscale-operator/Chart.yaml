@@ -8,3 +8,6 @@ dependencies:
   - name: tailscale-operator
     version: 1.92.4
     repository: https://pkgs.tailscale.com/helmcharts
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
