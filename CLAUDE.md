@@ -8,22 +8,6 @@ Commit directly to main for routine changes. Use PRs for larger changes that ben
 
 GitOps-driven Kubernetes homelab running on Talos Linux with Tailscale networking. Tailnet: `catfish-mountain.ts.net`
 
-## Repository Structure
-
-```
-homelab/
-├── charts/                   # Reusable Helm charts
-├── talos/                    # Talos Linux configuration
-├── tailscale/                # Tailscale GitOps config
-└── kubernetes/               # GitOps manifests (managed by ArgoCD)
-    ├── applications.yaml     # Root app-of-apps (applied during bootstrap)
-    ├── appsets/              # ApplicationSets that generate ArgoCD apps
-    │   ├── infra.yaml        # Generates apps for infra/
-    │   └── apps.yaml         # Generates apps for apps/
-    ├── infra/                # Infrastructure Helm charts
-    └── apps/                 # User applications (none yet)
-```
-
 ## GitOps Pattern
 
 Each app in `infra/` or `apps/` is a wrapper Helm chart:

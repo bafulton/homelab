@@ -29,8 +29,8 @@ ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/syn
 cert-manager (-2) → external-secrets (-1) → tailscale-operator (0)
 ```
 
-- **cert-manager → external-secrets**: ES webhook needs TLS certs from cert-manager
-- **external-secrets → tailscale-operator**: TS operator needs the `operator-oauth` secret from Bitwarden
+- **cert-manager → external-secrets**: External Secrets webhook needs TLS certs from cert-manager
+- **external-secrets → tailscale-operator**: Tailscale operator needs the `operator-oauth` secret from Bitwarden
 
 Everything else uses the default (wave 0) and self-heals via ArgoCD retry.
 

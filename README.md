@@ -13,12 +13,13 @@ GitOps-driven Kubernetes cluster for my homelab, running on Talos Linux with Tai
 
 ```
 homelab/
-├── talos/          # Talos Linux bootstrap scripts and configs
-│   └── README.md   # Full bootstrap guide (start here!)
-└── kubernetes/     # GitOps manifests managed by ArgoCD
-    ├── appsets/    # ApplicationSets that generate ArgoCD apps
-    ├── infra/      # Infrastructure components (cert-manager, traefik, etc.)
-    └── apps/       # User application Helm charts
+├── talos/          # Talos Linux configuration (start here!)
+├── kubernetes/     # GitOps manifests managed by ArgoCD
+│   ├── appsets/    # ApplicationSets that generate ArgoCD apps
+│   ├── infra/      # Infrastructure components (cert-manager, traefik, etc.)
+│   └── apps/       # User application Helm charts
+├── charts/         # Reusable Helm library charts
+└── tailscale/      # Tailscale ACL and GitOps config
 ```
 
 ## Automated Updates
