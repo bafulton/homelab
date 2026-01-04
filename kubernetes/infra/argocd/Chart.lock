@@ -1,12 +1,12 @@
 dependencies:
 - name: argo-cd
   repository: https://argoproj.github.io/argo-helm
-  version: 8.0.0
+  version: 9.2.4
 - name: tailscale-ingress
   repository: file://../../../charts/tailscale-ingress
   version: 1.0.0
 - name: bitwarden-secret
   repository: file://../../../charts/bitwarden-secret
   version: 1.0.0
-digest: sha256:233b349468058dc9fe79b02971d10a1abbd98539951be0c5cf6e8a5abe4af828
-generated: "2026-01-03T20:04:29.079872-05:00"
+digest: sha256:188062144ac48f984ec17d06844d9a7104172fddb888c7cda9288c3e218e9c4c
+generated: "2026-01-04T04:19:37.412752454Z"
