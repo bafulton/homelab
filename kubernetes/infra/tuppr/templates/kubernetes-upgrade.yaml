@@ -4,4 +4,4 @@ metadata:
   name: kubernetes-upgrade
 spec:
   kubernetes:
-    version: v1.34.3 # renovate: kubernetes
+    version: v1.35.0 # renovate: kubernetes
