@@ -27,7 +27,7 @@ ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/syn
 
 ```mermaid
 flowchart LR
-    subgraph wave4[Wave -4: TLS]
+    subgraph wave4[Wave -4: Certificates]
         cm[cert-manager]
     end
 
@@ -40,7 +40,7 @@ flowchart LR
         ts[tailscale-operator]
     end
 
-    subgraph wave1[Wave -1: Platform]
+    subgraph wave1[Wave -1: Remaining infra]
         argo[argocd]
         kd[kubernetes-dashboard]
         tf[traefik]
@@ -66,7 +66,7 @@ flowchart LR
 | -4 | cert-manager | TLS certificates |
 | -3 | external-secrets | Secrets management |
 | -2 | metallb, tailscale-operator | Networking |
-| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining Infra |
+| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining infra |
 | 0+ | User apps in `apps/` | Applications |
 
 To set a custom sync wave, add `syncWave: "<number>"` to the app's `values.yaml`.
