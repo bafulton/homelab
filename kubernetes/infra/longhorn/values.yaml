@@ -1,4 +1,4 @@
-namespace: longhorn-system
+namespace: longhorn
 syncWave: "-4"
 
 # Server-side apply required for CRDs
