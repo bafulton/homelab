@@ -44,17 +44,17 @@ spec:
     spec:
       ignoreDifferences:
         {{- range $diff := .ignoreDifferences }}
-        - group: {{ $diff.group | default "" | quote }}
-          kind: {{ $diff.kind | quote }}
-          {{- if $diff.name }}
-          name: {{ $diff.name | quote }}
+        - group: {{ index $diff "group" | default "" | quote }}
+          kind: {{ index $diff "kind" | quote }}
+          {{- if (index $diff "name") }}
+          name: {{ index $diff "name" | quote }}
           {{- end }}
-          {{- if $diff.namespace }}
-          namespace: {{ $diff.namespace | quote }}
+          {{- if (index $diff "namespace") }}
+          namespace: {{ index $diff "namespace" | quote }}
           {{- end }}
-          {{- if $diff.jsonPointers }}
+          {{- if (index $diff "jsonPointers") }}
           jsonPointers:
-            {{- range $ptr := $diff.jsonPointers }}
+            {{- range $ptr := (index $diff "jsonPointers") }}
             - {{ $ptr | quote }}
             {{- end }}
           {{- end }}
