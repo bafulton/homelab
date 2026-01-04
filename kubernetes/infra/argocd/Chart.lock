@@ -5,5 +5,8 @@ dependencies:
 - name: tailscale-ingress
   repository: file://../../../charts/tailscale-ingress
   version: 1.0.0
-digest: sha256:5cccb94e5c060fa8f59eb277502b1225f1ffa06002182cb6e4f9c2623e983398
-generated: "2026-01-03T13:18:10.276714-05:00"
+- name: bitwarden-secret
+  repository: file://../../../charts/bitwarden-secret
+  version: 1.0.0
+digest: sha256:233b349468058dc9fe79b02971d10a1abbd98539951be0c5cf6e8a5abe4af828
+generated: "2026-01-03T20:04:29.079872-05:00"
