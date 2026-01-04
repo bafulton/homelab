@@ -57,6 +57,7 @@ homelab/
 │   │   ├── cert-manager/
 │   │   ├── external-secrets/
 │   │   ├── kubernetes-dashboard/
+│   │   ├── longhorn/
 │   │   ├── metallb/
 │   │   ├── metrics-server/
 │   │   ├── tailscale-operator/
@@ -135,10 +136,10 @@ ArgoCD Applications use sync-waves for dependency ordering:
 
 | Wave | Components |
 |------|------------|
-| -4 | cert-manager, metallb, metrics-server |
+| -4 | cert-manager, longhorn |
 | -3 | external-secrets |
-| -2 | tailscale-operator |
-| -1 | argocd, kubernetes-dashboard, traefik |
+| -2 | metallb, tailscale-operator |
+| -1 | argocd, kubernetes-dashboard, metrics-server, traefik, tuppr |
 | 0 | user apps (default) |
 
 Sync-waves are also used *within* individual apps where resource ordering matters (e.g., cert-manager deploys CRDs before CRs).

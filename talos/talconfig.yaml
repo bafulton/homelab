@@ -85,6 +85,19 @@ patches:
         modules:
           - name: iscsi_tcp
 
+  # Kubelet mount for Longhorn data path (required for Talos v1.10+)
+  - |-
+    machine:
+      kubelet:
+        extraMounts:
+          - destination: /var/lib/longhorn
+            type: bind
+            source: /var/lib/longhorn
+            options:
+              - bind
+              - rshared
+              - rw
+
   # Sysctls for container networking
   - |-
     machine:

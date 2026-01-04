@@ -10,6 +10,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [cert-manager](./cert-manager) | TLS certificate management with a self-signed homelab CA | - |
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
 | [kubernetes-dashboard](./kubernetes-dashboard) | Web UI for cluster management | Tailscale |
+| [longhorn](./longhorn) | Distributed block storage for persistent volumes | - |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |

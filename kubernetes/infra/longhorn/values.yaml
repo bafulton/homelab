@@ -1,0 +1,16 @@
+namespace: longhorn-system
+syncWave: "-4"
+
+# Server-side apply required for CRDs
+serverSideApply: true
+
+longhorn:
+  # Talos-specific configuration
+  # Docs: https://longhorn.io/docs/1.10.1/advanced-resources/os-distro-specific/talos-linux-support/
+
+  defaultSettings:
+    # Data path for Talos (matches kubelet extraMount)
+    defaultDataPath: /var/lib/longhorn
+
+  # Disable default pod security policies (deprecated in k8s 1.25+)
+  enablePSP: false
