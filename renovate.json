@@ -37,10 +37,21 @@
   ],
   "packageRules": [
     {
-      "description": "Group all Talos and Kubernetes upgrades together",
+      "description": "Automerge minor and patch updates (after CI passes)",
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "description": "Never automerge major updates",
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Group Talos and Kubernetes together, never automerge",
       "matchDatasources": ["github-releases"],
       "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes"],
-      "groupName": "talos-kubernetes"
+      "groupName": "talos-kubernetes",
+      "automerge": false
     }
   ]
 }
