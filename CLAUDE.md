@@ -4,9 +4,9 @@ This document provides context for Claude Code sessions working on this reposito
 
 ## Git Workflow
 
-**Always create PRs. Never commit directly to main.** The main branch is protected - direct pushes are blocked by GitHub.
+Commit directly to main for routine changes. Use PRs for larger changes that benefit from review.
 
-After merging a PR, always delete the local branch. When asked to merge a PR, include branch cleanup:
+When using PRs, delete the local branch after merging:
 ```bash
 gh pr merge <number> --merge && git checkout main && git pull && git branch -d <branch-name>
 ```
@@ -134,19 +134,20 @@ spec:
 
 ArgoCD Applications use sync-waves for dependency ordering:
 
-| Wave | Components |
-|------|------------|
-| -4 | cert-manager, longhorn |
-| -3 | external-secrets |
-| -2 | metallb, tailscale-operator |
-| -1 | argocd, kubernetes-dashboard, metrics-server, traefik, tuppr |
-| 0 | user apps (default) |
+| Wave | Category | Components |
+|------|----------|------------|
+| -4 | Foundational | cert-manager, longhorn |
+| -3 | Secrets | external-secrets |
+| -2 | Networking | metallb, tailscale-operator |
+| -1 | Services | argocd, kubernetes-dashboard, metrics-server, traefik, tuppr |
+| 0+ | Apps | user applications |
 
 Sync-waves are also used *within* individual apps where resource ordering matters (e.g., cert-manager deploys CRDs before CRs).
 
 ### PodSecurity
 
 Kubernetes enforces PodSecurity standards. Most namespaces use "baseline" but some require "privileged":
+- `longhorn` - Storage operations require privileged access
 - `metallb` - Speaker needs NET_RAW, hostNetwork for L2/ARP
 
 Add namespace template with labels if privileged access needed:

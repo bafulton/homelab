@@ -23,25 +23,25 @@ kubernetes/
 
 ## Sync Wave Order
 
-ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/) to control the order Applications sync. Infrastructure uses negative waves so user apps (wave 0+) always sync after infrastructure is ready.
+ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/) to control deployment order. Infrastructure deploys in negative waves so apps (wave 0+) always start after infrastructure is ready.
 
 ```mermaid
 flowchart LR
-    subgraph wave4[Wave -4: Foundational]
+    subgraph wave4["-4: Foundational"]
         cm[cert-manager]
         lh[longhorn]
     end
 
-    subgraph wave3[Wave -3: Secrets]
+    subgraph wave3["-3: Secrets"]
         es[external-secrets]
     end
 
-    subgraph wave2[Wave -2: Networking]
+    subgraph wave2["-2: Networking"]
         mlb[metallb]
         ts[tailscale-operator]
     end
 
-    subgraph wave1[Wave -1: Remaining infra]
+    subgraph wave1["-1: Services"]
         argo[argocd]
         kd[kubernetes-dashboard]
         tf[traefik]
@@ -49,26 +49,27 @@ flowchart LR
         ms[metrics-server]
     end
 
-    subgraph wave0[Wave 0+: Applications]
+    subgraph wave0["0+: Apps"]
         apps[apps/*]
     end
 
     wave4 --> wave3 --> wave2 --> wave1 --> wave0
-    cm -.->|TLS cert| es
-    cm -.->|webhook cert| tuppr
-    es -.->|OAuth credentials| ts
+    cm -.->|webhook certs| es
+    cm -.->|webhook certs| tuppr
+    lh -.->|PVCs| apps
+    es -.->|OAuth secret| ts
     ts -.->|Ingress| argo
     ts -.->|Ingress| kd
     ts -.->|Ingress| tf
 ```
 
-| Wave | Components | Purpose |
-|------|------------|---------|
-| -4 | cert-manager, longhorn | TLS certificates, storage |
-| -3 | external-secrets | Secrets management |
-| -2 | metallb, tailscale-operator | Networking |
-| -1 | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Remaining infra |
-| 0+ | User apps in `apps/` | Applications |
+| Wave | Category | Components | Purpose |
+|------|----------|------------|---------|
+| -4 | Foundational | cert-manager, longhorn | TLS certificates, persistent storage |
+| -3 | Secrets | external-secrets | Pull secrets from Bitwarden |
+| -2 | Networking | metallb, tailscale-operator | Load balancing, tailnet exposure |
+| -1 | Services | argocd, kubernetes-dashboard, traefik, tuppr, metrics-server | Platform services |
+| 0+ | Apps | `apps/*` | User applications |
 
 To set a custom sync wave, add `syncWave: "<number>"` to the app's `values.yaml`.
 
