@@ -36,7 +36,7 @@ homelab/
 Talos and Kubernetes versions are grouped together since Kubernetes compatibility depends on the Talos version. When updates are available:
 
 1. Renovate creates a PR updating both `talos/talconfig.yaml` and the upgrade CRs
-2. CI validates Kubernetes version is compatible with the Talos version
+2. [CI validates](.github/workflows/talos-k8s-compat.yaml) Kubernetes version is compatible with the Talos version
 3. After merge, [tuppr](https://github.com/home-operations/tuppr) orchestrates the upgrade safely (node-by-node with health checks)
 
 ## Getting Started
