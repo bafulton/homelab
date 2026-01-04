@@ -18,7 +18,7 @@ jobs:
       id-token: write  # Required for OIDC token
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Get OIDC token from GitHub
         id: github_oidc
