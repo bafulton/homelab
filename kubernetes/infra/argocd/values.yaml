@@ -16,8 +16,15 @@ tailscale-ingress:
         enabled: true
         path: /api/webhook
 
-webhook:
-  bitwardenSecretId: "1386d7aa-4c3c-4e6e-ac7f-b3c70119021a"
+# Bitwarden secrets pulled via ExternalSecret
+bitwarden-secret:
+  secrets:
+    - name: argocd-github-webhook
+      creationPolicy: Merge
+      target:
+        name: argocd-secret
+      data:
+        webhook.github.secret: "1386d7aa-4c3c-4e6e-ac7f-b3c70119021a"
 
 argo-cd:
   # A complete list of values can be found here:
