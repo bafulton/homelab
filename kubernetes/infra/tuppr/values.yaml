@@ -1,0 +1,32 @@
+namespace: tuppr
+syncWave: "0"
+
+# Tuppr manages Talos and Kubernetes upgrades via CRDs
+# After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
+#
+# Example TalosUpgrade:
+#   apiVersion: upgrade.tuppr.io/v1alpha1
+#   kind: TalosUpgrade
+#   metadata:
+#     name: talos-upgrade
+#   spec:
+#     talos:
+#       version: v1.13.0
+#
+# Example KubernetesUpgrade:
+#   apiVersion: upgrade.tuppr.io/v1alpha1
+#   kind: KubernetesUpgrade
+#   metadata:
+#     name: kubernetes-upgrade
+#   spec:
+#     kubernetes:
+#       version: v1.35.0
+
+tuppr:
+  # A complete list of values can be found here:
+  # https://github.com/home-operations/tuppr
+
+  # Use cert-manager for webhook certificates (already installed in cluster)
+  webhook:
+    certManager:
+      enabled: true
