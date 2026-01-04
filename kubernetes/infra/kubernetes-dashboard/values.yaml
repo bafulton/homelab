@@ -1,5 +1,4 @@
 namespace: kubernetes-dashboard
-syncWave: "-1"
 
 # Ignore the CSRF secret - it contains a randomly generated key that changes
 # on every Helm template, causing infinite sync loops

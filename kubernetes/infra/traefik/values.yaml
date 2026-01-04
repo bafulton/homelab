@@ -1,5 +1,4 @@
 namespace: traefik
-syncWave: "-1"
 
 tailscale-ingress:
   enabled: true

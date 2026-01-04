@@ -1,5 +1,4 @@
 namespace: tailscale
-syncWave: "-2"
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:

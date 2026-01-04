@@ -1,5 +1,4 @@
 namespace: tuppr
-syncWave: "-1"
 
 # Tuppr manages Talos and Kubernetes upgrades via CRDs
 # After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
