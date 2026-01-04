@@ -40,3 +40,23 @@ spec:
           - CreateNamespace=true
           - ServerSideApply=true
     {{- end }}
+    {{- if (get . "ignoreDifferences") }}
+    spec:
+      ignoreDifferences:
+        {{- range $diff := .ignoreDifferences }}
+        - group: {{ index $diff "group" | default "" | quote }}
+          kind: {{ index $diff "kind" | quote }}
+          {{- if (index $diff "name") }}
+          name: {{ index $diff "name" | quote }}
+          {{- end }}
+          {{- if (index $diff "namespace") }}
+          namespace: {{ index $diff "namespace" | quote }}
+          {{- end }}
+          {{- if (index $diff "jsonPointers") }}
+          jsonPointers:
+            {{- range $ptr := (index $diff "jsonPointers") }}
+            - {{ $ptr | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
