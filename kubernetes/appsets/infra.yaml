@@ -16,7 +16,7 @@ spec:
     metadata:
       name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "argocd" from "kubernetes/infra/argocd"
       annotations:
-        argocd.argoproj.io/sync-wave: '{{ get . "syncWave" | default "-1" }}'
+        argocd.argoproj.io/sync-wave: '{{ get . "syncWave" | default "0" }}'
     spec:
       project: default
       source:
