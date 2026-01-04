@@ -1,0 +1,24 @@
+namespace: signoz
+serverSideApply: true
+
+tailscale-ingress:
+  enabled: true
+  ingresses:
+    - name: tailscale
+      hostname: signoz
+      service:
+        name: signoz
+        port: 8080
+
+signoz:
+  clusterName: homelab
+
+  clickhouse:
+    persistence:
+      enabled: true
+      size: 20Gi
+
+  signoz:
+    persistence:
+      enabled: true
+      size: 1Gi
