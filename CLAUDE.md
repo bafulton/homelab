@@ -60,7 +60,8 @@ homelab/
 │   │   ├── metallb/
 │   │   ├── metrics-server/
 │   │   ├── tailscale-operator/
-│   │   └── traefik/
+│   │   ├── traefik/
+│   │   └── tuppr/
 │   └── apps/                 # User applications (none yet)
 ```
 
@@ -204,6 +205,13 @@ cd talos && ./generate-configs.sh         # Regenerate configs after talconfig.y
 4. **DaemonSet retry backoff**: If a DaemonSet fails repeatedly (e.g., PodSecurity violation), fixing the issue may require `kubectl rollout restart daemonset/<name>` to clear the backoff timer
 
 5. **Tailscale proxy pods**: Named `ts-<service>-<hash>-0` in the `tailscale` namespace
+
+## Documentation Maintenance
+
+When making changes to the codebase, always consider whether READMEs need to be created or updated:
+- Adding a new infra component? Update `kubernetes/infra/README.md` and the repository structure in this file
+- Adding a new workflow or automation? Update the root `README.md`
+- Changing how something works? Check if any documentation references the old behavior
 
 ## Useful URLs
 
