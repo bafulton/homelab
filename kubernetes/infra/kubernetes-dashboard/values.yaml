@@ -1,12 +1,23 @@
 namespace: kubernetes-dashboard
 
-# Ignore the CSRF secret - it contains a randomly generated key that changes
-# on every Helm template, causing infinite sync loops
+# Ignore resources with randomly generated values that change on every Helm template
 ignoreDifferences:
+  # CSRF secret contains a randomly generated key
   - kind: Secret
     name: kubernetes-dashboard-csrf
     jsonPointers:
       - /data
+  # Deployment checksum annotations change because they hash the CSRF secret
+  - group: apps
+    kind: Deployment
+    name: kubernetes-dashboard-api
+    jqPathExpressions:
+      - .spec.template.metadata.annotations["checksum/config"]
+  - group: apps
+    kind: Deployment
+    name: kubernetes-dashboard-auth
+    jqPathExpressions:
+      - .spec.template.metadata.annotations["checksum/config"]
 
 tailscale-ingress:
   enabled: true
