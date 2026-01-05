@@ -29,6 +29,37 @@ nodes:
     controlPlane: true
     ipAddress: beelink.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # eMMC, not the NVMe SSD
+    patches:
+      # Mount NVME and USB drives for Longhorn storage
+      - |-
+        machine:
+          disks:
+            - device: /dev/nvme0n1
+              partitions:
+                - mountpoint: /var/mnt/nvme
+            - device: /dev/sda
+              partitions:
+                - mountpoint: /var/mnt/usb
+
+      # Kubelet extraMounts for Longhorn to access NVME and USB drives
+      - |-
+        machine:
+          kubelet:
+            extraMounts:
+              - destination: /var/mnt/nvme
+                type: bind
+                source: /var/mnt/nvme
+                options:
+                  - bind
+                  - rshared
+                  - rw
+              - destination: /var/mnt/usb
+                type: bind
+                source: /var/mnt/usb
+                options:
+                  - bind
+                  - rshared
+                  - rw
 
   - hostname: rpi3
     controlPlane: false
