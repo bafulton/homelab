@@ -1,23 +1,12 @@
 namespace: kubernetes-dashboard
 
-# Ignore resources with randomly generated values that change on every Helm template
+# CSRF secret is randomly generated on every Helm render (known issue: kubernetes/dashboard#8756)
+# With RespectIgnoreDifferences=true, ArgoCD won't overwrite it, keeping it stable after initial creation
 ignoreDifferences:
-  # CSRF secret contains a randomly generated key
   - kind: Secret
     name: kubernetes-dashboard-csrf
     jsonPointers:
       - /data
-  # Deployment checksum annotations change because they hash the CSRF secret
-  - group: apps
-    kind: Deployment
-    name: kubernetes-dashboard-api
-    jqPathExpressions:
-      - .spec.template.metadata.annotations["checksum/config"]
-  - group: apps
-    kind: Deployment
-    name: kubernetes-dashboard-auth
-    jqPathExpressions:
-      - .spec.template.metadata.annotations["checksum/config"]
 
 tailscale-ingress:
   enabled: true

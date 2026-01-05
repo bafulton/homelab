@@ -32,12 +32,14 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - RespectIgnoreDifferences=true
   templatePatch: |
     {{- if (get . "serverSideApply") }}
     spec:
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
+          - RespectIgnoreDifferences=true
           - ServerSideApply=true
     {{- end }}
     {{- if (get . "ignoreDifferences") }}
