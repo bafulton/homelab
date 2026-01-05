@@ -495,8 +495,8 @@
     }
   },
   "tags": [
-    "argocd",
-    "infra"
+    "gitops",
+    "argocd"
   ],
   "title": "ArgoCD Status",
   "uploadedGrafana": false,

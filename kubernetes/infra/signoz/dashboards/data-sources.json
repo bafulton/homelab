@@ -23,8 +23,8 @@
   ],
   "panelMap": {},
   "tags": [
-    "signoz",
-    "observability"
+    "gitops",
+    "signoz"
   ],
   "title": "Data Sources",
   "uploadedGrafana": false,

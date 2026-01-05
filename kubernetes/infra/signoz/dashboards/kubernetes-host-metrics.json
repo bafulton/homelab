@@ -486,9 +486,8 @@
     }
   },
   "tags": [
-    "hostmetrics",
-    "k8s",
-    "node"
+    "gitops",
+    "k8s"
   ],
   "title": "Kubernetes Host Metrics",
   "uploadedGrafana": false,

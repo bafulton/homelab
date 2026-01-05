@@ -86,7 +86,7 @@
   ],
   "panelMap": {},
   "tags": [
-    "pod",
+    "gitops",
     "k8s"
   ],
   "title": "Kubernetes Pod Metrics",

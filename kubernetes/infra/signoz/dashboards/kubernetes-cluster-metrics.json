@@ -59,9 +59,8 @@
   ],
   "panelMap": {},
   "tags": [
-    "k8s",
-    "cluster",
-    "k8sclusterreceiver"
+    "gitops",
+    "k8s"
   ],
   "title": "Kubernetes Cluster Metrics",
   "uploadedGrafana": false,
