@@ -69,9 +69,9 @@ Authentication via `SIGNOZ-API-KEY` header (token stored in Bitwarden).
 
 ### How It Works
 
-1. JSON files in `dashboards/` and `alerts/` are packaged into ConfigMaps
-2. An ArgoCD PostSync Job runs after each sync
-3. The Job finds existing resources by title/name and deletes them
+1. An ArgoCD PostSync Job runs after each sync
+2. The Job clones the repo and reads JSON files directly (avoids ConfigMap size limits)
+3. For each file, it finds existing resources by title/name and deletes them
 4. Then creates fresh resources from the JSON files
 
 This ensures Git is the source of truth - changes in the repo replace what's in SigNoz.

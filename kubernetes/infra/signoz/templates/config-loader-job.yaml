@@ -26,11 +26,21 @@ spec:
                   key: token
             - name: SIGNOZ_URL
               value: "http://signoz.{{ .Release.Namespace }}.svc:8080"
+            - name: REPO_URL
+              value: "https://github.com/bafulton/homelab.git"
+            - name: REPO_PATH
+              value: "kubernetes/infra/signoz"
           command: ["/bin/sh", "-c"]
           args:
             - |
               set -e
-              apk add --no-cache curl jq
+              apk add --no-cache curl jq git
+
+              # Clone repo (shallow, specific path)
+              echo "Cloning repository..."
+              git clone --depth 1 --filter=blob:none --sparse "$REPO_URL" /repo
+              cd /repo
+              git sparse-checkout set "$REPO_PATH"
 
               # Wait for SigNoz to be ready
               echo "Waiting for SigNoz API to be ready..."
@@ -44,110 +54,94 @@ spec:
               done
 
               # Load dashboards (delete existing by title, then create)
-              {{- if $dashboards }}
-              echo "Loading dashboards..."
+              DASHBOARD_DIR="/repo/$REPO_PATH/dashboards"
+              if [ -d "$DASHBOARD_DIR" ] && ls "$DASHBOARD_DIR"/*.json 1> /dev/null 2>&1; then
+                echo "Loading dashboards..."
 
-              # Get existing dashboards
-              existing=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
-                -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+                # Get existing dashboards
+                existing=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
+                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
 
-              for f in /dashboards/*.json; do
-                [ -f "$f" ] || continue
-                name=$(basename "$f" .json)
-                title=$(jq -r '.title // .data.title // empty' "$f")
-                echo "  Loading dashboard: $name (title: $title)"
+                for f in "$DASHBOARD_DIR"/*.json; do
+                  [ -f "$f" ] || continue
+                  name=$(basename "$f" .json)
+                  title=$(jq -r '.title // .data.title // empty' "$f")
+                  echo "  Loading dashboard: $name (title: $title)"
 
-                # Find and delete existing dashboard with same title
-                if [ -n "$title" ]; then
-                  existing_uuid=$(echo "$existing" | jq -r --arg t "$title" \
-                    '.data[]? | select(.title == $t) | .uuid // empty' 2>/dev/null || true)
-                  if [ -n "$existing_uuid" ]; then
-                    echo "    Deleting existing dashboard: $existing_uuid"
-                    curl -s -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$existing_uuid" \
-                      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                  # Find and delete existing dashboard with same title
+                  if [ -n "$title" ]; then
+                    existing_uuid=$(echo "$existing" | jq -r --arg t "$title" \
+                      '.data[]? | select(.title == $t) | .uuid // empty' 2>/dev/null || true)
+                    if [ -n "$existing_uuid" ]; then
+                      echo "    Deleting existing dashboard: $existing_uuid"
+                      curl -s -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$existing_uuid" \
+                        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                    fi
                   fi
-                fi
 
-                # Create dashboard
-                response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/dashboards" \
-                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
-                  -H "Content-Type: application/json" \
-                  -d @"$f")
+                  # Create dashboard
+                  response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/dashboards" \
+                    -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d @"$f")
 
-                http_code=$(echo "$response" | tail -n1)
-                body=$(echo "$response" | sed '$d')
+                  http_code=$(echo "$response" | tail -n1)
+                  body=$(echo "$response" | sed '$d')
 
-                if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-                  echo "    Created successfully"
-                else
-                  echo "    Warning: HTTP $http_code - $body"
-                fi
-              done
-              {{- end }}
+                  if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+                    echo "    Created successfully"
+                  else
+                    echo "    Warning: HTTP $http_code - $body"
+                  fi
+                done
+              else
+                echo "No dashboards found"
+              fi
 
               # Load alerts (delete existing by name, then create)
-              {{- if $alerts }}
-              echo "Loading alerts..."
+              ALERT_DIR="/repo/$REPO_PATH/alerts"
+              if [ -d "$ALERT_DIR" ] && ls "$ALERT_DIR"/*.json 1> /dev/null 2>&1; then
+                echo "Loading alerts..."
 
-              # Get existing alerts
-              existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
-                -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+                # Get existing alerts
+                existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
+                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
 
-              for f in /alerts/*.json; do
-                [ -f "$f" ] || continue
-                name=$(basename "$f" .json)
-                alert_name=$(jq -r '.alert // .data.alert // empty' "$f")
-                echo "  Loading alert: $name (name: $alert_name)"
+                for f in "$ALERT_DIR"/*.json; do
+                  [ -f "$f" ] || continue
+                  name=$(basename "$f" .json)
+                  alert_name=$(jq -r '.alert // .data.alert // empty' "$f")
+                  echo "  Loading alert: $name (name: $alert_name)"
 
-                # Find and delete existing alert with same name
-                if [ -n "$alert_name" ]; then
-                  existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
-                    '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null || true)
-                  if [ -n "$existing_id" ]; then
-                    echo "    Deleting existing alert: $existing_id"
-                    curl -s -X DELETE "$SIGNOZ_URL/api/v1/rules/$existing_id" \
-                      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                  # Find and delete existing alert with same name
+                  if [ -n "$alert_name" ]; then
+                    existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
+                      '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null || true)
+                    if [ -n "$existing_id" ]; then
+                      echo "    Deleting existing alert: $existing_id"
+                      curl -s -X DELETE "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+                        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                    fi
                   fi
-                fi
 
-                # Create alert
-                response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
-                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
-                  -H "Content-Type: application/json" \
-                  -d @"$f")
+                  # Create alert
+                  response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
+                    -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d @"$f")
 
-                http_code=$(echo "$response" | tail -n1)
-                body=$(echo "$response" | sed '$d')
+                  http_code=$(echo "$response" | tail -n1)
+                  body=$(echo "$response" | sed '$d')
 
-                if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-                  echo "    Created successfully"
-                else
-                  echo "    Warning: HTTP $http_code - $body"
-                fi
-              done
-              {{- end }}
+                  if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+                    echo "    Created successfully"
+                  else
+                    echo "    Warning: HTTP $http_code - $body"
+                  fi
+                done
+              else
+                echo "No alerts found"
+              fi
 
               echo "Config loading complete!"
-          volumeMounts:
-            {{- if $dashboards }}
-            - name: dashboards
-              mountPath: /dashboards
-              readOnly: true
-            {{- end }}
-            {{- if $alerts }}
-            - name: alerts
-              mountPath: /alerts
-              readOnly: true
-            {{- end }}
-      volumes:
-        {{- if $dashboards }}
-        - name: dashboards
-          configMap:
-            name: signoz-dashboards
-        {{- end }}
-        {{- if $alerts }}
-        - name: alerts
-          configMap:
-            name: signoz-alerts
-        {{- end }}
 {{- end }}
