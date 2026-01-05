@@ -1,7 +1,8 @@
 namespace: longhorn
 
 # Server-side apply required for CRDs
-serverSideApply: true
+syncPolicy:
+  serverSideApply: true
 
 # Node-specific disk configuration
 # Each disk is tagged for use with specific StorageClasses

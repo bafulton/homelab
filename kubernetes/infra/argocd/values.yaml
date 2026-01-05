@@ -1,5 +1,9 @@
 namespace: argocd
 
+# Disable pruning - if manifest generation fails, we don't want ArgoCD to delete itself
+syncPolicy:
+  prune: false
+
 # ArgoCD Vault Plugin - injects secrets from K8s Secrets
 avp:
   enabled: true

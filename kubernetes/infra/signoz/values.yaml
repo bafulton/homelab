@@ -1,5 +1,7 @@
 namespace: signoz
-serverSideApply: true
+
+syncPolicy:
+  serverSideApply: true
 
 # Ignore Kubernetes runtime defaults that cause perpetual drift
 ignoreDifferences:

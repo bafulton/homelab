@@ -34,22 +34,25 @@ spec:
           - CreateNamespace=true
           - RespectIgnoreDifferences=true
   templatePatch: |
-    {{- if (get . "useAVP") }}
     spec:
+      {{- if (get . "useAVP") }}
       source:
         plugin:
           name: argocd-vault-plugin-helm
-    {{- end }}
-    {{- if (get . "serverSideApply") }}
-    spec:
+      {{- end }}
+      {{- if (get . "syncPolicy") }}
       syncPolicy:
+        automated:
+          prune: {{ if hasKey .syncPolicy "prune" }}{{ .syncPolicy.prune }}{{ else }}true{{ end }}
+          selfHeal: {{ if hasKey .syncPolicy "selfHeal" }}{{ .syncPolicy.selfHeal }}{{ else }}true{{ end }}
         syncOptions:
           - CreateNamespace=true
           - RespectIgnoreDifferences=true
+          {{- if .syncPolicy.serverSideApply }}
           - ServerSideApply=true
-    {{- end }}
-    {{- if (get . "ignoreDifferences") }}
-    spec:
+          {{- end }}
+      {{- end }}
+      {{- if (get . "ignoreDifferences") }}
       ignoreDifferences:
         {{- range $diff := .ignoreDifferences }}
         - group: {{ index $diff "group" | default "" | quote }}
@@ -73,4 +76,4 @@ spec:
             {{- end }}
           {{- end }}
         {{- end }}
-    {{- end }}
+      {{- end }}
