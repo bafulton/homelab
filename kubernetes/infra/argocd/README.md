@@ -39,10 +39,10 @@ bitwarden-secret:
 
 # Use AVP placeholder syntax in chart values
 my-upstream-chart:
-  secretValue: <path:my-namespace/my-app-secrets#apiKey>
+  secretValue: <path:my-app-secrets#apiKey>
 ```
 
-Placeholder syntax: `<path:namespace/secret-name#key>`
+Placeholder syntax: `<path:secret-name#key>` (secret must be in same namespace as app)
 
 ### Configuration
 
