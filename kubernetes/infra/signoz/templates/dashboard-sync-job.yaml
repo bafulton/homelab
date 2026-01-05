@@ -1,10 +1,7 @@
-{{- $dashboards := .Files.Glob "dashboards/*.json" }}
-{{- $alerts := .Files.Glob "alerts/*.json" }}
-{{- if or $dashboards $alerts }}
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: signoz-config-loader
+  name: signoz-dashboard-sync
   namespace: {{ .Release.Namespace }}
   annotations:
     argocd.argoproj.io/hook: PostSync
@@ -144,4 +141,3 @@ spec:
               fi
 
               echo "Config loading complete!"
-{{- end }}
