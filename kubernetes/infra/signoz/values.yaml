@@ -45,6 +45,10 @@ bitwarden-secret:
 signoz:
   clusterName: homelab
 
+  # Use longhorn-emmc for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
+  global:
+    storageClass: longhorn-emmc
+
   clickhouse:
     persistence:
       enabled: true
