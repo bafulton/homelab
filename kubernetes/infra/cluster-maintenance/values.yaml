@@ -1,0 +1,7 @@
+namespace: kube-system
+
+podCleanup:
+  enabled: true
+  schedule: "* * * * *"  # every minute
+  succeededPodMaxAge: 0
+  failedPodMaxAge: 3600  # 1 hour
