@@ -117,24 +117,7 @@
   ],
   "title": "Clickhouse Overview",
   "uploadedGrafana": false,
-  "variables": {
-    "eaf65de3-20bb-4dbc-9792-32a445f7be8f": {
-      "allSelected": false,
-      "customValue": "",
-      "description": "",
-      "id": "eaf65de3-20bb-4dbc-9792-32a445f7be8f",
-      "key": "eaf65de3-20bb-4dbc-9792-32a445f7be8f",
-      "modificationUUID": "2fbb477e-7775-427b-ab14-29b673dd216c",
-      "multiSelect": false,
-      "name": "host.name",
-      "order": 0,
-      "queryValue": "SELECT JSONExtractString(labels, 'host.name') AS `host.name`\nFROM signoz_metrics.distributed_time_series_v4_1day\nWHERE metric_name = 'ClickHouseMetrics_VersionInteger' and __normalized=false \nGROUP BY `host.name`",
-      "showALLOption": false,
-      "sort": "DISABLED",
-      "textboxValue": "",
-      "type": "QUERY"
-    }
-  },
+  "variables": {},
   "version": "v5",
   "widgets": [
     {
@@ -162,19 +145,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -198,19 +172,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -234,19 +199,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -270,19 +226,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -400,7 +347,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -427,7 +374,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -454,7 +401,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -481,7 +428,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -602,7 +549,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -723,19 +670,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -759,19 +697,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -795,19 +724,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -831,19 +751,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -961,7 +872,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -988,7 +899,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1015,7 +926,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1042,7 +953,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1163,7 +1074,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1190,7 +1101,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1217,7 +1128,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1244,7 +1155,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1365,7 +1276,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1392,7 +1303,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1513,19 +1424,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -1549,19 +1451,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -1585,19 +1478,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -1621,19 +1505,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -1751,7 +1626,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1778,7 +1653,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1805,7 +1680,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1832,7 +1707,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -1953,7 +1828,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2074,19 +1949,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2110,19 +1976,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2146,19 +2003,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2182,19 +2030,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2312,7 +2151,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2339,7 +2178,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2366,7 +2205,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2393,7 +2232,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2514,7 +2353,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2541,7 +2380,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2568,7 +2407,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2595,7 +2434,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2716,7 +2555,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -2837,19 +2676,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2873,19 +2703,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2909,19 +2730,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -2945,19 +2757,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -3075,7 +2878,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3102,7 +2905,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3129,7 +2932,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3156,7 +2959,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3277,7 +3080,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3398,19 +3201,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -3434,19 +3228,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -3470,19 +3255,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -3506,19 +3282,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -3636,7 +3403,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3663,7 +3430,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3690,7 +3457,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3717,7 +3484,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3838,7 +3605,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3865,7 +3632,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3892,7 +3659,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -3919,7 +3686,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4040,7 +3807,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4067,7 +3834,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4188,19 +3955,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4224,19 +3982,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4260,19 +4009,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4296,19 +4036,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4426,7 +4157,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4453,7 +4184,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4480,7 +4211,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4507,7 +4238,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4628,7 +4359,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -4749,19 +4480,10 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4785,19 +4507,10 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4821,19 +4534,10 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4857,19 +4561,10 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "host.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "host.name",
-                  "type": "tag"
-                }
-              ],
+              "groupBy": [],
               "having": {
                 "expression": ""
               },
@@ -4987,7 +4682,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5014,7 +4709,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5041,7 +4736,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5068,7 +4763,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5189,7 +4884,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5216,7 +4911,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5243,7 +4938,7 @@
               "disabled": false,
               "expression": "C",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5270,7 +4965,7 @@
               "disabled": false,
               "expression": "D",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5391,7 +5086,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5512,7 +5207,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5539,7 +5234,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5660,7 +5355,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5687,7 +5382,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5808,7 +5503,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5835,7 +5530,7 @@
               "disabled": false,
               "expression": "B",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -5956,7 +5651,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
@@ -6077,7 +5772,7 @@
               "disabled": false,
               "expression": "A",
               "filter": {
-                "expression": "host.name = $host.name"
+                "expression": ""
               },
               "functions": [],
               "groupBy": [],
