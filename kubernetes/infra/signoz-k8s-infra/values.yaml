@@ -1,0 +1,35 @@
+namespace: signoz
+
+k8s-infra:
+  clusterName: homelab
+
+  # Send metrics to the existing SigNoz OTel collector
+  otelCollectorEndpoint: signoz-otel-collector.signoz:4317
+  otelInsecure: true
+
+  presets:
+    # Disable logs collection (metrics only for now)
+    logsCollection:
+      enabled: false
+
+    # Enable host metrics (CPU, memory, disk, network per node)
+    hostMetrics:
+      enabled: true
+
+    # Enable kubelet metrics (pod/container resource usage)
+    kubeletMetrics:
+      enabled: true
+
+    # Enable cluster-level metrics (node conditions, allocatable resources)
+    clusterMetrics:
+      enabled: true
+
+    # Enable Kubernetes events
+    kubernetesEvents:
+      enabled: true
+
+    # Enable Prometheus scraping via annotation-based discovery
+    # Services with prometheus.io/scrape: "true" annotation will be auto-discovered
+    prometheus:
+      enabled: true
+      annotationsPrefix: prometheus.io
