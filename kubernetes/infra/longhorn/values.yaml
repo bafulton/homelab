@@ -3,6 +3,51 @@ namespace: longhorn
 # Server-side apply required for CRDs
 serverSideApply: true
 
+# Node-specific disk configuration
+# Each disk is tagged for use with specific StorageClasses
+nodeConfig:
+  nodes:
+    - name: beelink
+      allowScheduling: true
+      disks:
+        # eMMC drive (Talos EPHEMERAL partition) - for ClickHouse/etc.
+        emmc-disk:
+          path: /var/lib/longhorn
+          storageReserved: 16106127360  # 15GB reserved for OS
+          tags: ["emmc"]
+        # NVMe SSD - for Time Machine backups
+        nvme-disk:
+          path: /var/mnt/nvme
+          storageReserved: 0
+          tags: ["nvme"]
+        # USB Passport drive - for Plex media (replication-ready)
+        usb-disk:
+          path: /var/mnt/usb
+          storageReserved: 0
+          tags: ["usb"]
+
+storageClasses:
+  # eMMC - for ClickHouse and other workloads
+  # Single replica (only one eMMC drive)
+  - name: longhorn-emmc
+    diskSelector: emmc
+    replicas: 1
+    dataLocality: best-effort
+
+  # NVMe - for Time Machine backups
+  # Single replica, no replication needed for backups
+  - name: longhorn-nvme
+    diskSelector: nvme
+    replicas: 1
+    dataLocality: strict-local
+
+  # USB - for Plex media library
+  # Single replica now, can increase when RPi5 USB drive is added
+  - name: longhorn-usb
+    diskSelector: usb
+    replicas: 1
+    dataLocality: best-effort
+
 longhorn:
   # Talos-specific configuration
   # Docs: https://longhorn.io/docs/1.10.1/advanced-resources/os-distro-specific/talos-linux-support/

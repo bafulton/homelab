@@ -1,0 +1,28 @@
+{{- if .Values.nodeConfig }}
+{{- range .Values.nodeConfig.nodes }}
+---
+apiVersion: longhorn.io/v1beta2
+kind: Node
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+  annotations:
+    # Prevent Helm from deleting this resource - Longhorn manages the status
+    helm.sh/resource-policy: keep
+spec:
+  name: {{ .name }}
+  allowScheduling: {{ .allowScheduling | default true }}
+  evictionRequested: false
+  tags: {{ .tags | default list | toJson }}
+  disks:
+    {{- range $diskName, $disk := .disks }}
+    {{ $diskName }}:
+      allowScheduling: {{ $disk.allowScheduling | default true }}
+      evictionRequested: false
+      path: {{ $disk.path }}
+      storageReserved: {{ $disk.storageReserved | default 0 | int64 }}
+      tags: {{ $disk.tags | default list | toJson }}
+      diskType: filesystem
+    {{- end }}
+{{- end }}
+{{- end }}
