@@ -1,12 +1,15 @@
 namespace: kubernetes-dashboard
 
-# CSRF secret is randomly generated on every Helm render (known issue: kubernetes/dashboard#8756)
-# With RespectIgnoreDifferences=true, ArgoCD won't overwrite it, keeping it stable after initial creation
-ignoreDifferences:
-  - kind: Secret
-    name: kubernetes-dashboard-csrf
-    jsonPointers:
-      - /data
+# Use AVP (ArgoCD Vault Plugin) to inject CSRF key from Bitwarden
+useAVP: true
+
+# Bitwarden secrets pulled via ExternalSecret
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: kube-dashboard-csrf
+      data:
+        csrfKey: "b83311b5-d7ec-4f3f-af14-b3c901746914"
 
 tailscale-ingress:
   enabled: true
@@ -27,6 +30,11 @@ adminUser:
 kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
+
+  # CSRF key injected via AVP from Kubernetes Secret (synced from Bitwarden via ESO)
+  app:
+    security:
+      csrfKey: <path:kubernetes-dashboard/kube-dashboard-csrf#csrfKey>
 
   kong:
     proxy:

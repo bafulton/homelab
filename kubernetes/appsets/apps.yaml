@@ -34,6 +34,12 @@ spec:
           - CreateNamespace=true
           - RespectIgnoreDifferences=true
   templatePatch: |
+    {{- if (get . "useAVP") }}
+    spec:
+      source:
+        plugin:
+          name: argocd-vault-plugin-helm
+    {{- end }}
     {{- if (get . "serverSideApply") }}
     spec:
       syncPolicy:

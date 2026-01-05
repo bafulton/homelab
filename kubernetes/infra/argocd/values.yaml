@@ -1,5 +1,10 @@
 namespace: argocd
 
+# ArgoCD Vault Plugin - injects secrets from K8s Secrets
+avp:
+  enabled: true
+  version: v1.18.1
+
 tailscale-ingress:
   enabled: true
   ingresses:
@@ -62,3 +67,51 @@ argo-cd:
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "8084"
+
+    # AVP sidecar plugin
+    initContainers:
+      - name: download-avp
+        image: alpine:3.21
+        command: [sh, -c]
+        args:
+          - |
+            wget -qO /custom-tools/argocd-vault-plugin \
+              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.18.1/argocd-vault-plugin_1.18.1_linux_amd64 && \
+            chmod +x /custom-tools/argocd-vault-plugin
+        volumeMounts:
+          - name: custom-tools
+            mountPath: /custom-tools
+
+    extraContainers:
+      - name: avp-helm
+        command: [/var/run/argocd/argocd-cmp-server]
+        image: quay.io/argoproj/argocd:v3.2.3
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 999
+        env:
+          # Use Kubernetes Secret backend (secrets synced from Bitwarden via ESO)
+          - name: AVP_TYPE
+            value: kubernetessecret
+        volumeMounts:
+          - name: var-files
+            mountPath: /var/run/argocd
+          - name: plugins
+            mountPath: /home/argocd/cmp-server/plugins
+          - name: cmp-plugin
+            mountPath: /home/argocd/cmp-server/config/plugin.yaml
+            subPath: avp-helm.yaml
+          - name: custom-tools
+            mountPath: /usr/local/bin/argocd-vault-plugin
+            subPath: argocd-vault-plugin
+          - name: cmp-tmp
+            mountPath: /tmp
+
+    volumes:
+      - name: custom-tools
+        emptyDir: {}
+      - name: cmp-plugin
+        configMap:
+          name: argocd-vault-plugin-cmp
+      - name: cmp-tmp
+        emptyDir: {}

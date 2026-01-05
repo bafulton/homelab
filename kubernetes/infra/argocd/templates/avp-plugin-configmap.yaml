@@ -1,0 +1,29 @@
+{{- if .Values.avp.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-vault-plugin-cmp
+  namespace: {{ .Release.Namespace }}
+data:
+  avp-helm.yaml: |
+    apiVersion: argoproj.io/v1alpha1
+    kind: ConfigManagementPlugin
+    metadata:
+      name: argocd-vault-plugin-helm
+    spec:
+      allowConcurrency: true
+      discover:
+        find:
+          command:
+            - sh
+            - "-c"
+            - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
+      generate:
+        command:
+          - bash
+          - "-c"
+          - |
+            helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} . |
+            argocd-vault-plugin generate -
+      lockRepo: false
+{{- end }}
