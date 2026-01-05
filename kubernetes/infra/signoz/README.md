@@ -41,3 +41,37 @@ Data is stored in ClickHouse with default retention:
 - Metrics: 30 days
 
 Persistent volume: 20Gi (provisioned by Longhorn)
+
+## Dashboards & Alerts as Code
+
+Dashboards and alerts can be managed as JSON files in this chart and automatically loaded via the SigNoz API on each sync.
+
+### Adding a Dashboard
+
+1. Export the dashboard JSON from SigNoz UI (Dashboards → ... → Export)
+2. Save to `dashboards/<name>.json`
+3. Commit and push - the PostSync Job will load it
+
+### Adding an Alert
+
+1. Create the alert in SigNoz UI first to get the JSON structure
+2. Save to `alerts/<name>.json`
+3. Commit and push - the PostSync Job will load it
+
+### API Endpoints
+
+| Resource | Method | Endpoint |
+|----------|--------|----------|
+| Dashboards | POST | `/api/v1/dashboards` |
+| Alerts | POST | `/api/v1/rules` |
+
+Authentication via `SIGNOZ-API-KEY` header (token stored in Bitwarden).
+
+### How It Works
+
+1. JSON files in `dashboards/` and `alerts/` are packaged into ConfigMaps
+2. An ArgoCD PostSync Job runs after each sync
+3. The Job finds existing resources by title/name and deletes them
+4. Then creates fresh resources from the JSON files
+
+This ensures Git is the source of truth - changes in the repo replace what's in SigNoz.
