@@ -17,7 +17,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: loader
-          image: curlimages/curl:latest
+          image: alpine:3.21
           env:
             - name: SIGNOZ_API_TOKEN
               valueFrom:
@@ -30,26 +30,45 @@ spec:
           args:
             - |
               set -e
+              apk add --no-cache curl jq
 
               # Wait for SigNoz to be ready
               echo "Waiting for SigNoz API to be ready..."
               for i in $(seq 1 30); do
                 if curl -sf "$SIGNOZ_URL/api/v1/health" > /dev/null 2>&1; then
-                  echo "SignOz API is ready"
+                  echo "SigNoz API is ready"
                   break
                 fi
                 echo "  Attempt $i/30 - waiting..."
                 sleep 5
               done
 
-              # Load dashboards
+              # Load dashboards (delete existing by title, then create)
               {{- if $dashboards }}
               echo "Loading dashboards..."
+
+              # Get existing dashboards
+              existing=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
+                -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+
               for f in /dashboards/*.json; do
                 [ -f "$f" ] || continue
                 name=$(basename "$f" .json)
-                echo "  Loading dashboard: $name"
+                title=$(jq -r '.title // .data.title // empty' "$f")
+                echo "  Loading dashboard: $name (title: $title)"
 
+                # Find and delete existing dashboard with same title
+                if [ -n "$title" ]; then
+                  existing_uuid=$(echo "$existing" | jq -r --arg t "$title" \
+                    '.data[]? | select(.title == $t) | .uuid // empty' 2>/dev/null || true)
+                  if [ -n "$existing_uuid" ]; then
+                    echo "    Deleting existing dashboard: $existing_uuid"
+                    curl -s -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$existing_uuid" \
+                      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                  fi
+                fi
+
+                # Create dashboard
                 response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/dashboards" \
                   -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
                   -H "Content-Type: application/json" \
@@ -59,23 +78,39 @@ spec:
                 body=$(echo "$response" | sed '$d')
 
                 if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-                  echo "    Success"
-                elif [ "$http_code" = "409" ]; then
-                  echo "    Already exists (skipping)"
+                  echo "    Created successfully"
                 else
                   echo "    Warning: HTTP $http_code - $body"
                 fi
               done
               {{- end }}
 
-              # Load alerts
+              # Load alerts (delete existing by name, then create)
               {{- if $alerts }}
               echo "Loading alerts..."
+
+              # Get existing alerts
+              existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
+                -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+
               for f in /alerts/*.json; do
                 [ -f "$f" ] || continue
                 name=$(basename "$f" .json)
-                echo "  Loading alert: $name"
+                alert_name=$(jq -r '.alert // .data.alert // empty' "$f")
+                echo "  Loading alert: $name (name: $alert_name)"
 
+                # Find and delete existing alert with same name
+                if [ -n "$alert_name" ]; then
+                  existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
+                    '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null || true)
+                  if [ -n "$existing_id" ]; then
+                    echo "    Deleting existing alert: $existing_id"
+                    curl -s -X DELETE "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+                      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                  fi
+                fi
+
+                # Create alert
                 response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
                   -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
                   -H "Content-Type: application/json" \
@@ -85,9 +120,7 @@ spec:
                 body=$(echo "$response" | sed '$d')
 
                 if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
-                  echo "    Success"
-                elif [ "$http_code" = "409" ]; then
-                  echo "    Already exists (skipping)"
+                  echo "    Created successfully"
                 else
                   echo "    Warning: HTTP $http_code - $body"
                 fi
