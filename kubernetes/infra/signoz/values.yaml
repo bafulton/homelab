@@ -33,7 +33,7 @@ tailscale-ingress:
         port: 8080
 
 # API token for loading dashboards/alerts via GitOps
-# Create token in SignOz: Settings → API Tokens → Generate
+# Create token in SigNoz: Settings → API Tokens → Generate
 # Store in Bitwarden and update the secret ID below
 bitwarden-secret:
   enabled: true
