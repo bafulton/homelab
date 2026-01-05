@@ -23,6 +23,7 @@ data:
           - bash
           - "-c"
           - |
+            helm dependency build . >/dev/null 2>&1
             helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} . |
             argocd-vault-plugin generate -
       lockRepo: false
