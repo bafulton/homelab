@@ -49,8 +49,23 @@ signoz:
     persistence:
       enabled: true
       size: 20Gi
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9363"
     zookeeper:
       heapSize: 256
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9141"
+    clickhouseOperator:
+      podAnnotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8888"
+
+  otelCollector:
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "8888"
 
   signoz:
     persistence:
