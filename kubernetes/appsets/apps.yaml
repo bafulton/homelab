@@ -48,7 +48,7 @@ spec:
         syncOptions:
           - CreateNamespace=true
           - RespectIgnoreDifferences=true
-          {{- if .syncPolicy.serverSideApply }}
+          {{- if (index .syncPolicy "serverSideApply") }}
           - ServerSideApply=true
           {{- end }}
       {{- end }}
