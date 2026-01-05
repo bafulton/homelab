@@ -8,3 +8,6 @@ dependencies:
   - name: longhorn
     version: 1.10.1
     repository: https://charts.longhorn.io
+  - name: tailscale-ingress
+    version: 1.0.0
+    repository: file://../../../charts/tailscale-ingress
