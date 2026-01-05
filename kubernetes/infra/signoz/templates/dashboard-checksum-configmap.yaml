@@ -1,0 +1,17 @@
+# This ConfigMap triggers ArgoCD syncs when dashboard/alert files change.
+# The checksum changes when any JSON file is modified, causing ArgoCD to
+# detect a change and run the PostSync dashboard-sync job.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signoz-dashboard-checksum
+  namespace: {{ .Release.Namespace }}
+data:
+  {{- $allContent := "" }}
+  {{- range $path, $_ := .Files.Glob "dashboards/*.json" }}
+  {{- $allContent = printf "%s%s" $allContent ($.Files.Get $path) }}
+  {{- end }}
+  {{- range $path, $_ := .Files.Glob "alerts/*.json" }}
+  {{- $allContent = printf "%s%s" $allContent ($.Files.Get $path) }}
+  {{- end }}
+  checksum: {{ $allContent | sha256sum | quote }}
