@@ -1,0 +1,13 @@
+{{- $alerts := .Files.Glob "alerts/*.json" }}
+{{- if $alerts }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: signoz-alerts
+  namespace: {{ .Release.Namespace }}
+data:
+  {{- range $path, $_ := $alerts }}
+  {{ base $path }}: |-
+{{ $.Files.Get $path | indent 4 }}
+  {{- end }}
+{{- end }}

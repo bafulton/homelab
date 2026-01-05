@@ -32,6 +32,16 @@ tailscale-ingress:
         name: signoz
         port: 8080
 
+# API token for loading dashboards/alerts via GitOps
+# Create token in SignOz: Settings → API Tokens → Generate
+# Store in Bitwarden and update the secret ID below
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: signoz-api-token
+      data:
+        token: "fa8aa5d0-f1d2-4de3-a1a8-b3c9003c2a52"
+
 signoz:
   clusterName: homelab
 

@@ -1,0 +1,120 @@
+{{- $dashboards := .Files.Glob "dashboards/*.json" }}
+{{- $alerts := .Files.Glob "alerts/*.json" }}
+{{- if or $dashboards $alerts }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: signoz-config-loader
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: loader
+          image: curlimages/curl:latest
+          env:
+            - name: SIGNOZ_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: signoz-api-token
+                  key: token
+            - name: SIGNOZ_URL
+              value: "http://signoz.{{ .Release.Namespace }}.svc:8080"
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+
+              # Wait for SigNoz to be ready
+              echo "Waiting for SigNoz API to be ready..."
+              for i in $(seq 1 30); do
+                if curl -sf "$SIGNOZ_URL/api/v1/health" > /dev/null 2>&1; then
+                  echo "SignOz API is ready"
+                  break
+                fi
+                echo "  Attempt $i/30 - waiting..."
+                sleep 5
+              done
+
+              # Load dashboards
+              {{- if $dashboards }}
+              echo "Loading dashboards..."
+              for f in /dashboards/*.json; do
+                [ -f "$f" ] || continue
+                name=$(basename "$f" .json)
+                echo "  Loading dashboard: $name"
+
+                response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/dashboards" \
+                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                  -H "Content-Type: application/json" \
+                  -d @"$f")
+
+                http_code=$(echo "$response" | tail -n1)
+                body=$(echo "$response" | sed '$d')
+
+                if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+                  echo "    Success"
+                elif [ "$http_code" = "409" ]; then
+                  echo "    Already exists (skipping)"
+                else
+                  echo "    Warning: HTTP $http_code - $body"
+                fi
+              done
+              {{- end }}
+
+              # Load alerts
+              {{- if $alerts }}
+              echo "Loading alerts..."
+              for f in /alerts/*.json; do
+                [ -f "$f" ] || continue
+                name=$(basename "$f" .json)
+                echo "  Loading alert: $name"
+
+                response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
+                  -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                  -H "Content-Type: application/json" \
+                  -d @"$f")
+
+                http_code=$(echo "$response" | tail -n1)
+                body=$(echo "$response" | sed '$d')
+
+                if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+                  echo "    Success"
+                elif [ "$http_code" = "409" ]; then
+                  echo "    Already exists (skipping)"
+                else
+                  echo "    Warning: HTTP $http_code - $body"
+                fi
+              done
+              {{- end }}
+
+              echo "Config loading complete!"
+          volumeMounts:
+            {{- if $dashboards }}
+            - name: dashboards
+              mountPath: /dashboards
+              readOnly: true
+            {{- end }}
+            {{- if $alerts }}
+            - name: alerts
+              mountPath: /alerts
+              readOnly: true
+            {{- end }}
+      volumes:
+        {{- if $dashboards }}
+        - name: dashboards
+          configMap:
+            name: signoz-dashboards
+        {{- end }}
+        {{- if $alerts }}
+        - name: alerts
+          configMap:
+            name: signoz-alerts
+        {{- end }}
+{{- end }}
