@@ -10,11 +10,11 @@ Kubernetes infrastructure monitoring for SignOz. Deploys OTel collectors as a Da
 | Kubelet Metrics | Pod/container resource usage |
 | Cluster Metrics | Node conditions, allocatable resources |
 | Kubernetes Events | Cluster events visible in SignOz |
+| Container Logs | Logs from all pods |
 | Other app metrics | See "Adding Scrape Targets" below |
 
 ## What's Disabled
 
-- **Log collection** - Only Kubernetes events are collected, not container logs
 - **Tracing** - Disabled to reduce overhead
 
 ## Adding Scrape Targets

@@ -8,9 +8,9 @@ k8s-infra:
   otelInsecure: true
 
   presets:
-    # Disable logs collection (metrics only for now)
+    # Collect container logs from all pods
     logsCollection:
-      enabled: false
+      enabled: true
 
     # Enable host metrics (CPU, memory, disk, network per node)
     hostMetrics:
