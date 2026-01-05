@@ -1,6 +1,6 @@
 # Cluster Maintenance
 
-Cluster-level maintenance utilities deployed to `kube-system`.
+Cluster-level maintenance utilities deployed to `kube-system` namespace.
 
 ## Pod Cleanup CronJob
 
