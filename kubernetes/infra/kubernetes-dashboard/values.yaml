@@ -34,7 +34,7 @@ kubernetes-dashboard:
   # CSRF key injected via AVP from Kubernetes Secret (synced from Bitwarden via ESO)
   app:
     security:
-      csrfKey: <path:kube-dashboard-csrf#csrfKey>
+      csrfKey: <path:kubernetes-dashboard:kube-dashboard-csrf#csrfKey>
 
   kong:
     proxy:
