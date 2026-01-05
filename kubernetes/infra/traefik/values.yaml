@@ -15,7 +15,7 @@ tailscale-ingress:
 traefik:
   # A complete list of values can be found here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
-  # 
+  #
   # Useful examples here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md
 
@@ -25,3 +25,12 @@ traefik:
     # Expose dashboard without TLS - safe because it's behind Tailscale Ingress
     # which provides HTTPS termination. Do not expose directly to internet.
     - "--api.insecure=true"
+
+  # Expose metrics via dedicated service for Prometheus scraping
+  metrics:
+    prometheus:
+      service:
+        enabled: true
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "9100"

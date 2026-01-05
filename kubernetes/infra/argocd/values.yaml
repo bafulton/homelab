@@ -40,3 +40,31 @@ argo-cd:
 
   applicationSet:
     enabled: true
+
+  # Expose metrics via dedicated services for Prometheus scraping
+  controller:
+    metrics:
+      enabled: true
+      service:
+        enabled: true
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8082"
+
+  server:
+    metrics:
+      enabled: true
+      service:
+        enabled: true
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8083"
+
+  repoServer:
+    metrics:
+      enabled: true
+      service:
+        enabled: true
+        annotations:
+          prometheus.io/scrape: "true"
+          prometheus.io/port: "8084"

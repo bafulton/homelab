@@ -7,6 +7,11 @@ longhorn:
   # Talos-specific configuration
   # Docs: https://longhorn.io/docs/1.10.1/advanced-resources/os-distro-specific/talos-linux-support/
 
+  # Annotations for Longhorn Manager DaemonSet Pods (enables Prometheus scraping)
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9500"
+
   # Disable pre-upgrade checker - incompatible with ArgoCD
   # https://github.com/longhorn/longhorn/issues/8707
   preUpgradeChecker:
