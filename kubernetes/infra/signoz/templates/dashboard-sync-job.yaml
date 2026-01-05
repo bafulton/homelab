@@ -65,15 +65,17 @@ spec:
                   title=$(jq -r '.title // .data.title // empty' "$f")
                   echo "  Loading dashboard: $name (title: $title)"
 
-                  # Find and delete existing dashboard with same title
+                  # Find and delete ALL existing dashboards with same title
                   if [ -n "$title" ]; then
-                    existing_uuid=$(echo "$existing" | jq -r --arg t "$title" \
-                      '.data[]? | select(.title == $t) | .uuid // empty' 2>/dev/null || true)
-                    if [ -n "$existing_uuid" ]; then
-                      echo "    Deleting existing dashboard: $existing_uuid"
-                      curl -s -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$existing_uuid" \
-                        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
-                    fi
+                    existing_ids=$(echo "$existing" | jq -r --arg t "$title" \
+                      '.data[]? | select(.data.title == $t) | .id // empty' 2>/dev/null || true)
+                    for existing_id in $existing_ids; do
+                      if [ -n "$existing_id" ]; then
+                        echo "    Deleting existing dashboard: $existing_id"
+                        curl -s -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$existing_id" \
+                          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                      fi
+                    done
                   fi
 
                   # Create dashboard
@@ -110,15 +112,17 @@ spec:
                   alert_name=$(jq -r '.alert // .data.alert // empty' "$f")
                   echo "  Loading alert: $name (name: $alert_name)"
 
-                  # Find and delete existing alert with same name
+                  # Find and delete ALL existing alerts with same name
                   if [ -n "$alert_name" ]; then
-                    existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
+                    existing_ids=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
                       '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null || true)
-                    if [ -n "$existing_id" ]; then
-                      echo "    Deleting existing alert: $existing_id"
-                      curl -s -X DELETE "$SIGNOZ_URL/api/v1/rules/$existing_id" \
-                        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
-                    fi
+                    for existing_id in $existing_ids; do
+                      if [ -n "$existing_id" ]; then
+                        echo "    Deleting existing alert: $existing_id"
+                        curl -s -X DELETE "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+                          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" > /dev/null
+                      fi
+                    done
                   fi
 
                   # Create alert
