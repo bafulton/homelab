@@ -38,10 +38,6 @@ argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
 
-  global:
-    # Reduce ReplicaSet history to save resources (default: 3)
-    revisionHistoryLimit: 2
-
   configs:
     secret:
       createSecret: false
