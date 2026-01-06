@@ -42,9 +42,32 @@ Data is stored in ClickHouse with default retention:
 
 Persistent volume: 20Gi (provisioned by Longhorn)
 
+## Email Notifications
+
+SigNoz is configured to send alert notifications via Gmail SMTP. The app password is stored in Bitwarden Secrets Manager.
+
+Environment variables are set on the SigNoz pod:
+- `SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST` - Gmail SMTP server
+- `SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__PASSWORD` - From Kubernetes secret
+
+To add notification channels, go to Settings → Alert Channels in the SigNoz UI.
+
+## Alerts
+
+Infrastructure alerts are defined in `alerts/*.json`:
+
+| Alert | Severity | Threshold |
+|-------|----------|-----------|
+| High Memory Usage | warning | >85% |
+| High CPU Usage | warning | >90% |
+| Disk Usage High | warning | >85% |
+| Pod Crash Looping | critical | >3 restarts in 10min |
+
+GitOps-managed alerts have the label `source: gitops`.
+
 ## Dashboards & Alerts as Code
 
-Dashboards and alerts can be managed as JSON files in this chart and automatically loaded via the SigNoz API on each sync.
+Dashboards and alerts are managed as JSON files and automatically synced via the SigNoz API.
 
 ### Adding a Dashboard
 
@@ -55,23 +78,17 @@ Dashboards and alerts can be managed as JSON files in this chart and automatical
 ### Adding an Alert
 
 1. Create the alert in SigNoz UI first to get the JSON structure
-2. Save to `alerts/<name>.json`
-3. Commit and push - the PostSync Job will load it
-
-### API Endpoints
-
-| Resource | Method | Endpoint |
-|----------|--------|----------|
-| Dashboards | POST | `/api/v1/dashboards` |
-| Alerts | POST | `/api/v1/rules` |
-
-Authentication via `SIGNOZ-API-KEY` header (token stored in Bitwarden).
+2. Add `"preferredChannels": ["<channel-id>"]` with your notification channel ID
+3. Add `"labels": {"source": "gitops"}` to identify GitOps-managed alerts
+4. Save to `alerts/<name>.json`
+5. Commit and push - the PostSync Job will load it
 
 ### How It Works
 
 1. An ArgoCD PostSync Job runs after each sync
 2. The Job clones the repo and reads JSON files directly (avoids ConfigMap size limits)
-3. For each file, it finds existing resources by title/name and deletes them
-4. Then creates fresh resources from the JSON files
+3. For each file, it finds existing resources by title/name
+4. If found, updates in place via PUT (preserves IDs and alert history)
+5. If not found, creates new resource via POST
 
-This ensures Git is the source of truth - changes in the repo replace what's in SigNoz.
+This ensures Git is the source of truth while preserving resource IDs for stable links and alert history.
