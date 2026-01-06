@@ -19,30 +19,20 @@
         "A": {
           "queryName": "A",
           "dataSource": "metrics",
-          "aggregateOperator": "avg",
+          "aggregateOperator": "latest",
           "aggregateAttribute": {
-            "key": "system.memory.usage",
+            "key": "k8s.node.memory.working_set",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
           },
           "filters": {
-            "items": [
-              {
-                "key": {
-                  "key": "state",
-                  "dataType": "string",
-                  "type": "tag"
-                },
-                "op": "=",
-                "value": "used"
-              }
-            ],
+            "items": [],
             "op": "AND"
           },
           "groupBy": [
             {
-              "key": "host.name",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }
@@ -54,9 +44,9 @@
         "B": {
           "queryName": "B",
           "dataSource": "metrics",
-          "aggregateOperator": "sum",
+          "aggregateOperator": "latest",
           "aggregateAttribute": {
-            "key": "system.memory.usage",
+            "key": "k8s.node.allocatable_memory",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
@@ -67,7 +57,7 @@
           },
           "groupBy": [
             {
-              "key": "host.name",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }

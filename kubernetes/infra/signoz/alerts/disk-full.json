@@ -8,7 +8,7 @@
   "broadcastToAll": true,
   "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
-  "description": "Disk usage is above 85%",
+  "description": "Node disk usage is above 85%",
   "summary": "High disk usage detected",
   "labels": {
     "source": "gitops"
@@ -21,33 +21,18 @@
           "dataSource": "metrics",
           "aggregateOperator": "latest",
           "aggregateAttribute": {
-            "key": "system.filesystem.usage",
+            "key": "k8s.node.filesystem.usage",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
           },
           "filters": {
-            "items": [
-              {
-                "key": {
-                  "key": "state",
-                  "dataType": "string",
-                  "type": "tag"
-                },
-                "op": "=",
-                "value": "used"
-              }
-            ],
+            "items": [],
             "op": "AND"
           },
           "groupBy": [
             {
-              "key": "host.name",
-              "dataType": "string",
-              "type": "tag"
-            },
-            {
-              "key": "mountpoint",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }
@@ -59,9 +44,9 @@
         "B": {
           "queryName": "B",
           "dataSource": "metrics",
-          "aggregateOperator": "sum",
+          "aggregateOperator": "latest",
           "aggregateAttribute": {
-            "key": "system.filesystem.usage",
+            "key": "k8s.node.filesystem.capacity",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
@@ -72,12 +57,7 @@
           },
           "groupBy": [
             {
-              "key": "host.name",
-              "dataType": "string",
-              "type": "tag"
-            },
-            {
-              "key": "mountpoint",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }

@@ -19,30 +19,20 @@
         "A": {
           "queryName": "A",
           "dataSource": "metrics",
-          "aggregateOperator": "rate",
+          "aggregateOperator": "avg",
           "aggregateAttribute": {
-            "key": "system.cpu.time",
+            "key": "k8s.node.cpu.usage",
             "dataType": "float64",
-            "type": "Sum",
+            "type": "Gauge",
             "isColumn": true
           },
           "filters": {
-            "items": [
-              {
-                "key": {
-                  "key": "state",
-                  "dataType": "string",
-                  "type": "tag"
-                },
-                "op": "nin",
-                "value": ["idle"]
-              }
-            ],
+            "items": [],
             "op": "AND"
           },
           "groupBy": [
             {
-              "key": "host.name",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }
@@ -54,11 +44,11 @@
         "B": {
           "queryName": "B",
           "dataSource": "metrics",
-          "aggregateOperator": "rate",
+          "aggregateOperator": "latest",
           "aggregateAttribute": {
-            "key": "system.cpu.time",
+            "key": "k8s.node.allocatable_cpu",
             "dataType": "float64",
-            "type": "Sum",
+            "type": "Gauge",
             "isColumn": true
           },
           "filters": {
@@ -67,7 +57,7 @@
           },
           "groupBy": [
             {
-              "key": "host.name",
+              "key": "k8s.node.name",
               "dataType": "string",
               "type": "tag"
             }
