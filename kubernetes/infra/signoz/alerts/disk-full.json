@@ -12,7 +12,7 @@
   "summary": "High disk usage on {{ $labels.host_name }} mount {{ $labels.mountpoint }}",
   "labels": {
     "team": "homelab",
-    "managed-by": "gitops"
+    "managed_by": "gitops"
   },
   "condition": {
     "compositeQuery": {

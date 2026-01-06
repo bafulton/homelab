@@ -12,7 +12,7 @@
   "summary": "Pod crash loop detected in {{ $labels.k8s_namespace_name }}/{{ $labels.k8s_pod_name }}",
   "labels": {
     "team": "homelab",
-    "managed-by": "gitops"
+    "managed_by": "gitops"
   },
   "condition": {
     "compositeQuery": {
