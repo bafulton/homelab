@@ -1,8 +1,10 @@
 namespace: argocd
 
 # Disable pruning - if manifest generation fails, we don't want ArgoCD to delete itself
+# SSA required - ArgoCD CRDs exceed 262KB annotation limit for client-side apply
 syncPolicy:
   prune: false
+  serverSideApply: true
 
 # ArgoCD Vault Plugin - injects secrets from K8s Secrets
 avp:
