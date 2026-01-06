@@ -20,16 +20,13 @@
       "promql": [
         {
           "name": "A",
-          "query": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
+          "query": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 7",
           "legend": "{{namespace}}/{{name}}",
           "disabled": false
         }
       ],
       "panelType": "graph"
     },
-    "op": "2",
-    "target": 7,
-    "matchType": "1",
     "selectedQueryName": "A"
   }
 }
