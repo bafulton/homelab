@@ -15,73 +15,88 @@
   },
   "condition": {
     "compositeQuery": {
-      "builderQueries": {
-        "A": {
-          "queryName": "A",
-          "dataSource": "metrics",
-          "aggregateOperator": "latest",
-          "timeAggregation": "sum",
-          "aggregateAttribute": {
-            "key": "k8s.node.memory.working_set",
-            "dataType": "float64",
-            "type": "Gauge",
-            "isColumn": true
-          },
-          "filters": {
-            "items": [],
-            "op": "AND"
-          },
-          "groupBy": [
-            {
-              "key": "k8s.node.name",
-              "dataType": "string",
-              "type": "tag"
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.node.memory.working_set",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
             }
-          ],
-          "expression": "A",
-          "disabled": false,
-          "legend": "",
-          "stepInterval": 60
+          }
         },
-        "B": {
-          "queryName": "B",
-          "dataSource": "metrics",
-          "aggregateOperator": "latest",
-          "timeAggregation": "sum",
-          "aggregateAttribute": {
-            "key": "k8s.node.allocatable_memory",
-            "dataType": "float64",
-            "type": "Gauge",
-            "isColumn": true
-          },
-          "filters": {
-            "items": [],
-            "op": "AND"
-          },
-          "groupBy": [
-            {
-              "key": "k8s.node.name",
-              "dataType": "string",
-              "type": "tag"
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "B",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.node.allocatable_memory",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
             }
-          ],
-          "expression": "B",
-          "disabled": false,
-          "legend": "",
-          "stepInterval": 60
+          }
         },
-        "F1": {
-          "queryName": "F1",
-          "expression": "(A / B) * 100",
-          "disabled": false
+        {
+          "type": "builder_formula",
+          "spec": {
+            "name": "F1",
+            "expression": "(A/B)*100",
+            "legend": "{{k8s.node.name}}"
+          }
         }
-      },
+      ],
       "panelType": "graph",
       "queryType": "builder"
     },
-    "selectedQueryName": "F1",
-    "matchType": "1",
+    "op": "1",
     "target": 85,
-    "op": "1"
+    "matchType": "1",
+    "selectedQueryName": "F1"
   }
 }

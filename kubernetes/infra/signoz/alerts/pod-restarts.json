@@ -15,44 +15,53 @@
   },
   "condition": {
     "compositeQuery": {
-      "builderQueries": {
-        "A": {
-          "queryName": "A",
-          "dataSource": "metrics",
-          "aggregateOperator": "increase",
-          "aggregateAttribute": {
-            "key": "k8s.container.restarts",
-            "dataType": "float64",
-            "type": "Sum",
-            "isColumn": true
-          },
-          "filters": {
-            "items": [],
-            "op": "AND"
-          },
-          "groupBy": [
-            {
-              "key": "k8s.namespace.name",
-              "dataType": "string",
-              "type": "tag"
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.container.restarts",
+                "temporality": "",
+                "timeAggregation": "increase",
+                "spaceAggregation": "sum",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
             },
-            {
-              "key": "k8s.pod.name",
-              "dataType": "string",
-              "type": "tag"
+            "groupBy": [
+              {
+                "name": "k8s.namespace.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "k8s.pod.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
             }
-          ],
-          "expression": "A",
-          "disabled": false,
-          "stepInterval": 60
+          }
         }
-      },
+      ],
       "panelType": "graph",
       "queryType": "builder"
     },
-    "selectedQueryName": "A",
-    "matchType": "1",
+    "op": "1",
     "target": 3,
-    "op": "1"
+    "matchType": "1",
+    "selectedQueryName": "A"
   }
 }

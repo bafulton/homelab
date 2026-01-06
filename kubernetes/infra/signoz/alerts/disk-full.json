@@ -15,143 +15,100 @@
   },
   "condition": {
     "compositeQuery": {
-      "queryType": "builder",
-      "builder": {
-        "queryData": [
-          {
-            "dataSource": "metrics",
-            "queryName": "A",
-            "aggregateOperator": "",
-            "aggregateAttribute": {
-              "key": "longhorn_disk_usage_bytes",
-              "dataType": "float64",
-              "type": "Gauge",
-              "isColumn": true,
-              "isJSON": false,
-              "id": "longhorn_disk_usage_bytes--float64--Gauge"
-            },
-            "timeAggregation": "sum",
-            "spaceAggregation": "avg",
-            "filter": {
-              "expression": ""
-            },
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
             "aggregations": [
               {
-                "timeAggregation": "avg",
                 "metricName": "longhorn_disk_usage_bytes",
                 "temporality": "",
-                "spaceAggregation": "avg"
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
               }
             ],
-            "functions": [],
-            "filters": {
-              "items": [],
-              "op": "AND"
-            },
-            "expression": "A",
             "disabled": true,
-            "stepInterval": 60,
-            "having": {
-              "expression": ""
-            },
-            "limit": null,
-            "orderBy": [],
-            "groupBy": [
-              {
-                "key": "node",
-                "dataType": "string",
-                "type": "tag",
-                "isColumn": false,
-                "isJSON": false,
-                "id": "node--string--tag"
-              },
-              {
-                "key": "disk",
-                "dataType": "string",
-                "type": "tag",
-                "isColumn": false,
-                "isJSON": false,
-                "id": "disk--string--tag"
-              }
-            ],
-            "legend": "",
-            "reduceTo": "avg",
-            "source": ""
-          },
-          {
-            "dataSource": "metrics",
-            "queryName": "B",
-            "aggregateOperator": "",
-            "aggregateAttribute": {
-              "key": "longhorn_disk_capacity_bytes",
-              "dataType": "float64",
-              "type": "Gauge",
-              "isColumn": true,
-              "isJSON": false,
-              "id": "longhorn_disk_capacity_bytes--float64--Gauge"
-            },
-            "timeAggregation": "sum",
-            "spaceAggregation": "avg",
             "filter": {
               "expression": ""
             },
-            "aggregations": [
-              {
-                "timeAggregation": "avg",
-                "metricName": "longhorn_disk_capacity_bytes",
-                "temporality": "",
-                "spaceAggregation": "avg"
-              }
-            ],
-            "functions": [],
-            "filters": {
-              "items": [],
-              "op": "AND"
-            },
-            "expression": "B",
-            "disabled": true,
-            "stepInterval": 60,
-            "having": {
-              "expression": ""
-            },
-            "limit": null,
-            "orderBy": [],
             "groupBy": [
               {
-                "key": "node",
-                "dataType": "string",
-                "type": "tag",
-                "isColumn": false,
-                "isJSON": false,
-                "id": "node--string--tag"
+                "name": "node",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
               },
               {
-                "key": "disk",
-                "dataType": "string",
-                "type": "tag",
-                "isColumn": false,
-                "isJSON": false,
-                "id": "disk--string--tag"
+                "name": "disk",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
               }
             ],
-            "legend": "",
-            "reduceTo": "avg",
-            "source": ""
+            "having": {
+              "expression": ""
+            }
           }
-        ],
-        "queryFormulas": [
-          {
-            "queryName": "F1",
+        },
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "B",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "longhorn_disk_capacity_bytes",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "node",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "disk",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            }
+          }
+        },
+        {
+          "type": "builder_formula",
+          "spec": {
+            "name": "F1",
             "expression": "(A/B)*100",
-            "disabled": false,
             "legend": "{{node}}: {{disk}}"
           }
-        ]
-      }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
     },
-    "selectedQueryName": "F1",
-    "matchType": "1",
+    "op": "1",
     "target": 85,
-    "op": "1"
+    "matchType": "1",
+    "selectedQueryName": "F1"
   }
 }
