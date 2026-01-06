@@ -2,7 +2,7 @@
   "alert": "Certificate Expiring Soon",
   "alertType": "METRIC_BASED_ALERT",
   "severity": "warning",
-  "ruleType": "threshold_rule",
+  "ruleType": "promql_rule",
   "evalWindow": "5m0s",
   "frequency": "1h0m0s",
   "broadcastToAll": true,
