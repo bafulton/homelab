@@ -1,0 +1,77 @@
+{
+  "alert": "Certificate Expiring Soon",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1h0m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "TLS certificate will expire within 7 days",
+  "summary": "Certificate expiring soon",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "certmanager_certificate_expiration_timestamp_seconds",
+                "temporality": "",
+                "timeAggregation": "latest",
+                "spaceAggregation": "min",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "namespace",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": ""
+          }
+        },
+        {
+          "type": "builder_formula",
+          "spec": {
+            "name": "F1",
+            "expression": "(A - now()) / 86400",
+            "legend": "{{namespace}}/{{name}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "3",
+    "target": 7,
+    "matchType": "1",
+    "selectedQueryName": "F1"
+  }
+}
