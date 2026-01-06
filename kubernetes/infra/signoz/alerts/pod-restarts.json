@@ -8,8 +8,8 @@
   "broadcastToAll": true,
   "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
-  "description": "Pod {{ $labels.k8s_pod_name }} has restarted {{ $value }} times in the last 10 minutes",
-  "summary": "Pod crash loop detected in {{ $labels.k8s_namespace_name }}/{{ $labels.k8s_pod_name }}",
+  "description": "Pod has restarted multiple times in the last 10 minutes",
+  "summary": "Pod crash loop detected",
   "labels": {
     "source": "gitops"
   },
@@ -21,7 +21,7 @@
           "dataSource": "metrics",
           "aggregateOperator": "increase",
           "aggregateAttribute": {
-            "key": "k8s_container_restarts",
+            "key": "k8s.container.restarts",
             "dataType": "float64",
             "type": "Sum",
             "isColumn": true
@@ -32,12 +32,12 @@
           },
           "groupBy": [
             {
-              "key": "k8s_namespace_name",
+              "key": "k8s.namespace.name",
               "dataType": "string",
               "type": "tag"
             },
             {
-              "key": "k8s_pod_name",
+              "key": "k8s.pod.name",
               "dataType": "string",
               "type": "tag"
             }

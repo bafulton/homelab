@@ -8,8 +8,8 @@
   "broadcastToAll": true,
   "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
-  "description": "Node CPU usage is above 90%: {{ $value }}%",
-  "summary": "High CPU usage detected on {{ $labels.host_name }}",
+  "description": "Node CPU usage is above 90%",
+  "summary": "High CPU usage detected",
   "labels": {
     "source": "gitops"
   },
@@ -21,7 +21,7 @@
           "dataSource": "metrics",
           "aggregateOperator": "rate",
           "aggregateAttribute": {
-            "key": "system_cpu_time",
+            "key": "system.cpu.time",
             "dataType": "float64",
             "type": "Sum",
             "isColumn": true
@@ -35,14 +35,14 @@
                   "type": "tag"
                 },
                 "op": "nin",
-                "value": ["idle", "interrupt"]
+                "value": ["idle"]
               }
             ],
             "op": "AND"
           },
           "groupBy": [
             {
-              "key": "host_name",
+              "key": "host.name",
               "dataType": "string",
               "type": "tag"
             }
@@ -56,7 +56,7 @@
           "dataSource": "metrics",
           "aggregateOperator": "rate",
           "aggregateAttribute": {
-            "key": "system_cpu_time",
+            "key": "system.cpu.time",
             "dataType": "float64",
             "type": "Sum",
             "isColumn": true
@@ -67,7 +67,7 @@
           },
           "groupBy": [
             {
-              "key": "host_name",
+              "key": "host.name",
               "dataType": "string",
               "type": "tag"
             }

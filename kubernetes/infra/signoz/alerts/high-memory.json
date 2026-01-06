@@ -8,8 +8,8 @@
   "broadcastToAll": true,
   "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
-  "description": "Node memory usage is above 85%: {{ $value }}%",
-  "summary": "High memory usage detected on {{ $labels.host_name }}",
+  "description": "Node memory usage is above 85%",
+  "summary": "High memory usage detected",
   "labels": {
     "source": "gitops"
   },
@@ -21,7 +21,7 @@
           "dataSource": "metrics",
           "aggregateOperator": "avg",
           "aggregateAttribute": {
-            "key": "system_memory_usage",
+            "key": "system.memory.usage",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
@@ -42,7 +42,7 @@
           },
           "groupBy": [
             {
-              "key": "host_name",
+              "key": "host.name",
               "dataType": "string",
               "type": "tag"
             }
@@ -54,9 +54,9 @@
         "B": {
           "queryName": "B",
           "dataSource": "metrics",
-          "aggregateOperator": "avg",
+          "aggregateOperator": "sum",
           "aggregateAttribute": {
-            "key": "system_memory_usage",
+            "key": "system.memory.usage",
             "dataType": "float64",
             "type": "Gauge",
             "isColumn": true
@@ -67,7 +67,7 @@
           },
           "groupBy": [
             {
-              "key": "host_name",
+              "key": "host.name",
               "dataType": "string",
               "type": "tag"
             }
