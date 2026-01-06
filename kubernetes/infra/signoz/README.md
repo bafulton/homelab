@@ -56,12 +56,13 @@ To add notification channels, go to Settings → Alert Channels in the SigNoz UI
 
 Infrastructure alerts are defined in `alerts/*.json`:
 
-| Alert | Severity | Threshold |
-|-------|----------|-----------|
-| High Memory Usage | warning | >85% |
-| High CPU Usage | warning | >90% |
-| Disk Usage High | warning | >85% |
-| Pod Crash Looping | critical | >3 restarts in 10min |
+| Alert | Severity | Threshold | Metric |
+|-------|----------|-----------|--------|
+| High Memory Usage | critical | >85% | k8s.node.memory.working_set / allocatable |
+| High CPU Usage | critical | >90% | k8s.node.cpu.usage / allocatable |
+| High Disk Usage | critical | >85% | longhorn_disk_usage_bytes / capacity |
+| Node Not Ready | critical | != Ready | k8s.node.condition |
+| Certificate Expiring Soon | warning | <7 days | certmanager_certificate_expiration_timestamp_seconds |
 
 GitOps-managed alerts have the label `source: gitops`.
 
