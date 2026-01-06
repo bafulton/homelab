@@ -35,6 +35,8 @@
     "op": "2",
     "target": 7,
     "matchType": "1",
+    "algorithm": "standard",
+    "seasonality": "hourly",
     "selectedQueryName": "A"
   }
 }
