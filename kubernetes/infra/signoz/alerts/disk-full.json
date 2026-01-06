@@ -1,0 +1,102 @@
+{
+  "alert": "Disk Usage High",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "disabled": false,
+  "description": "Disk usage is above 85%: {{ $value }}%",
+  "summary": "High disk usage on {{ $labels.host_name }} mount {{ $labels.mountpoint }}",
+  "labels": {
+    "team": "homelab"
+  },
+  "condition": {
+    "compositeQuery": {
+      "builderQueries": {
+        "A": {
+          "queryName": "A",
+          "dataSource": "metrics",
+          "aggregateOperator": "latest",
+          "aggregateAttribute": {
+            "key": "system_filesystem_usage",
+            "dataType": "float64",
+            "type": "Gauge",
+            "isColumn": true
+          },
+          "filters": {
+            "items": [
+              {
+                "key": {
+                  "key": "state",
+                  "dataType": "string",
+                  "type": "tag"
+                },
+                "op": "=",
+                "value": "used"
+              }
+            ],
+            "op": "AND"
+          },
+          "groupBy": [
+            {
+              "key": "host_name",
+              "dataType": "string",
+              "type": "tag"
+            },
+            {
+              "key": "mountpoint",
+              "dataType": "string",
+              "type": "tag"
+            }
+          ],
+          "expression": "A",
+          "disabled": false,
+          "stepInterval": 60
+        },
+        "B": {
+          "queryName": "B",
+          "dataSource": "metrics",
+          "aggregateOperator": "latest",
+          "aggregateAttribute": {
+            "key": "system_filesystem_usage",
+            "dataType": "float64",
+            "type": "Gauge",
+            "isColumn": true
+          },
+          "filters": {
+            "items": [],
+            "op": "AND"
+          },
+          "groupBy": [
+            {
+              "key": "host_name",
+              "dataType": "string",
+              "type": "tag"
+            },
+            {
+              "key": "mountpoint",
+              "dataType": "string",
+              "type": "tag"
+            }
+          ],
+          "expression": "B",
+          "disabled": false,
+          "stepInterval": 60
+        },
+        "F1": {
+          "queryName": "F1",
+          "expression": "(A / B) * 100",
+          "disabled": false
+        }
+      },
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "selectedQueryName": "F1",
+    "matchType": "1",
+    "target": 85,
+    "op": "1"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "alert": "Pod Crash Looping",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "critical",
+  "ruleType": "threshold_rule",
+  "evalWindow": "10m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "disabled": false,
+  "description": "Pod {{ $labels.k8s_pod_name }} has restarted {{ $value }} times in the last 10 minutes",
+  "summary": "Pod crash loop detected in {{ $labels.k8s_namespace_name }}/{{ $labels.k8s_pod_name }}",
+  "labels": {
+    "team": "homelab"
+  },
+  "condition": {
+    "compositeQuery": {
+      "builderQueries": {
+        "A": {
+          "queryName": "A",
+          "dataSource": "metrics",
+          "aggregateOperator": "increase",
+          "aggregateAttribute": {
+            "key": "k8s_container_restarts",
+            "dataType": "float64",
+            "type": "Sum",
+            "isColumn": true
+          },
+          "filters": {
+            "items": [],
+            "op": "AND"
+          },
+          "groupBy": [
+            {
+              "key": "k8s_namespace_name",
+              "dataType": "string",
+              "type": "tag"
+            },
+            {
+              "key": "k8s_pod_name",
+              "dataType": "string",
+              "type": "tag"
+            }
+          ],
+          "expression": "A",
+          "disabled": false,
+          "stepInterval": 60
+        }
+      },
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "selectedQueryName": "A",
+    "matchType": "1",
+    "target": 3,
+    "op": "1"
+  }
+}

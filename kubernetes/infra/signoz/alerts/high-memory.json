@@ -1,0 +1,92 @@
+{
+  "alert": "High Memory Usage",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "disabled": false,
+  "description": "Node memory usage is above 85%: {{ $value }}%",
+  "summary": "High memory usage detected on {{ $labels.host_name }}",
+  "labels": {
+    "team": "homelab"
+  },
+  "condition": {
+    "compositeQuery": {
+      "builderQueries": {
+        "A": {
+          "queryName": "A",
+          "dataSource": "metrics",
+          "aggregateOperator": "avg",
+          "aggregateAttribute": {
+            "key": "system_memory_usage",
+            "dataType": "float64",
+            "type": "Gauge",
+            "isColumn": true
+          },
+          "filters": {
+            "items": [
+              {
+                "key": {
+                  "key": "state",
+                  "dataType": "string",
+                  "type": "tag"
+                },
+                "op": "=",
+                "value": "used"
+              }
+            ],
+            "op": "AND"
+          },
+          "groupBy": [
+            {
+              "key": "host_name",
+              "dataType": "string",
+              "type": "tag"
+            }
+          ],
+          "expression": "A",
+          "disabled": false,
+          "stepInterval": 60
+        },
+        "B": {
+          "queryName": "B",
+          "dataSource": "metrics",
+          "aggregateOperator": "avg",
+          "aggregateAttribute": {
+            "key": "system_memory_usage",
+            "dataType": "float64",
+            "type": "Gauge",
+            "isColumn": true
+          },
+          "filters": {
+            "items": [],
+            "op": "AND"
+          },
+          "groupBy": [
+            {
+              "key": "host_name",
+              "dataType": "string",
+              "type": "tag"
+            }
+          ],
+          "expression": "B",
+          "disabled": false,
+          "stepInterval": 60
+        },
+        "F1": {
+          "queryName": "F1",
+          "expression": "(A / B) * 100",
+          "disabled": false
+        }
+      },
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "selectedQueryName": "F1",
+    "matchType": "1",
+    "target": 85,
+    "op": "1"
+  }
+}
