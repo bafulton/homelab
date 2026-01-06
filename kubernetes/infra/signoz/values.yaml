@@ -27,6 +27,9 @@ bitwarden-secret:
     - name: signoz-api-token
       data:
         token: "fa8aa5d0-f1d2-4de3-a1a8-b3c9003c2a52"
+    - name: signoz-smtp-credentials
+      data:
+        password: "3425e9f2-f25a-400b-bd62-b3ca003efc3f"
 
 signoz:
   clusterName: homelab
@@ -61,3 +64,13 @@ signoz:
     persistence:
       enabled: true
       size: 1Gi
+    env:
+      SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST: "smtp.gmail.com:587"
+      SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM: "fulton.benjamin@gmail.com"
+      SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__USERNAME: "fulton.benjamin@gmail.com"
+      SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__REQUIRE__TLS: "true"
+      SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: signoz-smtp-credentials
+            key: password
