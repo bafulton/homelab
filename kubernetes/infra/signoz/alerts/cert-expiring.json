@@ -16,17 +16,25 @@
   },
   "condition": {
     "compositeQuery": {
-      "queryType": "promql",
-      "promql": [
+      "queries": [
         {
-          "name": "A",
-          "query": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400 < 7",
-          "legend": "{{namespace}}/{{name}}",
-          "disabled": false
+          "type": "promql",
+          "spec": {
+            "name": "A",
+            "query": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
+            "disabled": false,
+            "step": 0,
+            "stats": false,
+            "legend": "{{namespace}}/{{name}}"
+          }
         }
       ],
-      "panelType": "graph"
+      "panelType": "graph",
+      "queryType": "promql"
     },
+    "op": "2",
+    "target": 7,
+    "matchType": "1",
     "selectedQueryName": "A"
   }
 }
