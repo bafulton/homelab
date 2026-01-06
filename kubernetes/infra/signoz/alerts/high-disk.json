@@ -1,5 +1,5 @@
 {
-  "alert": "Disk Usage High",
+  "alert": "High Disk Usage",
   "alertType": "METRIC_BASED_ALERT",
   "severity": "warning",
   "ruleType": "threshold_rule",
