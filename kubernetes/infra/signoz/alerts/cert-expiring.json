@@ -27,7 +27,7 @@
       ],
       "panelType": "graph"
     },
-    "op": "3",
+    "op": "2",
     "target": 7,
     "matchType": "1",
     "selectedQueryName": "A"
