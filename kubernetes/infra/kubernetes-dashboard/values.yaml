@@ -31,6 +31,20 @@ kubernetes-dashboard:
   # A complete list of values can be found here:
   # https://github.com/kubernetes/dashboard/blob/master/charts/kubernetes-dashboard/values.yaml
 
+  # Reduce ReplicaSet retention (default 10 is excessive for homelab)
+  api:
+    scaling:
+      revisionHistoryLimit: 3
+  auth:
+    scaling:
+      revisionHistoryLimit: 3
+  web:
+    scaling:
+      revisionHistoryLimit: 3
+  metricsScraper:
+    scaling:
+      revisionHistoryLimit: 3
+
   # CSRF key injected via AVP from Kubernetes Secret (synced from Bitwarden via ESO)
   app:
     security:
