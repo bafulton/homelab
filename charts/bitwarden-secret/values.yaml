@@ -1,6 +1,6 @@
 # Global defaults (can be overridden per-secret)
 defaults:
-  refreshInterval: 1h
+  refreshInterval: 1m
   creationPolicy: Owner
 
 # List of ExternalSecrets to create
