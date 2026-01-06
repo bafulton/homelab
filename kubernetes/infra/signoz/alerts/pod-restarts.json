@@ -1,7 +1,7 @@
 {
   "alert": "Pod Crash Looping",
   "alertType": "METRIC_BASED_ALERT",
-  "severity": "critical",
+  "severity": "warning",
   "ruleType": "threshold_rule",
   "evalWindow": "10m0s",
   "frequency": "1m0s",
@@ -12,7 +12,7 @@
   "summary": "Pod crash loop detected",
   "labels": {
     "source": "gitops",
-    "severity": "critical"
+    "severity": "warning"
   },
   "condition": {
     "compositeQuery": {
