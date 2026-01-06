@@ -1,6 +1,8 @@
 # tailscale-ingress
 
-A reusable Helm chart for creating Tailscale Ingress resources.
+A reusable Helm chart for creating Tailscale Ingress resources. Services are exposed via Tailscale's proxy pods which join the tailnet, with automatic TLS certificates.
+
+Access pattern: `https://<hostname>.<tailnet>.ts.net`
 
 ## Features
 
@@ -66,7 +68,24 @@ tailscale-ingress:
 | `ingresses[].service.targetPort` | Pod port (if creating service) | `80` |
 | `ingresses[].service.targetSelector` | Pod selector (if creating service) | - |
 | `ingresses[].funnel.enabled` | Enable Tailscale Funnel | `false` |
-| `ingresses[].funnel.path` | Restrict Funnel to path | - |
+| `ingresses[].funnel.path` | Restrict Funnel to path (recommended for security) | - |
+
+## Notes
+
+### Funnel Path Restriction
+
+When using Funnel (public internet access), it's recommended to set `funnel.path` to restrict which paths are publicly accessible. Without a path, the entire service is exposed publicly.
+
+```yaml
+# Good: Only webhook endpoint is public
+funnel:
+  enabled: true
+  path: /api/webhook
+
+# Risky: Entire service is public
+funnel:
+  enabled: true
+```
 
 ## Resources Created
 

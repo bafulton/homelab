@@ -18,12 +18,14 @@ dependencies:
   - name: bitwarden-secret
     version: 1.0.0
     repository: file://../../../charts/bitwarden-secret
+    condition: bitwarden-secret.enabled
 ```
 
 Configure in your `values.yaml`:
 
 ```yaml
 bitwarden-secret:
+  enabled: true
   secrets:
     # Simple secret with multiple keys
     - name: operator-oauth
@@ -58,7 +60,7 @@ bitwarden-secret:
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `defaults.refreshInterval` | Global refresh interval | `1h` |
+| `defaults.refreshInterval` | Global refresh interval | `1m` |
 | `defaults.creationPolicy` | Global creation policy | `Owner` |
 | `secrets` | List of ExternalSecret configurations | `[]` |
 | `secrets[].name` | ExternalSecret name (and default target name) | Required |
