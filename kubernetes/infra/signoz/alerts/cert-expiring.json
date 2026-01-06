@@ -16,62 +16,20 @@
   },
   "condition": {
     "compositeQuery": {
-      "queries": [
+      "queryType": "promql",
+      "promql": [
         {
-          "type": "builder_query",
-          "spec": {
-            "name": "A",
-            "stepInterval": 0,
-            "signal": "metrics",
-            "source": "",
-            "aggregations": [
-              {
-                "metricName": "certmanager_certificate_expiration_timestamp_seconds",
-                "temporality": "",
-                "timeAggregation": "latest",
-                "spaceAggregation": "min",
-                "reduceTo": ""
-              }
-            ],
-            "disabled": true,
-            "filter": {
-              "expression": ""
-            },
-            "groupBy": [
-              {
-                "name": "name",
-                "signal": "",
-                "fieldContext": "attribute",
-                "fieldDataType": "string"
-              },
-              {
-                "name": "namespace",
-                "signal": "",
-                "fieldContext": "attribute",
-                "fieldDataType": "string"
-              }
-            ],
-            "having": {
-              "expression": ""
-            },
-            "legend": ""
-          }
-        },
-        {
-          "type": "builder_formula",
-          "spec": {
-            "name": "F1",
-            "expression": "(A - now()) / 86400",
-            "legend": "{{namespace}}/{{name}}"
-          }
+          "name": "A",
+          "query": "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400",
+          "legend": "{{namespace}}/{{name}}",
+          "disabled": false
         }
       ],
-      "panelType": "graph",
-      "queryType": "builder"
+      "panelType": "graph"
     },
     "op": "3",
     "target": 7,
     "matchType": "1",
-    "selectedQueryName": "F1"
+    "selectedQueryName": "A"
   }
 }
