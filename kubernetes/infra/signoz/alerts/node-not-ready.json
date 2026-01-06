@@ -1,0 +1,63 @@
+{
+  "alert": "Node Not Ready",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "critical",
+  "ruleType": "threshold_rule",
+  "evalWindow": "2m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "Kubernetes node is not in Ready state",
+  "summary": "Node not ready",
+  "labels": {
+    "source": "gitops",
+    "severity": "critical"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.node.condition",
+                "temporality": "",
+                "timeAggregation": "latest",
+                "spaceAggregation": "min",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": "condition = 'Ready'"
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{k8s.node.name}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "3",
+    "target": 1,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}
