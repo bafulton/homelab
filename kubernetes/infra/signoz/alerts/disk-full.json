@@ -8,76 +8,146 @@
   "broadcastToAll": true,
   "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
-  "description": "Node disk usage is above 85%",
+  "description": "Longhorn disk usage is above 85%",
   "summary": "High disk usage detected",
   "labels": {
     "source": "gitops"
   },
   "condition": {
     "compositeQuery": {
-      "builderQueries": {
-        "A": {
-          "queryName": "A",
-          "dataSource": "metrics",
-          "aggregateOperator": "latest",
-          "timeAggregation": "sum",
-          "aggregateAttribute": {
-            "key": "k8s.node.filesystem.usage",
-            "dataType": "float64",
-            "type": "Gauge",
-            "isColumn": true
+      "queryType": "builder",
+      "builder": {
+        "queryData": [
+          {
+            "dataSource": "metrics",
+            "queryName": "A",
+            "aggregateOperator": "",
+            "aggregateAttribute": {
+              "key": "longhorn_disk_usage_bytes",
+              "dataType": "float64",
+              "type": "Gauge",
+              "isColumn": true,
+              "isJSON": false,
+              "id": "longhorn_disk_usage_bytes--float64--Gauge"
+            },
+            "timeAggregation": "sum",
+            "spaceAggregation": "avg",
+            "filter": {
+              "expression": ""
+            },
+            "aggregations": [
+              {
+                "timeAggregation": "avg",
+                "metricName": "longhorn_disk_usage_bytes",
+                "temporality": "",
+                "spaceAggregation": "avg"
+              }
+            ],
+            "functions": [],
+            "filters": {
+              "items": [],
+              "op": "AND"
+            },
+            "expression": "A",
+            "disabled": true,
+            "stepInterval": 60,
+            "having": {
+              "expression": ""
+            },
+            "limit": null,
+            "orderBy": [],
+            "groupBy": [
+              {
+                "key": "node",
+                "dataType": "string",
+                "type": "tag",
+                "isColumn": false,
+                "isJSON": false,
+                "id": "node--string--tag"
+              },
+              {
+                "key": "disk",
+                "dataType": "string",
+                "type": "tag",
+                "isColumn": false,
+                "isJSON": false,
+                "id": "disk--string--tag"
+              }
+            ],
+            "legend": "",
+            "reduceTo": "avg",
+            "source": ""
           },
-          "filters": {
-            "items": [],
-            "op": "AND"
-          },
-          "groupBy": [
-            {
-              "key": "k8s.node.name",
-              "dataType": "string",
-              "type": "tag"
-            }
-          ],
-          "expression": "A",
-          "disabled": false,
-          "legend": "",
-          "stepInterval": 60
-        },
-        "B": {
-          "queryName": "B",
-          "dataSource": "metrics",
-          "aggregateOperator": "latest",
-          "timeAggregation": "sum",
-          "aggregateAttribute": {
-            "key": "k8s.node.filesystem.capacity",
-            "dataType": "float64",
-            "type": "Gauge",
-            "isColumn": true
-          },
-          "filters": {
-            "items": [],
-            "op": "AND"
-          },
-          "groupBy": [
-            {
-              "key": "k8s.node.name",
-              "dataType": "string",
-              "type": "tag"
-            }
-          ],
-          "expression": "B",
-          "disabled": false,
-          "legend": "",
-          "stepInterval": 60
-        },
-        "F1": {
-          "queryName": "F1",
-          "expression": "(A / B) * 100",
-          "disabled": false
-        }
-      },
-      "panelType": "graph",
-      "queryType": "builder"
+          {
+            "dataSource": "metrics",
+            "queryName": "B",
+            "aggregateOperator": "",
+            "aggregateAttribute": {
+              "key": "longhorn_disk_capacity_bytes",
+              "dataType": "float64",
+              "type": "Gauge",
+              "isColumn": true,
+              "isJSON": false,
+              "id": "longhorn_disk_capacity_bytes--float64--Gauge"
+            },
+            "timeAggregation": "sum",
+            "spaceAggregation": "avg",
+            "filter": {
+              "expression": ""
+            },
+            "aggregations": [
+              {
+                "timeAggregation": "avg",
+                "metricName": "longhorn_disk_capacity_bytes",
+                "temporality": "",
+                "spaceAggregation": "avg"
+              }
+            ],
+            "functions": [],
+            "filters": {
+              "items": [],
+              "op": "AND"
+            },
+            "expression": "B",
+            "disabled": true,
+            "stepInterval": 60,
+            "having": {
+              "expression": ""
+            },
+            "limit": null,
+            "orderBy": [],
+            "groupBy": [
+              {
+                "key": "node",
+                "dataType": "string",
+                "type": "tag",
+                "isColumn": false,
+                "isJSON": false,
+                "id": "node--string--tag"
+              },
+              {
+                "key": "disk",
+                "dataType": "string",
+                "type": "tag",
+                "isColumn": false,
+                "isJSON": false,
+                "id": "disk--string--tag"
+              }
+            ],
+            "legend": "",
+            "reduceTo": "avg",
+            "source": ""
+          }
+        ],
+        "queryFormulas": [
+          {
+            "queryName": "F1",
+            "expression": "(A/B)*100",
+            "disabled": false,
+            "legend": "{{node}}: {{disk}}"
+          }
+        ]
+      }
     },
     "selectedQueryName": "F1",
     "matchType": "1",
