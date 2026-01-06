@@ -35,7 +35,7 @@
             ],
             "disabled": false,
             "filter": {
-              "expression": "condition = 'Ready'"
+              "expression": "condition != 'Ready'"
             },
             "groupBy": [
               {
@@ -55,8 +55,8 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "3",
-    "target": 1,
+    "op": "1",
+    "target": 0,
     "matchType": "1",
     "selectedQueryName": "A"
   }
