@@ -11,8 +11,7 @@
   "description": "Pod {{ $labels.k8s_pod_name }} has restarted {{ $value }} times in the last 10 minutes",
   "summary": "Pod crash loop detected in {{ $labels.k8s_namespace_name }}/{{ $labels.k8s_pod_name }}",
   "labels": {
-    "team": "homelab",
-    "managed_by": "gitops"
+    "source": "gitops"
   },
   "condition": {
     "compositeQuery": {

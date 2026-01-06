@@ -11,8 +11,7 @@
   "description": "Node memory usage is above 85%: {{ $value }}%",
   "summary": "High memory usage detected on {{ $labels.host_name }}",
   "labels": {
-    "team": "homelab",
-    "managed_by": "gitops"
+    "source": "gitops"
   },
   "condition": {
     "compositeQuery": {

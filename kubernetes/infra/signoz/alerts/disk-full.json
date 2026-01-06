@@ -11,8 +11,7 @@
   "description": "Disk usage is above 85%: {{ $value }}%",
   "summary": "High disk usage on {{ $labels.host_name }} mount {{ $labels.mountpoint }}",
   "labels": {
-    "team": "homelab",
-    "managed_by": "gitops"
+    "source": "gitops"
   },
   "condition": {
     "compositeQuery": {

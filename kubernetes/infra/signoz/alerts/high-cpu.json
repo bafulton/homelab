@@ -11,8 +11,7 @@
   "description": "Node CPU usage is above 90%: {{ $value }}%",
   "summary": "High CPU usage detected on {{ $labels.host_name }}",
   "labels": {
-    "team": "homelab",
-    "managed_by": "gitops"
+    "source": "gitops"
   },
   "condition": {
     "compositeQuery": {
