@@ -8,5 +8,5 @@ dependencies:
 - name: bitwarden-secret
   repository: file://../../../charts/bitwarden-secret
   version: 1.0.0
-digest: sha256:188062144ac48f984ec17d06844d9a7104172fddb888c7cda9288c3e218e9c4c
-generated: "2026-01-04T04:19:37.412752454Z"
+digest: sha256:e83cec4326a3e0e30b5e2ce831cd5227496879120c2978a1a21fd6ffaa132b5a
+generated: "2026-01-05T21:43:16.657685-05:00"
