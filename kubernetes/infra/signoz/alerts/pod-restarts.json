@@ -11,7 +11,8 @@
   "description": "Pod has restarted multiple times in the last 10 minutes",
   "summary": "Pod crash loop detected",
   "labels": {
-    "source": "gitops"
+    "source": "gitops",
+    "severity": "critical"
   },
   "condition": {
     "compositeQuery": {

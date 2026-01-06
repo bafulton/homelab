@@ -11,7 +11,8 @@
   "description": "Node CPU usage is above 90%",
   "summary": "High CPU usage detected",
   "labels": {
-    "source": "gitops"
+    "source": "gitops",
+    "severity": "critical"
   },
   "condition": {
     "compositeQuery": {

@@ -11,7 +11,8 @@
   "description": "Longhorn disk usage is above 85%",
   "summary": "High disk usage detected",
   "labels": {
-    "source": "gitops"
+    "source": "gitops",
+    "severity": "critical"
   },
   "condition": {
     "compositeQuery": {

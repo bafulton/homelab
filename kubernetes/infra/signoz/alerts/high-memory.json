@@ -11,7 +11,8 @@
   "description": "Node memory usage is above 85%",
   "summary": "High memory usage detected",
   "labels": {
-    "source": "gitops"
+    "source": "gitops",
+    "severity": "critical"
   },
   "condition": {
     "compositeQuery": {
