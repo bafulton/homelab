@@ -53,7 +53,8 @@
             ],
             "having": {
               "expression": ""
-            }
+            },
+            "legend": "{{k8s.namespace.name}}/{{k8s.pod.name}}"
           }
         }
       ],
