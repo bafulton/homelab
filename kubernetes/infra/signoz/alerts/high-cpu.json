@@ -6,11 +6,13 @@
   "evalWindow": "5m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
   "disabled": false,
   "description": "Node CPU usage is above 90%: {{ $value }}%",
   "summary": "High CPU usage detected on {{ $labels.host_name }}",
   "labels": {
-    "team": "homelab"
+    "team": "homelab",
+    "managed-by": "gitops"
   },
   "condition": {
     "compositeQuery": {
