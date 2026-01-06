@@ -18,7 +18,7 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: cleanup
-              image: bitnami/kubectl:latest
+              image: bitnami/kubectl:1.32
               command: ["/bin/bash", "-c"]
               args:
                 - |

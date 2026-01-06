@@ -38,6 +38,7 @@ tailscale-ingress:
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
+  enabled: true
   secrets:
     - name: argocd-github-webhook
       creationPolicy: Merge
