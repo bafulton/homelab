@@ -20,6 +20,7 @@
           "queryName": "A",
           "dataSource": "metrics",
           "aggregateOperator": "avg",
+          "timeAggregation": "sum",
           "aggregateAttribute": {
             "key": "k8s.node.cpu.usage",
             "dataType": "float64",
@@ -39,12 +40,14 @@
           ],
           "expression": "A",
           "disabled": false,
+          "legend": "",
           "stepInterval": 60
         },
         "B": {
           "queryName": "B",
           "dataSource": "metrics",
           "aggregateOperator": "latest",
+          "timeAggregation": "sum",
           "aggregateAttribute": {
             "key": "k8s.node.allocatable_cpu",
             "dataType": "float64",
@@ -64,6 +67,7 @@
           ],
           "expression": "B",
           "disabled": false,
+          "legend": "",
           "stepInterval": 60
         },
         "F1": {
