@@ -1,8 +1,5 @@
 namespace: signoz
 
-syncPolicy:
-  serverSideApply: true
-
 # Ignore Kubernetes runtime defaults that cause perpetual drift
 ignoreDifferences:
   # ClickHouse operator metrics-exporter adds divisor: "0" defaults to resourceFieldRef
@@ -11,19 +8,6 @@ ignoreDifferences:
     name: signoz-clickhouse-operator
     jqPathExpressions:
       - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
-  # StatefulSets get runtime defaults (revisionHistoryLimit, persistentVolumeClaimRetentionPolicy)
-  - group: apps
-    kind: StatefulSet
-    name: signoz
-    jqPathExpressions:
-      - .spec.revisionHistoryLimit
-      - .spec.persistentVolumeClaimRetentionPolicy
-  - group: apps
-    kind: StatefulSet
-    name: signoz-zookeeper
-    jqPathExpressions:
-      - .spec.revisionHistoryLimit
-      - .spec.persistentVolumeClaimRetentionPolicy
 
 tailscale-ingress:
   enabled: true
