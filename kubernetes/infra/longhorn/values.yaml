@@ -1,8 +1,11 @@
 namespace: longhorn
 
-# Server-side apply required for CRDs
-syncPolicy:
-  serverSideApply: true
+# Ignore preserveUnknownFields on CRDs (per Longhorn ArgoCD docs)
+# https://longhorn.io/docs/1.7.2/deploy/install/install-with-argocd/
+ignoreDifferences:
+  - group: apiextensions.k8s.io
+    kind: CustomResourceDefinition
+    jsonPointers: ["/spec/preserveUnknownFields"]
 
 # Node-specific disk configuration
 # Each disk is tagged for use with specific StorageClasses
