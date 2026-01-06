@@ -12,12 +12,7 @@ data:
       name: argocd-vault-plugin-helm
     spec:
       allowConcurrency: true
-      discover:
-        find:
-          command:
-            - sh
-            - "-c"
-            - "find . -name 'Chart.yaml' && find . -name 'values.yaml'"
+      # No discover section - apps must explicitly opt-in via useAVP: true
       generate:
         command:
           - bash
