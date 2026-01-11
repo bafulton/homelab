@@ -41,7 +41,7 @@ spec:
               {{- end }}
 
               echo "Users created, starting Samba..."
-              exec /entrypoint.sh
+              exec /entrypoint.sh smbd -F --no-process-group
           env:
             {{- range .Values.users }}
             - name: PASSWORD_{{ .name | upper }}
