@@ -15,6 +15,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
 | [signoz](./signoz) | Observability platform (metrics, logs, traces) | Tailscale |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
+| [timemachine](./timemachine) | Time Machine backup server for macOS | hostNetwork (mDNS) |
 | [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
 
@@ -61,8 +62,8 @@ Exposes services directly on your Tailscale network - no port forwarding, no pub
 Assigns real LAN IPs to `LoadBalancer` Services. Without it (or a cloud provider), LoadBalancer services stay in `Pending` forever.
 
 **Use MetalLB for LAN-only services** - things you only want accessible when physically on your home network:
-- Time Machine backup targets (NFS/SMB) - keeps backup traffic local and fast
 - Media servers for local streaming
+- Databases, game servers, or other non-HTTP services
 - Anything that shouldn't be reachable remotely
 
 ### Traefik
@@ -77,3 +78,57 @@ flowchart LR
     traefik -->|app2.homelab.local| app2[app2-service]
     traefik -->|app3.homelab.local/api| app3[app3-service]
 ```
+
+**Tip:** Add Traefik's MetalLB IP to `/etc/hosts` for easy LAN access:
+```
+192.168.0.200    plex.lan home-assistant.lan grafana.lan
+```
+
+### hostNetwork (for mDNS services)
+
+Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP which doesn't work across Kubernetes network namespaces. For these services, we use `hostNetwork: true` to bind directly to the node's network.
+
+**Use hostNetwork for:**
+- Time Machine (macOS auto-discovers backup destinations via mDNS)
+- Home Assistant (discovers IoT devices like Chromecast, HomeKit, ESPHome via mDNS)
+
+**Trade-offs:**
+- Ports bind directly to the node IP (e.g., `192.168.0.99:445`)
+- Less "Kubernetes-native" but necessary for mDNS
+- Only use for services that genuinely require multicast discovery
+
+## Choosing an Exposure Method
+
+```
+"What are the access requirements for this service?"
+
+├── Needs secure, private access from anywhere?
+│   └── Use Tailscale Ingress → service.catfish-mountain.ts.net
+│       (zero-trust, encrypted, no public exposure)
+│
+├── LAN only (no remote access needed)?
+│   ├── HTTP service (web UI, API)?
+│   │   └── Use Traefik → add hostname to /etc/hosts
+│   │
+│   ├── Non-HTTP service (SMB, database, game server)?
+│   │   └── Use MetalLB LoadBalancer → gets dedicated IP
+│   │
+│   └── Needs mDNS discovery?
+│       └── Use hostNetwork → binds to node IP
+│
+└── Public internet (untrusted users)?
+    └── Traefik + Cloudflare Tunnel (not yet implemented)
+```
+
+### Quick Reference
+
+| Service Type | Method | Access Via |
+|--------------|--------|------------|
+| Admin UIs (ArgoCD, dashboards) | Tailscale Ingress | `*.catfish-mountain.ts.net` |
+| LAN web apps (Plex, Home Assistant UI) | MetalLB → Traefik | `app.lan` (via /etc/hosts) |
+| LAN non-HTTP (databases, game servers) | MetalLB LoadBalancer | `192.168.0.x:port` |
+| mDNS-dependent (Time Machine, Home Assistant) | hostNetwork | Node IP or auto-discovered |
+
+**Note:** Some services may use multiple methods. For example, Home Assistant might use:
+- `hostNetwork: true` (so it can discover IoT devices via mDNS)
+- Traefik IngressRoute (so you can access its web UI at `home-assistant.lan`)

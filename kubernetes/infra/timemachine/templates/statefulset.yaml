@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: timemachine
+spec:
+  serviceName: timemachine
+  replicas: 1  # Never go > 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: timemachine
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: timemachine
+    spec:
+      # Required for mDNS/Bonjour auto-discovery
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      initContainers:
+        # Create users and set Samba passwords before main container starts
+        - name: init-users
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              # Create directories
+              {{- range .Values.users }}
+              echo "Setting up user {{ .name }}..."
+              mkdir -p /opt/timemachine/{{ .name }}
+
+              # Create system user and group
+              addgroup -g {{ .uid }} {{ .name }} 2>/dev/null || true
+              adduser -D -u {{ .uid }} -G {{ .name }} -h /opt/timemachine/{{ .name }} {{ .name }} 2>/dev/null || true
+
+              # Set directory ownership
+              chown {{ .uid }}:{{ .uid }} /opt/timemachine/{{ .name }}
+              chmod 700 /opt/timemachine/{{ .name }}
+
+              # Set Samba password
+              echo -e "${PASSWORD_{{ .name | upper }}}\n${PASSWORD_{{ .name | upper }}}" | smbpasswd -a -s {{ .name }}
+              {{- end }}
+
+              echo "Users initialized successfully"
+          env:
+            {{- range .Values.users }}
+            - name: PASSWORD_{{ .name | upper }}
+              valueFrom:
+                secretKeyRef:
+                  name: timemachine-credentials
+                  key: {{ .name }}-password
+            {{- end }}
+          volumeMounts:
+            - name: timemachine-data
+              mountPath: /opt/timemachine
+            - name: samba-config
+              mountPath: /etc/samba/smb.conf
+              subPath: smb.conf
+            - name: samba-lib
+              mountPath: /var/lib/samba
+            - name: samba-cache
+              mountPath: /var/cache/samba
+            - name: samba-run
+              mountPath: /run/samba
+      containers:
+        - name: timemachine
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            # Use our custom smb.conf and pre-created users
+            - name: CUSTOM_SMB_CONF
+              value: "true"
+            - name: CUSTOM_USER
+              value: "true"
+            # mDNS/Bonjour settings
+            - name: MIMIC_MODEL
+              value: "TimeCapsule8,119"
+            - name: ADVERTISED_HOSTNAME
+              value: "timemachine"
+            # General settings
+            - name: DEBUG_LEVEL
+              value: "1"
+            - name: SMB_PORT
+              value: "445"
+            - name: WORKGROUP
+              value: "WORKGROUP"
+          ports:
+            # NetBIOS ports (for discovery)
+            - name: netbios-ns
+              containerPort: 137
+              protocol: UDP
+            - name: netbios-dgm
+              containerPort: 138
+              protocol: UDP
+            - name: netbios-ssn
+              containerPort: 139
+              protocol: TCP
+            # SMB port
+            - name: smb
+              containerPort: 445
+              protocol: TCP
+          volumeMounts:
+            - name: timemachine-data
+              mountPath: /opt/timemachine
+            - name: samba-config
+              mountPath: /etc/samba/smb.conf
+              subPath: smb.conf
+            - name: samba-lib
+              mountPath: /var/lib/samba
+            - name: samba-cache
+              mountPath: /var/cache/samba
+            - name: samba-run
+              mountPath: /run/samba
+      volumes:
+        - name: timemachine-data
+          persistentVolumeClaim:
+            claimName: timemachine-data
+        - name: samba-config
+          configMap:
+            name: timemachine-config
+        - name: samba-lib
+          emptyDir: {}
+        - name: samba-cache
+          emptyDir: {}
+        - name: samba-run
+          emptyDir: {}

@@ -1,0 +1,31 @@
+namespace: timemachine
+
+# Storage configuration
+storage:
+  storageClass: longhorn-nvme
+  size: 2Ti
+
+# Time Machine users - each gets their own share with quota
+# Passwords are pulled from Bitwarden via External Secrets
+users:
+  - name: ben
+    uid: 1000
+    quota: 1T
+  - name: emilie
+    uid: 1001
+    quota: 1T
+
+# Samba image configuration
+image:
+  repository: mbentley/timemachine
+  tag: smb
+  pullPolicy: IfNotPresent
+
+# Bitwarden secrets for SMB passwords
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: timemachine-credentials
+      data:
+        ben-password: "a00db757-d2bf-495a-b33a-b3cf002ad2a3"
+        emilie-password: "3c48c800-9650-488c-aa5a-b3cf002ab98c"
