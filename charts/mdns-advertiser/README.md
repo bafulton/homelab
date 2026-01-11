@@ -9,7 +9,7 @@ Kubernetes services are isolated from the LAN by default. Even with MetalLB prov
 1. **mDNS uses multicast** - Multicast traffic doesn't cross network boundaries
 2. **Pods can't broadcast to LAN** - Unless using `hostNetwork: true`
 
-This chart solves this by running an Avahi daemon with `hostNetwork` that publishes mDNS records pointing to your MetalLB IPs.
+This chart solves this by running a Python script with `hostNetwork` that uses the zeroconf library to publish mDNS records pointing to your MetalLB IPs.
 
 ## Architecture
 
@@ -49,8 +49,6 @@ Configure services in values.yaml:
 
 ```yaml
 mdns-advertiser:
-  allowedInterface: enp1s0  # Your LAN interface
-
   services:
     - name: My Service        # Display name in Finder/discovery
       hostname: myservice     # Becomes myservice.local
@@ -97,4 +95,3 @@ services:
 
 - The deployment namespace needs `pod-security.kubernetes.io/enforce: privileged` (for hostNetwork)
 - MetalLB or similar for stable service IPs
-- The `allowedInterface` must match your node's LAN interface name

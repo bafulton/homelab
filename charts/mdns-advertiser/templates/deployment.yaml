@@ -15,7 +15,7 @@ spec:
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
-        - name: avahi
+        - name: mdns
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
@@ -23,33 +23,57 @@ spec:
             - -c
             - |
               set -e
+              pip install --quiet zeroconf
 
-              # Start avahi-daemon in the background
-              avahi-daemon -D
+              python3 << 'PYTHON_SCRIPT'
+              from zeroconf import ServiceInfo, Zeroconf
+              import socket
+              import signal
+              import time
 
-              # Wait for daemon to be ready
-              sleep 2
+              zc = Zeroconf()
+              services = []
 
-              # Publish services
+              def shutdown(signum, frame):
+                  print("Shutting down mDNS advertiser...")
+                  for info in services:
+                      zc.unregister_service(info)
+                  zc.close()
+                  exit(0)
+
+              signal.signal(signal.SIGTERM, shutdown)
+              signal.signal(signal.SIGINT, shutdown)
+
               {{- range .Values.services }}
               {{- $svc := . }}
-              echo "Publishing {{ .name }} ({{ .ip }}:{{ .port }})"
+              # Register {{ .name }}
+              print("Publishing {{ .name }} ({{ .ip }}:{{ .port }})")
 
-              # Publish A record: hostname.local -> IP
-              avahi-publish -a -R {{ .hostname }}.local {{ .ip }} &
-
-              # Publish each service type
               {{- range .types }}
-              avahi-publish -s "{{ $svc.name }}" {{ .type }} {{ $svc.port }} \
-                {{- range .txtRecords }}
-                "{{ . }}" \
-                {{- end }}
-                &
+              info = ServiceInfo(
+                  "{{ .type }}.local.",
+                  "{{ $svc.name }}.{{ .type }}.local.",
+                  addresses=[socket.inet_aton("{{ $svc.ip }}")],
+                  port={{ $svc.port }},
+                  properties={
+                      {{- if .txtRecords }}
+                      {{- range .txtRecords }}
+                      {{- $key := regexFind "^[^=]+" . }}
+                      "{{ $key }}": "{{ trimPrefix (printf "%s=" $key) . }}",
+                      {{- end }}
+                      {{- end }}
+                  },
+                  server="{{ $svc.hostname }}.local."
+              )
+              zc.register_service(info)
+              services.append(info)
               {{- end }}
 
               {{- end }}
 
-              echo "mDNS advertisements active"
+              print("mDNS advertisements active")
 
               # Keep running
-              tail -f /dev/null
+              while True:
+                  time.sleep(60)
+              PYTHON_SCRIPT

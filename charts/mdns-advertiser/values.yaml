@@ -1,19 +1,16 @@
 # mDNS Advertiser - publish Kubernetes services to LAN via Bonjour/mDNS
 #
-# This chart runs Avahi with hostNetwork to advertise services on the
-# local network. Services get stable IPs via MetalLB, and this advertiser
-# makes them discoverable via mDNS.
+# This chart runs Python with zeroconf and hostNetwork to advertise services
+# on the local network. Services get stable IPs via MetalLB, and this
+# advertiser makes them discoverable via mDNS.
 #
 # Example: A Mac looking for Time Machine sees "timemachine" via mDNS,
 # which resolves to the MetalLB IP where the actual service runs.
 
 image:
-  repository: flungo/avahi
-  tag: latest
+  repository: python
+  tag: 3.11-alpine
   pullPolicy: IfNotPresent
-
-# Network interface to advertise on (typically your LAN interface)
-allowedInterface: enp1s0
 
 # Services to advertise via mDNS
 # Each service publishes:

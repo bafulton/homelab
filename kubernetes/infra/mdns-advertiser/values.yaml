@@ -1,8 +1,6 @@
 namespace: mdns-advertiser
 
 mdns-advertiser:
-  allowedInterface: enp1s0
-
   services:
     # Time Machine backup server
     - name: Time Machine
