@@ -3,7 +3,7 @@ namespace: mdns-advertiser
 mdns-advertiser:
   services:
     # Time Machine backup server
-    - name: Time Machine
+    - name: timemachine
       hostname: timemachine
       ip: 192.168.0.201  # Must match time-machine service.loadBalancerIP
       port: 445
@@ -11,10 +11,12 @@ mdns-advertiser:
         # SMB file sharing
         - type: _smb._tcp
         # Apple disk service (required for Time Machine auto-discovery)
+        # Each user's share is advertised as a Time Machine volume
         - type: _adisk._tcp
           txtRecords:
             - "sys=adVF=0x100"
-            - "dk0=adVN=Time Machine,adVF=0x82"
+            - "dk0=adVN=ben,adVF=0x82"
+            - "dk1=adVN=emilie,adVF=0x82"
         # Device info (shows as Time Capsule in Finder)
         - type: _device-info._tcp
           txtRecords:
