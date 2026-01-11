@@ -16,6 +16,7 @@ spec:
       # Required for mDNS/Bonjour auto-discovery
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      hostname: timemachine
       initContainers:
         # Create users and set Samba passwords before main container starts
         - name: init-users
