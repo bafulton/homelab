@@ -76,6 +76,6 @@ data:
     <plist version="1.0">
     <dict>
       <key>GlobalQuota</key>
-      <integer>{{ .Values.timemachine.quotaBytes }}</integer>
+      <integer>{{ printf "%.0f" .Values.timemachine.quotaBytes }}</integer>
     </dict>
     </plist>
