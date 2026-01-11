@@ -21,6 +21,11 @@ traefik:
 
   priorityClassName: "system-cluster-critical"
 
+  # MetalLB LoadBalancer IP (from pool 192.168.0.200-250)
+  service:
+    annotations:
+      metallb.io/loadBalancerIPs: "192.168.0.200"
+
   additionalArguments:
     # Expose dashboard without TLS - safe because it's behind Tailscale Ingress
     # which provides HTTPS termination. Do not expose directly to internet.
