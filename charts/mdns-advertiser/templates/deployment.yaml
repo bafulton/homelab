@@ -65,7 +65,7 @@ spec:
                   },
                   server="{{ $svc.hostname }}.local."
               )
-              zc.register_service(info)
+              zc.register_service(info, allow_name_change=True)
               services.append(info)
               {{- end }}
 
