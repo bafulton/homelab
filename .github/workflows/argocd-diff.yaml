@@ -25,6 +25,7 @@ jobs:
 
       - name: Generate Diff
         id: diff
+        continue-on-error: true
         run: |
           docker run \
             --network=host \
@@ -34,12 +35,30 @@ jobs:
             -v $(pwd)/output:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
-            -e AUTO_DETECT_FILES_CHANGED=true \
             dagandersen/argocd-diff-preview:v0.1.21
 
       - name: Post diff as comment
+        if: hashFiles('output/diff.md') != ''
         run: |
           gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff.md --edit-last || \
           gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file output/diff.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Post notice for AVP apps
+        if: steps.diff.outcome == 'failure'
+        run: |
+          cat << 'EOF' > /tmp/notice.md
+          ## ArgoCD Diff Preview
+
+          ⚠️ **Diff generation failed** - likely due to apps using `argocd-vault-plugin` which cannot be rendered in CI.
+
+          Apps with `useAVP: true` in their values.yaml are automatically skipped via the `argocd-diff-preview/ignore` annotation,
+          but this only takes effect after the annotation is present on the base branch (main).
+
+          **Manual verification required** for changes to infrastructure apps.
+          EOF
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file /tmp/notice.md --edit-last || \
+          gh pr comment ${{ github.event.number }} --repo ${{ github.repository }} --body-file /tmp/notice.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
