@@ -7,7 +7,7 @@ mdns-advertiser:
     # Time Machine backup server
     - name: Time Machine
       hostname: timemachine
-      ip: 192.168.0.201  # Must match timemachine service.loadBalancerIP
+      ip: 192.168.0.201  # Must match time-machine service.loadBalancerIP
       port: 445
       types:
         # SMB file sharing

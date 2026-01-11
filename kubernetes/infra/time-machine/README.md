@@ -35,7 +35,7 @@ MacBook ──► SMB: Connect to 192.168.0.201
          │   Time Machine Pod  │
          │   (Samba + fruit)   │
          │                     │
-         │  /opt/timemachine/  │
+         │  /opt/time-machine/ │
          │    ├── ben/         │
          │    └── emilie/      │
          └─────────┬───────────┘
@@ -53,8 +53,8 @@ Each user gets their own SMB share with a quota:
 
 | User | Share | Quota |
 |------|-------|-------|
-| ben | `/opt/timemachine/ben` | 900 GB |
-| emilie | `/opt/timemachine/emilie` | 900 GB |
+| ben | `/opt/time-machine/ben` | 900 GB |
+| emilie | `/opt/time-machine/emilie` | 900 GB |
 
 Passwords are stored in Bitwarden and synced via External Secrets.
 
@@ -109,17 +109,17 @@ fruit:time machine max size = 900G
 ### Can't find Time Machine in Finder
 
 1. Check mDNS advertiser is running: `kubectl get pods -n mdns-advertiser`
-2. Verify MetalLB assigned the IP: `kubectl get svc -n timemachine`
+2. Verify MetalLB assigned the IP: `kubectl get svc -n time-machine`
 3. Try connecting directly: `smb://192.168.0.201`
 
 ### Authentication fails
 
-1. Verify the secret exists: `kubectl get secret timemachine-credentials -n timemachine`
-2. Check External Secrets sync: `kubectl get externalsecret -n timemachine`
+1. Verify the secret exists: `kubectl get secret time-machine-credentials -n time-machine`
+2. Check External Secrets sync: `kubectl get externalsecret -n time-machine`
 3. Verify password in Bitwarden matches
 
 ### Backup fails or is slow
 
-1. Check pod logs: `kubectl logs -n timemachine -l app.kubernetes.io/name=timemachine`
-2. Verify storage: `kubectl get pvc -n timemachine`
+1. Check pod logs: `kubectl logs -n time-machine -l app.kubernetes.io/name=time-machine`
+2. Verify storage: `kubectl get pvc -n time-machine`
 3. Check Longhorn volume health in Longhorn UI

@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: timemachine
+  name: time-machine
 spec:
-  serviceName: timemachine
+  serviceName: time-machine
   replicas: 1  # Never go > 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: timemachine
+      app.kubernetes.io/name: time-machine
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: timemachine
+        app.kubernetes.io/name: time-machine
     spec:
       # mDNS discovery handled by separate mdns-advertiser
       # MetalLB provides stable IP for LAN access
@@ -33,15 +33,15 @@ spec:
               # Create user directories and accounts
               {{- range .Values.users }}
               echo "Setting up user {{ .name }}..."
-              mkdir -p /opt/timemachine/{{ .name }}
+              mkdir -p /opt/time-machine/{{ .name }}
 
               # Create system user and group
               addgroup -g {{ .uid }} {{ .name }} 2>/dev/null || true
-              adduser -D -u {{ .uid }} -G {{ .name }} -h /opt/timemachine/{{ .name }} {{ .name }} 2>/dev/null || true
+              adduser -D -u {{ .uid }} -G {{ .name }} -h /opt/time-machine/{{ .name }} {{ .name }} 2>/dev/null || true
 
               # Set directory ownership
-              chown {{ .uid }}:{{ .uid }} /opt/timemachine/{{ .name }}
-              chmod 700 /opt/timemachine/{{ .name }}
+              chown {{ .uid }}:{{ .uid }} /opt/time-machine/{{ .name }}
+              chmod 700 /opt/time-machine/{{ .name }}
 
               # Set Samba password
               echo -e "${PASSWORD_{{ .name | upper }}}\n${PASSWORD_{{ .name | upper }}}" | smbpasswd -a -s {{ .name }}
@@ -53,12 +53,12 @@ spec:
             - name: PASSWORD_{{ .name | upper }}
               valueFrom:
                 secretKeyRef:
-                  name: timemachine-credentials
+                  name: time-machine-credentials
                   key: {{ .name }}-password
             {{- end }}
           volumeMounts:
-            - name: timemachine-data
-              mountPath: /opt/timemachine
+            - name: time-machine-data
+              mountPath: /opt/time-machine
             - name: samba-config
               mountPath: /etc/samba/smb.conf
               subPath: smb.conf
@@ -69,7 +69,7 @@ spec:
             - name: samba-run
               mountPath: /run/samba
       containers:
-        - name: timemachine
+        - name: time-machine
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
@@ -82,7 +82,7 @@ spec:
             - name: MIMIC_MODEL
               value: "TimeCapsule8,119"
             - name: ADVERTISED_HOSTNAME
-              value: "timemachine"
+              value: "time-machine"
             # General settings
             - name: DEBUG_LEVEL
               value: "1"
@@ -106,8 +106,8 @@ spec:
               containerPort: 445
               protocol: TCP
           volumeMounts:
-            - name: timemachine-data
-              mountPath: /opt/timemachine
+            - name: time-machine-data
+              mountPath: /opt/time-machine
             - name: samba-config
               mountPath: /etc/samba/smb.conf
               subPath: smb.conf
@@ -118,12 +118,12 @@ spec:
             - name: samba-run
               mountPath: /run/samba
       volumes:
-        - name: timemachine-data
+        - name: time-machine-data
           persistentVolumeClaim:
-            claimName: timemachine-data
+            claimName: time-machine-data
         - name: samba-config
           configMap:
-            name: timemachine-config
+            name: time-machine-config
         - name: samba-lib
           emptyDir: {}
         - name: samba-cache

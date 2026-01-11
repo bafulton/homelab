@@ -32,6 +32,7 @@ spec:
 
               # Publish services
               {{- range .Values.services }}
+              {{- $svc := . }}
               echo "Publishing {{ .name }} ({{ .ip }}:{{ .port }})"
 
               # Publish A record: hostname.local -> IP
@@ -39,7 +40,7 @@ spec:
 
               # Publish each service type
               {{- range .types }}
-              avahi-publish -s "{{ $.name }}" {{ .type }} {{ $.port }} \
+              avahi-publish -s "{{ $svc.name }}" {{ .type }} {{ $svc.port }} \
                 {{- range .txtRecords }}
                 "{{ . }}" \
                 {{- end }}

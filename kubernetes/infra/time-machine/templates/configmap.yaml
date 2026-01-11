@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: timemachine-config
+  name: time-machine-config
 data:
   smb.conf: |
     [global]
@@ -54,7 +54,7 @@ data:
     {{- range .Values.users }}
     [{{ .name }}]
     comment = Time Machine Backup for {{ .name }}
-    path = /opt/timemachine/{{ .name }}
+    path = /opt/time-machine/{{ .name }}
     valid users = {{ .name }}
     browseable = yes
     writeable = yes
