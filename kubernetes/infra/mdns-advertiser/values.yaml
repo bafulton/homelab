@@ -16,7 +16,7 @@ mdns-advertiser:
         - type: _adisk._tcp
           txtRecords:
             - "sys=adVF=0x100"
-            - "dk0=adVN=family,adVF=0x82"
+            - "dk0=adVN=Family,adVF=0x82"
         # Device info (shows as Time Capsule in Finder)
         - type: _device-info._tcp
           txtRecords:
