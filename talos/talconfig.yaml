@@ -92,12 +92,14 @@ patches:
           - 100.100.100.100
           - 8.8.8.8
 
-  # Kubelet: Use Tailscale IPs for node addresses
+  # Kubelet: Use LAN IPs for node addresses (enables MetalLB L2 mode)
+  # Tailscale is still used for API access via the endpoint
   - |-
     machine:
       kubelet:
         nodeIP:
           validSubnets:
+            - 192.168.0.0/24
             - 100.64.0.0/10
 
   # Tailscale extension configuration via ExtensionServiceConfig
