@@ -24,6 +24,7 @@ jobs:
           path: main
 
       - name: Generate Diff
+        id: diff
         run: |
           docker run \
             --network=host \
@@ -33,6 +34,7 @@ jobs:
             -v $(pwd)/output:/output \
             -e TARGET_BRANCH=refs/pull/${{ github.event.number }}/merge \
             -e REPO=${{ github.repository }} \
+            -e AUTO_DETECT_FILES_CHANGED=true \
             dagandersen/argocd-diff-preview:v0.1.21
 
       - name: Post diff as comment
