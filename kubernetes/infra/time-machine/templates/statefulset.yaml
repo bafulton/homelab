@@ -25,6 +25,10 @@ spec:
             - |
               set -e
 
+              # Initialize Samba directories (required before smbpasswd works)
+              mkdir -p /var/lib/samba/private
+              chmod 700 /var/lib/samba/private
+
               # Create Unix users and Samba accounts
               {{- range .Values.users }}
               echo "Setting up user {{ .name }}..."
