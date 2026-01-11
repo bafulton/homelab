@@ -544,7 +544,7 @@
             {
               "aggregations": [
                 {
-                  "metricName": "k8s.node.cpu.utilization",
+                  "metricName": "k8s.node.cpu.usage",
                   "reduceTo": "avg",
                   "spaceAggregation": "sum",
                   "temporality": null,
@@ -1364,7 +1364,7 @@
             {
               "aggregations": [
                 {
-                  "metricName": "k8s.pod.cpu.utilization",
+                  "metricName": "k8s.pod.cpu.usage",
                   "reduceTo": "avg",
                   "spaceAggregation": "sum",
                   "temporality": null,
@@ -3455,7 +3455,7 @@
             {
               "aggregations": [
                 {
-                  "metricName": "k8s.pod.cpu.utilization",
+                  "metricName": "k8s.pod.cpu.usage",
                   "reduceTo": "avg",
                   "spaceAggregation": "sum",
                   "temporality": null,
