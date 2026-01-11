@@ -13,10 +13,8 @@ spec:
       labels:
         app.kubernetes.io/name: timemachine
     spec:
-      # Required for mDNS/Bonjour auto-discovery
-      hostNetwork: true
-      dnsPolicy: ClusterFirstWithHostNet
-      hostname: timemachine
+      # mDNS discovery handled by separate mdns-advertiser
+      # MetalLB provides stable IP for LAN access
       initContainers:
         # Create users and set Samba passwords before main container starts
         - name: init-users

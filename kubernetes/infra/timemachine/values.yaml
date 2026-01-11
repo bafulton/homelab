@@ -1,5 +1,9 @@
 namespace: timemachine
 
+# MetalLB LoadBalancer IP (from pool 192.168.0.200-250)
+service:
+  loadBalancerIP: "192.168.0.201"
+
 # Storage configuration
 # NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
 storage:
