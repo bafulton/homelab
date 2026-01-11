@@ -16,7 +16,7 @@ data:
     server min protocol = SMB2
     server max protocol = SMB3
 
-    # Disable mDNS (we handle discovery separately if needed)
+    # Disable mDNS (we handle discovery separately)
     multicast dns register = no
 
     # VFS modules for macOS compatibility
@@ -52,11 +52,10 @@ data:
     printcap name = /dev/null
     disable spoolss = yes
 
-    {{- range .Values.users }}
-    [{{ .name }}]
-    comment = Time Machine Backup for {{ .name }}
-    path = /opt/time-machine/{{ .name }}
-    valid users = {{ .name }}
+    [{{ .Values.timemachine.user }}]
+    comment = Time Machine Backups
+    path = /opt/time-machine
+    valid users = {{ .Values.timemachine.user }}
     browseable = yes
     writeable = yes
 
@@ -65,10 +64,18 @@ data:
 
     # Time Machine specific settings
     fruit:time machine = yes
-    fruit:time machine max size = {{ .quota }}
 
     # Permission masks
     create mask = 0600
     directory mask = 0700
 
-    {{- end }}
+  # Per-machine quota file - each Mac gets this quota independently
+  quota.plist: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>GlobalQuota</key>
+      <integer>{{ .Values.timemachine.quotaBytes }}</integer>
+    </dict>
+    </plist>

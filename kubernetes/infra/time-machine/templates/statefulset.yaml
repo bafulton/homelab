@@ -13,8 +13,6 @@ spec:
       labels:
         app.kubernetes.io/name: time-machine
     spec:
-      # mDNS discovery handled by separate mdns-advertiser
-      # MetalLB provides stable IP for LAN access
       containers:
         - name: time-machine
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -29,27 +27,26 @@ spec:
               mkdir -p /var/lib/samba/private
               chmod 700 /var/lib/samba/private
 
-              # Create Unix users and Samba accounts
-              {{- range .Values.users }}
-              echo "Setting up user {{ .name }}..."
-              mkdir -p /opt/time-machine/{{ .name }}
-              addgroup -g {{ .uid }} {{ .name }} 2>/dev/null || true
-              adduser -D -u {{ .uid }} -G {{ .name }} -h /opt/time-machine/{{ .name }} {{ .name }} 2>/dev/null || true
-              chown {{ .uid }}:{{ .uid }} /opt/time-machine/{{ .name }}
-              chmod 700 /opt/time-machine/{{ .name }}
-              echo -e "${PASSWORD_{{ .name | upper }}}\n${PASSWORD_{{ .name | upper }}}" | smbpasswd -a -s {{ .name }}
-              {{- end }}
+              # Create Time Machine user
+              echo "Setting up user {{ .Values.timemachine.user }}..."
+              addgroup -g {{ .Values.timemachine.uid }} {{ .Values.timemachine.user }} 2>/dev/null || true
+              adduser -D -u {{ .Values.timemachine.uid }} -G {{ .Values.timemachine.user }} -h /opt/time-machine {{ .Values.timemachine.user }} 2>/dev/null || true
+              chown {{ .Values.timemachine.uid }}:{{ .Values.timemachine.uid }} /opt/time-machine
+              chmod 755 /opt/time-machine
+              echo -e "${TM_PASSWORD}\n${TM_PASSWORD}" | smbpasswd -a -s {{ .Values.timemachine.user }}
 
-              echo "Users created, starting Samba..."
+              # Copy quota.plist to data directory (per-machine quota enforcement)
+              cp /etc/timemachine/quota.plist /opt/time-machine/.com.apple.TimeMachine.quota.plist
+              chown {{ .Values.timemachine.uid }}:{{ .Values.timemachine.uid }} /opt/time-machine/.com.apple.TimeMachine.quota.plist
+
+              echo "User created, starting Samba..."
               exec /entrypoint.sh smbd -F --no-process-group
           env:
-            {{- range .Values.users }}
-            - name: PASSWORD_{{ .name | upper }}
+            - name: TM_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: time-machine-credentials
-                  key: {{ .name }}-password
-            {{- end }}
+                  key: password
             # Use our custom smb.conf and pre-created users
             - name: CUSTOM_SMB_CONF
               value: "true"
@@ -59,7 +56,7 @@ spec:
             - name: MIMIC_MODEL
               value: "TimeCapsule8,119"
             - name: ADVERTISED_HOSTNAME
-              value: "time-machine"
+              value: "timemachine"
             # General settings
             - name: DEBUG_LEVEL
               value: "1"
@@ -88,6 +85,9 @@ spec:
             - name: samba-config
               mountPath: /etc/samba/smb.conf
               subPath: smb.conf
+            - name: quota-config
+              mountPath: /etc/timemachine/quota.plist
+              subPath: quota.plist
             - name: samba-lib
               mountPath: /var/lib/samba
             - name: samba-cache
@@ -101,6 +101,15 @@ spec:
         - name: samba-config
           configMap:
             name: time-machine-config
+            items:
+              - key: smb.conf
+                path: smb.conf
+        - name: quota-config
+          configMap:
+            name: time-machine-config
+            items:
+              - key: quota.plist
+                path: quota.plist
         - name: samba-lib
           emptyDir: {}
         - name: samba-cache
