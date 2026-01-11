@@ -4,7 +4,7 @@ Web-based UI for managing and troubleshooting your cluster.
 
 ## Access
 
-Exposed via Tailscale at `https://kubernetes-dashboard.<tailnet>.ts.net`
+Exposed via Tailscale at `https://kube-dashboard.<tailnet>.ts.net`
 
 ## Authentication
 

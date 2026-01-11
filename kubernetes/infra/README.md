@@ -8,14 +8,17 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 |-----------|---------|-------------|
 | [argocd](./argocd) | GitOps continuous delivery - syncs cluster state from this repo | Tailscale |
 | [cert-manager](./cert-manager) | TLS certificate management with a self-signed homelab CA | - |
+| [cluster-maintenance](./cluster-maintenance) | Cluster-level maintenance utilities (pod cleanup) | - |
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
 | [kubernetes-dashboard](./kubernetes-dashboard) | Web UI for cluster management | Tailscale |
 | [longhorn](./longhorn) | Distributed block storage for persistent volumes | - |
+| [mdns-advertiser](./mdns-advertiser) | Publishes services to LAN via mDNS/Bonjour | hostNetwork |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
 | [signoz](./signoz) | Observability platform (metrics, logs, traces) | Tailscale |
+| [signoz-k8s-infra](./signoz-k8s-infra) | Kubernetes metrics collection for SigNoz | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
-| [timemachine](./timemachine) | Time Machine backup server for macOS | hostNetwork (mDNS) |
+| [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
 | [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
 

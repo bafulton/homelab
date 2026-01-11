@@ -7,6 +7,7 @@ Reusable Helm charts used as dependencies by apps in `kubernetes/infra/` and `ku
 | Chart | Description |
 |-------|-------------|
 | [bitwarden-secret](./bitwarden-secret/) | Creates ExternalSecrets that pull from Bitwarden |
+| [mdns-advertiser](./mdns-advertiser/) | Publishes services to LAN via mDNS/Bonjour |
 | [tailscale-ingress](./tailscale-ingress/) | Creates Tailscale Ingress and optional Service resources |
 
 ## Usage
