@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mdns-advertiser
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mdns-advertiser
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mdns-advertiser
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: avahi
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              # Start avahi-daemon in the background
+              avahi-daemon -D
+
+              # Wait for daemon to be ready
+              sleep 2
+
+              # Publish services
+              {{- range .Values.services }}
+              echo "Publishing {{ .name }} ({{ .ip }}:{{ .port }})"
+
+              # Publish A record: hostname.local -> IP
+              avahi-publish -a -R {{ .hostname }}.local {{ .ip }} &
+
+              # Publish each service type
+              {{- range .types }}
+              avahi-publish -s "{{ $.name }}" {{ .type }} {{ $.port }} \
+                {{- range .txtRecords }}
+                "{{ . }}" \
+                {{- end }}
+                &
+              {{- end }}
+
+              {{- end }}
+
+              echo "mDNS advertisements active"
+
+              # Keep running
+              tail -f /dev/null

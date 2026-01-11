@@ -1,0 +1,45 @@
+# mDNS Advertiser - publish Kubernetes services to LAN via Bonjour/mDNS
+#
+# This chart runs Avahi with hostNetwork to advertise services on the
+# local network. Services get stable IPs via MetalLB, and this advertiser
+# makes them discoverable via mDNS.
+#
+# Example: A Mac looking for Time Machine sees "timemachine" via mDNS,
+# which resolves to the MetalLB IP where the actual service runs.
+
+image:
+  repository: flungo/avahi
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Network interface to advertise on (typically your LAN interface)
+allowedInterface: enp1s0
+
+# Services to advertise via mDNS
+# Each service publishes:
+#   1. An A record: hostname.local -> IP
+#   2. Service records for each type
+services: []
+  # Example: Time Machine
+  # - name: timemachine           # Service name shown in Finder
+  #   hostname: timemachine       # mDNS hostname (becomes timemachine.local)
+  #   ip: 192.168.0.201           # MetalLB IP to point to
+  #   port: 445
+  #   types:
+  #     - type: _smb._tcp         # SMB file sharing
+  #     - type: _adisk._tcp       # Apple disk (Time Machine discovery)
+  #       txtRecords:
+  #         - "sys=adVF=0x100"
+  #         - "dk0=adVN=timemachine,adVF=0x82"
+  #     - type: _device-info._tcp
+  #       txtRecords:
+  #         - "model=TimeCapsule8,119"
+  #
+  # Example: Home Assistant (if not using hostNetwork directly)
+  # - name: Home Assistant
+  #   hostname: homeassistant
+  #   ip: 192.168.0.202
+  #   port: 8123
+  #   types:
+  #     - type: _home-assistant._tcp
+  #     - type: _http._tcp
