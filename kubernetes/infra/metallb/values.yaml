@@ -19,5 +19,6 @@ metallb:
   # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
 
   speaker:
+    logLevel: debug
     frr:
       enabled: false
