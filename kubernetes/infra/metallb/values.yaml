@@ -19,7 +19,7 @@ metallb:
   # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
 
   speaker:
-    logLevel: debug
+    logLevel: info
     frr:
       enabled: false
     # Allow MetalLB to announce from control plane nodes
