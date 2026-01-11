@@ -40,7 +40,7 @@ spec:
               chown {{ .Values.timemachine.uid }}:{{ .Values.timemachine.uid }} /opt/time-machine/.com.apple.TimeMachine.quota.plist
 
               echo "User created, starting Samba..."
-              exec /entrypoint.sh smbd -F --no-process-group
+              exec smbd -F --no-process-group
           env:
             - name: TM_PASSWORD
               valueFrom:

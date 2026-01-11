@@ -13,7 +13,7 @@ storage:
 # Time Machine configuration
 # Single shared account - per-machine quotas enforced via .quota.plist
 timemachine:
-  user: timemachine
+  user: family
   uid: 1000
   # Per-machine quota in bytes (900GB = 900000000000)
   # Each Mac gets this much space independently
