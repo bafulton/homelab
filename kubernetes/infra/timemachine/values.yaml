@@ -1,19 +1,20 @@
 namespace: timemachine
 
 # Storage configuration
+# NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
 storage:
   storageClass: longhorn-nvme
-  size: 2Ti
+  size: 1800Gi
 
 # Time Machine users - each gets their own share with quota
 # Passwords are pulled from Bitwarden via External Secrets
 users:
   - name: ben
     uid: 1000
-    quota: 1T
+    quota: 900G
   - name: emilie
     uid: 1001
-    quota: 1T
+    quota: 900G
 
 # Samba image configuration
 image:
