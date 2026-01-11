@@ -27,7 +27,11 @@ spec:
             - |
               set -e
 
-              # Create directories
+              # Initialize Samba directories (required before smbpasswd works)
+              mkdir -p /var/lib/samba/private
+              chmod 700 /var/lib/samba/private
+
+              # Create user directories and accounts
               {{- range .Values.users }}
               echo "Setting up user {{ .name }}..."
               mkdir -p /opt/timemachine/{{ .name }}
