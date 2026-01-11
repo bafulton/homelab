@@ -8,6 +8,7 @@ data:
     # Basic server settings
     workgroup = WORKGROUP
     server string = Time Machine Backup Server
+    netbios name = timemachine
     security = user
 
     # Protocol settings - SMB3 required for Time Machine
