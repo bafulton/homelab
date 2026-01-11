@@ -56,7 +56,7 @@ data:
     comment = Time Machine Backup for {{ .name }}
     path = /opt/time-machine/{{ .name }}
     valid users = {{ .name }}
-    browseable = yes
+    browseable = no
     writeable = yes
 
     # VFS modules (order matters)
