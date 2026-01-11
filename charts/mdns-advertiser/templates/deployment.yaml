@@ -25,7 +25,7 @@ spec:
               set -e
               pip install --quiet zeroconf
 
-              python3 << 'PYTHON_SCRIPT'
+              python3 -u << 'PYTHON_SCRIPT'
               from zeroconf import ServiceInfo, Zeroconf
               import socket
               import signal
