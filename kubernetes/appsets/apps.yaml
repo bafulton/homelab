@@ -27,6 +27,11 @@ spec:
         server: https://kubernetes.default.svc
         namespace: '{{ get . "namespace" | default .path.basenameNormalized }}'
   templatePatch: |
+    {{- if (get . "useAVP") }}
+    metadata:
+      annotations:
+        argocd-diff-preview/ignore: "true"
+    {{- end }}
     spec:
       syncPolicy:
         automated:
