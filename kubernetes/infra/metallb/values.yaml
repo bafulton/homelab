@@ -22,3 +22,6 @@ metallb:
     logLevel: debug
     frr:
       enabled: false
+    # Allow MetalLB to announce from control plane nodes
+    # (Talos adds exclude-from-external-load-balancers label by default)
+    ignoreExcludeLB: true
