@@ -15,9 +15,8 @@ spec:
     spec:
       # mDNS discovery handled by separate mdns-advertiser
       # MetalLB provides stable IP for LAN access
-      initContainers:
-        # Create users and set Samba passwords before main container starts
-        - name: init-users
+      containers:
+        - name: time-machine
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
@@ -26,28 +25,19 @@ spec:
             - |
               set -e
 
-              # Initialize Samba directories (required before smbpasswd works)
-              mkdir -p /var/lib/samba/private
-              chmod 700 /var/lib/samba/private
-
-              # Create user directories and accounts
+              # Create Unix users and Samba accounts
               {{- range .Values.users }}
               echo "Setting up user {{ .name }}..."
               mkdir -p /opt/time-machine/{{ .name }}
-
-              # Create system user and group
               addgroup -g {{ .uid }} {{ .name }} 2>/dev/null || true
               adduser -D -u {{ .uid }} -G {{ .name }} -h /opt/time-machine/{{ .name }} {{ .name }} 2>/dev/null || true
-
-              # Set directory ownership
               chown {{ .uid }}:{{ .uid }} /opt/time-machine/{{ .name }}
               chmod 700 /opt/time-machine/{{ .name }}
-
-              # Set Samba password
               echo -e "${PASSWORD_{{ .name | upper }}}\n${PASSWORD_{{ .name | upper }}}" | smbpasswd -a -s {{ .name }}
               {{- end }}
 
-              echo "Users initialized successfully"
+              echo "Users created, starting Samba..."
+              exec /entrypoint.sh smbd -FS --no-process-group
           env:
             {{- range .Values.users }}
             - name: PASSWORD_{{ .name | upper }}
@@ -56,23 +46,6 @@ spec:
                   name: time-machine-credentials
                   key: {{ .name }}-password
             {{- end }}
-          volumeMounts:
-            - name: time-machine-data
-              mountPath: /opt/time-machine
-            - name: samba-config
-              mountPath: /etc/samba/smb.conf
-              subPath: smb.conf
-            - name: samba-lib
-              mountPath: /var/lib/samba
-            - name: samba-cache
-              mountPath: /var/cache/samba
-            - name: samba-run
-              mountPath: /run/samba
-      containers:
-        - name: time-machine
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
             # Use our custom smb.conf and pre-created users
             - name: CUSTOM_SMB_CONF
               value: "true"
