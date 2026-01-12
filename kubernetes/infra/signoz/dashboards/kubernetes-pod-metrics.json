@@ -155,7 +155,7 @@
             {
               "aggregations": [
                 {
-                  "metricName": "k8s.pod.cpu.utilization",
+                  "metricName": "k8s.pod.cpu.usage",
                   "reduceTo": "sum",
                   "spaceAggregation": "sum",
                   "temporality": null,
