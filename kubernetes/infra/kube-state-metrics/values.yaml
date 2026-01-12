@@ -1,0 +1,9 @@
+namespace: kube-state-metrics
+
+kube-state-metrics:
+  # Prometheus annotations for auto-discovery by signoz-k8s-infra
+  prometheusScrape: true
+
+  # Self-monitoring metrics
+  selfMonitor:
+    enabled: true
