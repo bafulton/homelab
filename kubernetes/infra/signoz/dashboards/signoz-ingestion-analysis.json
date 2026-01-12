@@ -377,7 +377,7 @@
     "gitops",
     "signoz"
   ],
-  "title": "SigNoz Ingestion Analysis",
+  "title": "SigNoz - Ingestion Analysis",
   "uploadedGrafana": false,
   "version": "v4",
   "widgets": [

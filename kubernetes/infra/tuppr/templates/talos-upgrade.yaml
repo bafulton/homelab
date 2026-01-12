@@ -1,7 +1,7 @@
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: TalosUpgrade
 metadata:
-  name: talos-upgrade
+  name: talos-upgrade-v1-12-1
 spec:
   talos:
     version: v1.12.1 # renovate: talos

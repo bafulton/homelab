@@ -26,7 +26,7 @@
     "gitops",
     "signoz"
   ],
-  "title": "Data Sources",
+  "title": "SigNoz - Scrape Targets",
   "uploadedGrafana": false,
   "version": "v5",
   "widgets": [
