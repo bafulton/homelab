@@ -1,3 +1,5 @@
+namespace: node-exporter
+
 prometheus-node-exporter:
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
   service:
@@ -5,11 +7,13 @@ prometheus-node-exporter:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9100"
 
-  # Enable collectors for temperature/hardware metrics
+  # Enable additional collectors (most are enabled by default)
   extraArgs:
     - --collector.hwmon
     - --collector.thermal_zone
     - --collector.cpu.info
+    - --collector.pressure
+    - --collector.processes
 
   # Node exporter needs access to host paths for hardware metrics
   hostRootFsMount:
