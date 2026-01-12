@@ -1,0 +1,22 @@
+prometheus-node-exporter:
+  # Prometheus annotations for auto-discovery by signoz-k8s-infra
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+
+  # Enable collectors for temperature/hardware metrics
+  extraArgs:
+    - --collector.hwmon
+    - --collector.thermal_zone
+    - --collector.cpu.info
+
+  # Node exporter needs access to host paths for hardware metrics
+  hostRootFsMount:
+    enabled: true
+    mountPropagation: HostToContainer
+
+  # Tolerate all taints to run on all nodes (including control plane)
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists

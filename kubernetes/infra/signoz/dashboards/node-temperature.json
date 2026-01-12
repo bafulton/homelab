@@ -1,0 +1,280 @@
+{
+  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors",
+  "layout": [
+    {
+      "h": 1,
+      "i": "header-row",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "h": 6,
+      "i": "temp-graph",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 1
+    },
+    {
+      "h": 6,
+      "i": "thermal-zone-graph",
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 7
+    }
+  ],
+  "panelMap": {},
+  "title": "Node Temperature",
+  "variables": {},
+  "version": "v5",
+  "widgets": [
+    {
+      "description": "",
+      "id": "header-row",
+      "isStacked": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "row",
+      "query": {
+        "builder": {
+          "queryData": [],
+          "queryFormulas": []
+        },
+        "queryType": "builder"
+      },
+      "title": "Temperature Metrics",
+      "yAxisUnit": "none"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "CPU/SoC temperature from hwmon sensors",
+      "fillSpans": false,
+      "id": "temp-graph",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "node_hwmon_temp_celsius",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "avg",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "instance",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "chip",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "sensor",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{instance}} - {{chip}} {{sensor}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "temp-graph-query",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "none",
+          "thresholdValue": 70
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "none",
+          "thresholdValue": 85
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Hardware Monitor Temperature (°C)",
+      "yAxisUnit": "celsius"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Temperature from kernel thermal zones",
+      "fillSpans": false,
+      "id": "thermal-zone-graph",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "node_thermal_zone_temp",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "avg",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": ""
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "instance",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "zone",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "type",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{instance}} - {{type}} (zone {{zone}})",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": 60
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "thermal-zone-query",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "none",
+          "thresholdValue": 70
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "none",
+          "thresholdValue": 85
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Thermal Zone Temperature (°C)",
+      "yAxisUnit": "celsius"
+    }
+  ]
+}

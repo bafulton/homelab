@@ -1,0 +1,62 @@
+{
+  "alert": "High Node Temperature",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "Node temperature is above 85°C",
+  "summary": "High temperature detected on node",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "node_hwmon_temp_celsius",
+                "temporality": "",
+                "timeAggregation": "max",
+                "spaceAggregation": "max",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "instance",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            }
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "1",
+    "target": 85,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}
