@@ -88,7 +88,7 @@ argo-cd:
     # AVP sidecar plugin
     initContainers:
       - name: download-avp
-        image: alpine:3.21
+        image: alpine:3.23
         command: [sh, -c]
         args:
           - |
