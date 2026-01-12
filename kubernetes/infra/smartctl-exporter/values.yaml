@@ -1,0 +1,13 @@
+namespace: smartctl-exporter
+
+prometheus-smartctl-exporter:
+  # Prometheus annotations for auto-discovery by signoz-k8s-infra
+  service:
+    annotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9633"
+
+  # Tolerate all taints to run on all nodes
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists
