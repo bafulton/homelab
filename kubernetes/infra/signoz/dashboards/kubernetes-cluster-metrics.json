@@ -62,7 +62,7 @@
     "gitops",
     "k8s"
   ],
-  "title": "Kubernetes Cluster Metrics",
+  "title": "Kubernetes - Cluster Metrics",
   "uploadedGrafana": false,
   "variables": {
     "3ec0c79e-1191-4946-acf9-1c4e9b946a58": {

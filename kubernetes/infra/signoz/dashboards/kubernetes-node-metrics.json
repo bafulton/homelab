@@ -489,7 +489,7 @@
     "gitops",
     "k8s"
   ],
-  "title": "Kubernetes Node Metrics",
+  "title": "Kubernetes - Node Metrics",
   "uploadedGrafana": false,
   "variables": {
     "251c0d09-804b-46fa-b3bf-6498251a53b1": {

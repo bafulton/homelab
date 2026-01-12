@@ -89,7 +89,7 @@
     "gitops",
     "k8s"
   ],
-  "title": "Kubernetes Pod Metrics",
+  "title": "Kubernetes - Pod Metrics",
   "uploadedGrafana": false,
   "variables": {
     "6d37901c-2b81-4a6b-9143-c11bfda92c6f": {
