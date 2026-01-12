@@ -34,6 +34,11 @@ bitwarden-secret:
 signoz:
   clusterName: homelab
 
+  # Disable Helm hooks - ArgoCD handles sync waves differently
+  # Without this, otel-collector waits for a sync-init job that never gets created
+  schemaMigrator:
+    upgradeHelmHooks: false
+
   # Use longhorn-emmc for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
   global:
     storageClass: longhorn-emmc
