@@ -20,17 +20,17 @@
     },
     {
       "customType": "regex",
-      "description": "Track Talos version in TalosUpgrade CR",
-      "fileMatch": ["kubernetes/infra/tuppr/templates/talos-upgrade\\.yaml$"],
-      "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: talos"],
+      "description": "Track Talos version for Tuppr TalosUpgrade",
+      "fileMatch": ["kubernetes/infra/tuppr/values\\.yaml$"],
+      "matchStrings": ["talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "siderolabs/talos",
       "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",
-      "description": "Track Kubernetes version in KubernetesUpgrade CR",
-      "fileMatch": ["kubernetes/infra/tuppr/templates/kubernetes-upgrade\\.yaml$"],
-      "matchStrings": ["version: (?<currentValue>v\\d+\\.\\d+\\.\\d+)\\s*# renovate: kubernetes"],
+      "description": "Track Kubernetes version for Tuppr KubernetesUpgrade",
+      "fileMatch": ["kubernetes/infra/tuppr/values\\.yaml$"],
+      "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "kubernetes/kubernetes",
       "datasourceTemplate": "github-releases"
     }

@@ -1,7 +1,9 @@
+{{- $version := .Values.talosVersion }}
+{{- $versionSlug := $version | replace "." "-" }}
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: TalosUpgrade
 metadata:
-  name: talos-upgrade-v1-12-1
+  name: talos-upgrade-{{ $versionSlug }}
 spec:
   talos:
-    version: v1.12.1 # renovate: talos
+    version: {{ $version }}

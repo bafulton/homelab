@@ -1,5 +1,9 @@
 namespace: tuppr
 
+# Talos/Kubernetes versions for upgrades - Renovate updates these alongside talconfig.yaml
+talosVersion: v1.12.1
+kubernetesVersion: v1.35.0
+
 # Tuppr manages Talos and Kubernetes upgrades via CRDs
 # After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
 #

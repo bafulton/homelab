@@ -1,7 +1,9 @@
+{{- $version := .Values.kubernetesVersion }}
+{{- $versionSlug := $version | replace "." "-" }}
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: KubernetesUpgrade
 metadata:
-  name: kubernetes-upgrade
+  name: kubernetes-upgrade-{{ $versionSlug }}
 spec:
   kubernetes:
-    version: v1.35.0 # renovate: kubernetes
+    version: {{ $version }}
