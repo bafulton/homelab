@@ -2,10 +2,10 @@ namespace: smartctl-exporter
 
 prometheus-smartctl-exporter:
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
-  service:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "9633"
+  # Note: signoz-k8s-infra scrapes based on POD annotations, not service
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9633"
 
   # Tolerate all taints to run on all nodes
   tolerations:

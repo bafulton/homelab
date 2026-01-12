@@ -21,6 +21,12 @@ traefik:
 
   priorityClassName: "system-cluster-critical"
 
+  # Prometheus annotations for auto-discovery by signoz-k8s-infra
+  deployment:
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9100"
+
   # MetalLB LoadBalancer IP (from pool 192.168.0.200-250)
   service:
     annotations:
@@ -31,11 +37,8 @@ traefik:
     # which provides HTTPS termination. Do not expose directly to internet.
     - "--api.insecure=true"
 
-  # Expose metrics via dedicated service for Prometheus scraping
+  # Enable metrics endpoint
   metrics:
     prometheus:
       service:
         enabled: true
-        annotations:
-          prometheus.io/scrape: "true"
-          prometheus.io/port: "9100"

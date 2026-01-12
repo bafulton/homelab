@@ -2,10 +2,10 @@ namespace: node-exporter
 
 prometheus-node-exporter:
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
-  service:
-    annotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "9100"
+  # Note: signoz-k8s-infra scrapes based on POD annotations, not service
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
 
   # Enable additional collectors (most are enabled by default)
   extraArgs:

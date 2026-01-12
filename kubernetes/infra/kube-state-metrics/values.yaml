@@ -2,7 +2,11 @@ namespace: kube-state-metrics
 
 kube-state-metrics:
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
+  # Note: signoz-k8s-infra scrapes based on POD annotations
   prometheusScrape: true
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
 
   # Self-monitoring metrics
   selfMonitor:
