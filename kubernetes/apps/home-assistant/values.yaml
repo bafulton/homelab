@@ -1,0 +1,56 @@
+namespace: home-assistant
+
+# Tailscale exposure for web UI
+tailscale-ingress:
+  enabled: true
+  ingresses:
+    - name: tailscale
+      hostname: homeassistant
+      service:
+        name: home-assistant
+        port: 8123
+
+home-assistant:
+  # Enable host networking for device auto-discovery (mDNS, SSDP, etc.)
+  # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+
+  # Use StatefulSet for stable identity
+  controller:
+    type: StatefulSet
+
+  # Persistent storage for configuration
+  persistence:
+    enabled: true
+    storageClass: longhorn-emmc
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+  # Service configuration
+  # MetalLB LoadBalancer for mDNS advertisement (used by mdns-advertiser)
+  service:
+    type: LoadBalancer
+    port: 8123
+    annotations:
+      metallb.io/loadBalancerIPs: "192.168.0.202"
+
+  # Prometheus metrics for SigNoz integration
+  # Requires enabling the Prometheus integration in Home Assistant UI:
+  # Settings -> Devices & Services -> Add Integration -> Prometheus
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8123"
+    prometheus.io/path: "/api/prometheus"
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 2Gi
+
+  # Security context for privileged operations (Bluetooth, USB)
+  securityContext:
+    privileged: false

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: home-assistant
+description: Wrapper Helm chart for Home Assistant smart home platform
+type: application
+version: 1.0.0
+appVersion: "2026.1.0"
+dependencies:
+  - name: home-assistant
+    version: 0.3.38
+    repository: http://pajikos.github.io/home-assistant-helm-chart/
+  - name: tailscale-ingress
+    version: 1.0.0
+    repository: file://../../../charts/tailscale-ingress
+    condition: tailscale-ingress.enabled

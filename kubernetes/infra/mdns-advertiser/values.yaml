@@ -25,3 +25,14 @@ services:
       - type: _device-info._tcp
         txtRecords:
           - "model=TimeCapsule8,119"
+
+  # Home Assistant smart home platform
+  - name: Home Assistant
+    hostname: homeassistant
+    ip: 192.168.0.202
+    port: 8123
+    types:
+      # Home Assistant auto-discovery
+      - type: _home-assistant._tcp
+      # HTTP service for general discovery
+      - type: _http._tcp
