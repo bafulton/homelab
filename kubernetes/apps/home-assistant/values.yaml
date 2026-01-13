@@ -16,6 +16,28 @@ home-assistant:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
 
+  # Configuration management - enables trusted_proxies for Tailscale reverse proxy
+  configuration:
+    enabled: true
+    forceInit: false
+    trusted_proxies:
+      - 10.244.0.0/16  # Kubernetes pod CIDR (Tailscale proxy pods)
+    templateConfig: |
+      # Loads default set of integrations. Do not remove.
+      default_config:
+
+      # HTTP configuration for reverse proxy (Tailscale)
+      http:
+        use_x_forwarded_for: true
+        trusted_proxies:
+          {{- range .Values.configuration.trusted_proxies }}
+          - {{ . }}
+          {{- end }}
+
+      # Load frontend themes from the themes folder
+      frontend:
+        themes: !include_dir_merge_named themes
+
   # Use StatefulSet for stable identity
   controller:
     type: StatefulSet
