@@ -1,31 +1,27 @@
 namespace: mdns-advertiser
 
-mdns-advertiser:
-  services:
-    # Time Machine backup server
-    # Display name is "Time Machine", hostname is "timemachine" (Samba accepts both via netbios alias)
-    - name: Time Machine
-      hostname: timemachine
-      ip: 192.168.0.201  # Must match time-machine service.loadBalancerIP
-      port: 445
-      types:
-        # SMB file sharing
-        - type: _smb._tcp
-        # Apple disk service (required for Time Machine auto-discovery)
-        # Single shared volume with per-machine quotas via .quota.plist
-        - type: _adisk._tcp
-          txtRecords:
-            - "sys=adVF=0x100"
-            - "dk0=adVN=Family,adVF=0x82"
-        # Device info (shows as Time Capsule in Finder)
-        - type: _device-info._tcp
-          txtRecords:
-            - "model=TimeCapsule8,119"
+image:
+  repository: python
+  tag: 3.14-alpine
+  pullPolicy: IfNotPresent
 
-    # Add more services here as needed:
-    # - name: Home Assistant
-    #   hostname: homeassistant
-    #   ip: 192.168.0.202
-    #   port: 8123
-    #   types:
-    #     - type: _home-assistant._tcp
+services:
+  # Time Machine backup server
+  # Display name is "Time Machine", hostname is "timemachine" (Samba accepts both via netbios alias)
+  - name: Time Machine
+    hostname: timemachine
+    ip: 192.168.0.201  # Must match time-machine service.loadBalancerIP
+    port: 445
+    types:
+      # SMB file sharing
+      - type: _smb._tcp
+      # Apple disk service (required for Time Machine auto-discovery)
+      # Single shared volume with per-machine quotas via .quota.plist
+      - type: _adisk._tcp
+        txtRecords:
+          - "sys=adVF=0x100"
+          - "dk0=adVN=Family,adVF=0x82"
+      # Device info (shows as Time Capsule in Finder)
+      - type: _device-info._tcp
+        txtRecords:
+          - "model=TimeCapsule8,119"

@@ -1,6 +1,0 @@
-dependencies:
-- name: mdns-advertiser
-  repository: file://../../../charts/mdns-advertiser
-  version: 1.0.0
-digest: sha256:8339a1569fba52a5348dbcb8c701dabf42e1bb7805d34c7ada16f50eebcbf79a
-generated: "2026-01-11T01:19:37.965582-05:00"
