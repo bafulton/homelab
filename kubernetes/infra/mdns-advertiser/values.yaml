@@ -27,10 +27,11 @@ services:
           - "model=TimeCapsule8,119"
 
   # Home Assistant smart home platform
+  # Port 80 so http://homeassistant.local works without specifying port
   - name: Home Assistant
     hostname: homeassistant
     ip: 192.168.0.202
-    port: 8123
+    port: 80
     types:
       # Home Assistant auto-discovery
       - type: _home-assistant._tcp
