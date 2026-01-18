@@ -103,6 +103,7 @@ metadata:
 ## Gotchas
 
 - **Metrics-server TLS**: Uses `--kubelet-insecure-tls` because kubelet certs don't include Tailscale IP SANs
-- **ArgoCD Chart.lock**: ArgoCD is the only infra chart with a Chart.lock (remote Helm dependency)
+- **Chart.lock files**: ArgoCD is the only app with a Chart.lock. All other apps don't need one because ArgoCD runs `helm dependency build` at sync time. Don't suggest adding Chart.lock to apps.
+- **Chart tarballs (.tgz)**: The `charts/` subdirectories contain `.tgz` files from `helm dependency build`. These are gitignored - don't suggest cleaning them up or committing them.
 - **DaemonSet retry backoff**: After fixing a failing DaemonSet, may need `kubectl rollout restart` to clear backoff
 - **Tailscale proxy pods**: Named `ts-<service>-<hash>-0` in the `tailscale` namespace
