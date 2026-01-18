@@ -1,0 +1,65 @@
+{{- if .Values.matterServer.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: matter-server-data
+  namespace: {{ .Release.Namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.matterServer.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.matterServer.persistence.size }}
+---
+# Matter Server for Matter smart home device support
+# Home Assistant connects via WebSocket at ws://localhost:5580/ws
+# (localhost works because both HA and Matter Server use hostNetwork)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matter-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: matter-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: matter-server
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: matter-server
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      # hostNetwork required for Matter device discovery on LAN
+      # Also allows Home Assistant (also hostNetwork) to connect via localhost:5580
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: matter-server
+          image: "{{ .Values.matterServer.image.repository }}:{{ .Values.matterServer.image.tag }}"
+          imagePullPolicy: {{ .Values.matterServer.image.pullPolicy }}
+          args:
+            - --storage-path
+            - /data
+            - --paa-root-cert-dir
+            - /data/credentials
+          ports:
+            - name: websocket
+              containerPort: 5580
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: matter-server-data
+{{- end }}

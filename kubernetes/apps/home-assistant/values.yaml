@@ -70,14 +70,26 @@ home-assistant:
     prometheus.io/port: "8123"
     prometheus.io/path: "/api/prometheus"
 
-  # Resource limits
-  resources:
-    requests:
-      cpu: 100m
-      memory: 512Mi
-    limits:
-      memory: 2Gi
+# AirCast - AirPlay bridge for Chromecast devices
+# Allows streaming audio from Apple devices to Chromecast speakers
+# https://github.com/1activegeek/docker-airconnect
+aircast:
+  enabled: true
+  image:
+    repository: 1activegeek/airconnect
+    tag: latest
+    pullPolicy: IfNotPresent
 
-  # Security context for privileged operations (Bluetooth, USB)
-  securityContext:
-    privileged: false
+# Matter Server - Controller for Matter smart home devices
+# Home Assistant connects via WebSocket at ws://localhost:5580/ws
+# (localhost works because both HA and Matter Server use hostNetwork)
+# https://github.com/home-assistant-libs/python-matter-server
+matterServer:
+  enabled: true
+  image:
+    repository: ghcr.io/home-assistant-libs/python-matter-server
+    tag: stable
+    pullPolicy: IfNotPresent
+  persistence:
+    storageClass: longhorn-emmc
+    size: 1Gi
