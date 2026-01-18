@@ -2,6 +2,7 @@ namespace: mdns-advertiser
 
 image:
   repository: python
+  # renovate: datasource=docker depName=python versioning=docker
   tag: 3.14-alpine
   pullPolicy: IfNotPresent
 

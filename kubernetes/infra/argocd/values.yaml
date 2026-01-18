@@ -88,6 +88,7 @@ argo-cd:
     # AVP sidecar plugin
     initContainers:
       - name: download-avp
+        # renovate: datasource=docker depName=alpine
         image: alpine:3.23
         command: [sh, -c]
         args:
@@ -102,6 +103,7 @@ argo-cd:
     extraContainers:
       - name: avp-helm
         command: [/var/run/argocd/argocd-cmp-server]
+        # renovate: datasource=docker depName=quay.io/argoproj/argocd
         image: quay.io/argoproj/argocd:v3.2.5
         securityContext:
           runAsNonRoot: true

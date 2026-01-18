@@ -1,5 +1,11 @@
 namespace: kube-system
 
+image:
+  repository: bitnami/kubectl
+  # Version managed by Renovate custom manager (grouped with Kubernetes upgrades)
+  tag: "1.35.0"
+  pullPolicy: IfNotPresent
+
 podCleanup:
   enabled: true
   schedule: "* * * * *"  # every minute

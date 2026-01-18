@@ -33,6 +33,14 @@
       "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
       "depNameTemplate": "kubernetes/kubernetes",
       "datasourceTemplate": "github-releases"
+    },
+    {
+      "customType": "regex",
+      "description": "Track kubectl version (should match Kubernetes version)",
+      "fileMatch": ["kubernetes/infra/cluster-maintenance/values\\.yaml$"],
+      "matchStrings": ["repository: bitnami/kubectl\\n\\s+#.*\\n\\s+tag: [\"']?(?<currentValue>[\\d\\.]+)[\"']?"],
+      "depNameTemplate": "bitnami/kubectl",
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
@@ -47,9 +55,8 @@
       "automerge": false
     },
     {
-      "description": "Group Talos and Kubernetes together, never automerge",
-      "matchDatasources": ["github-releases"],
-      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes"],
+      "description": "Group Talos, Kubernetes, and kubectl together, never automerge",
+      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes", "bitnami/kubectl"],
       "groupName": "talos-kubernetes",
       "automerge": false
     }

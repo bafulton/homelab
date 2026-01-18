@@ -22,6 +22,7 @@ timemachine:
 # Samba image configuration
 image:
   repository: mbentley/timemachine
+  # renovate: datasource=docker depName=mbentley/timemachine
   tag: smb
   pullPolicy: IfNotPresent
 
