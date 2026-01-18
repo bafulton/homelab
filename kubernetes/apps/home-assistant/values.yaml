@@ -87,7 +87,8 @@ aircast:
 matterServer:
   enabled: true
   image:
-    repository: ghcr.io/home-assistant-libs/python-matter-server
+    # Image moved from home-assistant-libs to matter-js org
+    repository: ghcr.io/matter-js/python-matter-server
     tag: "8.1.2"
     pullPolicy: IfNotPresent
   persistence:
