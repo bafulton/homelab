@@ -1,10 +1,10 @@
 namespace: home-assistant
 
-# Traefik IngressRoute for LAN access via mDNS (homeassistant.local)
+# Traefik IngressRoute for LAN access via mDNS (home.local)
 # Routes through Traefik's MetalLB IP (192.168.0.200)
 traefik:
   enabled: true
-  hostname: homeassistant.local
+  hostname: home.local
   servicePort: 80
 
 # Tailscale exposure for web UI
@@ -12,7 +12,7 @@ tailscale-ingress:
   enabled: true
   ingresses:
     - name: tailscale
-      hostname: homeassistant
+      hostname: home
       service:
         name: home-assistant
         port: 80

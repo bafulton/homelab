@@ -30,7 +30,7 @@ services:
   # Home Assistant smart home platform
   # Routes through Traefik's MetalLB IP so we don't need a dedicated IP
   - name: Home Assistant
-    hostname: homeassistant
+    hostname: home
     ip: 192.168.0.200  # Traefik LoadBalancer IP
     port: 80
     types:
