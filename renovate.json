@@ -41,6 +41,14 @@
       "matchStrings": ["repository: bitnami/kubectl\\n\\s+#.*\\n\\s+tag: [\"']?(?<currentValue>[\\d\\.]+)[\"']?"],
       "depNameTemplate": "bitnami/kubectl",
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Track argocd-diff-preview Docker image in GitHub Actions",
+      "fileMatch": ["\\.github/workflows/.*\\.yaml$"],
+      "matchStrings": ["dagandersen/argocd-diff-preview:(?<currentValue>v[\\d\\.]+)"],
+      "depNameTemplate": "dagandersen/argocd-diff-preview",
+      "datasourceTemplate": "docker"
     }
   ],
   "packageRules": [
