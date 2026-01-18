@@ -77,7 +77,7 @@ aircast:
   enabled: true
   image:
     repository: 1activegeek/airconnect
-    tag: latest
+    tag: "1.9.3"
     pullPolicy: IfNotPresent
 
 # Matter Server - Controller for Matter smart home devices
@@ -88,7 +88,7 @@ matterServer:
   enabled: true
   image:
     repository: ghcr.io/home-assistant-libs/python-matter-server
-    tag: stable
+    tag: "8.1.2"
     pullPolicy: IfNotPresent
   persistence:
     storageClass: longhorn-emmc
