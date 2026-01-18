@@ -26,17 +26,38 @@ homelab/
 
 [Renovate](https://docs.renovatebot.com/) monitors dependencies and creates PRs when updates are available.
 
+### What's Tracked
+
+| Dependency Type | Detection Method | Examples |
+|-----------------|------------------|----------|
+| Helm charts | Built-in manager | `Chart.yaml` dependencies |
+| GitHub Actions | Built-in manager | `actions/checkout@v6` |
+| Container images | Inline annotations | airconnect, matter-server, python |
+| Talos/Kubernetes | Custom regex manager | `talconfig.yaml`, tuppr values |
+| kubectl | Custom regex manager | cluster-maintenance (grouped with K8s) |
+| argocd-diff-preview | Custom regex manager | Docker image in CI workflow |
+
+Container images in `values.yaml` files use inline annotations:
+```yaml
+image:
+  repository: example/image
+  # renovate: datasource=docker depName=example/image
+  tag: "1.2.3"
+```
+
+### Update Behavior
+
 | Update Type | Behavior |
 |-------------|----------|
-| Helm chart minor/patch | Auto-merged after CI passes |
-| Helm chart major | Manual review required |
-| Talos/Kubernetes | Manual review required |
+| Minor/patch updates | Auto-merged after CI passes |
+| Major updates | Manual review required |
+| Talos/Kubernetes/kubectl | Grouped together, manual review required |
 
 ### Talos & Kubernetes Upgrades
 
-Talos and Kubernetes versions are grouped together since Kubernetes compatibility depends on the Talos version. When updates are available:
+Talos, Kubernetes, and kubectl versions are grouped together since compatibility depends on the Talos version. When updates are available:
 
-1. Renovate creates a PR updating both `talos/talconfig.yaml` and the upgrade CRs
+1. Renovate creates a single PR updating `talos/talconfig.yaml`, tuppr upgrade CRs, and kubectl image
 2. [CI validates](.github/workflows/talos-k8s-compatibility.yaml) the Kubernetes version is compatible with the Talos version
 3. After merge, [tuppr](https://github.com/home-operations/tuppr) orchestrates the upgrade safely (node-by-node with health checks)
 
