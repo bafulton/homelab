@@ -27,10 +27,10 @@ services:
           - "model=TimeCapsule8,119"
 
   # Home Assistant smart home platform
-  # Port 80 so http://homeassistant.local works without specifying port
+  # Routes through Traefik's MetalLB IP so we don't need a dedicated IP
   - name: Home Assistant
     hostname: homeassistant
-    ip: 192.168.0.202
+    ip: 192.168.0.200  # Traefik LoadBalancer IP
     port: 80
     types:
       # Home Assistant auto-discovery

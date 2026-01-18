@@ -1,5 +1,12 @@
 namespace: home-assistant
 
+# Traefik IngressRoute for LAN access via mDNS (homeassistant.local)
+# Routes through Traefik's MetalLB IP (192.168.0.200)
+traefik:
+  enabled: true
+  hostname: homeassistant.local
+  servicePort: 80
+
 # Tailscale exposure for web UI
 tailscale-ingress:
   enabled: true
@@ -16,12 +23,12 @@ home-assistant:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
 
-  # Configuration management - enables trusted_proxies for Tailscale reverse proxy
+  # Configuration management - enables trusted_proxies for reverse proxies (Tailscale + Traefik)
   configuration:
     enabled: true
     forceInit: false
     trusted_proxies:
-      - 10.244.0.0/16  # Kubernetes pod CIDR (Tailscale proxy pods)
+      - 10.244.0.0/16  # Kubernetes pod CIDR (Tailscale and Traefik pods)
     templateConfig: |
       # Loads default set of integrations. Do not remove.
       default_config:
@@ -50,13 +57,10 @@ home-assistant:
     accessMode: ReadWriteOnce
 
   # Service configuration
-  # MetalLB LoadBalancer on port 80 for mDNS (so http://homeassistant.local works)
-  # Port 80 externally maps to container port 8123 internally
+  # ClusterIP service - accessed via Traefik IngressRoute for LAN and Tailscale Ingress for remote
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 80
-    annotations:
-      metallb.io/loadBalancerIPs: "192.168.0.202"
 
   # Prometheus metrics for SigNoz integration
   # Requires enabling the Prometheus integration in Home Assistant UI:
