@@ -23,6 +23,10 @@ tailscale-ingress:
         port: 80
 
 home-assistant:
+  # Temporarily scale to 0 for PVC migration
+  # Set back to 1 (or remove) after migration complete
+  replicaCount: 0
+
   # Enable host networking for device auto-discovery (mDNS, SSDP, etc.)
   # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
   hostNetwork: true
