@@ -38,6 +38,11 @@ home-assistant:
       homeassistant:
         internal_url: "http://home.local"
         external_url: "https://home.catfish-mountain.ts.net"
+        latitude: 36.085348151351745
+        longitude: -80.25007509137713
+        elevation: 268  # 880 feet in meters
+        unit_system: us_customary
+        time_zone: America/New_York
 
       # HTTP configuration for reverse proxy (Tailscale)
       http:
