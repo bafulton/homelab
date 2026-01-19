@@ -56,6 +56,9 @@ home-assistant:
       frontend:
         themes: !include_dir_merge_named themes
 
+      # Expose metrics for SigNoz via Prometheus endpoint
+      prometheus: {}
+
   # Use StatefulSet for stable identity
   controller:
     type: StatefulSet
@@ -74,8 +77,8 @@ home-assistant:
     port: 80
 
   # Prometheus metrics for SigNoz integration
-  # Requires enabling the Prometheus integration in Home Assistant UI:
-  # Settings -> Devices & Services -> Add Integration -> Prometheus
+  # The prometheus: config above enables the /api/prometheus endpoint
+  # These annotations tell SigNoz to scrape it
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "8123"
