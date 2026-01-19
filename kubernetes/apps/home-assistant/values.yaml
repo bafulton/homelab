@@ -119,7 +119,7 @@ matterServer:
 longhorn-storage:
   pvcs:
     - name: home-assistant-config
-      size: 10Gi
+      size: 5Gi
       storageClass: longhorn-emmc
       backupGroup: home-assistant
   jobs:
