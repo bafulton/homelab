@@ -50,6 +50,27 @@ signoz:
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9363"
+    # Disable ClickHouse system logs to save disk space (~6.5GB)
+    # These are internal operational logs, not SigNoz observability data
+    # Re-enable query_log temporarily if debugging slow queries
+    files:
+      config.d/disable_system_logs.xml: |
+        <clickhouse>
+          <query_log remove="1"/>
+          <query_thread_log remove="1"/>
+          <query_views_log remove="1"/>
+          <processors_profile_log remove="1"/>
+          <part_log remove="1"/>
+          <trace_log remove="1"/>
+          <metric_log remove="1"/>
+          <asynchronous_metric_log remove="1"/>
+          <asynchronous_insert_log remove="1"/>
+          <zookeeper_log remove="1"/>
+          <session_log remove="1"/>
+          <blob_storage_log remove="1"/>
+          <backup_log remove="1"/>
+          <crash_log remove="1"/>
+        </clickhouse>
     zookeeper:
       heapSize: 256
       podAnnotations:
