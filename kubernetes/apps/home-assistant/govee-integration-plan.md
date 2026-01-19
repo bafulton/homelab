@@ -165,22 +165,72 @@ Raspberry Pi or similar running Home Assistant or Theengs Gateway.
 - Additional hardware and power
 - Another system to maintain
 
-## Recommended Path
+## Planned Path Forward
 
-**Hybrid approach** (only way to get both devices today):
+**Theengs Gateway** - unified BLE approach for both devices via MQTT.
 
-1. **H5140 (CO₂)**: Use Govee REST API
-   - Home Assistant REST sensor polling every 5 minutes
-   - API key stored in Kubernetes secret via Bitwarden
+### Why This Approach
 
-2. **H5106 (PM2.5)**: Use ESP32 Bluetooth Proxy
-   - ESPHome Bluetooth Proxy on ESP32
-   - Home Assistant Govee BLE integration auto-discovers device
+- Both devices on same integration path (no hybrid REST + BLE)
+- Theengs already supports H5106; we'll contribute H5140 decoder
+- Decoding happens on ESP32, Home Assistant receives clean data via MQTT
+- Avoids reported data quality issues with Home Assistant's Govee BLE integration
 
-### Alternative: Wait for Native Support
+### Architecture
 
-- H5140 BLE support requested: https://github.com/orgs/home-assistant/discussions/1410
-- No active development as of January 2025
+```
+┌─────────────┐      BLE       ┌─────────────┐      MQTT       ┌─────────────┐
+│   Govee     │ ─────────────► │   ESP32     │ ──────────────► │  Mosquitto  │
+│   H5140     │  advertisements│   Theengs   │  decoded values │   Broker    │
+│   H5106     │                │   Gateway   │                 │  (cluster)  │
+└─────────────┘                └─────────────┘                 └──────┬──────┘
+                                                                      │
+                                                                      ▼
+                                                               ┌─────────────┐
+                                                               │    Home     │
+                                                               │  Assistant  │
+                                                               │   (MQTT     │
+                                                               │ integration)│
+                                                               └─────────────┘
+```
+
+### Implementation Steps
+
+1. **Add Mosquitto MQTT broker to cluster**
+   - New app in `kubernetes/infra/mosquitto/`
+   - Lightweight (~10MB RAM), minimal config
+   - Expose via ClusterIP for internal access
+
+2. **Get M5Stack ATOM Lite**
+   - ESP32-PICO-D4, USB-C, 24x24mm, ~$7
+   - https://shop.m5stack.com/products/atom-lite-esp32-development-kit
+
+3. **Flash with Theengs Gateway**
+   - https://gateway.theengs.io/
+   - Configure MQTT broker connection (point to Mosquitto service)
+
+4. **H5106 works immediately**
+   - Theengs decoder merged Jan 2023
+   - PM2.5, temperature, humidity available via MQTT
+
+5. **Capture H5140 BLE data**
+   - Use Theengs Explorer or nRF Connect to capture raw advertisements
+   - Correlate hex values with known readings
+
+6. **Contribute H5140 decoder to Theengs**
+   - See "Contributing H5140 BLE Decoder" section below
+   - Submit PR to https://github.com/theengs/decoder
+
+7. **Configure Home Assistant MQTT integration**
+   - Auto-discovers sensors published by Theengs Gateway
+   - Both devices appear as sensors in Home Assistant
+
+### Prerequisites
+
+- [ ] Mosquitto MQTT broker deployed
+- [ ] M5Stack ATOM Lite acquired
+- [ ] Theengs Gateway flashed and configured
+- [ ] H5140 decoder contributed (for CO₂ monitor)
 
 ## Contributing H5140 BLE Decoder
 
