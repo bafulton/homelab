@@ -24,14 +24,20 @@ home-assistant:
   dnsPolicy: ClusterFirstWithHostNet
 
   # Configuration management - enables trusted_proxies for reverse proxies (Tailscale + Traefik)
+  # forceInit: true merges templateConfig into configuration.yaml on every restart (GitOps-friendly)
   configuration:
     enabled: true
-    forceInit: false
+    forceInit: true
     trusted_proxies:
       - 10.244.0.0/16  # Kubernetes pod CIDR (Tailscale and Traefik pods)
     templateConfig: |
       # Loads default set of integrations. Do not remove.
       default_config:
+
+      # Home Assistant core configuration
+      homeassistant:
+        internal_url: "http://home.local"
+        external_url: "https://home.catfish-mountain.ts.net"
 
       # HTTP configuration for reverse proxy (Tailscale)
       http:
