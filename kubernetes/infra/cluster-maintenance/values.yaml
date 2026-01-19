@@ -8,6 +8,5 @@ image:
 
 podCleanup:
   enabled: true
-  schedule: "* * * * *"  # every minute
-  succeededPodMaxAge: 0
-  failedPodMaxAge: 3600  # 1 hour
+  succeededSchedule: "* * * * *"     # every minute
+  failedSchedule: "0 * * * *"        # every hour (failed pods wait up to 1h before deletion)

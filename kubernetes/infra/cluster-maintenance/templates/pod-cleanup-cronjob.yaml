@@ -1,11 +1,12 @@
 {{- if .Values.podCleanup.enabled }}
+---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pod-cleanup
+  name: pod-cleanup-succeeded
   namespace: {{ .Release.Namespace }}
 spec:
-  schedule: {{ .Values.podCleanup.schedule | quote }}
+  schedule: {{ .Values.podCleanup.succeededSchedule | quote }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
@@ -20,50 +21,48 @@ spec:
             - name: cleanup
               image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
               imagePullPolicy: {{ .Values.image.pullPolicy }}
-              command: ["/bin/bash", "-c"]
               args:
-                - |
-                  set -e
-
-                  echo "=== Pod Cleanup $(date) ==="
-
-                  cleanup_pods() {
-                    phase=$1
-                    max_age=$2
-                    now=$(date +%s)
-
-                    echo "Cleaning up $phase pods (maxAge: ${max_age}s)..."
-
-                    if [ "$max_age" -eq 0 ]; then
-                      # Delete immediately
-                      count=$(kubectl get pods -A --field-selector=status.phase=$phase --no-headers 2>/dev/null | wc -l)
-                      if [ "$count" -gt 0 ]; then
-                        kubectl delete pods -A --field-selector=status.phase=$phase
-                        echo "  Deleted $count pod(s)"
-                      else
-                        echo "  No pods found"
-                      fi
-                    else
-                      # Delete only pods older than max_age
-                      deleted=0
-                      kubectl get pods -A --field-selector=status.phase=$phase -o json 2>/dev/null | \
-                        jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name) \(.metadata.creationTimestamp)"' | \
-                        while read ns name ts; do
-                          # Convert ISO timestamp to epoch
-                          created=$(date -d "$ts" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null)
-                          age=$((now - created))
-                          if [ "$age" -gt "$max_age" ]; then
-                            echo "  Deleting $ns/$name (age: ${age}s)"
-                            kubectl delete pod -n "$ns" "$name"
-                          fi
-                        done
-                    fi
-                  }
-
-                  cleanup_pods "Succeeded" {{ .Values.podCleanup.succeededPodMaxAge }}
-                  cleanup_pods "Failed" {{ .Values.podCleanup.failedPodMaxAge }}
-
-                  echo "=== Cleanup complete ==="
+                - delete
+                - pods
+                - -A
+                - --field-selector=status.phase=Succeeded
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1000
+                capabilities:
+                  drop: ["ALL"]
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pod-cleanup-failed
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ .Values.podCleanup.failedSchedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 60
+      template:
+        spec:
+          serviceAccountName: pod-cleanup
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              args:
+                - delete
+                - pods
+                - -A
+                - --field-selector=status.phase=Failed
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
