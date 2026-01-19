@@ -39,14 +39,15 @@ signoz:
   schemaMigrator:
     upgradeHelmHooks: false
 
-  # Use longhorn-emmc for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
+  # Use longhorn-nvme for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
+  # Moved from emmc to free space for smaller apps
   global:
-    storageClass: longhorn-emmc
+    storageClass: longhorn-nvme
 
   clickhouse:
     persistence:
       enabled: true
-      size: 20Gi
+      size: 50Gi
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9363"
