@@ -1,9 +1,9 @@
 namespace: kube-system
 
 image:
-  repository: bitnami/kubectl
+  repository: registry.k8s.io/kubectl
   # Version managed by Renovate custom manager (grouped with Kubernetes upgrades)
-  tag: "1.35.0"
+  tag: "v1.35.0"
   pullPolicy: IfNotPresent
 
 podCleanup:

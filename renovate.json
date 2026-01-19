@@ -38,8 +38,8 @@
       "customType": "regex",
       "description": "Track kubectl version (should match Kubernetes version)",
       "fileMatch": ["kubernetes/infra/cluster-maintenance/values\\.yaml$"],
-      "matchStrings": ["repository: bitnami/kubectl\\n\\s+#.*\\n\\s+tag: [\"']?(?<currentValue>[\\d\\.]+)[\"']?"],
-      "depNameTemplate": "bitnami/kubectl",
+      "matchStrings": ["repository: registry\\.k8s\\.io/kubectl\\n\\s+#.*\\n\\s+tag: [\"']?(?<currentValue>v[\\d\\.]+)[\"']?"],
+      "depNameTemplate": "registry.k8s.io/kubectl",
       "datasourceTemplate": "docker"
     },
     {
@@ -64,7 +64,7 @@
     },
     {
       "description": "Group Talos, Kubernetes, and kubectl together, never automerge",
-      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes", "bitnami/kubectl"],
+      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes", "registry.k8s.io/kubectl"],
       "groupName": "talos-kubernetes",
       "automerge": false
     }
