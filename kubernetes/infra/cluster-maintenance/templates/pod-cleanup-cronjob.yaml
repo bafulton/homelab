@@ -3,7 +3,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pod-cleanup-succeeded
+  name: cleanup-succeeded-pods
   namespace: {{ .Release.Namespace }}
 spec:
   schedule: {{ .Values.podCleanup.succeededSchedule | quote }}
@@ -40,7 +40,7 @@ spec:
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: pod-cleanup-failed
+  name: cleanup-failed-pods
   namespace: {{ .Release.Namespace }}
 spec:
   schedule: {{ .Values.podCleanup.failedSchedule | quote }}
