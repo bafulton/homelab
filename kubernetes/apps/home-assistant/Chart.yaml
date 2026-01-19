@@ -12,7 +12,3 @@ dependencies:
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
     condition: tailscale-ingress.enabled
-  - name: bitwarden-secret
-    version: 1.0.0
-    repository: file://../../../charts/bitwarden-secret
-    condition: bitwarden-secret.enabled
