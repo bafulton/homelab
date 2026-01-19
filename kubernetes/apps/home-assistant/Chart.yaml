@@ -12,3 +12,6 @@ dependencies:
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
     condition: tailscale-ingress.enabled
+  - name: longhorn-storage
+    version: 1.0.0
+    repository: file://../../../charts/longhorn-storage

@@ -112,3 +112,19 @@ matterServer:
   persistence:
     storageClass: longhorn-emmc
     size: 1Gi
+
+# Longhorn storage - PVC with backup labels for migration
+# Phase 2: Creates new PVC, HA continues using old StatefulSet PVC
+# Phase 4: Switch to Deployment with existingClaim: home-assistant-config
+longhorn-storage:
+  pvcs:
+    - name: home-assistant-config
+      size: 10Gi
+      storageClass: longhorn-emmc
+      backupGroup: home-assistant
+  jobs:
+    - name: home-assistant-daily
+      cron: "0 2 * * *"
+      groups:
+        - home-assistant
+      retain: 5
