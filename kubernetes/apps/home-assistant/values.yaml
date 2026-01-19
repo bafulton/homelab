@@ -1,5 +1,10 @@
 namespace: home-assistant
 
+# Temporarily disable selfHeal during PVC migration
+# Remove after migration is complete
+syncPolicy:
+  selfHeal: false
+
 # Traefik IngressRoute for LAN access via mDNS (home.local)
 # Routes through Traefik's MetalLB IP (192.168.0.200)
 traefik:
