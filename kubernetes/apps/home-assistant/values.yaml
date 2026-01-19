@@ -1,10 +1,5 @@
 namespace: home-assistant
 
-# Temporarily disable selfHeal during PVC migration
-# Remove after migration is complete
-syncPolicy:
-  selfHeal: false
-
 # Traefik IngressRoute for LAN access via mDNS (home.local)
 # Routes through Traefik's MetalLB IP (192.168.0.200)
 traefik:
@@ -23,10 +18,6 @@ tailscale-ingress:
         port: 80
 
 home-assistant:
-  # Temporarily scale to 0 for PVC migration
-  # Set back to 1 (or remove) after migration complete
-  replicaCount: 0
-
   # Enable host networking for device auto-discovery (mDNS, SSDP, etc.)
   # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
   hostNetwork: true
@@ -70,16 +61,14 @@ home-assistant:
       prometheus:
         requires_auth: false
 
-  # Use StatefulSet for stable identity
+  # Use Deployment with pre-provisioned PVC (managed by longhorn-storage chart)
   controller:
-    type: StatefulSet
+    type: Deployment
 
-  # Persistent storage for configuration
+  # Use existing PVC created by longhorn-storage chart (has backup labels)
   persistence:
     enabled: true
-    storageClass: longhorn-emmc
-    size: 10Gi
-    accessMode: ReadWriteOnce
+    existingClaim: home-assistant-config
 
   # Service configuration
   # ClusterIP service - accessed via Traefik IngressRoute for LAN and Tailscale Ingress for remote
@@ -122,9 +111,7 @@ matterServer:
     storageClass: longhorn-emmc
     size: 1Gi
 
-# Longhorn storage - PVC with backup labels for migration
-# Phase 2: Creates new PVC, HA continues using old StatefulSet PVC
-# Phase 4: Switch to Deployment with existingClaim: home-assistant-config
+# Longhorn storage - PVC with backup labels and daily snapshots
 longhorn-storage:
   pvcs:
     - name: home-assistant-config
