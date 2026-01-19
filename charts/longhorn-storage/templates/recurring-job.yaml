@@ -1,0 +1,18 @@
+{{- range $.Values.jobs }}
+---
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Values.longhornNamespace }}
+spec:
+  name: {{ .name }}
+  task: {{ .task | default "snapshot" }}
+  cron: {{ .cron | quote }}
+  retain: {{ .retain | default 5 }}
+  concurrency: {{ .concurrency | default 1 }}
+  {{- with .groups }}
+  groups:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

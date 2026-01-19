@@ -1,0 +1,20 @@
+# Longhorn namespace (where RecurringJobs must be created)
+longhornNamespace: longhorn
+
+# List of PVCs to create
+pvcs: []
+  # - name: my-app-data              # PVC name (required)
+  #   size: 10Gi                     # Storage size (default: 1Gi)
+  #   storageClass: longhorn-emmc    # Storage class (default: longhorn-emmc)
+  #   accessMode: ReadWriteOnce      # Access mode (default: ReadWriteOnce)
+  #   backupGroup: my-app            # Optional: adds recurring-job-group label for backups
+
+# List of RecurringJobs to create (target PVCs via backupGroup label)
+jobs: []
+  # - name: daily-snapshot          # RecurringJob name (required)
+  #   cron: "0 2 * * *"             # Cron schedule (required)
+  #   groups:                       # Volume groups to target (required)
+  #     - my-app                    # Matches PVCs with backupGroup: my-app
+  #   task: snapshot                # snapshot or backup (default: snapshot)
+  #   retain: 5                     # Snapshots to keep (default: 5)
+  #   concurrency: 1                # Max concurrent jobs (default: 1)

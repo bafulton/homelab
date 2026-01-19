@@ -1,0 +1,18 @@
+{{- range $.Values.pvcs }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .name }}
+  {{- if .backupGroup }}
+  labels:
+    recurring-job-group.longhorn.io/{{ .backupGroup }}: enabled
+  {{- end }}
+spec:
+  accessModes:
+    - {{ .accessMode | default "ReadWriteOnce" }}
+  storageClassName: {{ .storageClass | default "longhorn-emmc" }}
+  resources:
+    requests:
+      storage: {{ .size | default "1Gi" }}
+{{- end }}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: longhorn-storage
+description: Reusable Longhorn PVCs with optional recurring snapshots/backups
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
