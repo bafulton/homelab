@@ -1,0 +1,115 @@
+{
+  "alert": "High PVC Usage",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "PVC filesystem usage is above 80% - volume may fill up",
+  "summary": "High PVC usage detected",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.volume.available",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": "k8s.volume.type = 'persistentVolumeClaim'"
+            },
+            "groupBy": [
+              {
+                "name": "k8s.namespace.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "k8s.persistentvolumeclaim.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            }
+          }
+        },
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "B",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.volume.capacity",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": true,
+            "filter": {
+              "expression": "k8s.volume.type = 'persistentVolumeClaim'"
+            },
+            "groupBy": [
+              {
+                "name": "k8s.namespace.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "k8s.persistentvolumeclaim.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            }
+          }
+        },
+        {
+          "type": "builder_formula",
+          "spec": {
+            "name": "F1",
+            "expression": "(1 - A/B) * 100",
+            "legend": "{{k8s.namespace.name}}/{{k8s.persistentvolumeclaim.name}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "1",
+    "target": 80,
+    "matchType": "1",
+    "selectedQueryName": "F1"
+  }
+}
