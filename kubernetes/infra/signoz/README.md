@@ -40,7 +40,10 @@ Data is stored in ClickHouse with default retention:
 - Logs & Traces: 7 days
 - Metrics: 30 days
 
-Persistent volume: 20Gi (provisioned by Longhorn)
+Persistent volumes (on Longhorn nvme):
+- ClickHouse: 50Gi
+- Zookeeper: 8Gi
+- SigNoz DB: 1Gi
 
 ## Email Notifications
 

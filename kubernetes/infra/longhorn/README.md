@@ -27,9 +27,16 @@ Longhorn requires specific Talos configuration:
 
 The `preUpgradeChecker.jobEnabled` is disabled because ArgoCD runs Helm pre-upgrade hooks even on first install, which fails when the ServiceAccount doesn't exist yet.
 
-## Usage
+## Storage Classes
 
-Longhorn is set as the default StorageClass. Create a PVC and it will be automatically provisioned:
+Multiple storage classes target different disks:
+
+| StorageClass | Disk | Use Case |
+|--------------|------|----------|
+| `longhorn-emmc` | Internal eMMC (56GB) | Small apps, configs |
+| `longhorn-nvme` | NVMe SSD (2TB) | Large/write-heavy workloads |
+
+Specify the storage class in your PVC:
 
 ```yaml
 apiVersion: v1
@@ -37,6 +44,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: my-data
 spec:
+  storageClassName: longhorn-emmc  # or longhorn-nvme
   accessModes:
     - ReadWriteOnce
   resources:
