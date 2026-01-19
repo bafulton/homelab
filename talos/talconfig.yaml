@@ -29,9 +29,9 @@ nodes:
     controlPlane: true
     ipAddress: beelink.catfish-mountain.ts.net
     installDisk: /dev/mmcblk0  # eMMC, not the NVMe SSD
-    # Image Factory schematic with extensions: intel-ucode, iscsi-tools, tailscale, util-linux-tools
+    # Image Factory schematic with extensions: intel-ucode, iscsi-tools, tailscale, util-linux-tools, i915
     # Note: Don't include version tag - talhelper appends talosVersion automatically
-    talosImageURL: factory.talos.dev/installer/012427dcde4d2c4eff11f55adf2f20679292fcdffb76b5700dd022c813908b07
+    talosImageURL: factory.talos.dev/installer/445a99db4002e6127e7f6e2a96377ac2c06d0de52f7a186b5536c0ac2f2a2ece
     patches:
       # Mount NVME and USB drives for Longhorn storage
       - |-
