@@ -107,3 +107,11 @@ matterServer:
   persistence:
     storageClass: longhorn-emmc
     size: 1Gi
+
+# Bitwarden secrets for Govee API integration
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: govee-api-key
+      data:
+        api-key: "2b0224f3-7e05-412d-b0f1-b3d700341857"
