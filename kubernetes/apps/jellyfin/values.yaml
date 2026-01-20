@@ -1,0 +1,77 @@
+# Jellyfin Media Server
+# Self-hosted media streaming with Intel QuickSync hardware transcoding
+#
+# Access:
+#   - LAN: http://media.local (via Traefik)
+#   - Remote: https://jellyfin.catfish-mountain.ts.net (via Tailscale)
+
+namespace: jellyfin
+
+# Traefik IngressRoute for LAN access via mDNS (media.local)
+# Routes through Traefik's MetalLB IP (192.168.0.200)
+traefik:
+  enabled: true
+  hostname: media.local
+  servicePort: 8096
+
+# Tailscale exposure for remote access
+tailscale-ingress:
+  enabled: true
+  ingresses:
+    - name: tailscale
+      hostname: jellyfin
+      service:
+        name: jellyfin
+        port: 8096
+
+# Longhorn storage - config PVC with backups, media PVC on USB drive
+longhorn-storage:
+  pvcs:
+    - name: jellyfin-config
+      size: 2Gi
+      storageClass: longhorn-emmc
+      backupGroup: jellyfin
+    - name: jellyfin-media
+      size: 1Ti
+      storageClass: longhorn-usb
+      # No backup group for media - too large for Longhorn snapshots
+  jobs:
+    - name: jellyfin-config-daily
+      cron: "0 3 * * *"
+      groups:
+        - jellyfin
+      retain: 5
+
+# Jellyfin chart configuration
+jellyfin:
+  # Use existing PVCs created by longhorn-storage chart
+  persistence:
+    config:
+      enabled: true
+      existingClaim: jellyfin-config
+    media:
+      enabled: true
+      existingClaim: jellyfin-media
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 8096
+
+  # Request Intel GPU for hardware transcoding
+  # Requires intel-device-plugins to be deployed first
+  resources:
+    limits:
+      gpu.intel.com/i915: "1"
+    requests:
+      cpu: 100m
+      memory: 512Mi
+
+  # FFmpeg tuning for hardware transcoding
+  # Note: env is under jellyfin.jellyfin in upstream chart structure
+  jellyfin:
+    env:
+      - name: JELLYFIN_FFmpeg__analyzeduration
+        value: "200000000"
+      - name: JELLYFIN_FFmpeg__probesize
+        value: "1000000000"
