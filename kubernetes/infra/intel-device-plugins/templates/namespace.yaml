@@ -1,0 +1,8 @@
+# Namespace with privileged PodSecurity
+# NFD worker requires hostPath volumes to detect hardware features
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
