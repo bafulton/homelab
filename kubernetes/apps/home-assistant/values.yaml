@@ -12,7 +12,7 @@ tailscale-ingress:
   enabled: true
   ingresses:
     - name: tailscale
-      hostname: home
+      hostname: home-assistant
       service:
         name: home-assistant
         port: 80
@@ -37,7 +37,7 @@ home-assistant:
       # Home Assistant core configuration
       homeassistant:
         internal_url: "http://home.local"
-        external_url: "https://home.catfish-mountain.ts.net"
+        external_url: "https://home-assistant.catfish-mountain.ts.net"
         latitude: 36.085348151351745
         longitude: -80.25007509137713
         elevation: 268  # 880 feet in meters
