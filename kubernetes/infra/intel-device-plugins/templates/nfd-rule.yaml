@@ -1,0 +1,17 @@
+# NodeFeatureRule to label nodes with Intel GPUs
+# Creates the intel.feature.node.kubernetes.io/gpu label that GpuDevicePlugin selects on
+apiVersion: nfd.k8s-sigs.io/v1alpha1
+kind: NodeFeatureRule
+metadata:
+  name: intel-gpu
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+    - name: intel-gpu
+      labels:
+        intel.feature.node.kubernetes.io/gpu: "true"
+      matchFeatures:
+        - feature: pci.device
+          matchExpressions:
+            vendor: {op: In, value: ["8086"]}
+            class: {op: In, value: ["0300", "0302"]}

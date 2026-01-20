@@ -1,0 +1,21 @@
+# Intel GPU Device Plugin
+# Exposes Intel GPUs to Kubernetes pods as gpu.intel.com/i915 resources
+# Allows workloads like Jellyfin to use QuickSync for hardware transcoding
+apiVersion: deviceplugin.intel.com/v1
+kind: GpuDevicePlugin
+metadata:
+  name: gpu-device-plugin
+  namespace: {{ .Release.Namespace }}
+spec:
+  # Deploy on nodes with Intel GPU (NFD auto-labels nodes with this)
+  nodeSelector:
+    intel.feature.node.kubernetes.io/gpu: "true"
+
+  # Allow multiple pods to share the GPU
+  sharedDevNum: {{ .Values.gpuDevicePlugin.sharedDevNum }}
+
+  # Resource manager for shared GPU access
+  resourceManager: {{ .Values.gpuDevicePlugin.resourceManager }}
+
+  # Allocation policy for GPU resources
+  preferredAllocationPolicy: {{ .Values.gpuDevicePlugin.preferredAllocationPolicy }}

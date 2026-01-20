@@ -1,0 +1,15 @@
+apiVersion: v2
+name: intel-device-plugins
+description: Intel GPU device plugins for hardware acceleration (QuickSync transcoding)
+type: application
+version: 1.0.0
+appVersion: "0.34.1"
+dependencies:
+  - name: node-feature-discovery
+    # renovate: datasource=helm registryUrl=https://kubernetes-sigs.github.io/node-feature-discovery/charts
+    version: 0.18.3
+    repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
+  - name: intel-device-plugins-operator
+    # renovate: datasource=helm registryUrl=https://intel.github.io/helm-charts
+    version: 0.34.1
+    repository: https://intel.github.io/helm-charts

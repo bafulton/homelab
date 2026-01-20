@@ -1,0 +1,39 @@
+# Intel Device Plugins for Kubernetes
+# Enables hardware acceleration (Intel QuickSync) for media transcoding
+#
+# Components:
+#   - Node Feature Discovery (NFD): Labels nodes with hardware capabilities
+#   - Intel Device Plugins Operator: Manages GPU device plugin deployment
+#
+# The operator can manage other Intel device plugins (QAT, SGX, FPGA, etc.)
+# by adding additional CRs to templates/ - but GPU is the main homelab use case.
+
+# Node Feature Discovery configuration
+# Labels nodes with intel.feature.node.kubernetes.io/gpu when Intel GPU is detected
+node-feature-discovery:
+  worker:
+    config:
+      core:
+        sources:
+          - pci
+          - custom
+      sources:
+        pci:
+          deviceClassWhitelist:
+            - "0300"  # VGA compatible controller (includes GPUs)
+            - "0302"  # 3D controller
+          deviceLabelFields:
+            - vendor
+
+# Intel Device Plugins Operator configuration
+# The operator watches for GpuDevicePlugin CRs and deploys the GPU plugin
+intel-device-plugins-operator: {}
+
+# GPU Device Plugin configuration
+gpuDevicePlugin:
+  # Number of pods that can share the GPU concurrently
+  sharedDevNum: 10
+  # Enable resource manager for fine-grained GPU allocation
+  resourceManager: false
+  # Allocation policy: "none", "balanced", or "packed"
+  preferredAllocationPolicy: none
