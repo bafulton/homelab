@@ -38,3 +38,13 @@ services:
       - type: _home-assistant._tcp
       # HTTP service for general discovery
       - type: _http._tcp
+
+  # Jellyfin media server
+  # Routes through Traefik's MetalLB IP
+  - name: Jellyfin
+    hostname: media
+    ip: 192.168.0.200  # Traefik LoadBalancer IP
+    port: 80
+    types:
+      # HTTP service for general discovery
+      - type: _http._tcp
