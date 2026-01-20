@@ -14,8 +14,5 @@ spec:
   # Allow multiple pods to share the GPU
   sharedDevNum: {{ .Values.gpuDevicePlugin.sharedDevNum }}
 
-  # Resource manager for shared GPU access
-  resourceManager: {{ .Values.gpuDevicePlugin.resourceManager }}
-
   # Allocation policy for GPU resources
   preferredAllocationPolicy: {{ .Values.gpuDevicePlugin.preferredAllocationPolicy }}

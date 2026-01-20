@@ -33,7 +33,5 @@ intel-device-plugins-operator: {}
 gpuDevicePlugin:
   # Number of pods that can share the GPU concurrently
   sharedDevNum: 10
-  # Enable resource manager for fine-grained GPU allocation
-  resourceManager: false
   # Allocation policy: "none", "balanced", or "packed"
   preferredAllocationPolicy: none
