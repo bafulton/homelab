@@ -18,7 +18,7 @@ Self-hosted media server with Intel QuickSync hardware transcoding. 100% free an
 
 | PVC | Size | Storage Class | Backup |
 |-----|------|---------------|--------|
-| `jellyfin-config` | 2Gi | longhorn-emmc | Daily (5 retained) |
+| `jellyfin-config` | 5Gi | longhorn-emmc | Daily (5 retained) |
 | `jellyfin-media` | 1Ti | longhorn-usb | No (too large) |
 
 ## Hardware Transcoding
