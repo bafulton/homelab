@@ -48,3 +48,12 @@ services:
     types:
       # HTTP service for general discovery
       - type: _http._tcp
+
+  # Mosquitto MQTT broker
+  # For Theengs Gateway and other LAN devices
+  - name: Mosquitto
+    hostname: mosquitto
+    ip: 192.168.0.202
+    port: 1883
+    types:
+      - type: _mqtt._tcp
