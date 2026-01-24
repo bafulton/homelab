@@ -1,0 +1,32 @@
+namespace: mosquitto
+
+mosquitto:
+  # Service configuration - ClusterIP for internal access
+  service:
+    type: ClusterIP
+    ports:
+      mqtt:
+        enabled: true
+        port: 1883
+
+  # Broker configuration
+  config:
+    # Allow anonymous for internal cluster use
+    # Theengs Gateway and Home Assistant will connect without auth
+    allowAnonymous: true
+    logLevel: information
+
+  # Persistence for retained messages and subscriptions
+  persistence:
+    enabled: true
+    storageClass: longhorn
+    size: 1Gi
+
+  # Minimal resource limits - Mosquitto is very lightweight
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
