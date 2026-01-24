@@ -2,10 +2,24 @@
 
 ## Current State (January 2026)
 
-The RPi5 node runs **talos-rpi5 community images (v1.11.5)** because official Talos lacks proper RPi5 support:
+The RPi5 node runs **talos-rpi5 community images (v1.11.5-1-gfe840f161)** because official Talos lacks proper RPi5 support:
 - Official Talos kernel missing RP1 chip drivers (ethernet, USB)
 - Community project provides custom kernel with RPi5 support
-- Extensions baked in: iscsi-tools, tailscale, util-linux-tools
+- **Extensions installed** via custom metal image - see [RPI5-EXTENSIONS.md](RPI5-EXTENSIONS.md)
+
+### Current Extensions
+
+| Extension | Version | Status |
+|-----------|---------|--------|
+| iscsi-tools | v0.2.0 | Running |
+| tailscale | 1.88.1 | Waiting (needs auth key) |
+| util-linux-tools | 2.41.1 | Installed |
+
+### Known Limitations
+
+- Cannot add extensions via `talosctl upgrade` (efivarfs limitation)
+- Must rebuild and re-flash metal image to change extensions
+- Tailscale extension requires manual auth key configuration
 
 **Tracking issues:**
 - https://github.com/siderolabs/talos/issues/7978
@@ -94,15 +108,16 @@ If the cluster Kubernetes version changed, upgrade via tuppr or manually:
 talosctl upgrade-k8s --nodes rpi5.catfish-mountain.ts.net --to v1.X.X
 ```
 
-## Rollback
+## Rollback / Rebuilding
 
-If official images don't work, rollback to community images:
+To rebuild the rpi5 with different extensions or roll back, you must re-flash the SD card. See [RPI5-EXTENSIONS.md](RPI5-EXTENSIONS.md) for the full process.
 
-```bash
-talosctl upgrade \
-  --nodes rpi5.catfish-mountain.ts.net \
-  --image ghcr.io/talos-rpi5/installer:v1.11.5
-```
+Quick summary:
+1. Run the talos-rpi5 imager as a privileged pod on rpi5 itself
+2. Download the built image via port-forward
+3. Flash to SD card and apply config
+
+**Note:** The `talosctl upgrade` command does NOT work on RPi5 due to efivarfs limitations.
 
 ## Schematic Reference
 

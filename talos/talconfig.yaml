@@ -74,11 +74,21 @@ nodes:
 
   - hostname: rpi5
     controlPlane: false
-    ipAddress: rpi5.catfish-mountain.ts.net
+    ipAddress: 192.168.0.17  # LAN IP (Tailscale not available until extensions added)
     installDisk: /dev/mmcblk0  # SD card
-    # Image Factory schematic with extensions: iscsi-tools, tailscale, util-linux-tools
-    # Note: Don't include version tag - talhelper appends talosVersion automatically
-    talosImageURL: factory.talos.dev/installer/59a07420a7e77b52dce55311856a16b377e2f9ef61762e8873de65a945954d91
+    # Community talos-rpi5 image - official Talos doesn't support RPi5 yet
+    # See talos/rpi5-migration-plan.md for upgrade path to official images
+    talosImageURL: ghcr.io/talos-rpi5/installer:v1.11.5
+    talosVersion: v1.11.5  # Override cluster version for RPi5 compatibility
+    patches:
+      # Disable Tailscale extension config (not included in base talos-rpi5 image)
+      # Will be enabled after upgrading with extensions
+      - |-
+        machine:
+          network:
+            nameservers:
+              - 8.8.8.8
+              - 1.1.1.1
 
 # ------------------------------------------------------------------------------
 # Patches - Applied to ALL nodes
