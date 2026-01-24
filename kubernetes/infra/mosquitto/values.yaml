@@ -1,9 +1,11 @@
 namespace: mosquitto
 
 mosquitto:
-  # Service configuration - ClusterIP for internal access
+  # MetalLB LoadBalancer for LAN access (Theengs Gateway, etc.)
   service:
-    type: ClusterIP
+    type: LoadBalancer
+    annotations:
+      metallb.io/loadBalancerIPs: "192.168.0.202"
     ports:
       mqtt:
         enabled: true
@@ -11,7 +13,7 @@ mosquitto:
 
   # Broker configuration
   config:
-    # Allow anonymous for internal cluster use
+    # Allow anonymous - LAN access only, no external exposure
     # Theengs Gateway and Home Assistant will connect without auth
     allowAnonymous: true
     logLevel: information
@@ -19,14 +21,5 @@ mosquitto:
   # Persistence for retained messages and subscriptions
   persistence:
     enabled: true
-    storageClass: longhorn
+    storageClass: longhorn-emmc
     size: 1Gi
-
-  # Minimal resource limits - Mosquitto is very lightweight
-  resources:
-    requests:
-      cpu: 10m
-      memory: 16Mi
-    limits:
-      cpu: 100m
-      memory: 64Mi
