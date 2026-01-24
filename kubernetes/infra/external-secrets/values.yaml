@@ -1,7 +1,9 @@
 namespace: external-secrets
-serverSideApply: true
 
 syncWave: "-1"
+
+syncPolicy:
+  serverSideApply: true
 
 bitwarden:
   organizationID: b477a98e-cb7f-4b49-8fa7-af7401259de0
