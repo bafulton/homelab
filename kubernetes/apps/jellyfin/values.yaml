@@ -9,10 +9,12 @@ namespace: jellyfin
 
 # Traefik IngressRoute for LAN access via mDNS (media.local)
 # Routes through Traefik's MetalLB IP (192.168.0.200)
-traefik:
+traefik-ingress:
   enabled: true
   hostname: media.local
-  servicePort: 8096
+  service:
+    name: jellyfin
+    port: 8096
 
 # Tailscale exposure for remote access
 tailscale-ingress:

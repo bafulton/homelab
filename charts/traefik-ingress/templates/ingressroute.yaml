@@ -1,0 +1,24 @@
+{{- if .Values.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ .Release.Name }}-lan
+spec:
+  entryPoints:
+    - {{ .Values.entryPoint }}
+  routes:
+    - match: Host(`{{ .Values.hostname }}`)
+      kind: Rule
+      {{- if .Values.middlewares }}
+      middlewares:
+        {{- range .Values.middlewares }}
+        - name: {{ .name }}
+          {{- if .namespace }}
+          namespace: {{ .namespace }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      services:
+        - name: {{ .Values.service.name }}
+          port: {{ .Values.service.port }}
+{{- end }}
