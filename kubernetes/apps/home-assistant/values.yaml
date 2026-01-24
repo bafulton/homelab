@@ -63,6 +63,9 @@ home-assistant:
       prometheus:
         requires_auth: false
 
+  # Recreate strategy required because hostNetwork: true means only one pod can bind port 8123
+  deploymentStrategy: Recreate
+
   # Use Deployment with pre-provisioned PVC (managed by longhorn-storage chart)
   controller:
     type: Deployment
