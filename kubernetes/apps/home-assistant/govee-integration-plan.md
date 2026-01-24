@@ -15,10 +15,10 @@ Research notes on integrating Govee H5140 (CO₂) and H5106 (PM2.5) monitors int
 |-------------|-------------|---------------|-------|
 | Govee REST API | ✓ Works | ✗ Not supported | H5106 has `isAPIDevice: false` |
 | Govee BLE (Home Assistant) | ✗ Not supported | ✓ Supported | H5140 not in supported devices list |
-| Theengs Decoder | ✗ Not supported | ✓ Supported | H5106 merged Jan 2023 |
+| Theengs Decoder | ⏳ PR submitted | ✓ Supported | H5140 PR: [#684](https://github.com/theengs/decoder/pull/684) |
 | govee2mqtt | ✗ Not supported | ✗ Not supported | Neither air quality monitor supported |
 
-**Key finding**: No single integration supports both devices.
+**Status**: H5140 decoder PR submitted to Theengs. Once merged, both devices will work via OpenMQTTGateway.
 
 ## Govee REST API
 
@@ -227,75 +227,80 @@ Raspberry Pi or similar running Home Assistant or Theengs Gateway.
 
 ### Prerequisites
 
-- [ ] Mosquitto MQTT broker deployed
-- [ ] M5Stack ATOM Lite acquired
-- [ ] Theengs Gateway flashed and configured
-- [ ] H5140 decoder contributed (for CO₂ monitor)
+- [x] Mosquitto MQTT broker deployed (`192.168.0.202:1883`, `mosquitto.local`)
+- [x] M5Stack ATOM Lite acquired
+- [x] OpenMQTTGateway flashed and configured (`ble-gateway` at `192.168.0.29`)
+- [x] H5106 (PM2.5) working in Home Assistant
+- [x] H5140 decoder PR submitted: [theengs/decoder#684](https://github.com/theengs/decoder/pull/684)
+- [ ] H5140 decoder merged and OpenMQTTGateway updated
 
-## Contributing H5140 BLE Decoder
+## H5140 BLE Decoder (Completed)
 
-To enable a pure BLE approach for both devices, we could contribute an H5140 decoder to Theengs.
+PR submitted: [theengs/decoder#684](https://github.com/theengs/decoder/pull/684)
 
-### Step 1: Capture Raw BLE Advertisements
+### BLE Manufacturer Data Format
 
-Use one of these tools to capture raw advertisement data from the H5140:
+The H5140 broadcasts 10 bytes (20 hex characters) of manufacturer data:
 
-- **Theengs Explorer** - TUI app showing raw + decoded data side by side
-- **nRF Connect** (iOS/Android) - Scan and view raw manufacturer/service data
-- **btmon** on Linux - Low-level Bluetooth HCI monitor
+| Hex Position | Bytes | Description |
+|--------------|-------|-------------|
+| 0-7 | 0-3 | Header (`01000101`) |
+| 8-13 | 4-6 | 24-bit combined temp/humidity |
+| 14-17 | 7-8 | 16-bit CO2 in ppm (big-endian) |
+| 18-19 | 9 | Padding/unknown |
 
-The M5Stack ATOM Lite can also be used with ESPHome's `esp32_ble_tracker` to log raw advertisements.
+### Decoding Formulas
 
-### Step 2: Known Data Points
+- **Temperature (°C)**: `24bit_value / 10000`
+- **Humidity (%)**: `(24bit_value % 1000) / 10`
+- **CO2 (ppm)**: `16bit_value` (direct reading)
 
-From [ble_monitor issue #1509](https://github.com/custom-components/ble_monitor/issues/1509):
+### Example
 
-- **Device name pattern**: `GV5140xxxx`
-- **MAC example**: `DC:1E:D5:CD:0F:FA`
-- **Proprietary service UUID**: `494e5445-4c4c-495f-524f-434b535f4857`
-- **Hardware version**: 4.01.01
-- **Software version**: 1.00.27
-- **Sensors**: CO₂ (ppm), temperature, humidity, battery
+Raw data: `0100010103fcbf044c00`
+- Header: `01000101`
+- Temp/Hum: `03fcbf` = 261311 decimal
+  - Temperature: 261311 / 10000 = **26.13°C**
+  - Humidity: (261311 % 1000) / 10 = **31.1%**
+- CO2: `044c` = **1100 ppm**
 
-Need to correlate raw hex values with known readings to reverse-engineer the encoding.
+### Live Samples
 
-### Step 3: Write Decoder Specification
+| Manufacturer Data | Display Reading | Decoded Values |
+|-------------------|-----------------|----------------|
+| `0100010103fcbf044c00` | 78.4°F, 31%, 1100 ppm | temp=26.13°C, hum=31.1%, co2=1100 |
+| `0100010103fc56045600` | 78.8°F, 31%, 1110 ppm | temp=26.13°C, hum=31.0%, co2=1110 |
+| `0100010103fc4e045400` | 78.8°F, 31%, 1108 ppm | temp=26.13°C, hum=31.0%, co2=1108 |
 
-Theengs decoders are JSON in header files. Create `src/devices/H5140_json.h`:
+### Decoder JSON
 
-```cpp
-const char* H5140_json = "{\"brand\":\"Govee\",\"model\":\"Smart CO2 Monitor\",\"model_id\":\"H5140\","
-    "\"condition\":[\"name\",\"contain\",\"GV5140\"],"
-    "\"properties\":{"
-        "\"tempc\":{\"decoder\":[\"value_from_hex_data\",\"servicedata\",X,Y,\"false\"],\"post_proc\":[\"/\",100]},"
-        "\"hum\":{\"decoder\":[\"value_from_hex_data\",\"servicedata\",X,Y,\"false\"],\"post_proc\":[\"/\",100]},"
-        "\"co2\":{\"decoder\":[\"value_from_hex_data\",\"servicedata\",X,Y,\"false\"]},"
-        "\"batt\":{\"decoder\":[\"value_from_hex_data\",\"servicedata\",X,Y,\"false\"]}"
-    "}}";
+```json
+{
+   "brand":"Govee",
+   "model":"Smart CO2 Monitor",
+   "model_id":"H5140",
+   "tag":"0301",
+   "condition":["name", "contain", "GV5140", "&", "manufacturerdata", ">=", 20, "index", 0, "01000101"],
+   "properties":{
+      "tempc":{
+         "decoder":["value_from_hex_data", "manufacturerdata", 8, 6, false, false],
+         "post_proc":["/", 10000]
+      },
+      "hum":{
+         "decoder":["value_from_hex_data", "manufacturerdata", 8, 6, false, false],
+         "post_proc":["&", 2147483647, "%", 1000, "/", 10]
+      },
+      "co2":{
+         "decoder":["value_from_hex_data", "manufacturerdata", 14, 4, false, false]
+      }
+   }
+}
 ```
 
-Replace X, Y with byte offsets determined from captured data.
+### Related Issues
 
-### Step 4: Validate and Submit
-
-```bash
-# Clone the repo
-git clone https://github.com/theengs/decoder
-cd decoder
-
-# Add your decoder to src/devices/
-
-# Validate JSON format
-python scripts/check_decoder.py src/devices/H5140_json.h
-
-# Submit PR
-```
-
-### Resources
-
-- Adding decoders guide: https://decoder.theengs.io/participate/adding-decoders.html
-- Theengs decoder repo: https://github.com/theengs/decoder
-- H5106 decoder PR (reference): https://github.com/theengs/decoder/pull/257
+- Home Assistant Feature Request: https://github.com/orgs/home-assistant/discussions/1410
+- BLE Monitor Issue: https://github.com/custom-components/ble_monitor/issues/1509
 
 ## References
 
@@ -305,3 +310,4 @@ python scripts/check_decoder.py src/devices/H5140_json.h
 - Theengs Decoder: https://github.com/theengs/decoder
 - H5106 BLE discussion: https://community.home-assistant.io/t/govee-smart-aqm-monitor-h5106-via-ble/684955
 - H5140 BLE data capture: https://github.com/custom-components/ble_monitor/issues/1509
+- **H5140 Decoder PR**: https://github.com/theengs/decoder/pull/684
