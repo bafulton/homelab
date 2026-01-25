@@ -61,7 +61,7 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "3",
+    "op": "2",
     "target": 1,
     "matchType": "1",
     "selectedQueryName": "A"
