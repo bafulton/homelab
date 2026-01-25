@@ -60,6 +60,7 @@ dependencies:
   - name: tailscale-ingress
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
+    condition: tailscale-ingress.enabled
 
 # values.yaml
 tailscale-ingress:
@@ -70,6 +71,29 @@ tailscale-ingress:
       service:
         name: my-app-server
 ```
+
+### Traefik Ingress (LAN)
+
+For LAN-only HTTP access, use the `traefik-ingress` shared chart:
+
+```yaml
+# Chart.yaml
+dependencies:
+  - name: traefik-ingress
+    version: 1.0.0
+    repository: file://../../../charts/traefik-ingress
+    condition: traefik-ingress.enabled
+
+# values.yaml
+traefik-ingress:
+  enabled: true
+  hostname: my-app.local
+  service:
+    name: my-app-server
+    port: 8080
+```
+
+Add to `/etc/hosts`: `192.168.0.200    my-app.local`
 
 ### PodSecurity
 

@@ -88,7 +88,7 @@ flowchart LR
 
 **Tip:** Add Traefik's MetalLB IP to `/etc/hosts` for easy LAN access:
 ```
-192.168.0.200    plex.lan home-assistant.lan grafana.lan
+192.168.0.200    media.local home.local
 ```
 
 ### hostNetwork (for mDNS services)
@@ -132,7 +132,7 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 | Service Type | Method | Access Via |
 |--------------|--------|------------|
 | Admin UIs (ArgoCD, dashboards) | Tailscale Ingress | `*.catfish-mountain.ts.net` |
-| LAN web apps (Plex, Home Assistant UI) | MetalLB → Traefik | `app.lan` (via /etc/hosts) |
+| LAN web apps (Jellyfin, Home Assistant UI) | MetalLB → Traefik | `app.local` (via /etc/hosts) |
 | LAN non-HTTP (databases, game servers) | MetalLB LoadBalancer | `192.168.0.x:port` |
 | mDNS-dependent (Time Machine, Home Assistant) | hostNetwork | Node IP or auto-discovered |
 

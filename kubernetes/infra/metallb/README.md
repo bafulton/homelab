@@ -9,7 +9,7 @@ Bare-metal load balancer for Kubernetes. Provides LoadBalancer service support w
 
 Example `/etc/hosts` entry:
 ```
-<traefik-external-ip>    plex.lan home.lan
+<traefik-external-ip>    media.local home.local
 ```
 
 Check the current Traefik IP with:

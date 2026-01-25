@@ -35,6 +35,7 @@ Multiple storage classes target different disks:
 |--------------|------|----------|
 | `longhorn-emmc` | Internal eMMC (56GB) | Small apps, configs |
 | `longhorn-nvme` | NVMe SSD (2TB) | Large/write-heavy workloads |
+| `longhorn-usb` | USB drives | Media libraries (replicated across nodes) |
 
 Specify the storage class in your PVC:
 

@@ -40,7 +40,7 @@ Exposes Prometheus metrics at `/api/prometheus` for SigNoz integration. The endp
 ## Initial Setup
 
 1. Wait for ArgoCD to sync the app
-2. Access `https://home.catfish-mountain.ts.net`
+2. Access `https://home-assistant.catfish-mountain.ts.net`
 3. Create your admin account
 4. Add integrations for your smart devices
 

@@ -14,7 +14,7 @@ spec:
           - path: kubernetes/apps/*/values.yaml
   template:
     metadata:
-      name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "plex" from "kubernetes/apps/plex"
+      name: '{{ get . "name" | default .path.basenameNormalized }}'  # eg, "jellyfin" from "kubernetes/apps/jellyfin"
       annotations:
         argocd.argoproj.io/sync-wave: '{{ get . "syncWave" | default "0" }}'
     spec:
@@ -22,7 +22,7 @@ spec:
       source:
         repoURL: https://github.com/bafulton/homelab
         targetRevision: main
-        path: '{{ .path.path }}'  # eg, kubernetes/apps/plex
+        path: '{{ .path.path }}'  # eg, kubernetes/apps/jellyfin
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ get . "namespace" | default .path.basenameNormalized }}'
