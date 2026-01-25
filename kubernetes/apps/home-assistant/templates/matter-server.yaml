@@ -1,5 +1,26 @@
 {{- if .Values.matterServer.enabled }}
 ---
+# Service allows Home Assistant to connect from any node via DNS
+# Configure Matter integration URL: ws://matter-server:5580/ws
+apiVersion: v1
+kind: Service
+metadata:
+  name: matter-server
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: matter-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: websocket
+      port: 5580
+      targetPort: websocket
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: matter-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -14,8 +35,7 @@ spec:
       storage: {{ .Values.matterServer.persistence.size }}
 ---
 # Matter Server for Matter smart home device support
-# Home Assistant connects via WebSocket at ws://localhost:5580/ws
-# (localhost works because both HA and Matter Server use hostNetwork)
+# Home Assistant connects via WebSocket at ws://matter-server:5580/ws
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -38,8 +58,7 @@ spec:
         app.kubernetes.io/name: matter-server
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
-      # hostNetwork required for Matter device discovery on LAN
-      # Also allows Home Assistant (also hostNetwork) to connect via localhost:5580
+      # hostNetwork required for Matter mDNS device discovery on LAN
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:

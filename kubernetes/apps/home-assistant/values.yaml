@@ -119,8 +119,7 @@ aircast:
     pullPolicy: IfNotPresent
 
 # Matter Server - Controller for Matter smart home devices
-# Home Assistant connects via WebSocket at ws://localhost:5580/ws
-# (localhost works because both HA and Matter Server use hostNetwork)
+# Home Assistant connects via WebSocket at ws://matter-server:5580/ws
 # https://github.com/home-assistant-libs/python-matter-server
 matterServer:
   enabled: true
