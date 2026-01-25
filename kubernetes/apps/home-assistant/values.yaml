@@ -94,6 +94,18 @@ home-assistant:
     prometheus.io/port: "8123"
     prometheus.io/path: "/api/prometheus"
 
+  # Startup probe - allows up to 5 minutes for Home Assistant to initialize
+  # Liveness/readiness probes won't run until startup probe succeeds
+  startupProbe:
+    httpGet:
+      path: /
+      port: http
+      scheme: HTTP
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 30
+
 # AirCast - AirPlay bridge for Chromecast devices
 # Allows streaming audio from Apple devices to Chromecast speakers
 # https://github.com/1activegeek/docker-airconnect
