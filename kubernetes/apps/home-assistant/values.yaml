@@ -31,7 +31,8 @@ home-assistant:
     enabled: true
     forceInit: true
     trusted_proxies:
-      - 10.244.0.0/16  # Kubernetes pod CIDR (Tailscale and Traefik pods)
+      - 10.244.0.0/16   # Kubernetes pod CIDR
+      - 192.168.0.0/24  # LAN subnet (cross-node traffic with hostNetwork)
     templateConfig: |
       # Loads default set of integrations. Do not remove.
       default_config:
