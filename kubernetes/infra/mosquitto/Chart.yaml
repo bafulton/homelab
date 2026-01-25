@@ -6,5 +6,5 @@ version: 1.0.0
 appVersion: "2.0.22"
 dependencies:
   - name: mosquitto
-    version: 0.5.2
+    version: 0.6.0
     repository: https://bdclark.github.io/helm-charts
