@@ -23,9 +23,6 @@ spec:
       # hostNetwork required for Chromecast/mDNS discovery on LAN
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
-      # Temporarily pinned to beelink to debug mDNS issues
-      nodeSelector:
-        kubernetes.io/hostname: beelink
       containers:
         - name: aircast
           image: "{{ .Values.aircast.image.repository }}:{{ .Values.aircast.image.tag }}"
