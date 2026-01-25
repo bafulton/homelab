@@ -7,8 +7,11 @@ image:
   tag: "v1.35.0"
   pullPolicy: IfNotPresent
 
+bitnamiImage:
   # ReplicaSet cleanup uses bitnami/kubectl (has bash/awk for scripting)
-  # Uses same tag as above
+  repository: bitnami/kubectl
+  tag: "latest"
+  pullPolicy: IfNotPresent
 
 podCleanup:
   enabled: true

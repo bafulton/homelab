@@ -18,8 +18,8 @@ spec:
           restartPolicy: OnFailure
           containers:
             - name: cleanup
-              image: bitnami/kubectl:{{ .Values.image.tag }}
-              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              image: "{{ .Values.bitnamiImage.repository }}:{{ .Values.bitnamiImage.tag }}"
+              imagePullPolicy: {{ .Values.bitnamiImage.pullPolicy }}
               command:
                 - /bin/bash
                 - -c
