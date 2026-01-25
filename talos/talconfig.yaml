@@ -127,6 +127,16 @@ patches:
           - 100.100.100.100
           - 8.8.8.8
 
+  # Disable forwarding kube-dns to host DNS proxy
+  # The host DNS proxy (169.254.116.108) is unreachable from pods
+  # This makes CoreDNS resolve external domains directly
+  - |-
+    machine:
+      features:
+        hostDNS:
+          enabled: true
+          forwardKubeDNSToHost: false
+
   # Kubelet: Use LAN IPs for node addresses (enables MetalLB L2 mode)
   # Tailscale is still used for API access via the endpoint
   - |-
