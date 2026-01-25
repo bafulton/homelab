@@ -1,12 +1,21 @@
 namespace: kube-system
 
 image:
+  # Pod cleanup uses minimal kubectl image
   repository: registry.k8s.io/kubectl
   # Version managed by Renovate custom manager (grouped with Kubernetes upgrades)
   tag: "v1.35.0"
   pullPolicy: IfNotPresent
 
+  # ReplicaSet cleanup uses bitnami/kubectl (has bash/awk for scripting)
+  # Uses same tag as above
+
 podCleanup:
   enabled: true
   succeededSchedule: "* * * * *"     # every minute
   failedSchedule: "0 * * * *"        # every hour (failed pods wait up to 1h before deletion)
+
+replicasetCleanup:
+  enabled: true
+  schedule: "0 */6 * * *"            # every 6 hours
+  keepPerDeployment: 3               # keep newest 3 old ReplicaSets per Deployment

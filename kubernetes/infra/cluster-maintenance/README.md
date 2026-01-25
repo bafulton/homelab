@@ -13,25 +13,43 @@ Kubernetes' default garbage collection threshold (12500 pods) is too high for sm
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `podCleanup.enabled` | `true` | Enable/disable the cleanup CronJob |
-| `podCleanup.schedule` | `* * * * *` | Cron schedule (default: every minute) |
-| `podCleanup.succeededPodMaxAge` | `0` | Seconds before deleting Succeeded pods (0 = immediate) |
-| `podCleanup.failedPodMaxAge` | `3600` | Seconds before deleting Failed pods (default: 1 hour) |
+| `podCleanup.succeededSchedule` | `* * * * *` | Cron schedule for Succeeded pods (every minute) |
+| `podCleanup.failedSchedule` | `0 * * * *` | Cron schedule for Failed pods (every hour) |
 
 ### Behavior
 
-- **Succeeded (Completed) pods**: Deleted immediately by default. These are typically finished Jobs with no debugging value.
-- **Failed pods**: Kept for 1 hour for debugging, then deleted.
+- **Succeeded (Completed) pods**: Deleted every minute. These are typically finished Jobs with no debugging value.
+- **Failed pods**: Deleted every hour, giving time for debugging.
 
-### Logs
+## ReplicaSet Cleanup CronJob
+
+Cleans up old ReplicaSets to reduce clutter in the ArgoCD UI.
+
+When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (default: 10 per Deployment). This CronJob removes excess old ReplicaSets.
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `replicasetCleanup.enabled` | `true` | Enable/disable the cleanup CronJob |
+| `replicasetCleanup.schedule` | `0 */6 * * *` | Cron schedule (every 6 hours) |
+| `replicasetCleanup.keepPerDeployment` | `3` | Number of old ReplicaSets to keep per Deployment |
+
+### Behavior
+
+- Only deletes ReplicaSets with 0 replicas (inactive/old)
+- Groups by owner Deployment and keeps the newest N
+- Does not affect the current active ReplicaSet
+
+## Logs
 
 View cleanup logs:
 
 ```bash
-kubectl logs -n kube-system -l job-name --tail=50
-```
+# Pod cleanup
+kubectl logs -n kube-system -l job-name=cleanup-succeeded-pods --tail=20
+kubectl logs -n kube-system -l job-name=cleanup-failed-pods --tail=20
 
-Or for a specific run:
-
-```bash
-kubectl logs -n kube-system job/pod-cleanup-<timestamp>
+# ReplicaSet cleanup
+kubectl logs -n kube-system -l job-name=cleanup-old-replicasets --tail=50
 ```

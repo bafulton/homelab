@@ -15,7 +15,7 @@ spec:
       ttlSecondsAfterFinished: 60
       template:
         spec:
-          serviceAccountName: pod-cleanup
+          serviceAccountName: cluster-maintenance
           restartPolicy: OnFailure
           containers:
             - name: cleanup
@@ -52,7 +52,7 @@ spec:
       ttlSecondsAfterFinished: 60
       template:
         spec:
-          serviceAccountName: pod-cleanup
+          serviceAccountName: cluster-maintenance
           restartPolicy: OnFailure
           containers:
             - name: cleanup

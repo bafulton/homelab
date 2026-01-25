@@ -1,0 +1,58 @@
+{{- if .Values.replicasetCleanup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cleanup-old-replicasets
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ .Values.replicasetCleanup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 300
+      template:
+        spec:
+          serviceAccountName: cluster-maintenance
+          restartPolicy: OnFailure
+          containers:
+            - name: cleanup
+              image: bitnami/kubectl:{{ .Values.image.tag }}
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+                  KEEP={{ .Values.replicasetCleanup.keepPerDeployment }}
+                  echo "Cleaning up old ReplicaSets (keeping newest $KEEP per Deployment)..."
+
+                  # Get all ReplicaSets with 0 desired replicas, grouped by owner
+                  kubectl get rs -A -o jsonpath='{range .items[?(@.spec.replicas==0)]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.ownerReferences[0].name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
+                    sort -k3,3 -k4,4r | \
+                    awk -v keep="$KEEP" '
+                      {
+                        owner = $3
+                        count[owner]++
+                        if (count[owner] > keep) {
+                          print $1, $2
+                        }
+                      }
+                    ' | while read ns name; do
+                      echo "Deleting ReplicaSet $ns/$name"
+                      kubectl delete rs -n "$ns" "$name" --ignore-not-found
+                    done
+
+                  echo "Cleanup complete"
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1001
+                capabilities:
+                  drop: ["ALL"]
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+{{- end }}
