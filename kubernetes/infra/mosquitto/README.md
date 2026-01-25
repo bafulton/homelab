@@ -1,6 +1,6 @@
 # Mosquitto
 
-Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the message bus for Theengs Gateway (BLE sensor data) and Home Assistant.
+Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the message bus for OpenMQTTGateway (BLE sensor data) and Home Assistant.
 
 ## Access
 
@@ -30,11 +30,11 @@ Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the messag
 4. Port: `1883`
 5. No username/password required
 
-## Theengs Gateway Setup
+## OpenMQTTGateway Setup
 
-Configure your ESP32 running Theengs Gateway to connect to:
+The ESP32 running OpenMQTTGateway connects to:
 - **MQTT Host**: `mosquitto.local` (or `192.168.0.202`)
 - **MQTT Port**: `1883`
 - **No authentication required**
 
-Theengs Gateway will decode BLE advertisements from Govee sensors and publish to MQTT topics that Home Assistant auto-discovers.
+OpenMQTTGateway decodes BLE advertisements from Govee sensors and publishes to MQTT topics that Home Assistant auto-discovers.
