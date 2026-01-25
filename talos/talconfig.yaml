@@ -79,7 +79,7 @@ nodes:
     # Community talos-rpi5 image - official Talos doesn't support RPi5 yet
     # See talos/rpi5-migration-plan.md for upgrade path to official images
     talosImageURL: ghcr.io/talos-rpi5/installer:v1.11.5
-    talosVersion: v1.11.5  # Override cluster version for RPi5 compatibility
+    talosVersion: v1.12.2  # Override cluster version for RPi5 compatibility
     patches:
       # Disable Tailscale extension config (not included in base talos-rpi5 image)
       # Will be enabled after upgrading with extensions
