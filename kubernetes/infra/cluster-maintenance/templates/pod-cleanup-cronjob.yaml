@@ -30,7 +30,7 @@ spec:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
                 runAsNonRoot: true
-                runAsUser: 1000
+                runAsUser: 1001
                 capabilities:
                   drop: ["ALL"]
           securityContext:
@@ -67,7 +67,7 @@ spec:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
                 runAsNonRoot: true
-                runAsUser: 1000
+                runAsUser: 1001
                 capabilities:
                   drop: ["ALL"]
           securityContext:

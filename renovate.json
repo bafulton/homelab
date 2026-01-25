@@ -36,14 +36,6 @@
     },
     {
       "customType": "regex",
-      "description": "Track kubectl version (should match Kubernetes version)",
-      "fileMatch": ["kubernetes/infra/cluster-maintenance/values\\.yaml$"],
-      "matchStrings": ["repository: registry\\.k8s\\.io/kubectl\\n\\s+#.*\\n\\s+tag: [\"']?(?<currentValue>v[\\d\\.]+)[\"']?"],
-      "depNameTemplate": "registry.k8s.io/kubectl",
-      "datasourceTemplate": "docker"
-    },
-    {
-      "customType": "regex",
       "description": "Track argocd-diff-preview Docker image in GitHub Actions",
       "fileMatch": ["\\.github/workflows/.*\\.yaml$"],
       "matchStrings": ["dagandersen/argocd-diff-preview:(?<currentValue>v[\\d\\.]+)"],

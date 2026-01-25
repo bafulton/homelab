@@ -1,14 +1,9 @@
 namespace: kube-system
 
 image:
-  # Pod cleanup uses minimal kubectl image
-  repository: registry.k8s.io/kubectl
-  # Version managed by Renovate custom manager (grouped with Kubernetes upgrades)
-  tag: "v1.35.0"
-  pullPolicy: IfNotPresent
-
-bitnamiImage:
-  # ReplicaSet cleanup uses bitnami/kubectl (has bash/awk for scripting)
+  # Bitnami kubectl includes bash/awk needed for ReplicaSet cleanup scripting.
+  # Bitnami doesn't publish semantic version tags, only 'latest' and sha256 digests.
+  # This is acceptable for a homelab - the image is well-maintained by VMware/Bitnami.
   repository: bitnami/kubectl
   tag: "latest"
   pullPolicy: IfNotPresent
