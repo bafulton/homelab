@@ -1,6 +1,12 @@
 namespace: smartctl-exporter
 
 prometheus-smartctl-exporter:
+  # Use community multi-arch image (official image is amd64-only)
+  # https://github.com/prometheus-community/smartctl_exporter/issues/105
+  image:
+    repository: ghcr.io/joryirving/smartctl_exporter
+    tag: 0.14.0
+
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
   # Note: signoz-k8s-infra scrapes based on POD annotations, not service
   podAnnotations:
