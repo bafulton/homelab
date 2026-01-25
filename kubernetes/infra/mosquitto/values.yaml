@@ -1,5 +1,13 @@
 namespace: mosquitto
 
+# Ignore deployment strategy - we manually set Recreate for RWO PVC compatibility
+# (upstream chart doesn't support strategy configuration)
+ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jsonPointers:
+      - /spec/strategy
+
 mosquitto:
   # MetalLB LoadBalancer for LAN access (Theengs Gateway, etc.)
   service:
