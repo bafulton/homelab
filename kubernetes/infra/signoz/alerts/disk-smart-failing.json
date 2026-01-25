@@ -1,0 +1,69 @@
+{
+  "alert": "Disk SMART Health Failing",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "5m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "Disk SMART self-assessment test is failing - disk may be dying",
+  "summary": "Disk SMART health check failed",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 0,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "smartctl_device_smart_status",
+                "temporality": "",
+                "timeAggregation": "min",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "device",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{k8s.node.name}} - {{device}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "3",
+    "target": 1,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}
