@@ -24,7 +24,7 @@ spec:
             - -c
             - |
               set -e
-              pip install --quiet zeroconf kubernetes pyyaml
+              pip install --quiet --root-user-action=ignore zeroconf kubernetes pyyaml
 
               python3 -u << 'PYTHON_SCRIPT'
               from zeroconf import ServiceInfo, Zeroconf
