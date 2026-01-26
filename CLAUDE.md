@@ -95,6 +95,32 @@ traefik-ingress:
 
 Add to `/etc/hosts`: `192.168.0.200    my-app.local`
 
+### mDNS Advertisement
+
+For LAN service discovery (Bonjour/Zeroconf), use the `mdns-config` shared chart:
+
+```yaml
+# Chart.yaml
+dependencies:
+  - name: mdns-config
+    version: 1.0.0
+    repository: file://../../../charts/mdns-config
+    condition: mdns-config.enabled
+
+# values.yaml
+mdns-config:
+  enabled: true
+  services:
+    - name: My App
+      hostname: myapp        # becomes myapp.local
+      ip: 192.168.0.200      # MetalLB or Traefik IP
+      port: 80
+      types:
+        - type: _http._tcp
+```
+
+The central `mdns-advertiser` discovers labeled ConfigMaps and advertises them via mDNS.
+
 ### PodSecurity
 
 Kubernetes enforces PodSecurity standards. Most namespaces use "baseline" but some require "privileged":
