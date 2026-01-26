@@ -146,3 +146,16 @@ longhorn-storage:
       groups:
         - home-assistant
       retain: 5
+
+# mDNS advertisement for Home Assistant auto-discovery
+# Routes through Traefik's MetalLB IP (192.168.0.200)
+mdns-config:
+  enabled: true
+  services:
+    - name: Home Assistant
+      hostname: home
+      ip: 192.168.0.200
+      port: 80
+      types:
+        - type: _home-assistant._tcp
+        - type: _http._tcp
