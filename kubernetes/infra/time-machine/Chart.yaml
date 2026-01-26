@@ -9,3 +9,7 @@ dependencies:
     version: 1.0.0
     repository: file://../../../charts/bitwarden-secret
     condition: bitwarden-secret.enabled
+  - name: mdns-config
+    version: 1.0.0
+    repository: file://../../../charts/mdns-config
+    condition: mdns-config.enabled
