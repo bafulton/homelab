@@ -55,11 +55,11 @@ storageClasses:
     dataLocality: disabled
 
   # USB - for Jellyfin media library
-  # Replicated across beelink and rpi5 USB drives
+  # Replicated across beelink and rpi5 USB drives, no data locality to avoid orphaned replicas
   - name: longhorn-usb
     diskSelector: usb
     replicas: 2
-    dataLocality: best-effort
+    dataLocality: disabled
 
 longhorn:
   # Talos-specific configuration

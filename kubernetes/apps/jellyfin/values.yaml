@@ -46,6 +46,11 @@ longhorn-storage:
 
 # Jellyfin chart configuration
 jellyfin:
+  # Pin to nodes with USB storage and Intel GPU
+  # GPU constraint is also enforced via gpu.intel.com/i915 resource request
+  nodeSelector:
+    storage.homelab/usb: "true"
+
   # Use existing PVCs created by longhorn-storage chart
   persistence:
     config:
