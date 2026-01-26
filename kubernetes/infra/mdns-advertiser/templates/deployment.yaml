@@ -40,11 +40,11 @@ spec:
               v1 = client.CoreV1Api()
 
               zc = Zeroconf()
-              registered_services = {}  # configmap_key -> list of ServiceInfo
+              registered_services = {}  # configmap_key -> (name, ip, port, list of ServiceInfo)
 
               def shutdown(signum, frame):
                   print("Shutting down mDNS advertiser...")
-                  for infos in registered_services.values():
+                  for name, ip, port, infos in registered_services.values():
                       for info in infos:
                           zc.unregister_service(info)
                   zc.close()
@@ -64,7 +64,7 @@ spec:
                   return props
 
               def register_service(svc_config):
-                  """Register mDNS services for a config and return list of ServiceInfo."""
+                  """Register mDNS services for a config and return (name, ip, port, infos)."""
                   infos = []
                   name = svc_config['name']
                   hostname = svc_config['hostname']
@@ -88,21 +88,24 @@ spec:
                       zc.register_service(info, cooperating_responders=True)
                       infos.append(info)
 
-                  return infos
+                  return (name, ip, port, infos)
 
-              def unregister_services(infos):
+              def unregister_service(name, ip, port, infos):
                   """Unregister a list of ServiceInfo."""
+                  print(f"Unpublishing {name} ({ip}:{port})")
                   for info in infos:
                       zc.unregister_service(info)
 
               def sync_services():
-                  """Sync mDNS services with ConfigMaps labeled mdns.homelab.io/advertise=true."""
+                  """Sync mDNS services with ConfigMaps labeled mdns.homelab.io/advertise=true.
+                  Returns True if services were added or removed."""
                   # List all ConfigMaps with the label across all namespaces
                   cms = v1.list_config_map_for_all_namespaces(
                       label_selector="mdns.homelab.io/advertise=true"
                   )
 
                   current_keys = set()
+                  changed = False
 
                   for cm in cms.items:
                       key = f"{cm.metadata.namespace}/{cm.metadata.name}"
@@ -120,17 +123,20 @@ spec:
 
                       try:
                           svc_config = yaml.safe_load(config_yaml)
-                          infos = register_service(svc_config)
-                          registered_services[key] = infos
+                          registered_services[key] = register_service(svc_config)
+                          changed = True
                       except Exception as e:
                           print(f"Error processing ConfigMap {key}: {e}")
 
                   # Unregister services for removed ConfigMaps
                   removed_keys = set(registered_services.keys()) - current_keys
                   for key in removed_keys:
-                      print(f"Unregistering services from removed ConfigMap: {key}")
-                      unregister_services(registered_services[key])
+                      name, ip, port, infos = registered_services[key]
+                      unregister_service(name, ip, port, infos)
                       del registered_services[key]
+                      changed = True
+
+                  return changed
 
               # Initial sync
               sync_services()
@@ -140,7 +146,8 @@ spec:
               while True:
                   time.sleep(30)
                   try:
-                      sync_services()
+                      if sync_services():
+                          print(f"mDNS advertisements active ({len(registered_services)} services)")
                   except Exception as e:
                       print(f"Error syncing services: {e}")
               PYTHON_SCRIPT
