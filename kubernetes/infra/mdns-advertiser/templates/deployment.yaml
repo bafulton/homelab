@@ -12,6 +12,7 @@ spec:
       labels:
         app.kubernetes.io/name: mdns-advertiser
     spec:
+      serviceAccountName: mdns-advertiser
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:
@@ -23,57 +24,123 @@ spec:
             - -c
             - |
               set -e
-              pip install --quiet zeroconf
+              pip install --quiet zeroconf kubernetes pyyaml
 
               python3 -u << 'PYTHON_SCRIPT'
               from zeroconf import ServiceInfo, Zeroconf
+              from kubernetes import client, config
               import socket
               import signal
               import time
+              import yaml
+              import sys
+
+              # Load in-cluster config
+              config.load_incluster_config()
+              v1 = client.CoreV1Api()
 
               zc = Zeroconf()
-              services = []
+              registered_services = {}  # configmap_key -> list of ServiceInfo
 
               def shutdown(signum, frame):
                   print("Shutting down mDNS advertiser...")
-                  for info in services:
-                      zc.unregister_service(info)
+                  for infos in registered_services.values():
+                      for info in infos:
+                          zc.unregister_service(info)
                   zc.close()
-                  exit(0)
+                  sys.exit(0)
 
               signal.signal(signal.SIGTERM, shutdown)
               signal.signal(signal.SIGINT, shutdown)
 
-              {{- range .Values.services }}
-              {{- $svc := . }}
-              # Register {{ .name }}
-              print("Publishing {{ .name }} ({{ .ip }}:{{ .port }})")
+              def parse_txt_records(txt_records):
+                  """Parse TXT records from list of 'key=value' strings to dict."""
+                  props = {}
+                  if txt_records:
+                      for record in txt_records:
+                          if '=' in record:
+                              key, value = record.split('=', 1)
+                              props[key] = value
+                  return props
 
-              {{- range .types }}
-              info = ServiceInfo(
-                  "{{ .type }}.local.",
-                  "{{ $svc.name }}.{{ .type }}.local.",
-                  addresses=[socket.inet_aton("{{ $svc.ip }}")],
-                  port={{ $svc.port }},
-                  properties={
-                      {{- if .txtRecords }}
-                      {{- range .txtRecords }}
-                      {{- $key := regexFind "^[^=]+" . }}
-                      "{{ $key }}": "{{ trimPrefix (printf "%s=" $key) . }}",
-                      {{- end }}
-                      {{- end }}
-                  },
-                  server="{{ $svc.hostname }}.local."
-              )
-              zc.register_service(info, cooperating_responders=True)
-              services.append(info)
-              {{- end }}
+              def register_service(svc_config):
+                  """Register mDNS services for a config and return list of ServiceInfo."""
+                  infos = []
+                  name = svc_config['name']
+                  hostname = svc_config['hostname']
+                  ip = svc_config['ip']
+                  port = svc_config['port']
 
-              {{- end }}
+                  print(f"Publishing {name} ({ip}:{port})")
 
-              print("mDNS advertisements active")
+                  for svc_type in svc_config.get('types', []):
+                      type_str = svc_type['type']
+                      txt_records = svc_type.get('txtRecords', [])
 
-              # Keep running
+                      info = ServiceInfo(
+                          f"{type_str}.local.",
+                          f"{name}.{type_str}.local.",
+                          addresses=[socket.inet_aton(ip)],
+                          port=port,
+                          properties=parse_txt_records(txt_records),
+                          server=f"{hostname}.local."
+                      )
+                      zc.register_service(info, cooperating_responders=True)
+                      infos.append(info)
+
+                  return infos
+
+              def unregister_services(infos):
+                  """Unregister a list of ServiceInfo."""
+                  for info in infos:
+                      zc.unregister_service(info)
+
+              def sync_services():
+                  """Sync mDNS services with ConfigMaps labeled mdns.homelab.io/advertise=true."""
+                  # List all ConfigMaps with the label across all namespaces
+                  cms = v1.list_config_map_for_all_namespaces(
+                      label_selector="mdns.homelab.io/advertise=true"
+                  )
+
+                  current_keys = set()
+
+                  for cm in cms.items:
+                      key = f"{cm.metadata.namespace}/{cm.metadata.name}"
+                      current_keys.add(key)
+
+                      # Skip if already registered
+                      if key in registered_services:
+                          continue
+
+                      # Parse config from ConfigMap
+                      config_yaml = cm.data.get('config.yaml', '')
+                      if not config_yaml:
+                          print(f"Warning: ConfigMap {key} has no config.yaml")
+                          continue
+
+                      try:
+                          svc_config = yaml.safe_load(config_yaml)
+                          infos = register_service(svc_config)
+                          registered_services[key] = infos
+                      except Exception as e:
+                          print(f"Error processing ConfigMap {key}: {e}")
+
+                  # Unregister services for removed ConfigMaps
+                  removed_keys = set(registered_services.keys()) - current_keys
+                  for key in removed_keys:
+                      print(f"Unregistering services from removed ConfigMap: {key}")
+                      unregister_services(registered_services[key])
+                      del registered_services[key]
+
+              # Initial sync
+              sync_services()
+              print(f"mDNS advertisements active ({len(registered_services)} services)")
+
+              # Poll for changes every 30 seconds
               while True:
-                  time.sleep(60)
+                  time.sleep(30)
+                  try:
+                      sync_services()
+                  except Exception as e:
+                      print(f"Error syncing services: {e}")
               PYTHON_SCRIPT

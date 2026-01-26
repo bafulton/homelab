@@ -6,54 +6,5 @@ image:
   tag: 3.14-alpine
   pullPolicy: IfNotPresent
 
-services:
-  # Time Machine backup server
-  # Display name is "Time Machine", hostname is "timemachine" (Samba accepts both via netbios alias)
-  - name: Time Machine
-    hostname: timemachine
-    ip: 192.168.0.201  # Must match time-machine service.loadBalancerIP
-    port: 445
-    types:
-      # SMB file sharing
-      - type: _smb._tcp
-      # Apple disk service (required for Time Machine auto-discovery)
-      # Single shared volume with per-machine quotas via .quota.plist
-      - type: _adisk._tcp
-        txtRecords:
-          - "sys=adVF=0x100"
-          - "dk0=adVN=Family,adVF=0x82"
-      # Device info (shows as Time Capsule in Finder)
-      - type: _device-info._tcp
-        txtRecords:
-          - "model=TimeCapsule8,119"
-
-  # Home Assistant smart home platform
-  # Routes through Traefik's MetalLB IP so we don't need a dedicated IP
-  - name: Home Assistant
-    hostname: home
-    ip: 192.168.0.200  # Traefik LoadBalancer IP
-    port: 80
-    types:
-      # Home Assistant auto-discovery
-      - type: _home-assistant._tcp
-      # HTTP service for general discovery
-      - type: _http._tcp
-
-  # Jellyfin media server
-  # Routes through Traefik's MetalLB IP
-  - name: Jellyfin
-    hostname: media
-    ip: 192.168.0.200  # Traefik LoadBalancer IP
-    port: 80
-    types:
-      # HTTP service for general discovery
-      - type: _http._tcp
-
-  # Mosquitto MQTT broker
-  # For Theengs Gateway and other LAN devices
-  - name: Mosquitto
-    hostname: mosquitto
-    ip: 192.168.0.202
-    port: 1883
-    types:
-      - type: _mqtt._tcp
+# Services are now configured in individual apps using the mdns-service shared chart.
+# The advertiser discovers ConfigMaps with label: mdns.homelab.io/advertise=true
