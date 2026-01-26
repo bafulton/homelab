@@ -13,6 +13,8 @@ spec:
       labels:
         app.kubernetes.io/name: time-machine
     spec:
+      nodeSelector:
+        storage.homelab/nvme: "true"
       containers:
         - name: time-machine
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
