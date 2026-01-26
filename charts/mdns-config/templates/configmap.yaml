@@ -1,0 +1,27 @@
+{{- if .Values.enabled }}
+{{- range .Values.services }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-mdns-{{ .hostname }}
+  labels:
+    mdns.homelab.io/advertise: "true"
+data:
+  config.yaml: |
+    name: {{ .name | quote }}
+    hostname: {{ .hostname | quote }}
+    ip: {{ .ip | quote }}
+    port: {{ .port }}
+    types:
+    {{- range .types }}
+      - type: {{ .type | quote }}
+        {{- if .txtRecords }}
+        txtRecords:
+          {{- range .txtRecords }}
+          - {{ . | quote }}
+          {{- end }}
+        {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
