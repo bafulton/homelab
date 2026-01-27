@@ -37,6 +37,49 @@ The Matter Server also uses hostNetwork and communicates with Home Assistant via
 
 Exposes Prometheus metrics at `/api/prometheus` for SigNoz integration. The endpoint requires no authentication for cluster-internal scraping.
 
+## GitOps Packages
+
+Home Assistant automations, scripts, and sensors are managed via GitOps using HA's [packages](https://www.home-assistant.io/docs/configuration/packages/) feature. Package files in `files/packages/` are automatically mounted into the container.
+
+### Current Packages
+
+| Package | Purpose |
+|---------|---------|
+| `light-effects.yaml` | Color cycling effects for smart bulbs |
+| `network-sensors.yaml` | Network sensors |
+
+### Adding a New Package
+
+1. Create a YAML file in `files/packages/`:
+   ```yaml
+   # files/packages/my-feature.yaml
+   automation:
+     - alias: "My Automation"
+       trigger:
+         # ...
+   ```
+2. Commit and push - ArgoCD syncs automatically
+3. Home Assistant reloads the package on restart
+
+### Dashboard Buttons for Light Effects
+
+Add buttons to your HA dashboard that set the `input_select.light_effect` entity. Example button:
+
+```yaml
+type: button
+name: Rainbow
+icon: mdi:looks
+tap_action:
+  action: call-service
+  service: input_select.select_option
+  target:
+    entity_id: input_select.light_effect
+  data:
+    option: Rainbow  # Use any option from light-effects.yaml
+```
+
+Use `script.reset_lights_to_normal` to turn off effects and restore normal lighting.
+
 ## Initial Setup
 
 1. Wait for ArgoCD to sync the app

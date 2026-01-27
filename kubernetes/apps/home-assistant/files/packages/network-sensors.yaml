@@ -1,0 +1,7 @@
+# Network Sensors Package
+# Sensors for monitoring network devices and connectivity
+
+sensor:
+  - platform: google_wifi
+    host: 192.168.0.1
+    name: Google Wifi

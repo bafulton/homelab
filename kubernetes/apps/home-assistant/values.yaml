@@ -46,6 +46,8 @@ home-assistant:
         elevation: 268  # 880 feet in meters
         unit_system: us_customary
         time_zone: America/New_York
+        # Load GitOps-managed packages from ConfigMap
+        packages: !include_dir_named packages
 
       # HTTP configuration for reverse proxy (Tailscale)
       http:
@@ -63,11 +65,6 @@ home-assistant:
       # requires_auth: false allows cluster-internal scraping without a token
       prometheus:
         requires_auth: false
-
-      # Google Wifi network status sensor
-      sensor:
-        - platform: google_wifi
-          host: 192.168.0.1
 
   # Recreate strategy required because hostNetwork: true means only one pod can bind port 8123
   deploymentStrategy: Recreate
@@ -106,6 +103,17 @@ home-assistant:
     periodSeconds: 10
     timeoutSeconds: 2
     failureThreshold: 30
+
+  # Mount GitOps-managed packages from ConfigMap
+  extraVolumes:
+    - name: packages
+      configMap:
+        name: home-assistant-packages
+
+  extraVolumeMounts:
+    - name: packages
+      mountPath: /config/packages
+      readOnly: true
 
 # AirCast - AirPlay bridge for Chromecast devices
 # Allows streaming audio from Apple devices to Chromecast speakers

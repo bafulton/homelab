@@ -1,0 +1,71 @@
+# Light Effects Package
+# Cycles smart bulbs through color themes via dashboard buttons
+
+input_select:
+  light_effect:
+    name: Light Effect
+    options:
+      - "Off"
+      - Rainbow
+      - Love
+    initial: "Off"
+    icon: mdi:palette
+
+automation:
+  - alias: "Color Cycle Effects"
+    id: color_cycle_effects
+    description: "Cycles room lights through colors based on selected effect"
+    trigger:
+      - platform: time_pattern
+        seconds: "/5"
+    condition:
+      - condition: not
+        conditions:
+          - condition: state
+            entity_id: input_select.light_effect
+            state: "Off"
+    action:
+      - choose:
+          # Rainbow - full spectrum
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Rainbow"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [(now().timestamp() * 1.2 | int % 360), 100] }}"
+                  transition: 4
+
+          # Love - reds and pinks (hue 330-30)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Love"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [(330 + (now().timestamp() * 1.2 | int % 60)) % 360, 100] }}"
+                  transition: 4
+
+script:
+  reset_lights_to_normal:
+    alias: "Reset Lights to Normal"
+    icon: mdi:lightbulb
+    sequence:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.light_effect
+        data:
+          option: "Off"
+      - service: light.turn_on
+        target:
+          area_id: bedroom
+        data:
+          color_temp_kelvin: 3000
+          brightness_pct: 100
+          transition: 2
