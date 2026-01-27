@@ -105,12 +105,12 @@ home-assistant:
     failureThreshold: 30
 
   # Mount GitOps-managed packages from ConfigMap
-  extraVolumes:
+  additionalVolumes:
     - name: packages
       configMap:
         name: home-assistant-packages
 
-  extraVolumeMounts:
+  additionalMounts:
     - name: packages
       mountPath: /config/packages
       readOnly: true
