@@ -19,7 +19,6 @@ ignoreDifferences:
 # ArgoCD Vault Plugin - injects secrets from K8s Secrets
 avp:
   enabled: true
-  version: v1.18.1
 
 tailscale-ingress:
   enabled: true
@@ -91,10 +90,16 @@ argo-cd:
         # renovate: datasource=docker depName=alpine
         image: alpine:3.23
         command: [sh, -c]
+        # renovate: datasource=github-releases depName=argoproj-labs/argocd-vault-plugin
         args:
           - |
+            ARCH=$(uname -m)
+            case $ARCH in
+              x86_64) ARCH=amd64 ;;
+              aarch64) ARCH=arm64 ;;
+            esac
             wget -qO /custom-tools/argocd-vault-plugin \
-              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.18.1/argocd-vault-plugin_1.18.1_linux_amd64 && \
+              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.18.1/argocd-vault-plugin_1.18.1_linux_${ARCH} && \
             chmod +x /custom-tools/argocd-vault-plugin
         volumeMounts:
           - name: custom-tools
