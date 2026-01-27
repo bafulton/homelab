@@ -81,6 +81,30 @@ tap_action:
 
 Use `script.reset_lights_to_normal` to turn off effects and restore normal lighting.
 
+## Integrations (UI-configured)
+
+These integrations are configured through the Home Assistant UI and stored in the PVC. They cannot be GitOps-managed but are documented here for reference.
+
+| Integration | Type | Notes |
+|-------------|------|-------|
+| Apple TV | Autodiscovered | |
+| Backup | Built-in | Optional - Longhorn also backs up the PVC |
+| Brother Printer | Autodiscovered | MFC-L2710DW |
+| Eufy Robovac | Manual | |
+| Google Wifi | Manual | 192.168.0.1 |
+| HACS | Manual | Custom components store |
+| HomeKit Bridge | Manual | Expose HA entities to Apple Home |
+| HomeKit Device | Autodiscovered | |
+| IPP | Autodiscovered | Internet Printing Protocol |
+| Matter | Manual | WebSocket: `ws://matter-server:5580/ws` |
+| Mobile App | Manual | HA Companion app |
+| MQTT | Manual | Broker: `mosquitto.mosquitto.svc` |
+| Prometheus | Manual | Metrics endpoint |
+| Sun | Built-in | Sunrise/sunset tracking |
+| Thread | Manual | Matter networking |
+| TP-Link Smart Home | Manual | Kasa devices |
+| UPnP/IGD | Autodiscovered | |
+
 ## Initial Setup
 
 1. Wait for ArgoCD to sync the app
