@@ -8,6 +8,11 @@ input_select:
       - "Off"
       - Rainbow
       - Love
+      - Ocean
+      - Forest
+      - Sunset
+      - Aurora
+      - Candlelight
     initial: "Off"
     icon: mdi:palette
 
@@ -26,7 +31,7 @@ automation:
             state: "Off"
     action:
       - choose:
-          # Rainbow - full spectrum
+          # Rainbow - full spectrum (fast ~1.5 min cycle)
           - conditions:
               - condition: state
                 entity_id: input_select.light_effect
@@ -36,7 +41,7 @@ automation:
                 target:
                   area_id: bedroom
                 data:
-                  hs_color: "{{ [(now().timestamp() * 1.2 | int % 360), 100] }}"
+                  hs_color: "{{ [(now().timestamp() * 4 | int % 360), 100] }}"
                   transition: 4
 
           # Love - reds and pinks (hue 330-30)
@@ -50,6 +55,74 @@ automation:
                   area_id: bedroom
                 data:
                   hs_color: "{{ [(330 + (now().timestamp() * 1.2 | int % 60)) % 360, 100] }}"
+                  transition: 4
+
+          # Ocean - blues and cyans (hue 180-240)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Ocean"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [180 + (now().timestamp() * 0.8 | int % 60), 100] }}"
+                  transition: 4
+
+          # Forest - greens (hue 90-150)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Forest"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [90 + (now().timestamp() * 0.8 | int % 60), 80] }}"
+                  transition: 4
+
+          # Sunset - warm reds, oranges, yellows (hue 0-45)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Sunset"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [(now().timestamp() * 0.6 | int % 45), 100] }}"
+                  transition: 4
+
+          # Aurora - alternating greens (90-150) and purples (270-330)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Aurora"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: >
+                    {% set t = now().timestamp() * 0.8 | int % 120 %}
+                    {{ [90 + t if t < 60 else 270 + (t - 60), 80] }}
+                  transition: 4
+
+          # Candlelight - warm flickering yellows/oranges (hue 25-45, lower saturation)
+          - conditions:
+              - condition: state
+                entity_id: input_select.light_effect
+                state: "Candlelight"
+            sequence:
+              - service: light.turn_on
+                target:
+                  area_id: bedroom
+                data:
+                  hs_color: "{{ [25 + (now().timestamp() * 0.5 | int % 20), 60] }}"
+                  brightness_pct: "{{ 70 + (now().timestamp() | int % 20) }}"
                   transition: 4
 
 script:
