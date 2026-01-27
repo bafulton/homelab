@@ -45,8 +45,8 @@ Home Assistant automations, scripts, and sensors are managed via GitOps using HA
 
 | Package | Purpose |
 |---------|---------|
-| `light-effects.yaml` | Color cycling effects for smart bulbs |
-| `network-sensors.yaml` | Network sensors |
+| `light_effects.yaml` | Color cycling effects for smart bulbs |
+| `network_sensors.yaml` | Network sensors |
 
 ### Adding a New Package
 
