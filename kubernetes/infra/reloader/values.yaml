@@ -1,0 +1,7 @@
+namespace: reloader
+
+reloader:
+  reloader:
+    watchGlobally: true
+    autoReloadAll: true
+    logFormat: json
