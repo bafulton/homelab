@@ -1,0 +1,9 @@
+# Sensor Fixes Package
+# Temporary workarounds for upstream bugs
+
+homeassistant:
+  customize:
+    # Fix missing unit_of_measurement for Govee H5140 CO2 sensor
+    # Workaround until 1technophile/OpenMQTTGateway#2279 is released
+    sensor.co2:
+      unit_of_measurement: "ppm"
