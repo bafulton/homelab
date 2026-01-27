@@ -5,5 +5,6 @@ homeassistant:
   customize:
     # Fix missing unit_of_measurement for Govee H5140 CO2 sensor
     # Workaround until 1technophile/OpenMQTTGateway#2279 is released
+    # Note: HA still logs a warning but the unit displays correctly
     sensor.co2:
       unit_of_measurement: "ppm"
