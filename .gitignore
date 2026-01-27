@@ -3,6 +3,10 @@
 # Helm dependency charts (downloaded by helm dep update)
 kubernetes/**/charts/
 
+# Helm lockfiles (except argocd which needs pinned versions)
+**/Chart.lock
+!kubernetes/infra/argocd/Chart.lock
+
 # Talos generated configs contain secrets
 talos/clusterconfig/
 talos/talsecret.yaml
