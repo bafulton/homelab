@@ -40,18 +40,11 @@ spec:
               value: {{ .Values.healthchecks.interval | quote }}
             - name: PING_TIMEOUT
               value: {{ .Values.healthchecks.timeout | quote }}
-            - name: INCLUDE_BODY
-              value: {{ .Values.healthchecks.includeBody | quote }}
-            - name: POD_START_TIME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.creationTimestamp
           command:
             - /bin/sh
             - -c
             - |
               set -e
-              apk add --no-cache curl > /dev/null
 
               echo "Starting health pinger for node: ${NODE_NAME}"
               echo "Ping URL: ${PING_URL}/<key>/${NODE_NAME}"
@@ -59,21 +52,7 @@ spec:
 
               ping_healthchecks() {
                 local url="${PING_URL}/${PING_KEY}/${NODE_NAME}"
-                local body=""
-
-                if [ "${INCLUDE_BODY}" = "true" ]; then
-                  # Calculate uptime from pod start
-                  local now=$(date +%s)
-                  local start=$(date -d "${POD_START_TIME}" +%s 2>/dev/null || echo "${now}")
-                  local uptime=$((now - start))
-                  body="node=${NODE_NAME} uptime=${uptime}s"
-                fi
-
-                if [ -n "${body}" ]; then
-                  curl -fsS -m "${PING_TIMEOUT}" --data-raw "${body}" "${url}" > /dev/null
-                else
-                  curl -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
-                fi
+                curl -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
               }
 
               # Retry helper with single retry
@@ -109,8 +88,8 @@ spec:
               memory: 32Mi
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # apk needs to write
-            runAsNonRoot: false  # alpine base needs root for apk
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
             capabilities:
               drop:
                 - ALL

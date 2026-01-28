@@ -1,9 +1,9 @@
 namespace: node-health
 
 image:
-  repository: alpine
-  # renovate: datasource=docker depName=alpine versioning=docker
-  tag: "3.21"
+  repository: curlimages/curl
+  # renovate: datasource=docker depName=curlimages/curl versioning=docker
+  tag: "8.18.0"
   pullPolicy: IfNotPresent
 
 healthchecks:
@@ -15,8 +15,6 @@ healthchecks:
   gracePeriod: 300
   # Timeout for curl requests in seconds
   timeout: 10
-  # Whether to include diagnostic info in ping body
-  includeBody: true
 
 bitwarden-secret:
   enabled: true
