@@ -39,18 +39,18 @@ dependencies:
   - name: traefik-ingress
     version: 1.0.0
     repository: file://../../../charts/traefik-ingress
-    condition: traefik-ingress.enabled
 ```
 
 Configure in `values.yaml`:
 
 ```yaml
 traefik-ingress:
-  enabled: true
-  hostname: myapp.local
-  service:
-    name: myapp-server
-    port: 8080
+  ingresses:
+    - name: lan
+      hostname: myapp.local
+      service:
+        name: myapp-server
+        port: 8080
 ```
 
 ### Option 2: Create IngressRoute manually

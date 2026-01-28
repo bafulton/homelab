@@ -85,10 +85,12 @@ dependencies:
 
 # values.yaml
 traefik-ingress:
-  hostname: my-app.local
-  service:
-    name: my-app-server
-    port: 8080
+  ingresses:
+    - name: lan
+      hostname: my-app.local
+      service:
+        name: my-app-server
+        port: 8080
 ```
 
 Add to `/etc/hosts`: `192.168.0.200    my-app.local`

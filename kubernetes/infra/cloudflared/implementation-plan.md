@@ -350,7 +350,6 @@ With wildcard DNS, adding a new public service is simple:
 1. **Add public ingress to the app's `values.yaml`:**
    ```yaml
    traefik-ingress:
-     enabled: true
      ingresses:
        - name: public
          hostname: myapp.catfish-mountain.com
