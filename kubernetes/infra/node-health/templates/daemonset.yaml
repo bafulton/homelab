@@ -51,7 +51,7 @@ spec:
               echo "Interval: ${PING_INTERVAL}s, Timeout: ${PING_TIMEOUT}s"
 
               ping_healthchecks() {
-                local url="${PING_URL}/${PING_KEY}/${NODE_NAME}"
+                local url="${PING_URL}/${PING_KEY}/${NODE_NAME}?create=1"
                 curl -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
               }
 
