@@ -1,0 +1,26 @@
+namespace: node-health
+
+image:
+  repository: alpine
+  # renovate: datasource=docker depName=alpine versioning=docker
+  tag: "3.21"
+  pullPolicy: IfNotPresent
+
+healthchecks:
+  pingUrl: https://hc-ping.com
+  # Ping interval in seconds (default: 2 minutes)
+  interval: 120
+  # Recommended grace period in healthchecks.io UI (informational)
+  # Should be 2-3x the interval to handle temporary network issues
+  gracePeriod: 300
+  # Timeout for curl requests in seconds
+  timeout: 10
+  # Whether to include diagnostic info in ping body
+  includeBody: true
+
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: healthchecks-ping-key
+      data:
+        ping-key: "bb1e5466-8bee-4a27-a2d5-b3e00030a9f8"

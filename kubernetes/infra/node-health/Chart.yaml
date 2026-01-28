@@ -1,0 +1,11 @@
+apiVersion: v2
+name: node-health
+description: External dead man's switch monitoring via healthchecks.io
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+dependencies:
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
+    condition: bitwarden-secret.enabled

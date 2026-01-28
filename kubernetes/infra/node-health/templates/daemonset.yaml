@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-health
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: node-health
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-health
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-health
+    spec:
+      # Tolerate all taints to run on ALL nodes including control plane
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      containers:
+        - name: health-pinger
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: PING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: healthchecks-ping-key
+                  key: ping-key
+            - name: PING_URL
+              value: {{ .Values.healthchecks.pingUrl | quote }}
+            - name: PING_INTERVAL
+              value: {{ .Values.healthchecks.interval | quote }}
+            - name: PING_TIMEOUT
+              value: {{ .Values.healthchecks.timeout | quote }}
+            - name: INCLUDE_BODY
+              value: {{ .Values.healthchecks.includeBody | quote }}
+            - name: POD_START_TIME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.creationTimestamp
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+              apk add --no-cache curl > /dev/null
+
+              echo "Starting health pinger for node: ${NODE_NAME}"
+              echo "Ping URL: ${PING_URL}/<key>/${NODE_NAME}"
+              echo "Interval: ${PING_INTERVAL}s, Timeout: ${PING_TIMEOUT}s"
+
+              ping_healthchecks() {
+                local url="${PING_URL}/${PING_KEY}/${NODE_NAME}"
+                local body=""
+
+                if [ "${INCLUDE_BODY}" = "true" ]; then
+                  # Calculate uptime from pod start
+                  local now=$(date +%s)
+                  local start=$(date -d "${POD_START_TIME}" +%s 2>/dev/null || echo "${now}")
+                  local uptime=$((now - start))
+                  body="node=${NODE_NAME} uptime=${uptime}s"
+                fi
+
+                if [ -n "${body}" ]; then
+                  curl -fsS -m "${PING_TIMEOUT}" --data-raw "${body}" "${url}" > /dev/null
+                else
+                  curl -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
+                fi
+              }
+
+              # Retry helper with single retry
+              ping_with_retry() {
+                if ping_healthchecks; then
+                  return 0
+                fi
+                echo "Ping failed, retrying in 30s..."
+                sleep 30
+                if ping_healthchecks; then
+                  echo "Retry succeeded"
+                  return 0
+                fi
+                echo "Retry failed, will try again next interval"
+                return 1
+              }
+
+              # Initial ping on startup
+              echo "Sending initial ping..."
+              ping_with_retry || true
+
+              # Main loop
+              while true; do
+                sleep "${PING_INTERVAL}"
+                ping_with_retry || true
+              done
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false  # apk needs to write
+            runAsNonRoot: false  # alpine base needs root for apk
+            capabilities:
+              drop:
+                - ALL
