@@ -38,19 +38,10 @@ spec:
                 secretKeyRef:
                   name: healthchecks-ping-key
                   key: ping-key
-            - name: API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: healthchecks-api-key
-                  key: api-key
             - name: PING_URL
               value: {{ .Values.healthchecks.pingUrl | quote }}
-            - name: HEALTHCHECKS_URL
-              value: "https://healthchecks.io"
             - name: PING_INTERVAL
               value: {{ .Values.healthchecks.interval | quote }}
-            - name: CHECK_GRACE
-              value: {{ .Values.healthchecks.gracePeriod | quote }}
             - name: PING_TIMEOUT
               value: {{ .Values.healthchecks.timeout | quote }}
           command:
@@ -58,11 +49,10 @@ spec:
             - -c
             - |
               set -e
-              apk add --no-cache curl jq > /dev/null
 
               echo "Starting health pinger for node: ${NODE_NAME}"
               echo "Ping URL: ${PING_URL}/<key>/${NODE_NAME}"
-              echo "Interval: ${PING_INTERVAL}s, Grace: ${CHECK_GRACE}s"
+              echo "Interval: ${PING_INTERVAL}s, Timeout: ${PING_TIMEOUT}s"
 
               ping_healthchecks() {
                 local url="${PING_URL}/${PING_KEY}/${NODE_NAME}?create=1"
@@ -84,66 +74,9 @@ spec:
                 return 1
               }
 
-              # Configure check settings via Management API
-              configure_check() {
-                echo "Configuring check settings..."
-
-                # Fetch all checks
-                local checks=$(curl -sf "${HEALTHCHECKS_URL}/api/v3/checks/" \
-                  -H "X-Api-Key: ${API_KEY}")
-
-                if [ -z "$checks" ]; then
-                  echo "  Warning: Failed to fetch checks"
-                  return 1
-                fi
-
-                # Find check matching this node
-                local uuid=$(echo "$checks" | jq -r --arg name "${NODE_NAME}" \
-                  '.checks[] | select(.name == $name) | .uuid // empty')
-
-                if [ -z "$uuid" ]; then
-                  echo "  Warning: Check for ${NODE_NAME} not found"
-                  return 1
-                fi
-
-                local current_period=$(echo "$checks" | jq -r --arg uuid "${uuid}" \
-                  '.checks[] | select(.uuid == $uuid) | .timeout')
-                local current_grace=$(echo "$checks" | jq -r --arg uuid "${uuid}" \
-                  '.checks[] | select(.uuid == $uuid) | .grace')
-
-                echo "  Check UUID: ${uuid}"
-                echo "  Current: period=${current_period}s, grace=${current_grace}s"
-
-                # Skip if already configured
-                if [ "$current_period" = "${PING_INTERVAL}" ] && [ "$current_grace" = "${CHECK_GRACE}" ]; then
-                  echo "  Already configured correctly"
-                  return 0
-                fi
-
-                # Update check settings
-                echo "  Updating to: period=${PING_INTERVAL}s, grace=${CHECK_GRACE}s"
-                local response=$(curl -sf -X POST "${HEALTHCHECKS_URL}/api/v3/checks/${uuid}" \
-                  -H "X-Api-Key: ${API_KEY}" \
-                  -H "Content-Type: application/json" \
-                  -d "{\"timeout\": ${PING_INTERVAL}, \"grace\": ${CHECK_GRACE}}")
-
-                if [ $? -eq 0 ]; then
-                  echo "  Success"
-                  return 0
-                else
-                  echo "  Warning: Failed to update check"
-                  return 1
-                fi
-              }
-
               # Initial ping on startup
               echo "Sending initial ping..."
               ping_with_retry || true
-
-              # Wait a moment for check to appear in API, then configure it
-              echo "Waiting 5 seconds for check to propagate..."
-              sleep 5
-              configure_check || echo "Check configuration failed, will retry on next startup"
 
               # Main loop
               while true; do
@@ -159,8 +92,7 @@ spec:
               memory: 32Mi
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # apk needs to write
-            runAsNonRoot: false  # alpine base needs root for apk
+            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
