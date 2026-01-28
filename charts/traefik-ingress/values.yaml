@@ -1,2 +1,11 @@
 # List of Traefik IngressRoutes to create
 ingresses: []
+  # - name: lan                 # Suffix for resource name (e.g., myapp-lan)
+  #   hostname: myapp.local     # Hostname for Host() match rule
+  #   service:
+  #     name: myapp-server      # Service name to route traffic to (required)
+  #     port: 80                # Service port (default: 80)
+  #   entryPoint: web           # Traefik entrypoint (default: web for HTTP)
+  #   middlewares: []           # Optional list of middleware references
+  #     # - name: my-ratelimit  # Middleware name
+  #     #   namespace: traefik  # Middleware namespace (optional)
