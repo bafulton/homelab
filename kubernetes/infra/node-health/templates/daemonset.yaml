@@ -6,6 +6,10 @@ metadata:
   labels:
     app.kubernetes.io/name: node-health
 spec:
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 100%
   selector:
     matchLabels:
       app.kubernetes.io/name: node-health
