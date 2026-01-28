@@ -2,7 +2,6 @@ namespace: tailscale
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: operator-oauth
       data:

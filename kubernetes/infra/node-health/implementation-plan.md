@@ -43,7 +43,6 @@ healthchecks:
   includeBody: true    # Send node info in ping
 
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: healthchecks-ping-key
       data:

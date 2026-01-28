@@ -28,7 +28,6 @@ image:
 
 # Bitwarden secrets for SMB password
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: time-machine-credentials
       data:

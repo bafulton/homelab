@@ -19,7 +19,6 @@ traefik-ingress:
 
 # Tailscale exposure for remote access
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: jellyfin

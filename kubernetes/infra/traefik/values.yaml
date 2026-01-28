@@ -1,7 +1,6 @@
 namespace: traefik
 
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: traefik

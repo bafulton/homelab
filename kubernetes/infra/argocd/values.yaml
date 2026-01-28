@@ -21,7 +21,6 @@ avp:
   enabled: true
 
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: argocd
@@ -37,7 +36,6 @@ tailscale-ingress:
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: argocd-github-webhook
       creationPolicy: Merge

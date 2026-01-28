@@ -31,7 +31,6 @@ useAVP: true
 
 # Configure ExternalSecret to sync from Bitwarden
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: my-app-secrets
       data:

@@ -12,7 +12,6 @@ traefik-ingress:
 
 # Tailscale exposure for web UI
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: home-assistant

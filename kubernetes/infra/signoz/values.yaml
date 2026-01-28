@@ -10,7 +10,6 @@ ignoreDifferences:
       - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
 
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: signoz
@@ -22,7 +21,6 @@ tailscale-ingress:
 # Create token in SigNoz: Settings → API Tokens → Generate
 # Store in Bitwarden and update the secret ID below
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: signoz-api-token
       data:

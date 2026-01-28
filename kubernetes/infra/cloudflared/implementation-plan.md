@@ -203,7 +203,6 @@ dependencies:
   - name: bitwarden-secret
     version: 1.0.0
     repository: file://../../../charts/bitwarden-secret
-    condition: bitwarden-secret.enabled
 ```
 
 **values.yaml**
@@ -211,7 +210,6 @@ dependencies:
 namespace: cloudflared
 
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: tunnel-credentials
       data:

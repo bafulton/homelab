@@ -34,9 +34,13 @@ namespace: custom-namespace
 serverSideApply: true
 
 # Tailscale exposure (if using tailscale-ingress template)
-tailscale:
-  enabled: true
-  hostname: my-app  # becomes my-app.catfish-mountain.ts.net
+tailscale-ingress:
+  ingresses:
+    - name: tailscale
+      hostname: my-app  # becomes my-app.catfish-mountain.ts.net
+      service:
+        name: my-app-server
+        port: 80
 
 # Upstream chart values nested under chart name
 my-upstream-chart:
@@ -60,11 +64,9 @@ dependencies:
   - name: tailscale-ingress
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
-    condition: tailscale-ingress.enabled
 
 # values.yaml
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: my-app

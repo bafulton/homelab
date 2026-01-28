@@ -20,14 +20,12 @@ dependencies:
   - name: tailscale-ingress
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
-    condition: tailscale-ingress.enabled
 ```
 
 Configure in your `values.yaml`:
 
 ```yaml
 tailscale-ingress:
-  enabled: true
   ingresses:
     # Simple ingress using existing service
     - name: tailscale

@@ -45,7 +45,6 @@ Store two secrets in Bitwarden Secrets Manager:
 
 ```yaml
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: healthchecks-api-key
       data:

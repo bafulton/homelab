@@ -17,7 +17,6 @@ healthchecks:
   timeout: 10
 
 bitwarden-secret:
-  enabled: true
   secrets:
     - name: healthchecks-api-key
       data:

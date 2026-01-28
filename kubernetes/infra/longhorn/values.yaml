@@ -87,7 +87,6 @@ longhorn:
   enablePSP: false
 
 tailscale-ingress:
-  enabled: true
   ingresses:
     - name: tailscale
       hostname: longhorn
