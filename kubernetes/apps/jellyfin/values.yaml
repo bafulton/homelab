@@ -86,7 +86,6 @@ jellyfin:
 # mDNS advertisement for Jellyfin auto-discovery
 # Routes through Traefik's MetalLB IP (192.168.0.200)
 mdns-config:
-  enabled: true
   services:
     - name: Jellyfin
       hostname: media

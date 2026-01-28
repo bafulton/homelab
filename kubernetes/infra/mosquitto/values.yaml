@@ -27,7 +27,6 @@ mosquitto:
 # mDNS advertisement for MQTT broker discovery
 # Allows Theengs Gateway and other devices to find the broker
 mdns-config:
-  enabled: true
   services:
     - name: Mosquitto
       hostname: mosquitto

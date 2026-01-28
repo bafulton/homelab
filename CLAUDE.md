@@ -109,7 +109,6 @@ dependencies:
 
 # values.yaml
 mdns-config:
-  enabled: true
   services:
     - name: My App
       hostname: myapp        # becomes myapp.local

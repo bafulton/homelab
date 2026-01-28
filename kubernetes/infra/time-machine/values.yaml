@@ -38,7 +38,6 @@ bitwarden-secret:
 # mDNS advertisement for Time Machine auto-discovery
 # IP must match service.loadBalancerIP above
 mdns-config:
-  enabled: true
   services:
     - name: Time Machine
       hostname: timemachine

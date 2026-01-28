@@ -43,7 +43,6 @@ dependencies:
 
 # values.yaml
 mdns-config:
-  enabled: true
   services:
     - name: My App
       hostname: myapp

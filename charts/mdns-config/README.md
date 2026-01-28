@@ -17,14 +17,12 @@ dependencies:
   - name: mdns-config
     version: 1.0.0
     repository: file://../../../charts/mdns-config
-    condition: mdns-config.enabled
 ```
 
 Configure in your `values.yaml`:
 
 ```yaml
 mdns-config:
-  enabled: true
   services:
     # Simple HTTP service
     - name: My App
@@ -49,7 +47,6 @@ mdns-config:
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `enabled` | Enable/disable mDNS advertisement | `true` |
 | `services` | List of services to advertise | `[]` |
 | `services[].name` | Display name for the service | Required |
 | `services[].hostname` | mDNS hostname (without `.local`) | Required |
@@ -75,7 +72,6 @@ mdns-config:
 
 ```yaml
 mdns-config:
-  enabled: true
   services:
     - name: Time Machine
       hostname: timemachine
