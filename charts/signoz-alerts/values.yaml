@@ -1,0 +1,50 @@
+# Enable/disable alert ConfigMap generation
+enabled: true
+
+# Global defaults for all alerts
+defaults:
+  severity: warning
+  evalWindow: 5m0s
+  frequency: 1m0s
+  # Gmail notification channel ID from SigNoz
+  notificationChannel: "019b9170-7e71-7dde-89c5-2c637c0d8646"
+
+# Alert definitions (examples - override in parent chart)
+alerts: []
+  # Simple threshold alert
+  # - name: High Temperature
+  #   description: Node temperature is above 85C
+  #   severity: warning
+  #   type: threshold
+  #   metric: node_hwmon_temp_celsius
+  #   timeAggregation: max
+  #   spaceAggregation: max
+  #   op: ">"
+  #   threshold: 85
+  #   groupBy:
+  #     - instance
+  #
+  # Ratio alert (percentage)
+  # - name: High Memory Usage
+  #   description: Node memory usage is above 85%
+  #   severity: warning
+  #   type: ratio
+  #   metrics:
+  #     numerator: k8s.node.memory.working_set
+  #     denominator: k8s.node.allocatable_memory
+  #   multiply: 100
+  #   op: ">"
+  #   threshold: 85
+  #   groupBy:
+  #     - k8s.node.name
+  #
+  # PromQL alert
+  # - name: Certificate Expiring Soon
+  #   description: TLS certificate will expire within 7 days
+  #   severity: warning
+  #   type: promql
+  #   query: "(certmanager_certificate_expiration_timestamp_seconds - time()) / 86400"
+  #   op: "<"
+  #   threshold: 7
+  #   frequency: 1h0m0s
+  #   legend: "{{namespace}}/{{name}}"

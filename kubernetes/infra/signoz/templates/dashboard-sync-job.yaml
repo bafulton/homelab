@@ -11,6 +11,7 @@ spec:
   backoffLimit: 3
   template:
     spec:
+      serviceAccountName: signoz-dashboard-sync
       restartPolicy: Never
       containers:
         - name: loader
@@ -31,7 +32,7 @@ spec:
           args:
             - |
               set -e
-              apk add --no-cache curl jq git
+              apk add --no-cache curl jq git kubectl
 
               # Clone repo (shallow, specific path)
               echo "Cloning repository..."
@@ -101,12 +102,65 @@ spec:
                 echo "No dashboards found"
               fi
 
-              # Load alerts (update existing or create new - preserves alert history)
+              # Load alerts from ConfigMaps (label: signoz.homelab.io/alert=true)
+              echo "Loading alerts from ConfigMaps..."
+
+              # Get existing alerts
+              existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
+                -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+
+              # List all ConfigMaps with the alert label
+              kubectl get configmaps -A -l signoz.homelab.io/alert=true -o json | \
+              jq -c '.items[]' | while read -r cm; do
+                cm_name=$(echo "$cm" | jq -r '.metadata.name')
+                cm_namespace=$(echo "$cm" | jq -r '.metadata.namespace')
+                alert_json=$(echo "$cm" | jq -r '.data["alert.json"]')
+
+                if [ -z "$alert_json" ] || [ "$alert_json" = "null" ]; then
+                  echo "  Warning: ConfigMap $cm_namespace/$cm_name has no alert.json"
+                  continue
+                fi
+
+                alert_name=$(echo "$alert_json" | jq -r '.alert // empty')
+                echo "  Loading alert from ConfigMap: $cm_namespace/$cm_name (name: $alert_name)"
+
+                # Find existing alert by name
+                existing_id=""
+                if [ -n "$alert_name" ]; then
+                  existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
+                    '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null | head -1)
+                fi
+
+                if [ -n "$existing_id" ]; then
+                  echo "    Updating existing alert: $existing_id"
+                  response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+                    -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d "$alert_json")
+                else
+                  echo "    Creating new alert"
+                  response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
+                    -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d "$alert_json")
+                fi
+
+                http_code=$(echo "$response" | tail -n1)
+                body=$(echo "$response" | sed '$d')
+
+                if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+                  echo "    Success"
+                else
+                  echo "    Warning: HTTP $http_code - $body"
+                fi
+              done
+
+              # Load alerts from git repo (fallback / legacy)
               ALERT_DIR="/repo/$REPO_PATH/alerts"
               if [ -d "$ALERT_DIR" ] && ls "$ALERT_DIR"/*.json 1> /dev/null 2>&1; then
-                echo "Loading alerts..."
+                echo "Loading alerts from git..."
 
-                # Get existing alerts
+                # Refresh existing alerts list
                 existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
                   -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
 

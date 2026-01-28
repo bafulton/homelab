@@ -1,0 +1,43 @@
+{{- if .Values.enabled }}
+{{- $defaults := .Values.defaults }}
+{{- range .Values.alerts }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $.Release.Name }}-signoz-alert-{{ .name | lower | replace " " "-" | trunc 50 }}
+  labels:
+    signoz.homelab.io/alert: "true"
+data:
+  alert.json: |
+    {
+      "alert": {{ .name | quote }},
+      "alertType": "METRIC_BASED_ALERT",
+      "severity": {{ .severity | default $defaults.severity | quote }},
+      "evalWindow": {{ .evalWindow | default $defaults.evalWindow | quote }},
+      "frequency": {{ .frequency | default $defaults.frequency | quote }},
+      "broadcastToAll": true,
+      "preferredChannels": [{{ $defaults.notificationChannel | quote }}],
+      "disabled": false,
+      "description": {{ .description | quote }},
+      "summary": {{ .summary | default .description | quote }},
+      "labels": {
+        "source": "gitops",
+        "severity": {{ .severity | default $defaults.severity | quote }}
+      },
+      {{- if eq .type "threshold" }}
+      "ruleType": "threshold_rule",
+      "condition": {{ include "signoz-alerts.thresholdCondition" (dict "alert" . "root" $) }}
+      {{- else if eq .type "ratio" }}
+      "ruleType": "threshold_rule",
+      "condition": {{ include "signoz-alerts.ratioCondition" (dict "alert" . "root" $) }}
+      {{- else if eq .type "promql" }}
+      "ruleType": "promql_rule",
+      "version": "v5",
+      "condition": {{ include "signoz-alerts.promqlCondition" (dict "alert" . "root" $) }}
+      {{- else if eq .type "raw" }}
+      "ruleType": "threshold_rule"
+      {{- end }}
+    }
+{{- end }}
+{{- end }}
