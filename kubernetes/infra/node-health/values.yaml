@@ -3,7 +3,7 @@ namespace: node-health
 image:
   repository: alpine
   # renovate: datasource=docker depName=alpine versioning=docker
-  tag: "3.21"
+  tag: "3.23"
   pullPolicy: IfNotPresent
 
 healthchecks:
