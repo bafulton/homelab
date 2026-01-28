@@ -1,0 +1,82 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: node-health-check-config
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: config-updater
+          image: alpine:3.21
+          env:
+            - name: HEALTHCHECKS_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: healthchecks-api-key
+                  key: api-key
+            - name: HEALTHCHECKS_URL
+              value: "https://healthchecks.io"
+            - name: CHECK_PERIOD
+              value: {{ .Values.healthchecks.interval | quote }}
+            - name: CHECK_GRACE
+              value: {{ .Values.healthchecks.gracePeriod | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              apk add --no-cache curl jq
+
+              echo "Configuring healthchecks.io check settings..."
+              echo "Period: ${CHECK_PERIOD}s, Grace: ${CHECK_GRACE}s"
+
+              # Get all checks in the project
+              echo "Fetching checks from healthchecks.io..."
+              checks=$(curl -sf "$HEALTHCHECKS_URL/api/v3/checks/" \
+                -H "X-Api-Key: $HEALTHCHECKS_API_KEY")
+
+              if [ -z "$checks" ]; then
+                echo "Failed to fetch checks"
+                exit 1
+              fi
+
+              check_count=$(echo "$checks" | jq -r '.checks | length')
+              echo "Found $check_count checks in project"
+
+              # Update each check's period and grace
+              echo "$checks" | jq -c '.checks[]' | while read -r check; do
+                uuid=$(echo "$check" | jq -r '.unique_key')
+                name=$(echo "$check" | jq -r '.name')
+                current_period=$(echo "$check" | jq -r '.timeout')
+                current_grace=$(echo "$check" | jq -r '.grace')
+
+                echo "  Check: $name (uuid: $uuid)"
+                echo "    Current: period=${current_period}s, grace=${current_grace}s"
+
+                # Skip if already configured correctly
+                if [ "$current_period" = "$CHECK_PERIOD" ] && [ "$current_grace" = "$CHECK_GRACE" ]; then
+                  echo "    Already configured correctly, skipping"
+                  continue
+                fi
+
+                # Update the check
+                echo "    Updating to: period=${CHECK_PERIOD}s, grace=${CHECK_GRACE}s"
+                response=$(curl -sf -X POST "$HEALTHCHECKS_URL/api/v3/checks/$uuid" \
+                  -H "X-Api-Key: $HEALTHCHECKS_API_KEY" \
+                  -H "Content-Type: application/json" \
+                  -d "{\"timeout\": $CHECK_PERIOD, \"grace\": $CHECK_GRACE}")
+
+                if [ $? -eq 0 ]; then
+                  echo "    Success"
+                else
+                  echo "    Warning: Failed to update check"
+                fi
+              done
+
+              echo "Check configuration complete!"

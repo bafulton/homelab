@@ -19,6 +19,9 @@ healthchecks:
 bitwarden-secret:
   enabled: true
   secrets:
+    - name: healthchecks-api-key
+      data:
+        api-key: "53627836-1ab1-47d6-a90c-b3e0003ceefd"
     - name: healthchecks-ping-key
       data:
         ping-key: "bb1e5466-8bee-4a27-a2d5-b3e00030a9f8"
