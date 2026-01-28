@@ -51,7 +51,7 @@ spec:
 
               # Update each check's period and grace
               echo "$checks" | jq -c '.checks[]' | while read -r check; do
-                uuid=$(echo "$check" | jq -r '.unique_key')
+                uuid=$(echo "$check" | jq -r '.uuid')
                 name=$(echo "$check" | jq -r '.name')
                 current_period=$(echo "$check" | jq -r '.timeout')
                 current_grace=$(echo "$check" | jq -r '.grace')
