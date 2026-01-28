@@ -105,7 +105,6 @@ dependencies:
   - name: mdns-config
     version: 1.0.0
     repository: file://../../../charts/mdns-config
-    condition: mdns-config.enabled
 
 # values.yaml
 mdns-config:
