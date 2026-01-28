@@ -1,18 +1,2 @@
-# Enable/disable the IngressRoute
-enabled: false
-
-# Hostname for the Host() match rule (e.g., "media.local", "home.local")
-hostname: ""
-
-# Service to route traffic to
-service:
-  name: ""        # Service name (required)
-  port: 80        # Service port (default: 80)
-
-# Traefik entrypoint (default: web for HTTP on port 80)
-entryPoint: web
-
-# Optional: list of middleware references
-# middlewares:
-#   - name: my-middleware
-#     namespace: my-namespace
+# List of Traefik IngressRoutes to create
+ingresses: []

@@ -1,17 +1,18 @@
-{{- if .Values.enabled }}
+{{- range .Values.ingresses }}
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: {{ .Release.Name }}-lan
+  name: {{ $.Release.Name }}-{{ .name }}
 spec:
   entryPoints:
-    - {{ .Values.entryPoint }}
+    - {{ .entryPoint | default "web" }}
   routes:
-    - match: Host(`{{ .Values.hostname }}`)
+    - match: Host(`{{ .hostname }}`)
       kind: Rule
-      {{- if .Values.middlewares }}
+      {{- if .middlewares }}
       middlewares:
-        {{- range .Values.middlewares }}
+        {{- range .middlewares }}
         - name: {{ .name }}
           {{- if .namespace }}
           namespace: {{ .namespace }}
@@ -19,6 +20,6 @@ spec:
         {{- end }}
       {{- end }}
       services:
-        - name: {{ .Values.service.name }}
-          port: {{ .Values.service.port }}
+        - name: {{ .service.name }}
+          port: {{ .service.port | default 80 }}
 {{- end }}

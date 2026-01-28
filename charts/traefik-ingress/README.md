@@ -6,7 +6,8 @@ Access pattern: `http://<hostname>` (add to `/etc/hosts` pointing to Traefik's M
 
 ## Features
 
-- Create IngressRoutes with hostname-based routing
+- Create multiple IngressRoutes from a single chart
+- Hostname-based routing
 - Optional middleware support (rate limiting, auth, etc.)
 - Configurable entrypoints
 
@@ -19,50 +20,53 @@ dependencies:
   - name: traefik-ingress
     version: 1.0.0
     repository: file://../../../charts/traefik-ingress
-    condition: traefik-ingress.enabled
 ```
 
 Configure in your `values.yaml`:
 
 ```yaml
 traefik-ingress:
-  enabled: true
-  hostname: myapp.local
-  service:
-    name: myapp-server
-    port: 8080
-```
-
-Then add to your `/etc/hosts`:
-
-```
-192.168.0.200    myapp.local
+  ingresses:
+    - name: lan
+      hostname: myapp.local
+      service:
+        name: myapp-server
+        port: 8080
+    - name: api
+      hostname: api.local
+      service:
+        name: myapp-api
+        port: 3000
 ```
 
 ## Values
 
 | Key | Description | Default |
 |-----|-------------|---------|
-| `enabled` | Enable/disable the chart | `false` |
-| `hostname` | Hostname for the Host() match rule | Required |
-| `service.name` | Service name to route traffic to | Required |
-| `service.port` | Service port | `80` |
-| `entryPoint` | Traefik entrypoint | `web` |
-| `middlewares` | List of middleware references | `[]` |
+| `ingresses` | List of IngressRoute configurations | `[]` |
+| `ingresses[].name` | Suffix for resource name | Required |
+| `ingresses[].hostname` | Hostname for Host() match rule | Required |
+| `ingresses[].service.name` | Service name to route traffic to | Required |
+| `ingresses[].service.port` | Service port | `80` |
+| `ingresses[].entryPoint` | Traefik entrypoint | `web` |
+| `ingresses[].middlewares` | List of middleware references | `[]` |
 
 ### Middleware Example
 
 ```yaml
 traefik-ingress:
-  enabled: true
-  hostname: myapp.local
-  service:
-    name: myapp-server
-  middlewares:
-    - name: my-ratelimit
-      namespace: traefik
+  ingresses:
+    - name: lan
+      hostname: myapp.local
+      service:
+        name: myapp-server
+      middlewares:
+        - name: my-ratelimit
+          namespace: traefik
 ```
 
 ## Resources Created
 
-- **IngressRoute**: `<release>-lan` routing `Host(<hostname>)` to the specified service
+- **IngressRoute**: `<release>-<name>` routing `Host(<hostname>)` to the specified service
+
+Empty `ingresses` array = no resources created (effectively disabled).

@@ -82,11 +82,9 @@ dependencies:
   - name: traefik-ingress
     version: 1.0.0
     repository: file://../../../charts/traefik-ingress
-    condition: traefik-ingress.enabled
 
 # values.yaml
 traefik-ingress:
-  enabled: true
   hostname: my-app.local
   service:
     name: my-app-server

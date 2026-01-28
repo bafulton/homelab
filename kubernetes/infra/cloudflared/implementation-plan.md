@@ -309,7 +309,6 @@ Note: The tunnel token contains embedded config. Tunnel ingress routes (→ Trae
 #   - Public: https://jellyfin.catfish-mountain.com (via Cloudflare Tunnel)
 
 traefik-ingress:
-  enabled: true
   ingresses:
     - name: lan
       hostname: media.local
