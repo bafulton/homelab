@@ -25,7 +25,6 @@ Configure in your `values.yaml`:
 
 ```yaml
 longhorn-storage:
-  enabled: true
   # Create a PVC with backup enabled
   pvcs:
     - name: my-app-data
