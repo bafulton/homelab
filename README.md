@@ -64,7 +64,6 @@ Talos, Kubernetes, and kubectl versions are grouped together since compatibility
 ## Dashboards
 
 - [ArgoCD](https://argocd.catfish-mountain.ts.net) - GitOps deployments
-- [Kubernetes Dashboard](https://kube-dashboard.catfish-mountain.ts.net) - Cluster management
 - [SigNoz](https://signoz.catfish-mountain.ts.net) - Observability (metrics, logs, traces)
 - [Traefik](https://traefik.catfish-mountain.ts.net) - Ingress controller
 

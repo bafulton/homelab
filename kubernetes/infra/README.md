@@ -12,7 +12,6 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
 | [intel-device-plugins](./intel-device-plugins) | Intel GPU device plugins for QuickSync hardware transcoding | - |
 | [kube-state-metrics](./kube-state-metrics) | Kubernetes object state metrics (deployments, pods, PVCs) | - |
-| [kubernetes-dashboard](./kubernetes-dashboard) | Web UI for cluster management | Tailscale |
 | [longhorn](./longhorn) | Distributed block storage for persistent volumes | - |
 | [mdns-advertiser](./mdns-advertiser) | Publishes services to LAN via mDNS/Bonjour | hostNetwork |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
