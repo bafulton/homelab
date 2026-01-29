@@ -8,7 +8,7 @@ spec:
   entryPoints:
     - {{ .entryPoint | default "web" }}
   routes:
-    - match: Host(`{{ .host }}`)
+    - match: Host(`{{ .hostname }}`)
       kind: Rule
       {{- if .middlewares }}
       middlewares:
