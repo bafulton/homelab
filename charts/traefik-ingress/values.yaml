@@ -1,7 +1,7 @@
 # List of Traefik IngressRoutes to create
 ingresses: []
   # - name: lan                 # Suffix for resource name (e.g., myapp-lan)
-  #   hostname: myapp.local     # Hostname for Host() match rule
+  #   host: myapp.local         # Full hostname/FQDN for Host() match rule
   #   service:
   #     name: myapp-server      # Service name to route traffic to (required)
   #     port: 80                # Service port (default: 80)
