@@ -6,7 +6,7 @@ version: 1.0.0
 appVersion: "1.0.0"
 dependencies:
   - name: longhorn
-    version: 1.10.2
+    version: 1.11.0
     repository: https://charts.longhorn.io
   - name: tailscale-ingress
     version: 1.0.0
