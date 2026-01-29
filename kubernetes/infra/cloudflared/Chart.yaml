@@ -1,0 +1,11 @@
+apiVersion: v2
+name: cloudflared
+description: Cloudflare Tunnel for public internet ingress
+type: application
+version: 1.0.0
+appVersion: "2024.12.0"
+dependencies:
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
+    condition: bitwarden-secret.enabled

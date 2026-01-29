@@ -1,0 +1,13 @@
+namespace: cloudflared
+
+bitwarden-secret:
+  enabled: true
+  secrets:
+    - name: tunnel-credentials
+      data:
+        token: "d2f5ee49-1c69-4fc3-b286-b3e10043a1d0"
+
+cloudflared:
+  # renovate: datasource=docker depName=cloudflare/cloudflared
+  image: cloudflare/cloudflared:2024.12.0
+  replicas: 2
