@@ -20,18 +20,19 @@ ignoreDifferences:
 avp:
   enabled: true
 
-traefik-ingress:
+tailscale-ingress:
   ingresses:
     - name: tailscale
-      host: argocd.catfish-mountain.ts.net
+      hostname: argocd
       service:
         name: argocd-server
-        port: 80
     - name: webhook
-      host: argocd-webhook.catfish-mountain.com
+      hostname: argocd-webhook
       service:
         name: argocd-server
-        port: 80
+      funnel:
+        enabled: true
+        path: /api/webhook
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:

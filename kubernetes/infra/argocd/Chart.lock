@@ -2,11 +2,11 @@ dependencies:
 - name: argo-cd
   repository: https://argoproj.github.io/argo-helm
   version: 9.3.7
-- name: traefik-ingress
-  repository: file://../../../charts/traefik-ingress
+- name: tailscale-ingress
+  repository: file://../../../charts/tailscale-ingress
   version: 1.0.0
 - name: bitwarden-secret
   repository: file://../../../charts/bitwarden-secret
   version: 1.0.0
-digest: sha256:325ee83c15446c43805c052ae8b38c8541f736238ec6691665476498dc5eff62
-generated: "2026-01-29T16:48:47.994134-05:00"
+digest: sha256:1ff505d2bbdf9f0d581e294d869c8f84804c05e4e4d6eb7942de12f532f0606a
+generated: "2026-01-28T00:22:03.351713-05:00"
