@@ -5,3 +5,6 @@ reloader:
     watchGlobally: true
     autoReloadAll: true
     logFormat: json
+    # Ignore signoz namespace - ClickHouse operator manages its own ConfigMap updates
+    # and Reloader's hash injection causes infinite restart loops
+    ignoreNamespaces: "signoz"
