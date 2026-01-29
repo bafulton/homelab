@@ -13,3 +13,7 @@ talos/talsecret.yaml
 
 # Environment file with secrets
 talos/.env
+
+# Terraform state files
+terraform/**/*.tfstate*
+terraform/**/.terraform/
