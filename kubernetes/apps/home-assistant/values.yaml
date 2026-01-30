@@ -91,6 +91,8 @@ home-assistant:
     prometheus.io/scrape: "true"
     prometheus.io/port: "8123"
     prometheus.io/path: "/api/prometheus"
+    # Reloader watches home-assistant-packages ConfigMap and restarts pod on changes
+    reloader.stakater.com/match: "true"
 
   # Startup probe - allows up to 5 minutes for Home Assistant to initialize
   # Liveness/readiness probes won't run until startup probe succeeds

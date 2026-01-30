@@ -12,6 +12,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: time-machine
+      annotations:
+        # Reloader watches time-machine-config ConfigMap and restarts pod on changes
+        reloader.stakater.com/match: "true"
     spec:
       nodeSelector:
         storage.homelab/nvme: "true"

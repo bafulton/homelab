@@ -3,12 +3,8 @@ namespace: reloader
 reloader:
   reloader:
     watchGlobally: true
-    autoReloadAll: true
+    # Switched from autoReloadAll to explicit annotation-based reloading
+    # to avoid infinite restart loops with operator-managed resources.
+    # Only Home Assistant and Time Machine need auto-reload.
+    autoReloadAll: false
     logFormat: json
-    # Ignore signoz namespace - ClickHouse operator manages its own ConfigMap updates
-    # and Reloader's hash injection causes infinite restart loops
-    # Ignore tailscale namespace - Tailscale state secrets are dynamic and change
-    # as part of normal operation, triggering infinite pod restart loops
-    ignoreNamespaces: "signoz,tailscale"
-  deployment:
-    ignoreNamespaces: "signoz,tailscale"
