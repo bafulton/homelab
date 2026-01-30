@@ -10,3 +10,5 @@ reloader:
     # Ignore tailscale namespace - Tailscale state secrets are dynamic and change
     # as part of normal operation, triggering infinite pod restart loops
     ignoreNamespaces: "signoz,tailscale"
+  deployment:
+    ignoreNamespaces: "signoz,tailscale"
