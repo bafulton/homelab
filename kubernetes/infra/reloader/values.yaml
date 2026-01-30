@@ -3,8 +3,5 @@ namespace: reloader
 reloader:
   reloader:
     watchGlobally: true
-    # Switched from autoReloadAll to explicit annotation-based reloading
-    # to avoid infinite restart loops with operator-managed resources.
-    # Only Home Assistant and Time Machine need auto-reload.
     autoReloadAll: false
     logFormat: json
