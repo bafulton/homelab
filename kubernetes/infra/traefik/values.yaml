@@ -3,7 +3,7 @@ namespace: traefik
 tailscale-ingress:
   ingresses:
     - name: tailscale
-      hostname: traefik
+      hostname: traefik-dashboard
       service:
         create: true
         targetPort: 8080
