@@ -9,3 +9,13 @@ ingresses: []
   #   middlewares: []           # Optional list of middleware references
   #     # - name: my-ratelimit  # Middleware name
   #     #   namespace: traefik  # Middleware namespace (optional)
+  #   mdns:                     # Optional mDNS service advertisement
+  #     enabled: false          # Enable mDNS advertisement (default: false)
+  #     name: My App            # Display name for the service
+  #     ip: 192.168.0.200       # IP address to advertise (typically Traefik LoadBalancer IP)
+  #     port: 80                # Port number (default: 80)
+  #     types:                  # List of service types to advertise
+  #       - type: _http._tcp
+  #       # - type: _custom._tcp
+  #       #   txtRecords:
+  #       #     - "version=1.0"
