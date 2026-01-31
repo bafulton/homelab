@@ -1,6 +1,5 @@
 {{- range .Values.ingresses }}
 {{- if .mdns }}
-{{- if .mdns.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -15,7 +14,8 @@ data:
     ip: {{ .mdns.ip | quote }}
     port: {{ .mdns.port | default 80 }}
     types:
-    {{- range .mdns.types }}
+    {{- $types := .mdns.types | default (list (dict "type" "_http._tcp")) }}
+    {{- range $types }}
       - type: {{ .type | quote }}
         {{- if .txtRecords }}
         txtRecords:
@@ -24,6 +24,5 @@ data:
           {{- end }}
         {{- end }}
     {{- end }}
-{{- end }}
 {{- end }}
 {{- end }}
