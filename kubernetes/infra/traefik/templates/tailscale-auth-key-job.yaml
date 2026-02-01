@@ -51,14 +51,20 @@ spec:
             # - ephemeral: false (device persists across restarts)
             # - tags: ["tag:k8s"] (apply k8s tag)
             # - expirySeconds: 7776000 (90 days, Tailscale maximum)
-            RESPONSE=$(curl -sf -u "$TS_OAUTH_CLIENT_ID:$TS_OAUTH_CLIENT_SECRET" \
+            HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/response.json \
+              -u "$TS_OAUTH_CLIENT_ID:$TS_OAUTH_CLIENT_SECRET" \
+              -H "Content-Type: application/json" \
               https://api.tailscale.com/api/v2/tailnet/catfish-mountain.ts.net/keys \
               -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"tags":["tag:k8s"]}}},"expirySeconds":7776000}')
 
-            if [ $? -ne 0 ]; then
-              echo "ERROR: Failed to generate auth key from Tailscale API"
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "ERROR: Tailscale API returned HTTP $HTTP_CODE"
+              echo "Response:"
+              cat /tmp/response.json
               exit 1
             fi
+
+            RESPONSE=$(cat /tmp/response.json)
 
             AUTH_KEY=$(echo $RESPONSE | jq -r '.key')
 
