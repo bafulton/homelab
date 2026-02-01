@@ -2,14 +2,8 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {{ .Release.Name }}-tailscale-auth-keygen
-  annotations:
-    helm.sh/hook: pre-install,pre-upgrade
-    helm.sh/hook-weight: "0"
-    helm.sh/hook-delete-policy: before-hook-creation
 spec:
   template:
-    metadata:
-      name: {{ .Release.Name }}-tailscale-auth-keygen
     spec:
       serviceAccountName: {{ .Release.Name }}-tailscale-keygen
       restartPolicy: OnFailure
@@ -31,6 +25,10 @@ spec:
             ATTEMPT=0
             MAX_ATTEMPTS=10
             while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              # Try to read OAuth credentials from secret
+              TS_OAUTH_CLIENT_ID=$(kubectl get secret tailscale-oauth -n {{ .Release.Namespace }} -o jsonpath='{.data.client_id}' 2>/dev/null | base64 -d)
+              TS_OAUTH_CLIENT_SECRET=$(kubectl get secret tailscale-oauth -n {{ .Release.Namespace }} -o jsonpath='{.data.client_secret}' 2>/dev/null | base64 -d)
+
               if [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_CLIENT_SECRET" ]; then
                 echo "OAuth credentials found"
                 break
@@ -80,14 +78,3 @@ spec:
               --dry-run=client -o yaml | kubectl apply -f -
 
             echo "Secret {{ .Release.Name }}-tailscale-auth created/updated successfully"
-        env:
-          - name: TS_OAUTH_CLIENT_ID
-            valueFrom:
-              secretKeyRef:
-                name: tailscale-oauth
-                key: client_id
-          - name: TS_OAUTH_CLIENT_SECRET
-            valueFrom:
-              secretKeyRef:
-                name: tailscale-oauth
-                key: client_secret
