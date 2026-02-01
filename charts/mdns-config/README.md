@@ -1,11 +1,11 @@
 # mdns-config
 
-A reusable Helm chart for advertising services via mDNS. Creates labeled ConfigMaps that are discovered by the central mdns-advertiser deployment.
+A Helm library chart for advertising services via mDNS. Creates labeled ConfigMaps that are discovered by the central mdns-advertiser deployment.
 
 ## How It Works
 
-1. Apps include this chart as a dependency and configure their mDNS services
-2. This chart creates ConfigMaps with the label `mdns.homelab.io/advertise: "true"`
+1. Apps include this chart as a dependency and use its templates
+2. Templates create ConfigMaps with the label `mdns.homelab.io/advertise: "true"`
 3. The mdns-advertiser watches for these ConfigMaps and advertises the services
 
 ## Usage
@@ -19,42 +19,53 @@ dependencies:
     repository: file://../../../charts/mdns-config
 ```
 
+Create a template in your chart (e.g., `templates/mdns-configmap.yaml`):
+
+```yaml
+{{- range .Values.mdnsServices }}
+{{- include "mdns-config.configmap" (dict
+    "Release" $.Release
+    "name" (printf "%s-mdns-%s" $.Release.Name .hostname)
+    "service" .
+) }}
+{{- end }}
+```
+
 Configure in your `values.yaml`:
 
 ```yaml
-mdns-config:
-  services:
-    # Simple HTTP service
-    - name: My App
-      hostname: myapp
-      ip: 192.168.0.200
-      port: 80
-      types:
-        - type: _http._tcp
+mdnsServices:
+  - name: My App
+    hostname: myapp
+    ip: 192.168.0.200
+    port: 80
+    types:
+      - type: _http._tcp
 
-    # Service with TXT records
-    - name: My MQTT Broker
-      hostname: mqtt
-      ip: 192.168.0.201
-      port: 1883
-      types:
-        - type: _mqtt._tcp
-          txtRecords:
-            - "version=3.1.1"
+  # Service with TXT records
+  - name: My MQTT Broker
+    hostname: mqtt
+    ip: 192.168.0.201
+    port: 1883
+    types:
+      - type: _mqtt._tcp
+        txtRecords:
+          - "version=3.1.1"
 ```
 
 ## Values
 
-| Key | Description | Default |
-|-----|-------------|---------|
-| `services` | List of services to advertise | `[]` |
-| `services[].name` | Display name for the service | Required |
-| `services[].hostname` | mDNS hostname (without `.local`) | Required |
-| `services[].ip` | IP address to advertise | Required |
-| `services[].port` | Port number | Required |
-| `services[].types` | List of service types | Required |
-| `services[].types[].type` | Service type (e.g., `_http._tcp`) | Required |
-| `services[].types[].txtRecords` | Optional TXT records | `[]` |
+Parent charts define their own values structure (typically `mdnsServices`). Each service object should contain:
+
+| Key | Description | Required |
+|-----|-------------|----------|
+| `name` | Display name for the service | Yes |
+| `hostname` | mDNS hostname (without `.local`) | Yes |
+| `ip` | IP address to advertise | Yes |
+| `port` | Port number | Yes |
+| `types` | List of service type objects | Yes |
+| `types[].type` | Service type (e.g., `_http._tcp`) | Yes |
+| `types[].txtRecords` | Optional TXT records | No |
 
 ## Common Service Types
 

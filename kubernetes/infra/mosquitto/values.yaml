@@ -26,11 +26,10 @@ mosquitto:
 
 # mDNS advertisement for MQTT broker discovery
 # Allows Theengs Gateway and other devices to find the broker
-mdns-config:
-  services:
-    - name: Mosquitto
-      hostname: mosquitto
-      ip: 192.168.0.202
-      port: 1883
-      types:
-        - type: _mqtt._tcp
+mdnsServices:
+  - name: Mosquitto
+    hostname: mosquitto
+    ip: 192.168.0.202
+    port: 1883
+    types:
+      - type: _mqtt._tcp

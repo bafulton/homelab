@@ -1,19 +1,19 @@
-{{- range .Values.services }}
+{{- define "mdns-config.configmap" -}}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ $.Release.Name }}-mdns-{{ .hostname }}
+  name: {{ .name }}
   labels:
     mdns.homelab.io/advertise: "true"
 data:
   config.yaml: |
-    name: {{ .name | quote }}
-    hostname: {{ .hostname | quote }}
-    ip: {{ .ip | quote }}
-    port: {{ .port }}
+    name: {{ .service.name | quote }}
+    hostname: {{ .service.hostname | quote }}
+    ip: {{ .service.ip | quote }}
+    port: {{ .service.port }}
     types:
-    {{- range .types }}
+    {{- range .service.types }}
       - type: {{ .type | quote }}
         {{- if .txtRecords }}
         txtRecords:

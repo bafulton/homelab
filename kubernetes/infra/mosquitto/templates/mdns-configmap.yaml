@@ -1,0 +1,7 @@
+{{- range .Values.mdnsServices }}
+{{- include "mdns-config.configmap" (dict
+    "Release" $.Release
+    "name" (printf "%s-mdns-%s" $.Release.Name .hostname)
+    "service" .
+) }}
+{{- end }}

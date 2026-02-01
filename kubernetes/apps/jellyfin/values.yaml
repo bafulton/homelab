@@ -16,6 +16,9 @@ traefik-ingress:
       service:
         name: jellyfin
         port: 8096
+      mdns:
+        name: Jellyfin
+        ip: 192.168.0.200
 
 # Tailscale exposure for remote access
 tailscale-ingress:
@@ -82,14 +85,3 @@ jellyfin:
         value: "200000000"
       - name: JELLYFIN_FFmpeg__probesize
         value: "1000000000"
-
-# mDNS advertisement for Jellyfin auto-discovery
-# Routes through Traefik's MetalLB IP (192.168.0.200)
-mdns-config:
-  services:
-    - name: Jellyfin
-      hostname: media
-      ip: 192.168.0.200
-      port: 80
-      types:
-        - type: _http._tcp

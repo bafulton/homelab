@@ -36,22 +36,21 @@ bitwarden-secret:
 
 # mDNS advertisement for Time Machine auto-discovery
 # IP must match service.loadBalancerIP above
-mdns-config:
-  services:
-    - name: Time Machine
-      hostname: timemachine
-      ip: 192.168.0.201
-      port: 445
-      types:
-        # SMB file sharing
-        - type: _smb._tcp
-        # Apple disk service (required for Time Machine auto-discovery)
-        # Single shared volume with per-machine quotas via .quota.plist
-        - type: _adisk._tcp
-          txtRecords:
-            - "sys=adVF=0x100"
-            - "dk0=adVN=Family,adVF=0x82"
-        # Device info (shows as Time Capsule in Finder)
-        - type: _device-info._tcp
-          txtRecords:
-            - "model=TimeCapsule8,119"
+mdnsServices:
+  - name: Time Machine
+    hostname: timemachine
+    ip: 192.168.0.201
+    port: 445
+    types:
+      # SMB file sharing
+      - type: _smb._tcp
+      # Apple disk service (required for Time Machine auto-discovery)
+      # Single shared volume with per-machine quotas via .quota.plist
+      - type: _adisk._tcp
+        txtRecords:
+          - "sys=adVF=0x100"
+          - "dk0=adVN=Family,adVF=0x82"
+      # Device info (shows as Time Capsule in Finder)
+      - type: _device-info._tcp
+        txtRecords:
+          - "model=TimeCapsule8,119"

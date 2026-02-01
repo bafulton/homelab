@@ -1,28 +1,10 @@
 {{- range .Values.ingresses }}
 {{- if .mdns }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ $.Release.Name }}-mdns-{{ index (split "." .hostname) 0 }}
-  labels:
-    mdns.homelab.io/advertise: "true"
-data:
-  config.yaml: |
-    name: {{ .mdns.name | quote }}
-    hostname: {{ index (split "." .hostname) 0 | quote }}
-    ip: {{ .mdns.ip | quote }}
-    port: {{ .mdns.port | default 80 }}
-    types:
-    {{- $types := .mdns.types | default (list (dict "type" "_http._tcp")) }}
-    {{- range $types }}
-      - type: {{ .type | quote }}
-        {{- if .txtRecords }}
-        txtRecords:
-          {{- range .txtRecords }}
-          - {{ . | quote }}
-          {{- end }}
-        {{- end }}
-    {{- end }}
+{{- $service := merge (dict "hostname" (index (split "." .hostname) 0) "port" (.mdns.port | default 80) "types" (.mdns.types | default (list (dict "type" "_http._tcp")))) .mdns }}
+{{- include "mdns-config.configmap" (dict
+    "Release" $.Release
+    "name" (printf "%s-mdns-%s" $.Release.Name (index (split "." .hostname) 0))
+    "service" $service
+) }}
 {{- end }}
 {{- end }}
