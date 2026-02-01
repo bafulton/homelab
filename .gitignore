@@ -2,6 +2,7 @@
 
 # Helm dependency charts (downloaded by helm dep update)
 kubernetes/**/charts/
+charts/**/charts/
 
 # Helm lockfiles (except argocd which needs pinned versions)
 **/Chart.lock

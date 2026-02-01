@@ -1,9 +1,13 @@
 {{- range .Values.ingresses }}
 {{- if .mdns }}
-{{- $service := merge (dict "hostname" (index (split "." .hostname) 0) "port" (.mdns.port | default 80) "types" (.mdns.types | default (list (dict "type" "_http._tcp")))) .mdns }}
+{{- $hostnameParts := split "." .hostname }}
+{{- $hostname := $hostnameParts._0 }}
+{{- $port := .mdns.port | default 80 }}
+{{- $types := .mdns.types | default (list (dict "type" "_http._tcp")) }}
+{{- $service := merge (dict "hostname" $hostname "port" $port "types" $types) .mdns }}
 {{- include "mdns-config.configmap" (dict
     "Release" $.Release
-    "name" (printf "%s-mdns-%s" $.Release.Name (index (split "." .hostname) 0))
+    "name" (printf "%s-mdns-%s" $.Release.Name $hostname)
     "service" $service
 ) }}
 {{- end }}
