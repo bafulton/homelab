@@ -1,0 +1,93 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-tailscale-auth-keygen
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  template:
+    metadata:
+      name: {{ .Release.Name }}-tailscale-auth-keygen
+    spec:
+      serviceAccountName: {{ .Release.Name }}-tailscale-keygen
+      restartPolicy: OnFailure
+      containers:
+      - name: generate-auth-key
+        # renovate: datasource=docker depName=alpine
+        image: alpine:3.21
+        command: [/bin/sh, -c]
+        args:
+          - |
+            set -e
+
+            # Install dependencies
+            apk add --no-cache curl jq kubectl
+
+            echo "Waiting for Tailscale OAuth credentials..."
+
+            # Wait for ESO to sync OAuth credentials with exponential backoff
+            ATTEMPT=0
+            MAX_ATTEMPTS=10
+            while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+              if [ -n "$TS_OAUTH_CLIENT_ID" ] && [ -n "$TS_OAUTH_CLIENT_SECRET" ]; then
+                echo "OAuth credentials found"
+                break
+              fi
+              SLEEP=$((2 ** ATTEMPT))
+              echo "Attempt $ATTEMPT: Credentials not ready, waiting ${SLEEP}s..."
+              sleep $SLEEP
+              ATTEMPT=$((ATTEMPT + 1))
+            done
+
+            if [ -z "$TS_OAUTH_CLIENT_ID" ] || [ -z "$TS_OAUTH_CLIENT_SECRET" ]; then
+              echo "ERROR: Tailscale OAuth credentials not found after $MAX_ATTEMPTS attempts"
+              exit 1
+            fi
+
+            echo "Generating Tailscale auth key..."
+
+            # Generate auth key via Tailscale API
+            # - reusable: false (one device per key)
+            # - ephemeral: false (device persists across restarts)
+            # - tags: ["tag:k8s"] (apply k8s tag)
+            # - expirySeconds: 7776000 (90 days, Tailscale maximum)
+            RESPONSE=$(curl -sf -u "$TS_OAUTH_CLIENT_ID:$TS_OAUTH_CLIENT_SECRET" \
+              https://api.tailscale.com/api/v2/tailnet/catfish-mountain.ts.net/keys \
+              -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"tags":["tag:k8s"]}}},"expirySeconds":7776000}')
+
+            if [ $? -ne 0 ]; then
+              echo "ERROR: Failed to generate auth key from Tailscale API"
+              exit 1
+            fi
+
+            AUTH_KEY=$(echo $RESPONSE | jq -r '.key')
+
+            if [ -z "$AUTH_KEY" ] || [ "$AUTH_KEY" = "null" ]; then
+              echo "ERROR: Failed to extract auth key from API response"
+              echo "Response: $RESPONSE"
+              exit 1
+            fi
+
+            echo "Auth key generated successfully"
+            echo "Creating/updating secret..."
+
+            # Create or update secret with auth key
+            kubectl create secret generic {{ .Release.Name }}-tailscale-auth \
+              --namespace={{ .Release.Namespace }} \
+              --from-literal=TS_AUTHKEY=$AUTH_KEY \
+              --dry-run=client -o yaml | kubectl apply -f -
+
+            echo "Secret {{ .Release.Name }}-tailscale-auth created/updated successfully"
+        env:
+          - name: TS_OAUTH_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: tailscale-oauth
+                key: client_id
+          - name: TS_OAUTH_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: tailscale-oauth
+                key: client_secret

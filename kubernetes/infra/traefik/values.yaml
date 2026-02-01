@@ -1,5 +1,23 @@
 namespace: traefik
 
+# Tailscale OAuth credentials for automated auth key generation
+# These credentials are used by the pre-install hook to generate auth keys
+bitwarden-secret:
+  secrets:
+    - name: tailscale-oauth
+      data:
+        client_id: "0444abc5-ca33-41a7-a90d-b3c70174b122"
+        client_secret: "8a0781d1-8c35-42f9-8b6b-b3c70174c7e6"
+
+# Persistent storage for Tailscale device state
+# Preserves device identity across pod restarts
+longhorn-storage:
+  pvcs:
+    - name: traefik-tailscale-state
+      size: 1Gi
+      storageClass: longhorn-emmc
+      accessMode: ReadWriteOnce
+
 tailscale-ingress:
   ingresses:
     - name: tailscale
