@@ -31,7 +31,7 @@
   // Define tags and their owners.
   "tagOwners": {
     // Kubernetes operator manages k8s-tagged devices
-    "tag:k8s-operator": [],
+    "tag:k8s-operator": ["autogroup:admin"],
     "tag:k8s": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
