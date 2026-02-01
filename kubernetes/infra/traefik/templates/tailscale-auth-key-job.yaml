@@ -47,14 +47,13 @@ spec:
             echo "Generating Tailscale auth key..."
 
             # Generate auth key via Tailscale API
-            # - reusable: false (one device per key)
-            # - ephemeral: false (device persists across restarts)
-            # - expirySeconds: 7776000 (90 days, Tailscale maximum)
+            # Try simplest possible request first
             HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/response.json \
               -u "$TS_OAUTH_CLIENT_ID:$TS_OAUTH_CLIENT_SECRET" \
               -H "Content-Type: application/json" \
+              -X POST \
               https://api.tailscale.com/api/v2/tailnet/catfish-mountain.ts.net/keys \
-              -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false}}},"expirySeconds":7776000}')
+              -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false}}}}')
 
             if [ "$HTTP_CODE" != "200" ]; then
               echo "ERROR: Tailscale API returned HTTP $HTTP_CODE"
