@@ -15,6 +15,9 @@ dependencies:
   - name: traefik-ingress
     version: 1.0.0
     repository: file://../../../charts/traefik-ingress
+  - name: mdns-config
+    version: 1.0.0
+    repository: file://../../../charts/mdns-config
   - name: longhorn-storage
     version: 1.0.0
     repository: file://../../../charts/longhorn-storage
