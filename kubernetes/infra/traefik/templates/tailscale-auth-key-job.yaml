@@ -48,13 +48,13 @@ spec:
 
             # Generate auth key via Tailscale API
             # OAuth-generated auth keys MUST include tags (Tailscale requirement)
-            # Using tag:k8s (owned by tag:k8s-operator in ACL)
+            # Using tag:k8s-operator (the tag selected when creating the OAuth client)
             HTTP_CODE=$(curl -s -w "%{http_code}" -o /tmp/response.json \
               -u "$TS_OAUTH_CLIENT_ID:$TS_OAUTH_CLIENT_SECRET" \
               -H "Content-Type: application/json" \
               -X POST \
               https://api.tailscale.com/api/v2/tailnet/catfish-mountain.ts.net/keys \
-              -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"tags":["tag:k8s"]}}}}')
+              -d '{"capabilities":{"devices":{"create":{"reusable":false,"ephemeral":false,"tags":["tag:k8s-operator"]}}}}')
 
             if [ "$HTTP_CODE" != "200" ]; then
               echo "ERROR: Tailscale API returned HTTP $HTTP_CODE"
