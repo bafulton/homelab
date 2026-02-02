@@ -9,6 +9,14 @@ traefik:
 
   priorityClassName: "system-cluster-critical"
 
+  # High availability - 2 replicas for zero downtime
+  replicas: 2
+
+  # Ensure at least 1 pod is always available during disruptions
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
   # Enable Gateway API provider
   providers:
     kubernetesGateway:
