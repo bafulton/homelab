@@ -54,14 +54,13 @@ traefik:
   service:
     annotations:
       metallb.io/loadBalancerIPs: "192.168.0.200"
-
-  # Additional service - Tailscale for remote access
-  additionalServices:
-    tailscale:
-      type: LoadBalancer
-      loadBalancerClass: tailscale
-      annotations:
-        tailscale.com/hostname: gateway
+    # Additional service - Tailscale for remote access
+    additionalServices:
+      tailscale:
+        type: LoadBalancer
+        loadBalancerClass: tailscale
+        annotations:
+          tailscale.com/hostname: gateway
 
   additionalArguments:
     # Expose dashboard without TLS - safe because it's behind Gateway API
