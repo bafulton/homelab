@@ -6,8 +6,8 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 
 | Component | Purpose | Exposed via |
 |-----------|---------|-------------|
-| [argocd](./argocd) | GitOps continuous delivery - syncs cluster state from this repo | Tailscale |
-| [cert-manager](./cert-manager) | TLS certificate management with a self-signed homelab CA | - |
+| [argocd](./argocd) | GitOps continuous delivery - syncs cluster state from this repo | *.catfish-mountain.com |
+| [cert-manager](./cert-manager) | TLS certificate management (Let's Encrypt + homelab CA) | - |
 | [cluster-maintenance](./cluster-maintenance) | Cluster-level maintenance utilities (pod cleanup) | - |
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
 | [intel-device-plugins](./intel-device-plugins) | Intel GPU device plugins for QuickSync hardware transcoding | - |
@@ -17,78 +17,98 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
 | [node-exporter](./node-exporter) | Node hardware metrics (CPU, memory, disk, temperature) | - |
-| [signoz](./signoz) | Observability platform (metrics, logs, traces) | Tailscale |
+| [signoz](./signoz) | Observability platform (metrics, logs, traces) | *.catfish-mountain.com |
 | [signoz-k8s-infra](./signoz-k8s-infra) | Kubernetes metrics collection for SigNoz | - |
 | [smartctl-exporter](./smartctl-exporter) | Disk SMART health metrics (NVMe, USB, SD cards) | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
-| [traefik](./traefik) | Ingress controller for LAN HTTP routing | Tailscale |
+| [traefik](./traefik) | Gateway API implementation for HTTP routing | *.catfish-mountain.com |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
 
 ## Networking Overview
 
-Understanding how traffic flows in a bare-metal Kubernetes cluster:
+Understanding how traffic flows in this cluster:
 
 ```mermaid
 flowchart LR
     subgraph external[External Access]
-        laptop[Devices on Tailnet]
+        tailnet[Devices on Tailnet]
+        internet[Public Internet]
         lan[Devices on LAN]
     end
 
+    subgraph routing[Routing Layer]
+        splitdns[Tailscale Split DNS<br/>*.catfish-mountain.com]
+        cloudflare[Cloudflare Tunnel<br/>*.fultonhuffman.com]
+        mdns[mDNS<br/>*.local]
+    end
+
     subgraph k8s[Kubernetes Cluster]
-        ts[Tailscale<br/>Operator]
-        metallb[MetalLB]
-        traefik[Traefik]
+        gateway[Traefik Gateway]
+        metallb[MetalLB LB]
         svc[Services]
         pods[Pods]
     end
 
-    laptop -->|argocd.my-tailnet.ts.net| ts
-    lan -->|192.168.x.x| metallb
-    metallb --> traefik
-    ts --> svc
-    traefik -->|routes by host/path| svc
+    tailnet -->|Private| splitdns
+    internet -->|Public| cloudflare
+    lan -->|LAN| mdns
+
+    splitdns --> gateway
+    cloudflare --> gateway
+    mdns --> metallb
+
+    metallb --> gateway
+    gateway -->|Gateway API routes| svc
     svc --> pods
 ```
 
-**Note:** There is no public internet exposure. Access is either via Tailscale (from anywhere on your tailnet) or via LAN IPs (physical network only).
+**Access patterns:**
+- **Private infrastructure** (*.catfish-mountain.com) → Tailscale Split DNS → Gateway API → Services
+- **Public services** (*.fultonhuffman.com, etc.) → Cloudflare Tunnel → Gateway API → Services
+- **LAN services** (*.local) → mDNS → MetalLB → Gateway or direct
 
 ### CoreDNS (built into Kubernetes)
 Provides DNS for pods and services inside the cluster. When a pod calls `http://my-service:8080`, CoreDNS resolves `my-service` to the Service's ClusterIP.
 
-### Tailscale Operator
-Exposes services directly on your Tailscale network - no port forwarding, no public IPs. Services get a `<name>.<tailnet>.ts.net` hostname accessible from any device on your tailnet.
+### Tailscale Split DNS
+Routes `*.catfish-mountain.com` queries from Tailscale clients to the cluster. Configured in Tailscale admin console. Enables private access to infrastructure services from anywhere on the tailnet.
 
-**Use Tailscale for services you want accessible from anywhere** - laptop at a coffee shop, phone on cellular, etc:
+**Use for private infrastructure services:**
 - ArgoCD, dashboards, admin UIs
-- Services you want to access remotely
+- Internal APIs and tools
+- Anything you want accessible remotely but **not** public
+
+### Cloudflare Tunnel
+Routes specific public subdomains (defined in `terraform/cloudflare/variables.tf`) to the cluster via secure tunnel. Most domains are **private by default** - only explicitly configured subdomains are public.
+
+**Use for public services:**
+- Personal websites and blogs
+- Services you want publicly accessible
+- Anything that should work for non-Tailscale users
 
 ### MetalLB
 Assigns real LAN IPs to `LoadBalancer` Services. Without it (or a cloud provider), LoadBalancer services stay in `Pending` forever.
 
-**Use MetalLB for LAN-only services** - things you only want accessible when physically on your home network:
-- Media servers for local streaming
-- Databases, game servers, or other non-HTTP services
-- Anything that shouldn't be reachable remotely
+**Use MetalLB for:**
+- The Traefik Gateway (gets a stable LAN IP)
+- Non-HTTP services (SMB, databases, game servers)
+- Services that need dedicated IPs
 
-### Traefik
-Ingress controller that routes HTTP(S) traffic to Services based on hostname/path rules.
+### Traefik Gateway
+Kubernetes Gateway API implementation that routes HTTP(S) traffic based on Gateway API HTTPRoute resources. All HTTP services route through the Traefik Gateway at `192.168.0.200`.
 
-**Why use an ingress controller?** Without one, each HTTP service would need its own MetalLB IP. With Traefik, many services share one IP:
+**Why use a Gateway?** Shares one IP across many services:
 
 ```mermaid
 flowchart LR
-    ip[192.168.1.200] --> traefik[Traefik]
-    traefik -->|app1.homelab.local| app1[app1-service]
-    traefik -->|app2.homelab.local| app2[app2-service]
-    traefik -->|app3.homelab.local/api| app3[app3-service]
+    ip[192.168.0.200] --> gateway[Traefik Gateway]
+    gateway -->|app1.fultonhuffman.com| app1[app1-service]
+    gateway -->|app2.local| app2[app2-service]
+    gateway -->|app3.catfish-mountain.com| app3[app3-service]
 ```
 
-**Tip:** Add Traefik's MetalLB IP to `/etc/hosts` for easy LAN access:
-```
-192.168.0.200    media.local home.local
-```
+Services use the `gateway-route` shared chart to create HTTPRoute resources. The same route can handle multiple hostnames (public, private, LAN).
 
 ### hostNetwork (for mDNS services)
 
@@ -108,33 +128,54 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 ```
 "What are the access requirements for this service?"
 
-├── Needs secure, private access from anywhere?
-│   └── Use Tailscale Ingress → service.catfish-mountain.ts.net
-│       (zero-trust, encrypted, no public exposure)
+├── HTTP service (web UI, API)?
+│   └── Use gateway-route chart → creates HTTPRoute
 │
-├── LAN only (no remote access needed)?
-│   ├── HTTP service (web UI, API)?
-│   │   └── Use Traefik → add hostname to /etc/hosts
-│   │
-│   ├── Non-HTTP service (SMB, database, game server)?
-│   │   └── Use MetalLB LoadBalancer → gets dedicated IP
-│   │
-│   └── Needs mDNS discovery?
-│       └── Use hostNetwork → binds to node IP
+│       Choose hostname(s):
+│       ├── Private remote access? → *.catfish-mountain.com
+│       ├── Public access? → *.fultonhuffman.com (or other public domain)
+│       └── LAN discovery? → *.local (with mDNS)
 │
-└── Public internet (untrusted users)?
-    └── Traefik + Cloudflare Tunnel (not yet implemented)
+│       Can mix all three in one route!
+│
+├── Non-HTTP service (SMB, database, game server)?
+│   └── Use MetalLB LoadBalancer → gets dedicated LAN IP
+│
+└── Needs mDNS discovery (auto-discovery on LAN)?
+    └── Use hostNetwork → binds to node IP
 ```
 
 ### Quick Reference
 
-| Service Type | Method | Access Via |
-|--------------|--------|------------|
-| Admin UIs (ArgoCD, dashboards) | Tailscale Ingress | `*.catfish-mountain.ts.net` |
-| LAN web apps (Jellyfin, Home Assistant UI) | MetalLB → Traefik | `app.local` (via /etc/hosts) |
-| LAN non-HTTP (databases, game servers) | MetalLB LoadBalancer | `192.168.0.x:port` |
-| mDNS-dependent (Time Machine, Home Assistant) | hostNetwork | Node IP or auto-discovered |
+| Service Type | Method | Example Hostname |
+|--------------|--------|------------------|
+| Admin UIs (ArgoCD, dashboards) | gateway-route | `argocd.catfish-mountain.com` |
+| Public sites (blogs, portfolios) | gateway-route | `blog.fultonhuffman.com` |
+| LAN web apps (Jellyfin, media) | gateway-route with mDNS | `media.local` |
+| LAN non-HTTP (databases, SMB) | MetalLB LoadBalancer | `192.168.0.x:port` |
+| mDNS-dependent (Time Machine) | hostNetwork | Auto-discovered |
 
-**Note:** Some services may use multiple methods. For example, Home Assistant might use:
-- `hostNetwork: true` (so it can discover IoT devices via mDNS)
-- Traefik IngressRoute (so you can access its web UI at `home-assistant.lan`)
+### Multi-Hostname Example
+
+Most services use a single HTTPRoute with multiple hostnames for different access methods:
+
+```yaml
+gateway-route:
+  routes:
+    - name: media
+      hostnames:
+        - media.fultonhuffman.com      # Public via Cloudflare Tunnel
+        - media.catfish-mountain.com   # Private via Tailscale
+        - media.local                  # LAN via mDNS
+      service:
+        name: jellyfin
+        port: 8096
+      mdns:  # Optional: advertise via Bonjour
+        name: Media Server
+        ip: 192.168.0.200
+        port: 8096
+```
+
+**Note:** Some services need multiple exposure methods. For example, Home Assistant might use:
+- `hostNetwork: true` (to discover IoT devices via mDNS)
+- `gateway-route` (for web UI access at `home.local`)

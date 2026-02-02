@@ -6,6 +6,8 @@ GitOps-driven Kubernetes cluster for my homelab, running on Talos Linux with Tai
 
 - **OS**: [Talos Linux](https://www.talos.dev/) - immutable, API-driven Kubernetes OS
 - **Networking**: [Tailscale](https://tailscale.com/) - nodes communicate over a private mesh network
+- **Access Control**: Tailscale Split DNS + Cloudflare Tunnel for private/public routing
+- **Routing**: Kubernetes Gateway API with Traefik gateway
 - **GitOps**: [ArgoCD](https://argo-cd.readthedocs.io/) - all cluster state is defined in this repo
 - **Dependency Updates**: [Renovate](https://docs.renovatebot.com/) - automated PRs for version updates
 
@@ -63,9 +65,11 @@ Talos, Kubernetes, and kubectl versions are grouped together since compatibility
 
 ## Dashboards
 
-- [ArgoCD](https://argocd.catfish-mountain.ts.net) - GitOps deployments
-- [SigNoz](https://signoz.catfish-mountain.ts.net) - Observability (metrics, logs, traces)
-- [Traefik](https://traefik.catfish-mountain.ts.net) - Ingress controller
+Access via Tailscale (private by default):
+
+- [ArgoCD](https://argocd.catfish-mountain.com) - GitOps deployments
+- [SigNoz](https://signoz.catfish-mountain.com) - Observability (metrics, logs, traces)
+- [Traefik](https://traefik.catfish-mountain.com) - Gateway dashboard
 
 ## Getting Started
 

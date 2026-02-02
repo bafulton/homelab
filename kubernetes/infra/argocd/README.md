@@ -4,7 +4,7 @@ GitOps continuous delivery for Kubernetes. Watches this repo and automatically s
 
 ## Access
 
-Exposed via Tailscale at `https://argocd.<tailnet>.ts.net`
+`https://argocd.catfish-mountain.com` (requires Tailscale connection)
 
 ## Credentials
 

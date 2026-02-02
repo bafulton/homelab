@@ -1,10 +1,21 @@
 # Tailscale Operator
 
-Exposes Kubernetes services directly on your Tailscale network.
+Exposes Kubernetes services directly on your Tailscale network as `*.ts.net` devices.
+
+## When to Use This
+
+**Most services should use Gateway API + Split DNS instead** (see `charts/gateway-route/README.md`), which routes `*.catfish-mountain.com` traffic through the Traefik Gateway.
+
+**Use Tailscale Operator only for:**
+- Services that need dedicated Tailscale IPs (e.g., DNS servers)
+- Services that can't use the shared Gateway (non-HTTP protocols with Tailscale)
+
+**Current usage in this cluster:**
+- `cluster-dns` - CoreDNS for Tailscale Split DNS
 
 ## How It Works
 
-The operator watches for Services or Ingresses with Tailscale annotations and creates Tailscale devices to expose them on your tailnet.
+The operator watches for Services or Ingresses with Tailscale annotations and creates Tailscale proxy pods that join the tailnet as devices.
 
 ## Usage
 

@@ -7,7 +7,7 @@ Smart home platform for local control of IoT devices. Integrates with Kasa, Mero
 | Method | URL | Use Case |
 |--------|-----|----------|
 | LAN | `http://home.local` | Local access on home network |
-| Tailscale | `https://home-assistant.catfish-mountain.ts.net` | Remote access from anywhere |
+| Private (Tailscale) | `https://home-assistant.catfish-mountain.com` | Remote access via Tailscale |
 
 ## Components
 
@@ -108,7 +108,7 @@ These integrations are configured through the Home Assistant UI and stored in th
 ## Initial Setup
 
 1. Wait for ArgoCD to sync the app
-2. Access `https://home-assistant.catfish-mountain.ts.net`
+2. Access `https://home-assistant.catfish-mountain.com` (requires Tailscale connection)
 3. Create your admin account
 4. Add integrations for your smart devices
 

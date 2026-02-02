@@ -13,7 +13,7 @@ GitOps-driven Kubernetes homelab running on Talos Linux with Tailscale networkin
 Each app in `infra/` or `apps/` is a wrapper Helm chart:
 - `Chart.yaml` - Declares upstream chart as dependency
 - `values.yaml` - Configuration values (also read by ApplicationSet for metadata)
-- `templates/` - Additional resources (e.g., Tailscale Ingress, Secrets)
+- `templates/` - Additional resources (e.g., Gateway API routes, Secrets)
 
 The ApplicationSets scan for `values.yaml` files and generate ArgoCD Applications automatically.
 
@@ -33,11 +33,13 @@ namespace: custom-namespace
 # Optional: Enable server-side apply for CRD-heavy charts
 serverSideApply: true
 
-# Tailscale exposure (if using tailscale-ingress template)
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: my-app  # becomes my-app.catfish-mountain.ts.net
+# Gateway API routing (for public, LAN, or private access)
+gateway-route:
+  routes:
+    - name: main
+      hostnames:
+        - my-app.fultonhuffman.com  # Public (via Cloudflare Tunnel)
+        - my-app.local              # LAN (via mDNS)
       service:
         name: my-app-server
         port: 80
@@ -49,34 +51,9 @@ my-upstream-chart:
 
 ## Important Patterns
 
-### Tailscale Ingress
+### Gateway API Routes (Primary Pattern)
 
-Services are exposed via Tailscale Ingress (not traditional Ingress controllers):
-- Tailscale operator creates proxy pods that join the tailnet
-- TLS certificates are automatically provisioned via Let's Encrypt
-- Access via `https://<hostname>.catfish-mountain.ts.net`
-
-Use the `tailscale-ingress` shared chart (see `charts/tailscale-ingress/README.md`):
-
-```yaml
-# Chart.yaml
-dependencies:
-  - name: tailscale-ingress
-    version: 1.0.0
-    repository: file://../../../charts/tailscale-ingress
-
-# values.yaml
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: my-app
-      service:
-        name: my-app-server
-```
-
-### Gateway API (Public + LAN)
-
-For public and/or LAN HTTP access, use the `gateway-route` shared chart with Gateway API HTTPRoutes:
+**All services** use the `gateway-route` shared chart with Kubernetes Gateway API HTTPRoutes:
 
 ```yaml
 # Chart.yaml
@@ -91,17 +68,16 @@ gateway-route:
     - name: public-lan
       hostnames:
         - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
-        - myapp.local              # LAN via mDNS (add to /etc/hosts)
+        - myapp.local              # LAN via mDNS
       service:
         name: my-app-server
         port: 8080
       mdns:                        # Optional: mDNS advertisement
         name: My App
         ip: 192.168.0.200          # Gateway MetalLB IP
-        port: 80
 ```
 
-**Private domains only (catfish-mountain.com):**
+**Private infrastructure (catfish-mountain.com):**
 ```yaml
 gateway-route:
   routes:
@@ -113,9 +89,23 @@ gateway-route:
         port: 80
 ```
 
-Add to `/etc/hosts` for .local: `192.168.0.200    myapp.local`
-
-**Note:** `traefik-ingress` chart is deprecated. Use `gateway-route` for all new apps.
+**Multiple routes for different access patterns:**
+```yaml
+gateway-route:
+  routes:
+    - name: ui
+      hostnames:
+        - myapp.catfish-mountain.com  # Private UI
+      service:
+        name: myapp-server
+        port: 80
+    - name: webhook
+      hostnames:
+        - myapp-webhook.catfish-mountain.com  # Public webhook
+      service:
+        name: myapp-server
+        port: 80
+```
 
 ### mDNS Advertisement
 
@@ -157,6 +147,49 @@ metadata:
     pod-security.kubernetes.io/enforce: privileged
 ```
 
+## Domain Strategy
+
+**Domain usage patterns:**
+- `*.catfish-mountain.ts.net` → Tailscale network resources (gateway, DNS, physical devices)
+- `*.catfish-mountain.com` → Infrastructure (dashboards, webhooks, etc.) - **private by default**
+  - Accessible only via Tailscale Split DNS when connected to tailnet
+  - Specific public exceptions defined in `terraform/cloudflare/variables.tf` (`public_subdomains`)
+- `*.fultonhuffman.com`, `*.yak-shave.com`, `*.benfulton.me` → Public services
+
+**Cloudflare Tunnel routing** is explicitly controlled:
+- Wildcard routing for public domains only
+- Specific subdomain exceptions for catfish-mountain.com (e.g., argocd-webhook)
+- All other catfish-mountain.com requests → 404
+
+## Certificate Management
+
+**Public domains** (*.fultonhuffman.com, *.yak-shave.com, *.benfulton.me):
+- Managed by **Cloudflare Universal SSL** (automatic, Cloudflare terminates TLS)
+- No configuration needed in Kubernetes
+
+**Private domain** (*.catfish-mountain.com):
+- Managed by **Let's Encrypt** via cert-manager
+- Configured in: `kubernetes/infra/cert-manager/templates/letsencrypt-cloudflare-issuer.yaml`
+- Uses Cloudflare DNS-01 challenge (API token from Bitwarden)
+- Auto-renews 30 days before 90-day expiration
+- Browser-trusted certificates (no self-signed warnings)
+
+**Internal cluster services** (.svc.cluster.local):
+- Managed by **homelab-ca** (internal PKI)
+- Self-signed root CA, 10-year validity
+- Used for pod-to-pod communication, webhooks
+
+**Certificate hierarchy:**
+```
+# Public
+Let's Encrypt (production) → *.catfish-mountain.com
+
+# Internal
+selfsigned-bootstrap → homelab-root-ca → homelab-ca → service certs
+```
+
+See `kubernetes/infra/cert-manager/README.md` for details.
+
 ## Secrets Management
 
 **Bootstrap secrets** (created during `bootstrap.sh`):
@@ -165,6 +198,7 @@ metadata:
 
 **Bitwarden-managed secrets** (via External Secrets Operator):
 - **Tailscale OAuth** - `operator-oauth` in `tailscale` namespace
+- **Cloudflare API token** - `cloudflare-api-token` in `cert-manager` namespace (for Let's Encrypt)
 
 **Talos secrets** (gitignored):
 - `talsecret.yaml` - Cluster PKI, generated by talhelper

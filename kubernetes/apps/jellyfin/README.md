@@ -7,7 +7,7 @@ Self-hosted media server with Intel QuickSync hardware transcoding. 100% free an
 | Method | URL | Use Case |
 |--------|-----|----------|
 | LAN | `http://media.local` | Local access on home network |
-| Tailscale | `https://jellyfin.catfish-mountain.ts.net` | Remote access from anywhere |
+| Private (Tailscale) | `https://jellyfin.catfish-mountain.com` | Remote access via Tailscale |
 
 **Clients:**
 - **Web UI**: Built-in, works in any browser
@@ -78,7 +78,7 @@ kubectl cp /path/to/TV\ Shows media-copy:/media/TV\ Shows -n jellyfin
 ## Initial Setup
 
 1. Wait for ArgoCD to sync (intel-device-plugins must be ready first)
-2. Access `https://jellyfin.catfish-mountain.ts.net`
+2. Access `https://jellyfin.catfish-mountain.com` (requires Tailscale connection)
 3. Run the setup wizard, create admin account
 4. Add media libraries pointing to `/media`
 5. Configure hardware transcoding (see above)

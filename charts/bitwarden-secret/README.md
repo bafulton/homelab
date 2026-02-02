@@ -71,6 +71,23 @@ bitwarden-secret:
 | `secrets[].target.labels` | Labels on generated Secret | - |
 | `secrets[].data` | Map of secretKey to Bitwarden secret ID | Required |
 
+## Advanced Options
+
+Per-secret strategy overrides (optional):
+
+```yaml
+bitwarden-secret:
+  secrets:
+    - name: my-secret
+      conversionStrategy: Default  # or Unicode
+      decodingStrategy: None       # or Base64, Base64URL, Auto
+      metadataPolicy: None         # or Fetch
+      data:
+        key: "bitwarden-uuid"
+```
+
+These settings apply to **all data entries** within the secret.
+
 ## Resources Created
 
 For each entry in `secrets`:

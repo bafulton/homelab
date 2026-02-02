@@ -4,7 +4,7 @@ Open-source observability platform with metrics, logs, and traces in a single pa
 
 ## Access
 
-Exposed via Tailscale at `https://signoz.<tailnet>.ts.net`
+`https://signoz.catfish-mountain.com` (requires Tailscale connection)
 
 ## Architecture
 
