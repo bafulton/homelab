@@ -7,7 +7,9 @@ metadata:
   namespace: {{ $.Release.Namespace }}
 spec:
   parentRefs:
-    - name: {{ $.Values.gateway.name }}
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: {{ $.Values.gateway.name }}
       namespace: {{ $.Values.gateway.namespace }}
   hostnames:
     {{- range .hostnames }}
@@ -17,8 +19,15 @@ spec:
     {{- if .rules }}
     {{- toYaml .rules | nindent 4 }}
     {{- else }}
-    - backendRefs:
-        - name: {{ .service.name }}
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - group: ""
+          kind: Service
+          name: {{ .service.name }}
           port: {{ .service.port | default 80 }}
+          weight: 1
     {{- end }}
 {{- end }}
