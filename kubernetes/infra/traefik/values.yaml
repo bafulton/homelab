@@ -1,16 +1,5 @@
 namespace: traefik
 
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: traefik-dashboard
-      service:
-        create: true
-        targetPort: 8080
-        targetSelector:
-          app.kubernetes.io/instance: traefik-traefik
-          app.kubernetes.io/name: traefik
-
 traefik:
   # A complete list of values can be found here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
@@ -19,6 +8,39 @@ traefik:
   # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md
 
   priorityClassName: "system-cluster-critical"
+
+  # Enable Gateway API provider
+  providers:
+    kubernetesGateway:
+      enabled: true
+
+  # Configure standard HTTP/HTTPS ports
+  ports:
+    web:
+      port: 80
+      expose: true
+    websecure:
+      port: 443
+      expose: true
+
+  # Configure Gateway with listeners for both remote and LAN access
+  gateway:
+    enabled: true
+    name: traefik  # Override default "traefik-gateway" for shorter name
+    listeners:
+      web:
+        port: 80
+        protocol: HTTP
+        namespacePolicy:
+          from: All
+      websecure:
+        port: 443
+        protocol: HTTPS
+        namespacePolicy:
+          from: All
+        certificateRefs:
+          - name: wildcard-catfish-mountain-com-tls
+        mode: Terminate
 
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
   deployment:
@@ -31,9 +53,17 @@ traefik:
     annotations:
       metallb.io/loadBalancerIPs: "192.168.0.200"
 
+  # Additional service - Tailscale for remote access
+  additionalServices:
+    tailscale:
+      type: LoadBalancer
+      loadBalancerClass: tailscale
+      annotations:
+        tailscale.com/hostname: gateway
+
   additionalArguments:
-    # Expose dashboard without TLS - safe because it's behind Tailscale Ingress
-    # which provides HTTPS termination. Do not expose directly to internet.
+    # Expose dashboard without TLS - safe because it's behind Gateway API
+    # Do not expose directly to internet.
     - "--api.insecure=true"
 
   # Enable metrics endpoint
