@@ -4,7 +4,7 @@ namespace: coredns
 # 1. coredns (ClusterIP) - Auto-created by upstream chart, cannot be disabled
 #    - Internal cluster service, unused in our setup
 # 2. coredns-tailscale (LoadBalancer) - Custom service defined in templates/
-#    - Exposed via Tailscale at dns.catfish-mountain.ts.net
+#    - Exposed via Tailscale at cluster-dns.catfish-mountain.ts.net
 #    - Used for Split DNS to resolve *.catfish-mountain.com → 100.96.89.36
 
 coredns:

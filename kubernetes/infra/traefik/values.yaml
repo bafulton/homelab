@@ -62,7 +62,7 @@ traefik:
         type: LoadBalancer
         loadBalancerClass: tailscale
         annotations:
-          tailscale.com/hostname: gateway
+          tailscale.com/hostname: cluster-gateway
 
   additionalArguments:
     # Expose dashboard without TLS - safe because it's behind Gateway API

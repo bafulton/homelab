@@ -1,5 +1,10 @@
 # CoreDNS Deployment Notes
 
+## Tailscale Hostname
+
+This CoreDNS instance is exposed via Tailscale as `cluster-dns.catfish-mountain.ts.net`.
+Configure this hostname (or its Tailscale IP) in Tailscale Split DNS settings.
+
 ## Tailscale Namespace PodSecurity
 
 The `tailscale` namespace requires `pod-security.kubernetes.io/enforce: privileged` to allow Tailscale proxy pods to run.
