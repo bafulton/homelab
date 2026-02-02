@@ -20,10 +20,12 @@ traefik:
       port: 80
       expose:
         default: true
+        tailscale: true
     websecure:
       port: 443
       expose:
         default: true
+        tailscale: true
 
   # Configure Gateway with listeners for both remote and LAN access
   gateway:
