@@ -23,7 +23,13 @@ kubernetes/
 
 ## Sync Waves
 
-ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/) to control deployment order. There's one critical dependency chain:
+ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/) to control deployment order.
+
+**Philosophy**: Avoid sync waves unless strictly necessary. Most apps should use the default (wave 0) and rely on ArgoCD's automatic retry for dependency resolution.
+
+### Critical Dependency Chain
+
+There is one critical dependency chain that requires explicit sync waves:
 
 ```
 cert-manager (-2) → external-secrets (-1) → tailscale-operator (0)
@@ -33,6 +39,18 @@ cert-manager (-2) → external-secrets (-1) → tailscale-operator (0)
 - **external-secrets → tailscale-operator**: Tailscale operator needs the `operator-oauth` secret from Bitwarden
 
 Everything else uses the default (wave 0) and self-heals via ArgoCD retry.
+
+### Setting Sync Waves
+
+Apps can set their sync wave in `values.yaml`:
+
+```yaml
+syncWave: "-1"  # Deploy in wave -1 (before wave 0)
+```
+
+The ApplicationSet reads this field and converts it to the `argocd.argoproj.io/sync-wave` annotation.
+
+**Note**: Both `infra/` and `apps/` ApplicationSets sync simultaneously. There is no ordering between infrastructure and user applications at the ApplicationSet level.
 
 ## Adding a New Application
 

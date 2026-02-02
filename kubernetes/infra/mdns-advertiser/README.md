@@ -31,7 +31,9 @@ Central mDNS advertisement service for LAN device discovery. Runs a Python scrip
 
 ## Adding mDNS to an App
 
-See the `charts/mdns-config` README for usage. Example:
+Apps can advertise via mDNS using two patterns. See [charts/README.md](../../../charts/README.md#mdns-advertisement-patterns) for choosing between them.
+
+For direct usage of mdns-config, see [mdns-config chart](../../../charts/mdns-config/README.md). Example:
 
 ```yaml
 # Chart.yaml

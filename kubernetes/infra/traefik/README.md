@@ -91,10 +91,10 @@ kubectl get svc -n traefik traefik -o jsonpath='{.status.loadBalancer.ingress[0]
 ## TLS/HTTPS
 
 - **Cloudflare Tunnel**: TLS terminated by Cloudflare (Cloudflare Universal SSL)
-- **Tailscale Split DNS**: TLS provided by Let's Encrypt wildcard cert (`*.catfish-mountain.com`)
+- **Tailscale Split DNS**: TLS provided by Let's Encrypt wildcard cert (`*.catfish-mountain.com`) - see [cert-manager](../cert-manager/README.md)
 - **LAN (*.local)**: HTTP only (no TLS)
 
-The Gateway itself operates on port 80 (HTTP). TLS termination happens at different layers depending on the traffic source.
+The Gateway itself operates on port 80 (HTTP). TLS termination happens at different layers depending on the traffic source. For certificate management details, see [cert-manager](../cert-manager/README.md).
 
 ## Dashboard
 

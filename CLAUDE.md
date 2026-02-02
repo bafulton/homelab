@@ -53,7 +53,7 @@ my-upstream-chart:
 
 ### Gateway API Routes (Primary Pattern)
 
-**All services** use the `gateway-route` shared chart with Kubernetes Gateway API HTTPRoutes:
+**All services** use the `gateway-route` shared chart with Kubernetes Gateway API HTTPRoutes (see `charts/gateway-route/README.md` for details):
 
 ```yaml
 # Chart.yaml

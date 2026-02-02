@@ -8,7 +8,6 @@ prometheus-smartctl-exporter:
     tag: 0.14.0
 
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
-  # Note: signoz-k8s-infra scrapes based on POD annotations, not service
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9633"

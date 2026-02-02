@@ -133,16 +133,16 @@ Does your service use Gateway API HTTPRoutes?
 
 ### Important: ArgoCD Dependency Resolution
 
-When using Pattern 1 (gateway-route with mDNS), you may need to **explicitly list mdns-config** in your Chart.yaml for ArgoCD to resolve dependencies correctly:
+When using Pattern 1 (gateway-route with mDNS), you **must explicitly list mdns-config** in your Chart.yaml for ArgoCD to resolve dependencies correctly:
 
 ```yaml
 dependencies:
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route
-  - name: mdns-config        # Explicit for ArgoCD dependency resolution
+  - name: mdns-config        # Required when using .routes[].mdns
     version: 1.0.0
     repository: file://../../../charts/mdns-config
 ```
 
-This ensures ArgoCD can find all chart dependencies when building the application.
+**Important**: Only include `mdns-config` if you're actually using the `.routes[].mdns` field in your values.yaml. If you're only using gateway-route for routing without mDNS advertisement (like traefik), you don't need to list mdns-config.

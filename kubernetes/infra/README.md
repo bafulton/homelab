@@ -8,7 +8,9 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 |-----------|---------|-------------|
 | [argocd](./argocd) | GitOps continuous delivery - syncs cluster state from this repo | *.catfish-mountain.com |
 | [cert-manager](./cert-manager) | TLS certificate management (Let's Encrypt + homelab CA) | - |
+| [cloudflared](./cloudflared) | Cloudflare Tunnel for secure public access to selected services | - |
 | [cluster-maintenance](./cluster-maintenance) | Cluster-level maintenance utilities (pod cleanup) | - |
+| [coredns](./coredns) | Split DNS for *.catfish-mountain.com via Tailscale | *.ts.net |
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
 | [intel-device-plugins](./intel-device-plugins) | Intel GPU device plugins for QuickSync hardware transcoding | - |
 | [kube-state-metrics](./kube-state-metrics) | Kubernetes object state metrics (deployments, pods, PVCs) | - |
@@ -16,7 +18,10 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [mdns-advertiser](./mdns-advertiser) | Publishes services to LAN via mDNS/Bonjour | hostNetwork |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
+| [mosquitto](./mosquitto) | MQTT message broker for IoT devices | MetalLB |
 | [node-exporter](./node-exporter) | Node hardware metrics (CPU, memory, disk, temperature) | - |
+| [node-health](./node-health) | Cluster health monitoring via healthchecks.io | - |
+| [reloader](./reloader) | Auto-restarts pods when ConfigMaps/Secrets change | - |
 | [signoz](./signoz) | Observability platform (metrics, logs, traces) | *.catfish-mountain.com |
 | [signoz-k8s-infra](./signoz-k8s-infra) | Kubernetes metrics collection for SigNoz | - |
 | [smartctl-exporter](./smartctl-exporter) | Disk SMART health metrics (NVMe, USB, SD cards) | - |
@@ -108,7 +113,7 @@ flowchart LR
     gateway -->|app3.catfish-mountain.com| app3[app3-service]
 ```
 
-Services use the `gateway-route` shared chart to create HTTPRoute resources. The same route can handle multiple hostnames (public, private, LAN).
+Services use the [gateway-route](../../charts/gateway-route/README.md) shared chart to create HTTPRoute resources. The same route can handle multiple hostnames (public, private, LAN). For details on the Gateway implementation, see [traefik](./traefik/README.md).
 
 ### hostNetwork (for mDNS services)
 

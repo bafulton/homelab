@@ -7,7 +7,7 @@ Smart home platform for local control of IoT devices. Integrates with Kasa, Mero
 | Method | URL | Use Case |
 |--------|-----|----------|
 | LAN | `http://home.local` | Local access on home network |
-| Private (Tailscale) | `https://home-assistant.catfish-mountain.com` | Remote access via Tailscale |
+| Public | `https://home.fultonhuffman.com` | Remote access via Cloudflare Tunnel |
 
 ## Components
 

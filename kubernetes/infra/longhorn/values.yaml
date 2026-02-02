@@ -69,7 +69,7 @@ longhorn:
   persistence:
     defaultClass: false
 
-  # Annotations for Longhorn Manager DaemonSet Pods (enables Prometheus scraping)
+  # Prometheus annotations for Longhorn Manager DaemonSet
   annotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9500"
