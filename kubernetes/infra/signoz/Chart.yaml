@@ -8,9 +8,9 @@ dependencies:
   - name: signoz
     version: 0.110.0
     repository: https://charts.signoz.io
-  - name: tailscale-ingress
+  - name: gateway-route
     version: 1.0.0
-    repository: file://../../../charts/tailscale-ingress
+    repository: file://../../../charts/gateway-route
   - name: bitwarden-secret
     version: 1.0.0
     repository: file://../../../charts/bitwarden-secret

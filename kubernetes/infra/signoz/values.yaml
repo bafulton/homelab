@@ -9,10 +9,12 @@ ignoreDifferences:
     jqPathExpressions:
       - .spec.template.spec.containers[].env[].valueFrom.resourceFieldRef.divisor
 
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: signoz
+# Gateway API HTTPRoute for private access
+gateway-route:
+  routes:
+    - name: dashboard
+      hostnames:
+        - signoz.catfish-mountain.com
       service:
         name: signoz
         port: 8080

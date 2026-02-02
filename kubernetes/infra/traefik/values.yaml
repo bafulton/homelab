@@ -74,3 +74,13 @@ traefik:
     prometheus:
       service:
         enabled: true
+
+# Gateway API HTTPRoute for dashboard (private access only)
+gateway-route:
+  routes:
+    - name: dashboard
+      hostnames:
+        - traefik.catfish-mountain.com
+      service:
+        name: traefik-dashboard
+        port: 8080
