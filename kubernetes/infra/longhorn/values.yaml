@@ -93,3 +93,17 @@ tailscale-ingress:
       service:
         name: longhorn-frontend
         port: 80
+
+gateway-route:
+  routes:
+    - name: dashboard
+      hostnames:
+        - longhorn.catfish-mountain.com  # Remote access
+        - longhorn.local                 # LAN access
+      service:
+        name: longhorn-frontend
+        port: 80
+      mdns:
+        name: Longhorn Storage Dashboard
+        ip: 192.168.0.200
+        port: 80

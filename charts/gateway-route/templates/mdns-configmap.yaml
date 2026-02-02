@@ -1,0 +1,13 @@
+{{- range .Values.routes }}
+{{- if .mdns }}
+{{- $hostname := include "gateway-route.mdnsHostname" .hostnames }}
+{{- $port := .mdns.port | default 80 }}
+{{- $types := .mdns.types | default (list (dict "type" "_http._tcp")) }}
+{{- $service := merge (dict "hostname" $hostname "port" $port "types" $types) .mdns }}
+{{- include "mdns-config.configmap" (dict
+    "Release" $.Release
+    "name" (printf "%s-mdns-%s" $.Release.Name $hostname)
+    "service" $service
+) }}
+{{- end }}
+{{- end }}

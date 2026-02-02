@@ -1,0 +1,22 @@
+# Gateway configuration
+gateway:
+  name: traefik
+  namespace: traefik
+
+# HTTPRoute configuration
+routes: []
+# Example route configuration:
+# - name: myapp
+#   hostnames:
+#     - myapp.catfish-mountain.com  # Remote access
+#     - myapp.local                 # LAN access
+#   service:
+#     name: myapp-service
+#     port: 80
+#   rules: []  # Optional: custom rules (if not specified, defaults to catch-all)
+#   mdns:     # Optional: mDNS advertisement for LAN discovery
+#     name: My App              # Display name (required)
+#     ip: 192.168.0.200         # Gateway MetalLB IP (required)
+#     port: 80                  # Port number (default: 80)
+#     types:                    # Service types (default: _http._tcp)
+#       - type: _http._tcp
