@@ -1,24 +1,56 @@
-# Public domains - have public DNS records pointing to Cloudflare Tunnel
-variable "public_domains" {
-  type = map(string)
+# Domain configuration - unified structure for all domains
+# - wildcard_public: true = wildcard DNS (*.domain.com) routes to tunnel (public services)
+# - wildcard_public: false = no wildcard DNS (private, Tailscale Split DNS only)
+# - public_subdomains: specific subdomains that are public (e.g., webhooks)
+variable "domains" {
+  type = map(object({
+    domain            = string
+    wildcard_public   = bool
+    public_subdomains = set(string)
+  }))
   default = {
-    "yak-shave-com"     = "yak-shave.com"
-    "benfulton-me"      = "benfulton.me"
-    "fultonhuffman-com" = "fultonhuffman.com"
+    "yak-shave-com" = {
+      domain            = "yak-shave.com"
+      wildcard_public   = true
+      public_subdomains = []
+    }
+    "benfulton-me" = {
+      domain            = "benfulton.me"
+      wildcard_public   = true
+      public_subdomains = []
+    }
+    "fultonhuffman-com" = {
+      domain            = "fultonhuffman.com"
+      wildcard_public   = true
+      public_subdomains = []
+    }
+    "catfish-mountain-com" = {
+      domain            = "catfish-mountain.com"
+      wildcard_public   = false  # Private by default (Tailscale Split DNS)
+      public_subdomains = [
+        "argocd-webhook"  # GitHub webhook needs public access
+      ]
+    }
   }
-  description = "Domains that should have public DNS records via Cloudflare Tunnel"
+  description = "Domain configuration: wildcard_public controls wildcard DNS, public_subdomains for specific exceptions"
 }
 
-# Private domains - no public DNS records (Tailscale-only)
-variable "private_domains" {
-  type = map(string)
-  default = {
-    "catfish-mountain-com" = "catfish-mountain.com"
-  }
-  description = "Domains that should NOT have public DNS records (internal/Tailscale-only)"
-}
-
-# All domains combined (for zone lookups)
+# Computed locals from domain configuration
 locals {
-  all_domains = merge(var.public_domains, var.private_domains)
+  # All domains (for zone lookups)
+  all_domains = { for k, v in var.domains : k => v.domain }
+
+  # Domains with wildcard public DNS
+  wildcard_public_domains = { for k, v in var.domains : k => v if v.wildcard_public }
+
+  # All public subdomains (flattened for DNS records and tunnel rules)
+  public_subdomains = merge([
+    for domain_key, config in var.domains : {
+      for subdomain in config.public_subdomains :
+      "${domain_key}-${subdomain}" => {
+        domain    = config.domain
+        subdomain = subdomain
+      }
+    }
+  ]...)
 }
