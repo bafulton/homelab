@@ -16,6 +16,6 @@ spec:
     - bitwarden-sdk-server.{{ .Release.Namespace }}.svc
     - bitwarden-sdk-server.{{ .Release.Namespace }}.svc.cluster.local
   issuerRef:
-    name: selfsigned-bootstrap
+    name: homelab-ca
     kind: ClusterIssuer
 {{- end }}
