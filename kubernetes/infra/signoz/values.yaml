@@ -12,7 +12,7 @@ ignoreDifferences:
 # Gateway API HTTPRoute for private access
 gateway-route:
   routes:
-    - name: dashboard
+    - name: ui
       hostnames:
         - signoz.catfish-mountain.com
       service:
