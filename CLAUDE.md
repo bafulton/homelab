@@ -109,27 +109,40 @@ gateway-route:
 
 ### mDNS Advertisement
 
-For LAN service discovery (Bonjour/Zeroconf), use the `mdns-config` shared chart:
+For LAN service discovery (Bonjour/Zeroconf), there are **two patterns**:
 
+**Pattern 1 - HTTP services with Gateway API routing** (most common):
 ```yaml
-# Chart.yaml
+# mDNS is included via gateway-route chart
+gateway-route:
+  routes:
+    - name: public-lan
+      hostnames:
+        - myapp.local
+      mdns:
+        name: My App
+        ip: 192.168.0.200  # Gateway MetalLB IP
+```
+
+**Pattern 2 - Non-HTTP services** (MQTT, SMB, etc.):
+```yaml
+# Chart.yaml - explicit mdns-config dependency
 dependencies:
   - name: mdns-config
     version: 1.0.0
     repository: file://../../../charts/mdns-config
 
 # values.yaml
-mdns-config:
-  services:
-    - name: My App
-      hostname: myapp        # becomes myapp.local
-      ip: 192.168.0.200      # MetalLB or Traefik IP
-      port: 80
-      types:
-        - type: _http._tcp
+mdnsServices:
+  - name: My App
+    hostname: myapp        # becomes myapp.local
+    ip: 192.168.0.201      # Service's MetalLB LoadBalancer IP
+    port: 80
+    types:
+      - type: _http._tcp
 ```
 
-The central `mdns-advertiser` discovers labeled ConfigMaps and advertises them via mDNS.
+The central `mdns-advertiser` discovers labeled ConfigMaps and advertises them via mDNS. See `charts/README.md` for detailed pattern selection guidance.
 
 ### PodSecurity
 

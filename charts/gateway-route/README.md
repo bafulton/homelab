@@ -125,6 +125,8 @@ gateway-route:
 
 This allows devices on the LAN to discover the service as `media.local` via Bonjour.
 
+**When to use this vs. direct mdns-config**: Use gateway-route's integrated mDNS support for HTTP/HTTPS services that need both Gateway API routing AND mDNS discovery. For non-HTTP services (MQTT, SMB, etc.) that only need mDNS discovery, use the `mdns-config` chart directly. See `/charts/README.md` for detailed pattern comparison.
+
 ## Example
 
 Full example for an app with multiple routes:

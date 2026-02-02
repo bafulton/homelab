@@ -8,6 +8,21 @@ A Helm library chart for advertising services via mDNS. Creates labeled ConfigMa
 2. Templates create ConfigMaps with the label `mdns.homelab.io/advertise: "true"`
 3. The mdns-advertiser watches for these ConfigMaps and advertises the services
 
+## When to Use This Chart
+
+**Use mdns-config directly** for:
+- Non-HTTP services (MQTT, SMB, custom TCP/UDP protocols)
+- Services with their own LoadBalancer that only need mDNS discovery
+- Services requiring custom mDNS service types or TXT records
+- Examples: time-machine (SMB), mosquitto (MQTT)
+
+**Use gateway-route instead** for:
+- HTTP/HTTPS services with web UIs that need Gateway API routing
+- Services that benefit from combined routing + mDNS in one chart
+- Examples: jellyfin, home-assistant
+
+See `/charts/README.md` for detailed pattern comparison.
+
 ## Usage
 
 Add as a dependency in your `Chart.yaml`:
