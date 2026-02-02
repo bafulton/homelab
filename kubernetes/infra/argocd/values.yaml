@@ -20,19 +20,21 @@ ignoreDifferences:
 avp:
   enabled: true
 
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: argocd
+# Gateway API HTTPRoute for private UI and public webhook
+gateway-route:
+  routes:
+    - name: ui
+      hostnames:
+        - argocd.catfish-mountain.com  # Private UI access
       service:
         name: argocd-server
+        port: 80
     - name: webhook
-      hostname: argocd-webhook
+      hostnames:
+        - argocd-webhook.catfish-mountain.com  # Public GitHub webhook
       service:
         name: argocd-server
-      funnel:
-        enabled: true
-        path: /api/webhook
+        port: 80
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
