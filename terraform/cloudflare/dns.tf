@@ -1,6 +1,14 @@
-# Wildcard DNS records - all subdomains route to tunnel
+# Get zones for public domains only
+locals {
+  public_zones = {
+    for key, domain in var.public_domains :
+    key => data.cloudflare_zone.zones[key]
+  }
+}
+
+# Wildcard DNS records - all subdomains route to tunnel (public domains only)
 resource "cloudflare_record" "wildcard" {
-  for_each = data.cloudflare_zone.zones
+  for_each = local.public_zones
 
   zone_id = each.value.id
   name    = "*"
@@ -11,7 +19,7 @@ resource "cloudflare_record" "wildcard" {
 
 # Root domain records (optional - for benfulton.me without subdomain)
 resource "cloudflare_record" "root" {
-  for_each = data.cloudflare_zone.zones
+  for_each = local.public_zones
 
   zone_id = each.value.id
   name    = "@"
