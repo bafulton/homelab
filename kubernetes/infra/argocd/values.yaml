@@ -6,16 +6,6 @@ syncPolicy:
   prune: false
   serverSideApply: true
 
-# Ignore SSA drift on ExternalSecret defaulted fields
-ignoreDifferences:
-  - group: external-secrets.io
-    kind: ExternalSecret
-    jqPathExpressions:
-      - .spec.data[].remoteRef.conversionStrategy
-      - .spec.data[].remoteRef.decodingStrategy
-      - .spec.data[].remoteRef.metadataPolicy
-      - .spec.target.deletionPolicy
-
 # ArgoCD Vault Plugin - injects secrets from K8s Secrets
 avp:
   enabled: true
