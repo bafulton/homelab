@@ -18,15 +18,6 @@ gateway-route:
           - type: _home-assistant._tcp
           - type: _http._tcp
 
-# Tailscale exposure for web UI
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: home-assistant
-      service:
-        name: home-assistant
-        port: 80
-
 home-assistant:
   # Enable host networking for device auto-discovery (mDNS, SSDP, etc.)
   # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
@@ -48,7 +39,7 @@ home-assistant:
       # Home Assistant core configuration
       homeassistant:
         internal_url: "http://home.local"
-        external_url: "https://home-assistant.catfish-mountain.ts.net"
+        external_url: "https://home.fultonhuffman.com"
         latitude: 36.085348151351745
         longitude: -80.25007509137713
         elevation: 268  # 880 feet in meters

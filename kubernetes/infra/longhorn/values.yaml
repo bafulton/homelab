@@ -86,14 +86,6 @@ longhorn:
   # Disable default pod security policies (deprecated in k8s 1.25+)
   enablePSP: false
 
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: longhorn
-      service:
-        name: longhorn-frontend
-        port: 80
-
 gateway-route:
   routes:
     - name: dashboard

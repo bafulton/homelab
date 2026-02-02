@@ -2,8 +2,8 @@
 # Self-hosted media streaming with Intel QuickSync hardware transcoding
 #
 # Access:
-#   - Public/LAN: https://media.fultonhuffman.com or http://media.local (via Gateway API)
-#   - Remote (alternative): https://jellyfin.catfish-mountain.ts.net (via Tailscale)
+#   - Public: https://media.fultonhuffman.com (via Cloudflare Tunnel)
+#   - LAN: http://media.local (via mDNS)
 
 namespace: jellyfin
 
@@ -21,15 +21,6 @@ gateway-route:
       mdns:
         name: Jellyfin
         ip: 192.168.0.200
-
-# Tailscale exposure for remote access
-tailscale-ingress:
-  ingresses:
-    - name: tailscale
-      hostname: jellyfin
-      service:
-        name: jellyfin
-        port: 8096
 
 # Longhorn storage - config PVC with backups, media PVC on USB drive
 longhorn-storage:

@@ -8,9 +8,6 @@ dependencies:
   - name: longhorn
     version: 1.11.0
     repository: https://charts.longhorn.io
-  - name: tailscale-ingress
-    version: 1.0.0
-    repository: file://../../../charts/tailscale-ingress
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route

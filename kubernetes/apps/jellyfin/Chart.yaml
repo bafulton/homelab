@@ -9,9 +9,6 @@ dependencies:
     # renovate: datasource=helm registryUrl=https://jellyfin.github.io/jellyfin-helm
     version: 2.7.0
     repository: https://jellyfin.github.io/jellyfin-helm
-  - name: tailscale-ingress
-    version: 1.0.0
-    repository: file://../../../charts/tailscale-ingress
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route
