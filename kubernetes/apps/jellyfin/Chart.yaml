@@ -12,9 +12,9 @@ dependencies:
   - name: tailscale-ingress
     version: 1.0.0
     repository: file://../../../charts/tailscale-ingress
-  - name: traefik-ingress
+  - name: gateway-route
     version: 1.0.0
-    repository: file://../../../charts/traefik-ingress
+    repository: file://../../../charts/gateway-route
   - name: mdns-config
     version: 1.0.0
     repository: file://../../../charts/mdns-config

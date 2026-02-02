@@ -2,17 +2,19 @@
 # Self-hosted media streaming with Intel QuickSync hardware transcoding
 #
 # Access:
-#   - LAN: http://media.local (via Traefik)
-#   - Remote: https://jellyfin.catfish-mountain.ts.net (via Tailscale)
+#   - Public/LAN: https://media.fultonhuffman.com or http://media.local (via Gateway API)
+#   - Remote (alternative): https://jellyfin.catfish-mountain.ts.net (via Tailscale)
 
 namespace: jellyfin
 
-# Traefik IngressRoute for LAN access via mDNS (media.local)
-# Routes through Traefik's MetalLB IP (192.168.0.200)
-traefik-ingress:
-  ingresses:
-    - name: lan
-      hostname: media.local
+# Gateway API HTTPRoute for public and LAN access
+# Routes through Traefik Gateway (Cloudflare Tunnel for public, MetalLB for LAN)
+gateway-route:
+  routes:
+    - name: public-lan
+      hostnames:
+        - media.fultonhuffman.com  # Public access via Cloudflare Tunnel
+        - media.local              # LAN access via mDNS
       service:
         name: jellyfin
         port: 8096
