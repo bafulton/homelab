@@ -1,11 +1,6 @@
 ---
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: selfsigned-issuer
-spec:
-  selfSigned: {}
----
+# Let's Encrypt wildcard certificate for catfish-mountain.com
+# Uses DNS-01 challenge via Cloudflare (configured in letsencrypt-production ClusterIssuer)
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -13,12 +8,12 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   secretName: wildcard-catfish-mountain-com-tls
-  duration: 87600h  # 10 years
-  renewBefore: 720h  # 30 days
+  duration: 2160h  # 90 days (Let's Encrypt default)
+  renewBefore: 720h  # 30 days before expiration
   commonName: "*.catfish-mountain.com"
   dnsNames:
     - "catfish-mountain.com"
     - "*.catfish-mountain.com"
   issuerRef:
-    name: selfsigned-issuer
+    name: letsencrypt-production
     kind: ClusterIssuer

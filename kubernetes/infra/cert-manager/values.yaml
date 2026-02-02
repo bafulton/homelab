@@ -2,6 +2,13 @@ namespace: cert-manager
 
 syncWave: "-2"
 
+# Bitwarden secrets for Let's Encrypt Cloudflare DNS-01 challenge
+bitwarden-secret:
+  secrets:
+    - name: cloudflare-api-token
+      data:
+        api-token: "52460ec4-a379-4c1e-9af6-b3e1002d20dc"
+
 cert-manager:
   # A complete list of values can be found here:
   # https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml

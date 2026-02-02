@@ -8,3 +8,6 @@ dependencies:
   - name: cert-manager
     version: v1.19.3
     repository: oci://quay.io/jetstack/charts
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
