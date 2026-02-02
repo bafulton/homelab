@@ -50,6 +50,9 @@ coredns:
         - name: loadbalance
 
   # Custom zone file for catfish-mountain.com
+  # IMPORTANT: The IP addresses below (100.96.89.36) point to the Gateway Tailscale IP
+  # This is the traefik-tailscale service EXTERNAL-IP from: kubectl get svc -n traefik
+  # If the Gateway Tailscale IP changes, update both @ and * records below
   zoneFiles:
     - filename: catfish-mountain.com.db
       domain: catfish-mountain.com
