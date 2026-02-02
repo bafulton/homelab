@@ -1,4 +1,5 @@
 .DS_Store
+.idea
 
 # Helm dependency charts (downloaded by helm dep update)
 kubernetes/**/charts/
