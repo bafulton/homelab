@@ -1,6 +1,51 @@
 # gateway-route
 
-Shared Helm chart for creating HTTPRoute and ReferenceGrant resources for Gateway API routing.
+Shared Helm chart for creating HTTPRoute resources for Gateway API routing. Supports unified routing for both public access (via Cloudflare Tunnel) and LAN access (via MetalLB) through a single HTTPRoute.
+
+## Overview
+
+This chart replaces the deprecated `traefik-ingress` chart and uses Kubernetes Gateway API instead of Traefik-specific IngressRoute CRDs. The Gateway API provides:
+- Vendor-neutral, standardized routing
+- Single HTTPRoute for both public (Cloudflare Tunnel) and LAN (MetalLB) traffic
+- Better multi-tenant support with explicit Gateway references
+
+## Migration from traefik-ingress
+
+Replace in your `Chart.yaml`:
+```yaml
+# Old
+- name: traefik-ingress
+  version: 1.0.0
+  repository: file://../../../charts/traefik-ingress
+
+# New
+- name: gateway-route
+  version: 1.0.0
+  repository: file://../../../charts/gateway-route
+```
+
+Update your `values.yaml`:
+```yaml
+# Old traefik-ingress format
+traefik-ingress:
+  ingresses:
+    - name: lan
+      hostname: myapp.local
+      service:
+        name: myapp-service
+        port: 80
+
+# New gateway-route format
+gateway-route:
+  routes:
+    - name: lan
+      hostnames:              # Note: array instead of single hostname
+        - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
+        - myapp.local              # LAN via mDNS
+      service:
+        name: myapp-service
+        port: 80
+```
 
 ## Usage
 

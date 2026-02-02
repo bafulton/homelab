@@ -1,5 +1,9 @@
 # traefik-ingress
 
+> **⚠️ DEPRECATED**: This chart is deprecated in favor of `gateway-route` which uses Kubernetes Gateway API (HTTPRoute) instead of Traefik-specific IngressRoute. The Gateway API provides a vendor-neutral, standardized approach to traffic routing.
+>
+> **Migration**: Replace `traefik-ingress` dependency with `gateway-route` in your Chart.yaml. See `charts/gateway-route/README.md` for migration instructions.
+
 A reusable Helm chart for creating Traefik IngressRoutes for LAN access. Services are exposed via Traefik's MetalLB IP with hostname-based routing.
 
 Access pattern: `http://<hostname>` (add to `/etc/hosts` pointing to Traefik's MetalLB IP)

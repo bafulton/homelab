@@ -74,28 +74,48 @@ tailscale-ingress:
         name: my-app-server
 ```
 
-### Traefik Ingress (LAN)
+### Gateway API (Public + LAN)
 
-For LAN-only HTTP access, use the `traefik-ingress` shared chart:
+For public and/or LAN HTTP access, use the `gateway-route` shared chart with Gateway API HTTPRoutes:
 
 ```yaml
 # Chart.yaml
 dependencies:
-  - name: traefik-ingress
+  - name: gateway-route
     version: 1.0.0
-    repository: file://../../../charts/traefik-ingress
+    repository: file://../../../charts/gateway-route
 
 # values.yaml
-traefik-ingress:
-  ingresses:
-    - name: lan
-      hostname: my-app.local
+gateway-route:
+  routes:
+    - name: public-lan
+      hostnames:
+        - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
+        - myapp.local              # LAN via mDNS (add to /etc/hosts)
       service:
         name: my-app-server
         port: 8080
+      mdns:                        # Optional: mDNS advertisement
+        name: My App
+        ip: 192.168.0.200          # Gateway MetalLB IP
+        port: 80
 ```
 
-Add to `/etc/hosts`: `192.168.0.200    my-app.local`
+**Private domains only (catfish-mountain.com):**
+```yaml
+gateway-route:
+  routes:
+    - name: private
+      hostnames:
+        - myapp.catfish-mountain.com  # Tailscale Split DNS only
+      service:
+        name: my-app-server
+        port: 80
+```
+
+Add to `/etc/hosts` for .local: `192.168.0.200    myapp.local`
+
+**Note:** `traefik-ingress` chart is deprecated. Use `gateway-route` for all new apps.
 
 ### mDNS Advertisement
 
