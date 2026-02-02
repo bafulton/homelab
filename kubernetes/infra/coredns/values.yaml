@@ -1,0 +1,61 @@
+namespace: coredns
+
+coredns:
+  # Disable default service - we'll create custom one with loadBalancerClass
+  service:
+    enabled: false
+
+  serviceType: ClusterIP
+
+  serviceAccount:
+    create: false
+    name: default
+
+  # CoreDNS zones and forwarding configuration
+  servers:
+    # Zone for catfish-mountain.com with wildcard
+    - zones:
+        - zone: catfish-mountain.com
+      port: 53
+      plugins:
+        - name: errors
+        - name: log
+        - name: file
+          parameters: /etc/coredns/catfish-mountain.com.db
+        - name: cache
+          parameters: 30
+
+    # Forward all other queries to upstream DNS
+    - zones:
+        - zone: .
+      port: 53
+      plugins:
+        - name: errors
+        - name: log
+        - name: health
+          configBlock: |-
+            lameduck 5s
+        - name: ready
+        - name: cache
+          parameters: 30
+        - name: forward
+          parameters: . 1.1.1.1 8.8.8.8
+        - name: reload
+        - name: loadbalance
+
+  # Custom zone file for catfish-mountain.com
+  zoneFiles:
+    - filename: catfish-mountain.com.db
+      domain: catfish-mountain.com
+      contents: |
+        $ORIGIN catfish-mountain.com.
+        @       3600 IN SOA sns.dns.icann.org. noc.dns.icann.org. (
+                                2024010101 ; serial
+                                7200       ; refresh (2 hours)
+                                3600       ; retry (1 hour)
+                                1209600    ; expire (2 weeks)
+                                3600       ; minimum (1 hour)
+                                )
+
+        @       IN      A       100.96.89.36
+        *       IN      A       100.96.89.36
