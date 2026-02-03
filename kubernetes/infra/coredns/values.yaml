@@ -8,13 +8,6 @@ namespace: coredns
 #    - Used for Split DNS to resolve *.catfish-mountain.com → 100.96.89.36
 
 coredns:
-  # High availability - 2 replicas for zero downtime
-  replicaCount: 2
-
-  # Ensure at least 1 pod is always available during disruptions
-  podDisruptionBudget:
-    minAvailable: 1
-
   service:
     enabled: false  # Attempted disable, but chart still creates ClusterIP service
 
