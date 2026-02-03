@@ -78,3 +78,20 @@ jellyfin:
         value: "200000000"
       - name: JELLYFIN_FFmpeg__probesize
         value: "1000000000"
+
+# SigNoz alerts - automatically synced to SigNoz via ConfigMap discovery
+signoz-alerts:
+  alerts:
+    - name: Jellyfin Test Alert - Always Fires
+      type: threshold
+      description: Test alert that always fires to validate ConfigMap discovery workflow
+      severity: warning
+      metric: k8s.pod.cpu.usage
+      op: ">"
+      threshold: 0  # Will always fire since CPU usage is always > 0
+      filter: k8s.namespace.name = 'jellyfin' AND k8s.pod.name LIKE 'jellyfin-%'
+      groupBy:
+        - k8s.pod.name
+      timeAggregation: avg
+      evalWindow: 1m0s
+      frequency: 1m0s
