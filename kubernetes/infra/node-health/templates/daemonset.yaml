@@ -66,7 +66,7 @@ spec:
 
               ping_healthchecks() {
                 local url="${PING_URL}/${PING_KEY}/${NODE_NAME}?create=1"
-                curl -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
+                curl -4 -fsS -m "${PING_TIMEOUT}" "${url}" > /dev/null
               }
 
               # Retry helper with single retry
@@ -89,7 +89,7 @@ spec:
                 echo "Configuring check settings..."
 
                 # Fetch all checks
-                local checks=$(curl -sf "${HEALTHCHECKS_URL}/api/v3/checks/" \
+                local checks=$(curl -4 -sf "${HEALTHCHECKS_URL}/api/v3/checks/" \
                   -H "X-Api-Key: ${API_KEY}")
 
                 if [ -z "$checks" ]; then
@@ -122,7 +122,7 @@ spec:
 
                 # Update check settings
                 echo "  Updating to: period=${PING_INTERVAL}s, grace=${CHECK_GRACE}s"
-                local response=$(curl -sf -X POST "${HEALTHCHECKS_URL}/api/v3/checks/${uuid}" \
+                local response=$(curl -4 -sf -X POST "${HEALTHCHECKS_URL}/api/v3/checks/${uuid}" \
                   -H "X-Api-Key: ${API_KEY}" \
                   -H "Content-Type: application/json" \
                   -d "{\"timeout\": ${PING_INTERVAL}, \"grace\": ${CHECK_GRACE}}")
