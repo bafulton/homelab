@@ -116,7 +116,6 @@ Complex queries:
 | `filter` | No | Filter expression |
 | `evalWindow` | No | Override eval window |
 | `frequency` | No | Override check frequency |
-| `stepInterval` | No | Aggregation interval in seconds (default: 60) |
 | `legend` | No | Legend template |
 
 ## How It Works
