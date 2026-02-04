@@ -33,7 +33,7 @@
       "queryType": "promql"
     },
     "op": "2",
-    "target": 7,
+    "target": 1000000,
     "matchType": "1",
     "algorithm": "standard",
     "seasonality": "hourly",
