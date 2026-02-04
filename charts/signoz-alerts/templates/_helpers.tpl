@@ -35,7 +35,7 @@ Build a single builder query
   "type": "builder_query",
   "spec": {
     "name": {{ $ctx.name | quote }},
-    "stepInterval": 0,
+    "stepInterval": {{ $ctx.stepInterval | default 60 }},
     "signal": "metrics",
     "source": "",
     "aggregations": [
@@ -75,6 +75,7 @@ Build threshold condition (single metric)
     "filter" ($alert.filter | default "")
     "groupBy" $alert.groupBy
     "legend" ($alert.legend | default "")
+    "stepInterval" ($alert.stepInterval | default 60)
     "isFormula" false
 -}}
 {
@@ -104,6 +105,7 @@ Build ratio condition (A/B formula)
     "spaceAggregation" ($alert.spaceAggregation | default "avg")
     "filter" ($alert.filter | default "")
     "groupBy" $alert.groupBy
+    "stepInterval" ($alert.stepInterval | default 60)
     "isFormula" true
 -}}
 {{- $queryB := dict
@@ -113,6 +115,7 @@ Build ratio condition (A/B formula)
     "spaceAggregation" ($alert.spaceAggregation | default "avg")
     "filter" ($alert.filter | default "")
     "groupBy" $alert.groupBy
+    "stepInterval" ($alert.stepInterval | default 60)
     "isFormula" true
 -}}
 {{- $multiplier := $alert.multiply | default 1 -}}
