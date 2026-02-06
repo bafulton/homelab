@@ -9,5 +9,5 @@ bitwarden-secret:
 
 cloudflared:
   # renovate: datasource=docker depName=cloudflare/cloudflared
-  image: cloudflare/cloudflared:2024.12.2
+  image: cloudflare/cloudflared:2026.2.0
   replicas: 2
