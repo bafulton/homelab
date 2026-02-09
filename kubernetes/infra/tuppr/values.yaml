@@ -4,6 +4,11 @@ namespace: tuppr
 talosVersion: v1.12.3
 kubernetesVersion: v1.35.0
 
+talos:
+  # Disable automated Talos upgrades until rpi5 is officially supported
+  # When false, Renovate still updates talosVersion but tuppr won't auto-upgrade
+  supportsRpi5: false
+
 # Tuppr manages Talos and Kubernetes upgrades via CRDs
 # After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
 #
@@ -27,7 +32,11 @@ kubernetesVersion: v1.35.0
 
 tuppr:
   # A complete list of values can be found here:
-  # https://github.com/home-operations/tuppr
+  # https://github.com/home-operations/tuppr/blob/main/charts/tuppr/values.yaml
+
+  controller:
+    metrics:
+      enabled: true
 
   # Use cert-manager for webhook certificates (already installed in cluster)
   webhook:

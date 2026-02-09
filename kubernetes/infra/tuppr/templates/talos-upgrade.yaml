@@ -1,3 +1,4 @@
+{{- if .Values.talos.supportsRpi5 }}
 {{- $version := .Values.talosVersion }}
 {{- $versionSlug := $version | replace "." "-" }}
 apiVersion: tuppr.home-operations.com/v1alpha1
@@ -5,13 +6,6 @@ kind: TalosUpgrade
 metadata:
   name: talos-upgrade-{{ $versionSlug }}
 spec:
-  # Only upgrade nodes with official Talos support
-  # rpi5 uses community talos-rpi5 images and requires manual upgrades
-  nodeSelector:
-    matchExpressions:
-      - key: kubernetes.io/hostname
-        operator: NotIn
-        values:
-          - rpi5
   talos:
     version: {{ $version }}
+{{- end }}
