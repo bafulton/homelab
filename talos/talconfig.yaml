@@ -182,6 +182,16 @@ patches:
               - rshared
               - rw
 
+  # Kubelet image garbage collection thresholds
+  # Start GC at 70% to stay below Longhorn's 75% disk pressure threshold
+  # This prevents the gap where Longhorn fails but kubelet hasn't cleaned up yet
+  - |-
+    machine:
+      kubelet:
+        extraArgs:
+          image-gc-high-threshold: "70"
+          image-gc-low-threshold: "65"
+
   # Sysctls for container networking
   - |-
     machine:
