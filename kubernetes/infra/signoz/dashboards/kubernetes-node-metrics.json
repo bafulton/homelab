@@ -566,7 +566,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -692,7 +692,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -818,7 +818,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -944,7 +944,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -1091,7 +1091,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             },
             {
               "aggregations": [
@@ -1118,7 +1118,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": [
@@ -1260,7 +1260,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -1395,7 +1395,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -1530,7 +1530,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -1662,7 +1662,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             },
             {
               "aggregations": [
@@ -1689,7 +1689,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 0
+              "stepInterval": 60
             },
             {
               "aggregations": [
@@ -1716,7 +1716,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -1859,7 +1859,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2008,7 +2008,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2151,7 +2151,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2294,7 +2294,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2437,7 +2437,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2580,7 +2580,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2723,7 +2723,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -2858,7 +2858,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -3001,7 +3001,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -3176,7 +3176,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -3345,7 +3345,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -3486,7 +3486,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []
@@ -3621,7 +3621,7 @@
               "limit": 30,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 0
+              "stepInterval": 60
             }
           ],
           "queryFormulas": []

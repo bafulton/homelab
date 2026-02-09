@@ -21,7 +21,7 @@
           "type": "builder_query",
           "spec": {
             "name": "A",
-            "stepInterval": 0,
+            "stepInterval": 60,
             "signal": "metrics",
             "source": "",
             "aggregations": [
