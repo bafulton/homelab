@@ -337,6 +337,61 @@ talosctl upgrade --image factory.talos.dev/installer/[your-image-id]:vX.Y.Z
 talosctl reset --nodes <node>.<tailnet>.ts.net --graceful=false
 ```
 
+### Safe Node Reboots (CRITICAL for Longhorn)
+
+**⚠️ NEVER USE `talosctl reboot` DIRECTLY ON NODES WITH LONGHORN VOLUMES**
+
+Direct reboots can cause filesystem corruption because:
+- Longhorn volumes remain attached during the reboot
+- Pending writes are not flushed before shutdown
+- Volumes are not cleanly unmounted
+- Result: XFS corruption, data loss, volumes stuck in "faulted" state
+
+**Always use the safe reboot script:**
+
+```bash
+./scripts/safe-reboot-node.sh <node-name>
+
+# Example
+./scripts/safe-reboot-node.sh beelink
+```
+
+The script performs these steps automatically:
+1. Cordons the node (prevents new pods)
+2. Drains the node (evicts pods gracefully, 5-minute timeout)
+3. **Waits for all Longhorn volumes to detach** (critical!)
+4. Reboots the node via talosctl
+5. Waits for the node to become Ready
+6. Uncordons the node
+
+#### Manual Safe Reboot Procedure
+
+If you need to do it manually:
+
+```bash
+# 1. Cordon the node
+kubectl cordon <node-name>
+
+# 2. Drain the node
+kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data --timeout=300s --grace-period=120
+
+# 3. CRITICAL: Verify all Longhorn volumes are detached
+kubectl get volumes.longhorn.io -n longhorn -o json | \
+  jq -r '.items[] | select(.spec.nodeID == "<node-name>") | .metadata.name'
+# Output should be empty. If not, wait until all volumes detach.
+
+# 4. Reboot the node
+talosctl -n <node-name>.catfish-mountain.ts.net reboot
+
+# 5. Wait for node to become Ready
+kubectl wait --for=condition=Ready node/<node-name> --timeout=600s
+
+# 6. Uncordon the node
+kubectl uncordon <node-name>
+```
+
+**Why this matters:** The USB disk showing 11 unsafe shutdowns and the NVME showing 37 unsafe shutdowns in SMART data directly correlates with volume corruption. Each improper reboot risks filesystem damage.
+
 ---
 
 ## Troubleshooting

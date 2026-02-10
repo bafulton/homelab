@@ -220,6 +220,7 @@ See `kubernetes/infra/cert-manager/README.md` for details.
 ## Gotchas
 
 - **Check upstream chart values first**: Before adding configuration to an app's `values.yaml`, always run `helm show values <repo>/<chart>` to verify the correct parameter names. Different charts use different conventions (e.g., `extraVolumes` vs `additionalVolumes` vs `volumes`). Don't assume parameter names.
+- **Node reboots with Longhorn**: NEVER use `talosctl reboot` directly on nodes with Longhorn volumes. Always use `talos/scripts/safe-reboot-node.sh` which drains the node and waits for volumes to detach. Direct reboots cause filesystem corruption. See `talos/README.md` for details.
 - **Metrics-server TLS**: Uses `--kubelet-insecure-tls` because kubelet certs don't include Tailscale IP SANs
 - **Chart.lock files**: ArgoCD is the only app with a Chart.lock. All other apps don't need one because ArgoCD runs `helm dependency build` at sync time. Don't suggest adding Chart.lock to apps.
 - **Chart tarballs (.tgz)**: The `charts/` subdirectories contain `.tgz` files from `helm dependency build`. These are gitignored - don't suggest cleaning them up or committing them.
