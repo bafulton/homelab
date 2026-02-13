@@ -18,6 +18,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [mdns-advertiser](./mdns-advertiser) | Publishes services to LAN via mDNS/Bonjour | hostNetwork |
 | [metallb](./metallb) | Load balancer for bare-metal - assigns LAN IPs | - |
 | [metrics-server](./metrics-server) | Resource metrics for HPA, VPA, and `kubectl top` | - |
+| [minio](./minio) | S3-compatible object storage for Longhorn backups | - |
 | [mosquitto](./mosquitto) | MQTT message broker for IoT devices | MetalLB |
 | [node-exporter](./node-exporter) | Node hardware metrics (CPU, memory, disk, temperature) | - |
 | [node-health](./node-health) | Cluster health monitoring via healthchecks.io | - |

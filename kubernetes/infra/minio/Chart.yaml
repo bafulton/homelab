@@ -1,0 +1,12 @@
+apiVersion: v2
+name: minio
+description: MinIO S3-compatible object storage for Longhorn backups
+type: application
+version: 1.0.0
+dependencies:
+  - name: minio
+    version: 5.3.0
+    repository: https://charts.min.io/
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret

@@ -1,0 +1,45 @@
+namespace: minio
+
+bitwarden-secret:
+  secrets:
+    - name: minio-credentials
+      data:
+        rootPassword: "0a3a525c-8a89-4513-ae77-b3f00030686f"
+
+minio:
+  # Deployment mode
+  mode: standalone
+  replicas: 1
+
+  # Pin to rpi5 node
+  nodeSelector:
+    kubernetes.io/hostname: rpi5
+
+  rootUser: longhorn-backup
+  rootPassword: ""  # Will be overridden by existingSecret
+  existingSecret: minio-credentials
+
+  # Persistence using hostPath
+  persistence:
+    enabled: true
+    storageClass: ""  # Empty = no StorageClass
+    accessMode: ReadWriteOnce
+    size: 1500Gi
+    # Override with hostPath via extraVolumes/extraVolumeMounts
+
+  service:
+    type: ClusterIP
+    port: 9000
+
+  consoleService:
+    type: ClusterIP
+    port: 9001
+
+  buckets:
+    - name: longhorn-backups
+      policy: none
+      purge: false
+
+  # Environment variables for S3 endpoint
+  environment:
+    MINIO_REGION_NAME: us-east-1
