@@ -198,7 +198,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -282,7 +282,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -366,7 +366,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -450,7 +450,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -534,7 +534,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -618,7 +618,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -702,7 +702,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -800,7 +800,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -898,7 +898,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []

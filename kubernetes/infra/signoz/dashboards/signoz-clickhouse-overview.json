@@ -156,7 +156,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -183,7 +183,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -210,7 +210,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -237,7 +237,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -358,7 +358,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -385,7 +385,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -412,7 +412,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -439,7 +439,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -560,7 +560,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -681,7 +681,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -708,7 +708,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -735,7 +735,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -762,7 +762,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -883,7 +883,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -910,7 +910,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -937,7 +937,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -964,7 +964,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1085,7 +1085,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1112,7 +1112,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1139,7 +1139,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1166,7 +1166,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1287,7 +1287,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1314,7 +1314,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1435,7 +1435,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1462,7 +1462,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1489,7 +1489,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1516,7 +1516,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1637,7 +1637,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1664,7 +1664,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1691,7 +1691,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1718,7 +1718,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1839,7 +1839,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -1960,7 +1960,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -1987,7 +1987,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2014,7 +2014,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2041,7 +2041,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -2162,7 +2162,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2189,7 +2189,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2216,7 +2216,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2243,7 +2243,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -2364,7 +2364,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2391,7 +2391,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2418,7 +2418,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2445,7 +2445,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -2566,7 +2566,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -2687,7 +2687,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2714,7 +2714,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2741,7 +2741,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2768,7 +2768,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -2889,7 +2889,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2916,7 +2916,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2943,7 +2943,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -2970,7 +2970,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3091,7 +3091,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3212,7 +3212,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3239,7 +3239,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3266,7 +3266,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3293,7 +3293,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3414,7 +3414,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3441,7 +3441,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3468,7 +3468,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3495,7 +3495,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3616,7 +3616,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3643,7 +3643,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3670,7 +3670,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3697,7 +3697,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3818,7 +3818,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3845,7 +3845,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -3966,7 +3966,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -3993,7 +3993,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4020,7 +4020,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4047,7 +4047,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -4168,7 +4168,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4195,7 +4195,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4222,7 +4222,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4249,7 +4249,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -4370,7 +4370,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -4491,7 +4491,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4518,7 +4518,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4545,7 +4545,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4572,7 +4572,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -4693,7 +4693,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4720,7 +4720,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4747,7 +4747,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4774,7 +4774,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -4895,7 +4895,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4922,7 +4922,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4949,7 +4949,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "C",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -4976,7 +4976,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "D",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5097,7 +5097,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5218,7 +5218,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -5245,7 +5245,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5366,7 +5366,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -5393,7 +5393,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5514,7 +5514,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             },
             {
               "aggregations": [
@@ -5541,7 +5541,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "B",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5662,7 +5662,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
@@ -5783,7 +5783,7 @@
               "limit": null,
               "orderBy": [],
               "queryName": "A",
-              "stepInterval": 60
+              "stepInterval": null
             }
           ],
           "queryFormulas": []
