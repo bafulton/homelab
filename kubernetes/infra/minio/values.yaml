@@ -28,13 +28,11 @@ minio:
       cpu: 1000m
       memory: 2Gi
 
-  # Persistence using hostPath
+  # Persistence using our custom PVC
   persistence:
     enabled: true
-    storageClass: ""  # Empty = no StorageClass
-    accessMode: ReadWriteOnce
-    size: 1500Gi
-    # Override with hostPath via extraVolumes/extraVolumeMounts
+    existingClaim: "minio"
+    storageClass: ""
 
   service:
     type: ClusterIP
