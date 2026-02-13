@@ -4,6 +4,7 @@ bitwarden-secret:
   secrets:
     - name: minio-credentials
       data:
+        rootUser: "longhorn-backup"
         rootPassword: "0a3a525c-8a89-4513-ae77-b3f00030686f"
 
 minio:
@@ -15,8 +16,7 @@ minio:
   nodeSelector:
     kubernetes.io/hostname: rpi5
 
-  rootUser: longhorn-backup
-  rootPassword: ""  # Will be overridden by existingSecret
+  # Credentials from bitwarden-secret
   existingSecret: minio-credentials
 
   # Default requests/limits are way too high; scale them back
