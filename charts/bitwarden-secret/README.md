@@ -54,6 +54,26 @@ bitwarden-secret:
         password: "bitwarden-uuid-5"
 ```
 
+## Literal Values
+
+The chart automatically detects whether a value is a Bitwarden UUID or a literal string:
+
+- **UUID format** (`xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`): Fetched from Bitwarden
+- **Any other format**: Used as a literal value in the secret
+
+This allows mixing sensitive data from Bitwarden with non-sensitive configuration:
+
+```yaml
+bitwarden-secret:
+  secrets:
+    - name: minio-credentials
+      data:
+        rootUser: "longhorn-backup"  # Literal value (not sensitive)
+        rootPassword: "0a3a525c-8a89-4513-ae77-b3f00030686f"  # Bitwarden UUID
+```
+
+In this example, `rootUser` is stored directly in the Secret as a literal string, while `rootPassword` is fetched from Bitwarden using the UUID.
+
 ## Values
 
 | Key | Description | Default |
