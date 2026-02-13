@@ -19,6 +19,15 @@ minio:
   rootPassword: ""  # Will be overridden by existingSecret
   existingSecret: minio-credentials
 
+  # Default requests/limits are way too high; scale them back
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
   # Persistence using hostPath
   persistence:
     enabled: true
