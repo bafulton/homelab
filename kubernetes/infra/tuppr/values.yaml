@@ -1,8 +1,8 @@
 namespace: tuppr
 
 # Talos/Kubernetes versions for upgrades - Renovate updates these alongside talconfig.yaml
-talosVersion: v1.12.3
-kubernetesVersion: v1.35.0
+talosVersion: v1.12.4
+kubernetesVersion: v1.35.1
 
 talos:
   # Disable automated Talos upgrades until rpi5 is officially supported
