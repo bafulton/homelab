@@ -99,7 +99,7 @@ argo-cd:
       - name: avp-helm
         command: [/var/run/argocd/argocd-cmp-server]
         # renovate: datasource=docker depName=quay.io/argoproj/argocd
-        image: quay.io/argoproj/argocd:v3.3.0
+        image: quay.io/argoproj/argocd:v3.3.1
         securityContext:
           runAsNonRoot: true
           runAsUser: 999
