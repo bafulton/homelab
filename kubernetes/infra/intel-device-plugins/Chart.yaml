@@ -11,5 +11,5 @@ dependencies:
     repository: https://kubernetes-sigs.github.io/node-feature-discovery/charts
   - name: intel-device-plugins-operator
     # renovate: datasource=helm registryUrl=https://intel.github.io/helm-charts
-    version: 0.34.1
+    version: 0.35.0
     repository: https://intel.github.io/helm-charts
