@@ -6,7 +6,7 @@ version: 1.0.0
 appVersion: "2026.1.0"
 dependencies:
   - name: home-assistant
-    version: 0.3.44
+    version: 0.3.45
     repository: http://pajikos.github.io/home-assistant-helm-chart/
   - name: gateway-route
     version: 1.0.0
