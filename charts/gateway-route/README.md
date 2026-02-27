@@ -117,7 +117,7 @@ gateway-route:
         port: 8096
       mdns:
         name: Media Server
-        ip: 192.168.0.200              # Gateway MetalLB IP
+        ip: 192.168.1.200              # Gateway MetalLB IP
         port: 8096
         types:
           - type: _http._tcp

@@ -65,7 +65,7 @@ gateway-route:
         port: 8080
       mdns:                        # Optional mDNS advertisement
         name: My App               # Display name in Finder/network browsers
-        ip: 192.168.0.200          # Gateway MetalLB IP (192.168.0.200)
+        ip: 192.168.1.200          # Gateway MetalLB IP (192.168.1.200)
 ```
 
 **How it works**:
@@ -102,7 +102,7 @@ dependencies:
 mdnsServices:
   - name: My App                   # Display name
     hostname: myapp                # Becomes myapp.local
-    ip: 192.168.0.201              # Service's MetalLB LoadBalancer IP
+    ip: 192.168.1.201              # Service's MetalLB LoadBalancer IP
     port: 8080
     types:                         # Optional: Service types (defaults to _http._tcp)
       - type: _http._tcp

@@ -8,7 +8,7 @@ Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the messag
 |--------|---------|----------|
 | mDNS | `mosquitto.local:1883` | Theengs Gateway, ESP32 devices |
 | Kubernetes DNS | `mosquitto.mosquitto.svc.cluster.local:1883` | Home Assistant (in-cluster) |
-| Direct IP | `192.168.0.202:1883` | Fallback |
+| Direct IP | `192.168.1.202:1883` | Fallback |
 
 ## Configuration
 
@@ -33,7 +33,7 @@ Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the messag
 ## OpenMQTTGateway Setup
 
 The ESP32 running OpenMQTTGateway connects to:
-- **MQTT Host**: `mosquitto.local` (or `192.168.0.202`)
+- **MQTT Host**: `mosquitto.local` (or `192.168.1.202`)
 - **MQTT Port**: `1883`
 - **No authentication required**
 

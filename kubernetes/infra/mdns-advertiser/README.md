@@ -47,7 +47,7 @@ mdns-config:
   services:
     - name: My App
       hostname: myapp
-      ip: 192.168.0.200
+      ip: 192.168.1.200
       port: 80
       types:
         - type: _http._tcp

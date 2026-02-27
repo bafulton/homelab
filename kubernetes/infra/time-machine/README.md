@@ -9,7 +9,7 @@ Network-accessible Time Machine backup destination for macOS, using Samba with A
 | **Storage** | Longhorn NVMe (1.8TB) |
 | **Protocol** | SMB3 with vfs_fruit |
 | **Discovery** | mDNS via mdns-advertiser |
-| **Access** | MetalLB IP: 192.168.0.201 |
+| **Access** | MetalLB IP: 192.168.1.201 |
 
 ## Architecture
 
@@ -20,10 +20,10 @@ MacBook ──► mDNS: "Where's Time Machine?"
          ┌─────────────────────┐
          │   mDNS Advertiser   │
          │ timemachine.local   │
-         │  → 192.168.0.201    │
+         │  → 192.168.1.201    │
          └─────────────────────┘
                     │
-MacBook ──► SMB: Connect to 192.168.0.201
+MacBook ──► SMB: Connect to 192.168.1.201
                     │
                     ▼
          ┌─────────────────────┐
@@ -71,7 +71,7 @@ Passwords are stored in Bitwarden and synced via External Secrets.
 ### Manual
 
 1. Finder → Go → Connect to Server (⌘K)
-2. Enter: `smb://192.168.0.201`
+2. Enter: `smb://192.168.1.201`
 3. Authenticate with your username/password
 4. Add to Time Machine in System Settings
 
@@ -100,7 +100,7 @@ fruit:time machine max size = 900G
 ### Dependencies
 
 - **mdns-advertiser**: Publishes `timemachine.local` for discovery
-- **MetalLB**: Provides stable IP (192.168.0.201)
+- **MetalLB**: Provides stable IP (192.168.1.201)
 - **Longhorn**: NVMe storage backend
 - **External Secrets**: Syncs passwords from Bitwarden
 
@@ -110,7 +110,7 @@ fruit:time machine max size = 900G
 
 1. Check mDNS advertiser is running: `kubectl get pods -n mdns-advertiser`
 2. Verify MetalLB assigned the IP: `kubectl get svc -n time-machine`
-3. Try connecting directly: `smb://192.168.0.201`
+3. Try connecting directly: `smb://192.168.1.201`
 
 ### Authentication fails
 

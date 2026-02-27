@@ -91,7 +91,6 @@ These integrations are configured through the Home Assistant UI and stored in th
 | Backup | Built-in | Optional - Longhorn also backs up the PVC |
 | Brother Printer | Autodiscovered | MFC-L2710DW |
 | Eufy Robovac | Manual | |
-| Google Wifi | Manual | 192.168.0.1 |
 | HACS | Manual | Custom components store |
 | HomeKit Bridge | Manual | Expose HA entities to Apple Home |
 | HomeKit Device | Autodiscovered | |
@@ -139,7 +138,7 @@ After flashing, the M5Stack creates a WiFi AP:
 2. Go to `192.168.4.1` in your browser
 3. Configure:
    - **WiFi**: Your home network credentials
-   - **MQTT Host**: `mosquitto.local` or `192.168.0.202`
+   - **MQTT Host**: `mosquitto.local` or `192.168.1.202`
    - **MQTT Port**: `1883`
    - **No username/password** (anonymous access enabled)
 

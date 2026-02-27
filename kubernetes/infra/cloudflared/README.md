@@ -16,7 +16,7 @@ Cloudflare Tunnel (secure outbound connection)
      ↓
 cloudflared pods in cluster
      ↓
-Traefik Gateway (192.168.0.200)
+Traefik Gateway (192.168.1.200)
      ↓
 HTTPRoute → Service → Pod
 ```
@@ -26,7 +26,7 @@ HTTPRoute → Service → Pod
 The tunnel is configured in Cloudflare's dashboard with:
 - **Tunnel token**: Stored in Bitwarden, synced as `tunnel-credentials` secret
 - **Public hostnames**: Defined in `terraform/cloudflare/variables.tf` (`public_subdomains`)
-- **Tunnel route**: Routes to `http://192.168.0.200:80` (Traefik Gateway)
+- **Tunnel route**: Routes to `http://192.168.1.200:80` (Traefik Gateway)
 
 ### What's Public?
 

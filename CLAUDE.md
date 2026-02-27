@@ -74,7 +74,7 @@ gateway-route:
         port: 8080
       mdns:                        # Optional: mDNS advertisement
         name: My App
-        ip: 192.168.0.200          # Gateway MetalLB IP
+        ip: 192.168.1.200          # Gateway MetalLB IP
 ```
 
 **Private infrastructure (catfish-mountain.com):**
@@ -121,7 +121,7 @@ gateway-route:
         - myapp.local
       mdns:
         name: My App
-        ip: 192.168.0.200  # Gateway MetalLB IP
+        ip: 192.168.1.200  # Gateway MetalLB IP
 ```
 
 **Pattern 2 - Non-HTTP services** (MQTT, SMB, etc.):
@@ -136,7 +136,7 @@ dependencies:
 mdnsServices:
   - name: My App
     hostname: myapp        # becomes myapp.local
-    ip: 192.168.0.201      # Service's MetalLB LoadBalancer IP
+    ip: 192.168.1.201      # Service's MetalLB LoadBalancer IP
     port: 80
     types:
       - type: _http._tcp

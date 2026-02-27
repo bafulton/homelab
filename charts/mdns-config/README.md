@@ -52,7 +52,7 @@ Configure in your `values.yaml`:
 mdnsServices:
   - name: My App
     hostname: myapp
-    ip: 192.168.0.200
+    ip: 192.168.1.200
     port: 80
     types:
       - type: _http._tcp
@@ -60,7 +60,7 @@ mdnsServices:
   # Service with TXT records
   - name: My MQTT Broker
     hostname: mqtt
-    ip: 192.168.0.201
+    ip: 192.168.1.201
     port: 1883
     types:
       - type: _mqtt._tcp
@@ -101,7 +101,7 @@ mdns-config:
   services:
     - name: Time Machine
       hostname: timemachine
-      ip: 192.168.0.201
+      ip: 192.168.1.201
       port: 445
       types:
         - type: _smb._tcp

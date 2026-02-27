@@ -102,13 +102,13 @@ Assigns real LAN IPs to `LoadBalancer` Services. Without it (or a cloud provider
 - Services that need dedicated IPs
 
 ### Traefik Gateway
-Kubernetes Gateway API implementation that routes HTTP(S) traffic based on Gateway API HTTPRoute resources. All HTTP services route through the Traefik Gateway at `192.168.0.200`.
+Kubernetes Gateway API implementation that routes HTTP(S) traffic based on Gateway API HTTPRoute resources. All HTTP services route through the Traefik Gateway at `192.168.1.200`.
 
 **Why use a Gateway?** Shares one IP across many services:
 
 ```mermaid
 flowchart LR
-    ip[192.168.0.200] --> gateway[Traefik Gateway]
+    ip[192.168.1.200] --> gateway[Traefik Gateway]
     gateway -->|app1.fultonhuffman.com| app1[app1-service]
     gateway -->|app2.local| app2[app2-service]
     gateway -->|app3.catfish-mountain.com| app3[app3-service]
@@ -125,7 +125,7 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 - Home Assistant (discovers IoT devices like Chromecast, HomeKit, ESPHome via mDNS)
 
 **Trade-offs:**
-- Ports bind directly to the node IP (e.g., `192.168.0.99:445`)
+- Ports bind directly to the node IP (e.g., `192.168.1.99:445`)
 - Less "Kubernetes-native" but necessary for mDNS
 - Only use for services that genuinely require multicast discovery
 
@@ -158,7 +158,7 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 | Admin UIs (ArgoCD, dashboards) | gateway-route | `argocd.catfish-mountain.com` |
 | Public sites (blogs, portfolios) | gateway-route | `blog.fultonhuffman.com` |
 | LAN web apps (Jellyfin, media) | gateway-route with mDNS | `media.local` |
-| LAN non-HTTP (databases, SMB) | MetalLB LoadBalancer | `192.168.0.x:port` |
+| LAN non-HTTP (databases, SMB) | MetalLB LoadBalancer | `192.168.1.x:port` |
 | mDNS-dependent (Time Machine) | hostNetwork | Auto-discovered |
 
 ### Multi-Hostname Example
@@ -178,7 +178,7 @@ gateway-route:
         port: 8096
       mdns:  # Optional: advertise via Bonjour
         name: Media Server
-        ip: 192.168.0.200
+        ip: 192.168.1.200
         port: 8096
 ```
 

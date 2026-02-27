@@ -206,7 +206,7 @@ sudo dd if=metal-arm64-rpi5-ext.raw of=/dev/rdiskN bs=4M status=progress
 
 # Boot rpi5, then apply config (pull from existing node or use saved config)
 # If this is a fresh install, you can use the talhelper-generated config as a base:
-talosctl apply-config --insecure --nodes 192.168.0.17 \
+talosctl apply-config --insecure --nodes 192.168.1.17 \
   --file /tmp/rpi5-config.yaml
 ```
 
@@ -328,7 +328,7 @@ cd talos
 ./generate-configs.sh
 
 # Flash the new image to SD card, then apply config
-talosctl apply-config --insecure --nodes 192.168.0.17 \
+talosctl apply-config --insecure --nodes 192.168.1.17 \
   --file talos/clusterconfig/homelab-rpi5.yaml
 
 # Or if talosctl upgrade works on official images:

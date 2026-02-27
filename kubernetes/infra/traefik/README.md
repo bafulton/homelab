@@ -7,7 +7,7 @@ Kubernetes Gateway API implementation that routes all HTTP traffic in the cluste
 | Method | Address | Use Case |
 |--------|---------|----------|
 | Private (Tailscale) | `https://traefik.catfish-mountain.com` | Dashboard (remote) |
-| LAN | `http://192.168.0.200:8080` | Dashboard (local) |
+| LAN | `http://192.168.1.200:8080` | Dashboard (local) |
 
 ## Architecture
 
@@ -19,7 +19,7 @@ Traffic Sources:
 ├── Tailscale Split DNS (private: *.catfish-mountain.com)
 └── LAN/mDNS (*.local)
          ↓
-    192.168.0.200 (MetalLB)
+    192.168.1.200 (MetalLB)
          ↓
    Traefik Gateway
          ↓
@@ -28,7 +28,7 @@ Traffic Sources:
    Services → Pods
 ```
 
-All three traffic sources (public, private, LAN) route through the same Traefik Gateway at `192.168.0.200`.
+All three traffic sources (public, private, LAN) route through the same Traefik Gateway at `192.168.1.200`.
 
 ## Gateway Resource
 
@@ -82,7 +82,7 @@ This creates an HTTPRoute that references the `traefik` Gateway. One route can h
 
 ## MetalLB IP
 
-Traefik is assigned `192.168.0.200` via MetalLB. Check the current IP:
+Traefik is assigned `192.168.1.200` via MetalLB. Check the current IP:
 
 ```bash
 kubectl get svc -n traefik traefik -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
@@ -100,7 +100,7 @@ The Gateway itself operates on port 80 (HTTP). TLS termination happens at differ
 
 The Traefik dashboard shows Gateway status, HTTPRoutes, and backend services:
 - **Private**: `https://traefik.catfish-mountain.com`
-- **LAN**: `http://192.168.0.200:8080`
+- **LAN**: `http://192.168.1.200:8080`
 
 The dashboard is exposed without authentication because access is controlled by Tailscale (for private) or physical network (for LAN).
 
