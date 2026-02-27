@@ -59,10 +59,10 @@ traefik:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9100"
 
-  # MetalLB LoadBalancer IP (from pool 192.168.0.200-250)
+  # MetalLB LoadBalancer IP (from pool 192.168.1.200-250)
   service:
     annotations:
-      metallb.io/loadBalancerIPs: "192.168.0.200"
+      metallb.io/loadBalancerIPs: "192.168.1.200"
     # Additional service - Tailscale for remote access
     additionalServices:
       tailscale:

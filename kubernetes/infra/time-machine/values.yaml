@@ -1,8 +1,8 @@
 namespace: time-machine
 
-# MetalLB LoadBalancer IP (from pool 192.168.0.200-250)
+# MetalLB LoadBalancer IP (from pool 192.168.1.200-250)
 service:
-  loadBalancerIP: "192.168.0.201"
+  loadBalancerIP: "192.168.1.201"
 
 # Storage configuration
 # NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
@@ -39,7 +39,7 @@ bitwarden-secret:
 mdnsServices:
   - name: Time Machine
     hostname: timemachine
-    ip: 192.168.0.201
+    ip: 192.168.1.201
     port: 445
     types:
       # SMB file sharing

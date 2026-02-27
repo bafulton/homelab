@@ -13,7 +13,7 @@ gateway-route:
         port: 80
       mdns:
         name: Home Assistant
-        ip: 192.168.0.200
+        ip: 192.168.1.200
         types:
           - type: _home-assistant._tcp
           - type: _http._tcp
@@ -31,7 +31,7 @@ home-assistant:
     forceInit: true
     trusted_proxies:
       - 10.244.0.0/16   # Kubernetes pod CIDR
-      - 192.168.0.0/24  # LAN subnet (cross-node traffic with hostNetwork)
+      - 192.168.1.0/24  # LAN subnet (cross-node traffic with hostNetwork)
     templateConfig: |
       # Loads default set of integrations. Do not remove.
       default_config:

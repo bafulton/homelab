@@ -5,7 +5,7 @@ mosquitto:
   service:
     type: LoadBalancer
     annotations:
-      metallb.io/loadBalancerIPs: "192.168.0.202"
+      metallb.io/loadBalancerIPs: "192.168.1.202"
     ports:
       mqtt:
         enabled: true
@@ -29,7 +29,7 @@ mosquitto:
 mdnsServices:
   - name: Mosquitto
     hostname: mosquitto
-    ip: 192.168.0.202
+    ip: 192.168.1.202
     port: 1883
     types:
       - type: _mqtt._tcp
