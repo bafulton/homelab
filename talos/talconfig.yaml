@@ -150,7 +150,7 @@ patches:
       kubelet:
         nodeIP:
           validSubnets:
-            - 192.168.0.0/24
+            - 192.168.1.0/24
             - 100.64.0.0/10
 
   # Tailscale extension configuration via ExtensionServiceConfig
