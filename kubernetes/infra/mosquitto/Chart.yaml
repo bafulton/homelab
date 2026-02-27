@@ -6,7 +6,7 @@ version: 1.0.0
 appVersion: "2.0.22"
 dependencies:
   - name: mosquitto
-    version: 0.6.0
+    version: 0.6.1
     repository: https://bdclark.github.io/helm-charts
   - name: mdns-config
     version: 1.0.0
