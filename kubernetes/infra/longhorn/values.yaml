@@ -39,6 +39,10 @@ nodeConfig:
           storageReserved: 0
           tags: ["usb"]
 
+    - name: rpi5
+      allowScheduling: false  # USB drive now owned by MinIO
+      disks: {}
+
 storageClasses:
   # eMMC - for ClickHouse and other workloads
   # Single replica (only one eMMC drive), no data locality since there's only one disk
