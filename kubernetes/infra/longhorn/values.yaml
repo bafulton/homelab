@@ -39,7 +39,6 @@ nodeConfig:
           storageReserved: 0
           tags: ["usb"]
 
-
 storageClasses:
   # eMMC - for ClickHouse and other workloads
   # Single replica (only one eMMC drive), no data locality since there's only one disk
@@ -56,7 +55,7 @@ storageClasses:
     dataLocality: disabled
 
   # USB - for Jellyfin media library
-  # Single replica on beelink
+  # Single replica
   - name: longhorn-usb
     diskSelector: usb
     replicas: 1
