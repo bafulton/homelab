@@ -11,3 +11,6 @@ dependencies:
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
