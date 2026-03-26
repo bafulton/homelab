@@ -33,20 +33,12 @@ nodeConfig:
           path: /var/mnt/nvme
           storageReserved: 0
           tags: ["nvme"]
-        # USB Passport drive - for Jellyfin media (replicated to rpi5)
+        # USB Passport drive - for Jellyfin media (single replica, backed up to MinIO)
         usb-disk:
           path: /var/mnt/usb
           storageReserved: 0
           tags: ["usb"]
 
-    - name: rpi5
-      allowScheduling: true
-      disks:
-        # USB drive - for Jellyfin media replication
-        usb-disk:
-          path: /var/mnt/usb
-          storageReserved: 0
-          tags: ["usb"]
 
 storageClasses:
   # eMMC - for ClickHouse and other workloads
@@ -64,10 +56,9 @@ storageClasses:
     dataLocality: disabled
 
   # USB - for Jellyfin media library
-  # Single replica on beelink; rpi5 USB drive is now used by MinIO
+  # Single replica on beelink
   - name: longhorn-usb
     diskSelector: usb
-    nodeSelector: beelink
     replicas: 1
     dataLocality: disabled
 
