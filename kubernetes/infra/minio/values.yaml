@@ -50,3 +50,12 @@ minio:
   # Environment variables for S3 endpoint
   environment:
     MINIO_REGION_NAME: us-east-1
+
+gateway-route:
+  routes:
+    - name: console
+      hostnames:
+        - minio.catfish-mountain.com
+      service:
+        name: minio-console
+        port: 9001
