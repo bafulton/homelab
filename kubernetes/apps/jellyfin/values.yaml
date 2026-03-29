@@ -32,13 +32,19 @@ longhorn-storage:
     - name: jellyfin-media
       size: 1Ti
       storageClass: longhorn-usb
-      # No backup group for media - too large for Longhorn snapshots
+      backupGroup: jellyfin-media
   jobs:
     - name: jellyfin-config-daily
       cron: "0 3 * * *"
       groups:
         - jellyfin
       retain: 5
+    - name: jellyfin-media-weekly
+      cron: "0 4 * * 0"  # Sundays at 4am
+      task: backup
+      groups:
+        - jellyfin-media
+      retain: 3
 
 # Jellyfin chart configuration
 jellyfin:
