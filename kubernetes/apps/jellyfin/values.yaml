@@ -48,9 +48,6 @@ longhorn-storage:
 
 # Jellyfin chart configuration
 jellyfin:
-  # Scaled down during media import - set back to 1 when done
-  replicaCount: 0
-
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:
