@@ -15,4 +15,8 @@ spec:
   groups:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+  {{- with .parameters }}
+  parameters:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 {{- end }}

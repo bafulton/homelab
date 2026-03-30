@@ -86,8 +86,12 @@ longhorn:
   defaultSettings:
     # Data path for Talos (matches kubelet extraMount)
     defaultDataPath: /var/lib/longhorn
+    # Freeze filesystem before snapshot to prevent DeadlineExceeded on busy volumes.
+    # Calls fsfreeze to pause writes, takes snapshot (near-instant), then unfreezes.
+    # Safe on Talos (kernel 6.x). Required for USB-backed volumes with active workloads.
+    freezeFilesystemForSnapshot: true
     # Increased timeouts for large USB-backed volumes (default 8s/1min too short)
-    engineReplicaTimeout: 120
+    engineReplicaTimeout: 30
     backupExecutionTimeout: 20
 
   defaultBackupStore:

@@ -40,11 +40,13 @@ longhorn-storage:
         - jellyfin
       retain: 5
     - name: jellyfin-media-weekly
-      cron: "0 4 * * 0"  # Sundays at 4am
+      cron: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
       task: backup
       groups:
         - jellyfin-media
       retain: 3
+      parameters:
+        full-backup-interval: "4"  # Every 4th run (~monthly) is a full backup
 
 # Jellyfin chart configuration
 jellyfin:
