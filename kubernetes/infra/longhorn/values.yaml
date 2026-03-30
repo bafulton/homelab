@@ -87,7 +87,7 @@ longhorn:
     # Data path for Talos (matches kubelet extraMount)
     defaultDataPath: /var/lib/longhorn
     # Increased timeouts for large USB-backed volumes (default 8s/1min too short)
-    engineReplicaTimeout: 30
+    engineReplicaTimeout: 120
     backupExecutionTimeout: 20
 
   defaultBackupStore:
