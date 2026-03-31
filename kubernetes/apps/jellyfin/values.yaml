@@ -22,6 +22,21 @@ gateway-route:
         name: Jellyfin
         ip: 192.168.1.200
 
+# Local storage - media PVC directly on USB drive (hostPath, not Longhorn)
+# VolSync backs up to MinIO weekly via restic
+local-storage:
+  pvcs:
+    - name: jellyfin-media
+      path: /var/mnt/usb/jellyfin-media
+      size: 2Ti
+      node: beelink
+      backup:
+        schedule: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
+        repository: volsync-jellyfin-media-restic
+        retain:
+          weekly: 3
+          monthly: 1
+
 # Longhorn storage - config PVC only (media PVC managed by local-storage chart)
 longhorn-storage:
   pvcs:
@@ -44,13 +59,10 @@ bitwarden-secret:
         RESTIC_REPOSITORY: "s3:http://minio.minio.svc.cluster.local:9000/volsync-backups/jellyfin-media"
         AWS_ACCESS_KEY_ID: "longhorn-backup"
         AWS_SECRET_ACCESS_KEY: "0a3a525c-8a89-4513-ae77-b3f00030686f"
-        RESTIC_PASSWORD: "REPLACE_WITH_BITWARDEN_UUID"
+        RESTIC_PASSWORD: "c269bac3-9ea9-4463-b24c-b41e0025330d"
 
 # Jellyfin chart configuration
 jellyfin:
-  # Scale to 0 while migrating storage
-  replicaCount: 0
-
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:

@@ -4,7 +4,7 @@ metadata:
   name: minio-rpi5-usb
 spec:
   capacity:
-    storage: 1500Gi
+    storage: 2Ti
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
@@ -32,5 +32,5 @@ spec:
   storageClassName: ""
   resources:
     requests:
-      storage: 1500Gi
+      storage: 2Ti
   volumeName: minio-rpi5-usb
