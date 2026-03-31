@@ -1,0 +1,13 @@
+# List of local hostPath PVCs to create
+pvcs: []
+  # - name: my-app-data              # PVC/PV name (required)
+  #   path: /var/mnt/disk/my-app     # hostPath on the node (required)
+  #   size: 100Gi                    # Storage size (required)
+  #   node: beelink                  # Node with the hostPath (required)
+  #   accessMode: ReadWriteOnce      # Access mode (default: ReadWriteOnce)
+  #   backup:                        # Optional VolSync ReplicationSource
+  #     schedule: "0 8 * * 0"        # Cron schedule for backups
+  #     repository: my-restic-secret # Kubernetes secret name with restic config
+  #     retain:
+  #       weekly: 3                  # Weekly backups to keep
+  #       monthly: 1                 # Monthly backups to keep

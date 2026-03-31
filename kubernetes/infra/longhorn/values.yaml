@@ -33,11 +33,6 @@ nodeConfig:
           path: /var/mnt/nvme
           storageReserved: 0
           tags: ["nvme"]
-        # USB Passport drive - for Jellyfin media (single replica, backed up to MinIO)
-        usb-disk:
-          path: /var/mnt/usb
-          storageReserved: 0
-          tags: ["usb"]
 
     - name: rpi5
       allowScheduling: false  # USB drive now owned by MinIO
@@ -58,12 +53,6 @@ storageClasses:
     replicas: 1
     dataLocality: disabled
 
-  # USB - for Jellyfin media library
-  # Single replica
-  - name: longhorn-usb
-    diskSelector: usb
-    replicas: 1
-    dataLocality: disabled
 
 longhorn:
   # Talos-specific configuration
@@ -88,9 +77,8 @@ longhorn:
     defaultDataPath: /var/lib/longhorn
     # Freeze filesystem before snapshot to prevent DeadlineExceeded on busy volumes.
     # Calls fsfreeze to pause writes, takes snapshot (near-instant), then unfreezes.
-    # Safe on Talos (kernel 6.x). Required for USB-backed volumes with active workloads.
+    # Safe on Talos (kernel 6.x).
     freezeFilesystemForSnapshot: true
-    # Increased timeouts for large USB-backed volumes (default 8s/1min too short)
     engineReplicaTimeout: 30
     backupExecutionTimeout: 20
 

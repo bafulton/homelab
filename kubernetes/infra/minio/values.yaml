@@ -46,6 +46,9 @@ minio:
     - name: longhorn-backups
       policy: none
       purge: false
+    - name: volsync-backups
+      policy: none
+      purge: false
 
   # Environment variables for S3 endpoint
   environment:

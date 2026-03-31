@@ -21,3 +21,9 @@ dependencies:
   - name: signoz-alerts
     version: 1.0.0
     repository: file://../../../charts/signoz-alerts
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
+  - name: local-storage
+    version: 1.0.0
+    repository: file://../../../charts/local-storage

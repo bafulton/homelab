@@ -1,0 +1,20 @@
+{{- range $.Values.pvcs }}
+{{- if .backup }}
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: {{ .name }}
+spec:
+  sourcePVC: {{ .name }}
+  trigger:
+    schedule: {{ .backup.schedule | quote }}
+  restic:
+    repository: {{ .backup.repository }}
+    copyMethod: Direct
+    {{- with .backup.retain }}
+    retain:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+{{- end }}
+{{- end }}

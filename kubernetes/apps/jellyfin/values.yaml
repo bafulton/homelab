@@ -22,40 +22,41 @@ gateway-route:
         name: Jellyfin
         ip: 192.168.1.200
 
-# Longhorn storage - config PVC with backups, media PVC on USB drive
+# Longhorn storage - config PVC only (media PVC managed by local-storage chart)
 longhorn-storage:
   pvcs:
     - name: jellyfin-config
       size: 5Gi
       storageClass: longhorn-emmc
       backupGroup: jellyfin
-    - name: jellyfin-media
-      size: 1Ti
-      storageClass: longhorn-usb
-      backupGroup: jellyfin-media
   jobs:
     - name: jellyfin-config-daily
       cron: "0 3 * * *"
       groups:
         - jellyfin
       retain: 5
-    - name: jellyfin-media-weekly
-      cron: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
-      task: backup
-      groups:
-        - jellyfin-media
-      retain: 3
-      parameters:
-        full-backup-interval: "4"  # Every 4th run (~monthly) is a full backup
+
+# VolSync backup credentials for restic (stored in Bitwarden)
+bitwarden-secret:
+  secrets:
+    - name: volsync-jellyfin-media-restic
+      data:
+        RESTIC_REPOSITORY: "s3:http://minio.minio.svc.cluster.local:9000/volsync-backups/jellyfin-media"
+        AWS_ACCESS_KEY_ID: "longhorn-backup"
+        AWS_SECRET_ACCESS_KEY: "0a3a525c-8a89-4513-ae77-b3f00030686f"
+        RESTIC_PASSWORD: "REPLACE_WITH_BITWARDEN_UUID"
 
 # Jellyfin chart configuration
 jellyfin:
+  # Scale to 0 while migrating storage
+  replicaCount: 0
+
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:
     storage.homelab/usb: "true"
 
-  # Use existing PVCs created by longhorn-storage chart
+  # Use existing PVCs (config managed by longhorn-storage, media is static hostPath PV)
   persistence:
     config:
       enabled: true
