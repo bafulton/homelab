@@ -16,10 +16,12 @@ Self-hosted media server with Intel QuickSync hardware transcoding. 100% free an
 
 ## Storage
 
-| PVC | Size | Storage Class | Backup |
-|-----|------|---------------|--------|
-| `jellyfin-config` | 5Gi | longhorn-emmc | Daily (5 retained) |
-| `jellyfin-media` | 1Ti | longhorn-usb | No (too large) |
+| PVC | Size | Backed by | Backup |
+|-----|------|-----------|--------|
+| `jellyfin-config` | 5Gi | Longhorn (longhorn-emmc) | Daily snapshots via Longhorn (5 retained) |
+| `jellyfin-media` | 2Ti | Static hostPath on beelink (`/var/mnt/usb/jellyfin-media`) | Weekly restic backup to MinIO via VolSync (3 weekly, 1 monthly) |
+
+`jellyfin-media` is managed by the `local-storage` chart rather than Longhorn — Longhorn's engine timeout is incompatible with TB-scale volumes on slow USB drives. VolSync reads the live PVC directly (no snapshot step) and backs up via restic deduplication.
 
 ## Hardware Transcoding
 

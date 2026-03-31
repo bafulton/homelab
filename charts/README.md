@@ -8,6 +8,7 @@ Reusable Helm charts used as dependencies by apps in `kubernetes/infra/` and `ku
 |-------|------|-------------|
 | [bitwarden-secret](./bitwarden-secret/) | Template | Creates ExternalSecrets that pull from Bitwarden Secrets Manager |
 | [gateway-route](./gateway-route/) | Gateway API | Creates HTTPRoutes for Gateway API with optional mDNS advertisement |
+| [local-storage](./local-storage/) | Storage | Creates static hostPath PVs/PVCs with optional VolSync backups |
 | [longhorn-storage](./longhorn-storage/) | Storage | Creates Longhorn PVCs with optional recurring snapshot jobs |
 | [mdns-config](./mdns-config/) | Library | Advertises services via mDNS (Bonjour/Zeroconf) for LAN discovery |
 | [signoz-alerts](./signoz-alerts/) | Library | Declarative SigNoz alert configuration via labeled ConfigMaps |

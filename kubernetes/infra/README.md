@@ -30,6 +30,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
 | [traefik](./traefik) | Gateway API implementation for HTTP routing | *.catfish-mountain.com |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
+| [volsync](./volsync) | Asynchronous PVC replication for scheduled restic backups to MinIO | - |
 
 ## Networking Overview
 

@@ -35,7 +35,8 @@ Multiple storage classes target different disks:
 |--------------|------|----------|
 | `longhorn-emmc` | Internal eMMC (56GB) | Small apps, configs |
 | `longhorn-nvme` | NVMe SSD (2TB) | Large/write-heavy workloads |
-| `longhorn-usb` | USB drives | Media libraries (replicated across nodes) |
+
+TB-scale volumes on slow USB drives are not managed by Longhorn — Longhorn's V1 engine timeout (hard-capped at 30s) causes rebuild failures on large slow drives. Use the `local-storage` chart with VolSync for those instead.
 
 Specify the storage class in your PVC:
 
