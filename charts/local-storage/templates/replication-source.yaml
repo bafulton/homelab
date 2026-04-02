@@ -12,6 +12,9 @@ spec:
   restic:
     repository: {{ .backup.repository }}
     copyMethod: Direct
+    {{- with .backup.cacheStorageClassName }}
+    cacheStorageClassName: {{ . }}
+    {{- end }}
     {{- with .backup.retain }}
     retain:
       {{- toYaml . | nindent 6 }}

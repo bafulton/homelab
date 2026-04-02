@@ -33,6 +33,7 @@ local-storage:
       backup:
         schedule: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
         repository: volsync-jellyfin-media-restic
+        cacheStorageClassName: longhorn-emmc
         retain:
           weekly: 3
           monthly: 1
