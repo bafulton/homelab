@@ -26,6 +26,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [signoz](./signoz) | Observability platform (metrics, logs, traces) | *.catfish-mountain.com |
 | [signoz-k8s-infra](./signoz-k8s-infra) | Kubernetes metrics collection for SigNoz | - |
 | [smartctl-exporter](./smartctl-exporter) | Disk SMART health metrics (NVMe, USB, SD cards) | - |
+| [snapshot-crds](./snapshot-crds) | VolumeSnapshot CRDs (cluster-level primitive required by VolSync) | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
 | [traefik](./traefik) | Gateway API implementation for HTTP routing | *.catfish-mountain.com |

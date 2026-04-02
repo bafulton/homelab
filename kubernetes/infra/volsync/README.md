@@ -2,6 +2,10 @@
 
 Kubernetes operator for asynchronous volume replication. Used in this cluster to back up PVCs to MinIO via restic.
 
+## Prerequisites
+
+Requires [`snapshot-crds`](../snapshot-crds) to be synced first — VolSync watches for VolumeSnapshot resources on startup and crashes without the CRDs present.
+
 ## Overview
 
 VolSync runs as a controller that watches `ReplicationSource` resources and copies PVC data to an external destination on a schedule. This cluster uses it specifically for backing up volumes managed by the `local-storage` chart — hostPath PVCs that Longhorn can't snapshot (too large, slow drives).

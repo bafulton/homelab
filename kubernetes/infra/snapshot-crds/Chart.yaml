@@ -1,0 +1,11 @@
+apiVersion: v2
+name: snapshot-crds
+description: VolumeSnapshot CRDs required by VolSync and other storage components
+type: application
+version: 1.0.0
+appVersion: "8.4.0"
+dependencies:
+  - name: snapshot-controller-crds
+    # renovate: datasource=helm registryUrl=https://wiremind.github.io/wiremind-helm-charts
+    version: 8.4.0
+    repository: https://wiremind.github.io/wiremind-helm-charts
