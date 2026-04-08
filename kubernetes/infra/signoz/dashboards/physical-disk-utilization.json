@@ -128,7 +128,7 @@
     }
   ],
   "panelMap": {},
-  "tags": ["storage", "disk", "infrastructure", "homelab"],
+  "tags": ["gitops"],
   "title": "Physical Disk Utilization",
   "variables": {},
   "version": "v5",

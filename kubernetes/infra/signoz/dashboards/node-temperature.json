@@ -1,5 +1,5 @@
 {
-  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors",
+  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors, plus cabinet ambient temperature and homelab power consumption from Home Assistant.",
   "layout": [
     {
       "h": 1,
@@ -30,14 +30,46 @@
       "w": 12,
       "x": 0,
       "y": 7
+    },
+    {
+      "h": 1,
+      "i": "row-cabinet",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 13
+    },
+    {
+      "h": 6,
+      "i": "cabinet-temp",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 14
+    },
+    {
+      "h": 6,
+      "i": "homelab-power",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 14
     }
   ],
   "panelMap": {},
+  "tags": ["gitops"],
   "title": "Node Temperature",
   "variables": {},
   "version": "v5",
   "widgets": [
     {
+      "contextLinks": {"linksData": []},
       "description": "",
       "id": "header-row",
       "isStacked": false,
@@ -45,12 +77,12 @@
       "opacity": "1",
       "panelTypes": "row",
       "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
+        "builder": {"queryData": [], "queryFormulas": []},
         "queryType": "builder"
       },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
       "title": "Temperature Metrics",
       "yAxisUnit": "none"
     },
@@ -58,6 +90,7 @@
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
+      "contextLinks": {"linksData": []},
       "description": "CPU/SoC temperature from hwmon sensors",
       "fillSpans": false,
       "id": "temp-graph",
@@ -82,36 +115,14 @@
               "dataSource": "metrics",
               "disabled": false,
               "expression": "A",
-              "filter": {
-                "expression": ""
-              },
+              "filter": {"expression": ""},
               "functions": [],
               "groupBy": [
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "instance",
-                  "type": "tag"
-                },
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "chip",
-                  "type": "tag"
-                },
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "sensor",
-                  "type": "tag"
-                }
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "instance", "type": "tag"},
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "chip", "type": "tag"},
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "sensor", "type": "tag"}
               ],
-              "having": {
-                "expression": ""
-              },
+              "having": {"expression": ""},
               "legend": "{{instance}} - {{chip}} {{sensor}}",
               "limit": null,
               "orderBy": [],
@@ -121,23 +132,9 @@
           ],
           "queryFormulas": []
         },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
         "id": "temp-graph-query",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
         "queryType": "builder"
       },
       "selectedLogFields": [],
@@ -146,29 +143,18 @@
       "softMin": 0,
       "stackedBarChart": false,
       "thresholds": [
-        {
-          "thresholdColor": "Yellow",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "none",
-          "thresholdValue": 70
-        },
-        {
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "none",
-          "thresholdValue": 85
-        }
+        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 70},
+        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 85}
       ],
       "timePreferance": "GLOBAL_TIME",
-      "title": "Hardware Monitor Temperature (°C)",
+      "title": "Hardware Monitor Temperature (\u00b0C)",
       "yAxisUnit": "celsius"
     },
     {
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
+      "contextLinks": {"linksData": []},
       "description": "Temperature from kernel thermal zones",
       "fillSpans": false,
       "id": "thermal-zone-graph",
@@ -193,36 +179,14 @@
               "dataSource": "metrics",
               "disabled": false,
               "expression": "A",
-              "filter": {
-                "expression": ""
-              },
+              "filter": {"expression": ""},
               "functions": [],
               "groupBy": [
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "instance",
-                  "type": "tag"
-                },
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "zone",
-                  "type": "tag"
-                },
-                {
-                  "dataType": "string",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "type",
-                  "type": "tag"
-                }
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "instance", "type": "tag"},
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "zone", "type": "tag"},
+                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "type", "type": "tag"}
               ],
-              "having": {
-                "expression": ""
-              },
+              "having": {"expression": ""},
               "legend": "{{instance}} - {{type}} (zone {{zone}})",
               "limit": null,
               "orderBy": [],
@@ -232,23 +196,9 @@
           ],
           "queryFormulas": []
         },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
         "id": "thermal-zone-query",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
         "queryType": "builder"
       },
       "selectedLogFields": [],
@@ -257,24 +207,90 @@
       "softMin": 0,
       "stackedBarChart": false,
       "thresholds": [
-        {
-          "thresholdColor": "Yellow",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "none",
-          "thresholdValue": 70
-        },
-        {
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "none",
-          "thresholdValue": 85
-        }
+        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 70},
+        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 85}
       ],
       "timePreferance": "GLOBAL_TIME",
-      "title": "Thermal Zone Temperature (°C)",
+      "title": "Thermal Zone Temperature (\u00b0C)",
       "yAxisUnit": "celsius"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-cabinet",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "Cabinet & Power (Home Assistant)"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Ambient cabinet temperature from SwitchBot Hub 2 temperature sensor (sensor.hub_2_tempsensor_temperature)",
+      "fillSpans": false,
+      "id": "cabinet-temp",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "Cabinet",
+            "name": "A",
+            "query": "{\"homeassistant_sensor_temperature_celsius\", entity=\"sensor.hub_2_tempsensor_temperature\"}"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 40,
+      "softMin": 0,
+      "thresholds": [
+        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 30},
+        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 35}
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Cabinet Temperature (\u00b0C)",
+      "yAxisUnit": "celsius"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Homelab power consumption from TP-Link Kasa smart plug (sensor.homelab_current_consumption)",
+      "fillSpans": false,
+      "id": "homelab-power",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "Homelab",
+            "name": "A",
+            "query": "{\"homeassistant_sensor_power_w\", entity=\"sensor.homelab_current_consumption\"}"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Homelab Power Consumption (W)",
+      "yAxisUnit": "watt"
     }
   ]
 }
