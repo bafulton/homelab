@@ -1,5 +1,5 @@
 {
-  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors, plus cabinet ambient temperature and homelab power consumption from Home Assistant.",
+  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors, plus cabinet ambient temperature, fan/cooling status, and homelab power consumption from Home Assistant.",
   "layout": [
     {
       "h": 1,
@@ -48,8 +48,17 @@
       "i": "cabinet-temp",
       "moved": false,
       "static": false,
-      "w": 6,
+      "w": 4,
       "x": 0,
+      "y": 14
+    },
+    {
+      "h": 6,
+      "i": "fan-status",
+      "moved": false,
+      "static": false,
+      "w": 4,
+      "x": 4,
       "y": 14
     },
     {
@@ -57,8 +66,8 @@
       "i": "homelab-power",
       "moved": false,
       "static": false,
-      "w": 6,
-      "x": 6,
+      "w": 4,
+      "x": 8,
       "y": 14
     }
   ],
@@ -227,11 +236,11 @@
       "selectedLogFields": [],
       "selectedTracesFields": [],
       "thresholds": [],
-      "title": "Cabinet & Power (Home Assistant)"
+      "title": "Cabinet & Power (Home Assistant / Meross MTS960)"
     },
     {
       "contextLinks": {"linksData": []},
-      "description": "Ambient cabinet temperature from SwitchBot Hub 2 temperature sensor (sensor.hub_2_tempsensor_temperature)",
+      "description": "Cabinet temperature from Meross MTS960 thermostat (sensor.mts960_844f_current_temperature) and its cooling setpoint",
       "fillSpans": false,
       "id": "cabinet-temp",
       "isStacked": false,
@@ -243,24 +252,60 @@
         "promql": [
           {
             "disabled": false,
-            "legend": "Cabinet",
+            "legend": "Cabinet (actual)",
             "name": "A",
-            "query": "{\"homeassistant_sensor_temperature_celsius\", entity=\"sensor.hub_2_tempsensor_temperature\"}"
+            "query": "{\"homeassistant_sensor_temperature_celsius\", entity=\"sensor.mts960_844f_current_temperature\"}"
+          },
+          {
+            "disabled": false,
+            "legend": "Target",
+            "name": "B",
+            "query": "{\"homeassistant_climate_target_temperature_celsius\", entity=\"climate.mts960_844f_heater_cooler\"}"
           }
         ],
         "queryType": "promql"
       },
       "selectedLogFields": [],
       "selectedTracesFields": [],
-      "softMax": 40,
+      "softMax": 50,
       "softMin": 0,
       "thresholds": [
-        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 30},
-        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 35}
+        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 40},
+        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 45}
       ],
       "timePreferance": "GLOBAL_TIME",
       "title": "Cabinet Temperature (\u00b0C)",
       "yAxisUnit": "celsius"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Fan/cooling status from Meross MTS960 thermostat \u2014 1 = fans actively cooling, 0 = idle (homeassistant_climate_action{action=cooling})",
+      "fillSpans": false,
+      "id": "fan-status",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "Fans Running",
+            "name": "A",
+            "query": "{\"homeassistant_climate_action\", entity=\"climate.mts960_844f_heater_cooler\", action=\"cooling\"}"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 1,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Cabinet Fan Status (1=Cooling, 0=Idle)",
+      "yAxisUnit": "none"
     },
     {
       "contextLinks": {"linksData": []},
