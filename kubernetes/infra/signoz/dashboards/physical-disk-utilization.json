@@ -1,0 +1,328 @@
+{
+  "description": "Physical storage utilization across homelab nodes — USB drives (jellyfin-media on beelink, MinIO on rpi5), Longhorn managed storage, and all non-virtual filesystems.",
+  "layout": [
+    {
+      "h": 1,
+      "i": "row-usb",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "h": 7,
+      "i": "usb-bytes",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 1
+    },
+    {
+      "h": 7,
+      "i": "usb-pct",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 1
+    },
+    {
+      "h": 1,
+      "i": "row-longhorn",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 8
+    },
+    {
+      "h": 7,
+      "i": "longhorn-bytes",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 9
+    },
+    {
+      "h": 7,
+      "i": "longhorn-pct",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "h": 1,
+      "i": "row-all",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 16
+    },
+    {
+      "h": 7,
+      "i": "all-fs-bytes",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 17
+    }
+  ],
+  "panelMap": {},
+  "tags": ["storage", "disk", "infrastructure", "homelab"],
+  "title": "Physical Disk Utilization",
+  "variables": {},
+  "version": "v5",
+  "widgets": [
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-usb",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "USB / Physical Drives"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Bytes used on /var/mnt/usb per node (beelink=jellyfin-media XFS, rpi5=MinIO data)",
+      "fillSpans": false,
+      "id": "usb-bytes",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}}",
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"})"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "USB Drive Used Space",
+      "yAxisUnit": "bytes"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Percentage of /var/mnt/usb used per node",
+      "fillSpans": false,
+      "id": "usb-pct",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}}",
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"}) / (sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"}) + sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"free\", mountpoint=\"/var/mnt/usb\"})) * 100"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 80
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 90
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "USB Drive Usage %",
+      "yAxisUnit": "percent"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-longhorn",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "Longhorn Storage"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Bytes used in Longhorn managed disks per node",
+      "fillSpans": false,
+      "id": "longhorn-bytes",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{node}} / {{disk}}",
+            "name": "A",
+            "query": "sum by (node, disk) (longhorn_disk_usage_bytes)"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Longhorn Disk Usage",
+      "yAxisUnit": "bytes"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Percentage of Longhorn disk capacity used per node",
+      "fillSpans": false,
+      "id": "longhorn-pct",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{node}} / {{disk}}",
+            "name": "A",
+            "query": "sum by (node, disk) (longhorn_disk_usage_bytes) / sum by (node, disk) (longhorn_disk_capacity_bytes) * 100"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 80
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 90
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Longhorn Disk Usage %",
+      "yAxisUnit": "percent"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-all",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "All Filesystems"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Used bytes for all non-virtual filesystems (excludes tmpfs, devtmpfs, overlay) across all nodes",
+      "fillSpans": false,
+      "id": "all-fs-bytes",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{mountpoint}} ({{type}})",
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\", mountpoint, type) ({\"system.filesystem.usage\", state=\"used\", type!=\"tmpfs\", type!=\"devtmpfs\", type!=\"overlay\"})"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "All Physical Filesystem Usage",
+      "yAxisUnit": "bytes"
+    }
+  ]
+}
