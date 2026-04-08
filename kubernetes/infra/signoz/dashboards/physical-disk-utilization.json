@@ -1,5 +1,5 @@
 {
-  "description": "Physical storage utilization across homelab nodes — USB drives (jellyfin-media on beelink, MinIO on rpi5), Longhorn managed storage, and all non-virtual filesystems.",
+  "description": "Physical storage utilization across homelab nodes \u2014 USB data drives, node system drives (/var), Longhorn managed storage, and all non-virtual filesystems.",
   "layout": [
     {
       "h": 1,
@@ -37,7 +37,7 @@
     },
     {
       "h": 1,
-      "i": "row-longhorn",
+      "i": "row-system",
       "maxH": 1,
       "minH": 1,
       "minW": 12,
@@ -49,7 +49,7 @@
     },
     {
       "h": 7,
-      "i": "longhorn-bytes",
+      "i": "system-bytes",
       "minH": 5,
       "minW": 4,
       "moved": false,
@@ -60,7 +60,7 @@
     },
     {
       "h": 7,
-      "i": "longhorn-pct",
+      "i": "system-pct",
       "minH": 5,
       "minW": 4,
       "moved": false,
@@ -71,7 +71,7 @@
     },
     {
       "h": 1,
-      "i": "row-all",
+      "i": "row-longhorn",
       "maxH": 1,
       "minH": 1,
       "minW": 12,
@@ -83,6 +83,40 @@
     },
     {
       "h": 7,
+      "i": "longhorn-bytes",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 17
+    },
+    {
+      "h": 7,
+      "i": "longhorn-pct",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 17
+    },
+    {
+      "h": 1,
+      "i": "row-all",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 24
+    },
+    {
+      "h": 7,
       "i": "all-fs-bytes",
       "minH": 5,
       "minW": 4,
@@ -90,7 +124,7 @@
       "static": false,
       "w": 12,
       "x": 0,
-      "y": 17
+      "y": 25
     }
   ],
   "panelMap": {},
@@ -112,7 +146,7 @@
       "selectedLogFields": [],
       "selectedTracesFields": [],
       "thresholds": [],
-      "title": "USB / Physical Drives"
+      "title": "USB Data Drives (/var/mnt/usb)"
     },
     {
       "contextLinks": {"linksData": []},
@@ -187,6 +221,96 @@
       ],
       "timePreferance": "GLOBAL_TIME",
       "title": "USB Drive Usage %",
+      "yAxisUnit": "percent"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-system",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "Node System Drives (/var)"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Bytes used on /var (the main Talos data partition on the internal drive) per node",
+      "fillSpans": false,
+      "id": "system-bytes",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}}",
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"})"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 0,
+      "softMin": 0,
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "System Drive Used Space",
+      "yAxisUnit": "bytes"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Percentage of /var partition used per node",
+      "fillSpans": false,
+      "id": "system-pct",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}}",
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"}) / (sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"}) + sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"free\", mountpoint=\"/var\"})) * 100"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 80
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 90
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "System Drive Usage %",
       "yAxisUnit": "percent"
     },
     {
