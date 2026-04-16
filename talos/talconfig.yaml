@@ -11,8 +11,8 @@
 # Docs: https://budimanjojo.github.io/talhelper/latest/
 
 clusterName: homelab
-talosVersion: v1.12.3
-kubernetesVersion: v1.35.0
+talosVersion: v1.12.6
+kubernetesVersion: v1.35.4
 endpoint: https://beelink.catfish-mountain.ts.net:6443
 
 allowSchedulingOnControlPlanes: true
