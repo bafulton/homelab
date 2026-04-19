@@ -102,14 +102,15 @@ apiVersion: v1alpha1
 kind: ExtensionServiceConfig
 name: tailscale
 environment:
-  - TS_AUTHKEY=tskey-auth-XXXX
+  - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
+  - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
   - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
 ```
 
 **Notes:**
-- Use an **auth key** (tskey-auth-...), not an OAuth client secret
+- Use **OAuth client credentials** (`TS_CLIENT_ID` / `TS_CLIENT_SECRET`), not a pre-auth key — OAuth clients don't expire and survive reboots reliably
+- Credentials live in `talos/.env` (gitignored)
 - The `---` separator is required - this must be a separate YAML document
-- Auth keys can be created at https://login.tailscale.com/admin/settings/keys
 
 ---
 

@@ -159,7 +159,8 @@ patches:
     kind: ExtensionServiceConfig
     name: tailscale
     environment:
-      - TS_AUTHKEY={{ env "TS_AUTHKEY" }}
+      - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
+      - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
       - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
 
   # Kernel modules for Longhorn storage
