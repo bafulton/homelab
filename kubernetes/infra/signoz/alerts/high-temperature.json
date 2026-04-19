@@ -1,14 +1,17 @@
 {
   "alert": "High Node Temperature",
   "alertType": "METRIC_BASED_ALERT",
+  "version": "v5",
   "severity": "warning",
   "ruleType": "threshold_rule",
   "evalWindow": "5m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
-  "preferredChannels": ["019c263b-528f-7c8a-bb3b-f2be8fd27410"],
+  "preferredChannels": [
+    "Email"
+  ],
   "disabled": false,
-  "description": "Node temperature is above 85°C",
+  "description": "Node temperature is above 85\u00b0C",
   "summary": "High temperature detected on node",
   "labels": {
     "source": "gitops",

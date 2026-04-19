@@ -1,12 +1,14 @@
 {
   "alert": "Certificate Expiring Soon",
   "alertType": "METRIC_BASED_ALERT",
-  "ruleType": "promql_rule",
   "version": "v5",
+  "ruleType": "promql_rule",
   "evalWindow": "5m0s",
   "frequency": "1h0m0s",
   "broadcastToAll": true,
-  "preferredChannels": ["019c263b-528f-7c8a-bb3b-f2be8fd27410"],
+  "preferredChannels": [
+    "Email"
+  ],
   "disabled": false,
   "description": "TLS certificate will expire within 7 days",
   "summary": "Certificate expiring soon",
