@@ -6,7 +6,7 @@
   "evalWindow": "2m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
-  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "preferredChannels": ["019c263b-528f-7c8a-bb3b-f2be8fd27410"],
   "disabled": false,
   "description": "Intentionally always-firing alert to verify the end-to-end alerting pipeline (SigNoz → email). Safe to silence once confirmed working.",
   "summary": "Alert pipeline test — confirm you received this, then silence or delete",
