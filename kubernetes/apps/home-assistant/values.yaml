@@ -155,3 +155,10 @@ longhorn-storage:
       groups:
         - home-assistant
       retain: 5
+    # matter-server-data PVC is created by templates/matter-server.yaml with the
+    # recurring-job-group.longhorn.io/matter-server label set directly on the PVC
+    - name: matter-server-daily
+      cron: "0 2 * * *"
+      groups:
+        - matter-server
+      retain: 5

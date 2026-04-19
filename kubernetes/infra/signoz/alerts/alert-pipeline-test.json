@@ -1,0 +1,63 @@
+{
+  "alert": "Alert Pipeline Test (Always Fires)",
+  "alertType": "METRIC_BASED_ALERT",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "2m0s",
+  "frequency": "1m0s",
+  "broadcastToAll": true,
+  "preferredChannels": ["019b9170-7e71-7dde-89c5-2c637c0d8646"],
+  "disabled": false,
+  "description": "Intentionally always-firing alert to verify the end-to-end alerting pipeline (SigNoz → email). Safe to silence once confirmed working.",
+  "summary": "Alert pipeline test — confirm you received this, then silence or delete",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 60,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "k8s.node.cpu.usage",
+                "temporality": "",
+                "timeAggregation": "avg",
+                "spaceAggregation": "avg",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{k8s.node.name}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "1",
+    "target": 0,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}

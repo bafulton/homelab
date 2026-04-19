@@ -15,7 +15,8 @@ spec:
         kubernetes.io/hostname: rpi5
       containers:
         - name: fix-permissions
-          image: busybox:latest
+          # renovate: datasource=docker depName=busybox
+          image: busybox:1.36.1
           command:
             - sh
             - -c

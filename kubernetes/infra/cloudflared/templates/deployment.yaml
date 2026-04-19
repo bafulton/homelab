@@ -33,11 +33,16 @@ spec:
           ports:
             - name: metrics
               containerPort: 2000
+          # Cloudflare recommends a liveness probe (not readiness) on /ready.
+          # If the tunnel loses connection, the pod should restart, not just
+          # leave the endpoint pool — readiness would only do the latter.
           livenessProbe:
             httpGet:
               path: /ready
               port: metrics
             initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 1
           resources:
             requests:
               cpu: 10m

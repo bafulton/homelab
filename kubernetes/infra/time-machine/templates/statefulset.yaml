@@ -84,6 +84,16 @@ spec:
             - name: smb
               containerPort: 445
               protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: smb
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: smb
+            initialDelaySeconds: 60
+            periodSeconds: 10
           volumeMounts:
             - name: time-machine-data
               mountPath: /opt/time-machine

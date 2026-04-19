@@ -26,6 +26,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: matter-server-data
   namespace: {{ .Release.Namespace }}
+  labels:
+    recurring-job-group.longhorn.io/matter-server: enabled
 spec:
   accessModes:
     - ReadWriteOnce
@@ -74,6 +76,16 @@ spec:
             - name: websocket
               containerPort: 5580
               protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: websocket
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: websocket
+            initialDelaySeconds: 30
+            periodSeconds: 10
           volumeMounts:
             - name: data
               mountPath: /data
