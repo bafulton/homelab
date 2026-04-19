@@ -36,6 +36,17 @@ bitwarden-secret:
       data:
         webhook.github.secret: "1386d7aa-4c3c-4e6e-ac7f-b3c70119021a"
 
+# Suppress persistent drift from ESO updating ExternalSecret status fields on each refresh.
+# argocd-redis-secret-init SA/Role/RoleBinding are Helm hook artifacts — they are recreated
+# on every ArgoCD self-upgrade and show as requiresPruning because pruning is disabled.
+# Both are cosmetic noise; neither is a real problem.
+ignoreDifferences:
+  - group: external-secrets.io
+    kind: ExternalSecret
+    name: argocd-github-webhook
+    jqPathExpressions:
+      - .status
+
 argo-cd:
   # A complete list of values can be found here:
   # https://github.com/argoproj/argo-helm/blob/main/charts/argo-cd/values.yaml
