@@ -9,6 +9,12 @@ talos:
   # When false, Renovate still updates talosVersion but tuppr won't auto-upgrade
   supportsRpi5: false
 
+kubernetes:
+  # Disable K8s upgrade CRD until rpi5 is on Talos v1.13.0+
+  # Talos v1.11.5 (rpi5) caps at K8s v1.34.x - incompatible with v1.35+
+  # Re-enable once rpi5 is migrated to official Talos image
+  upgradeEnabled: false
+
 # Tuppr manages Talos and Kubernetes upgrades via CRDs
 # After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
 #

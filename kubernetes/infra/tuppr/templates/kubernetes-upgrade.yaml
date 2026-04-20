@@ -1,3 +1,4 @@
+{{- if .Values.kubernetes.upgradeEnabled }}
 {{- $version := .Values.kubernetesVersion }}
 {{- $versionSlug := $version | replace "." "-" }}
 apiVersion: tuppr.home-operations.com/v1alpha1
@@ -7,3 +8,4 @@ metadata:
 spec:
   kubernetes:
     version: {{ $version }}
+{{- end }}
