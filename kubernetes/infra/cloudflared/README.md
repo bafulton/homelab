@@ -100,6 +100,12 @@ The Cloudflare Tunnel is already configured to route ALL `*.fultonhuffman.com` t
 
 ## Monitoring
 
+cloudflared exposes Prometheus metrics on port 2000 (`/metrics`), scraped by the OTel collector via pod annotations. Metrics are available in SigNoz under the `cloudflared_*` namespace — key ones include:
+
+- `cloudflared_tunnel_ha_connections` — active connections to Cloudflare edge
+- `cloudflared_tunnel_total_requests` — request throughput
+- `cloudflared_tunnel_request_errors` — error rate
+
 View cloudflared logs:
 ```bash
 kubectl logs -n cloudflared -l app=cloudflared -f

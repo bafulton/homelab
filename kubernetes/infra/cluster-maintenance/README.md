@@ -41,6 +41,10 @@ When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (def
 - Groups by owner Deployment and keeps the newest N
 - Does not affect the current active ReplicaSet
 
+## kubectl Image Version
+
+The CronJobs use `bitnami/kubectl:latest` with `imagePullPolicy: IfNotPresent`. Pinning to a specific version was considered but rejected for this reason: Bitnami doesn't publish semantic version tags that map reliably to k8s versions, making Renovate automation require complex custom logic to track the cluster's k8s version. The operations performed (`kubectl delete pods`, `kubectl delete replicasets`) have been API-stable across all k8s versions, and the k8s skew policy allows kubectl to be ±1 minor version from the server, so `latest` with `IfNotPresent` is safe in practice.
+
 ## Logs
 
 View cleanup logs:

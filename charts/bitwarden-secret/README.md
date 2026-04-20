@@ -102,11 +102,14 @@ bitwarden-secret:
       conversionStrategy: Default  # or Unicode
       decodingStrategy: None       # or Base64, Base64URL, Auto
       metadataPolicy: None         # or Fetch
+      nullBytePolicy: Ignore       # or Error
       data:
         key: "bitwarden-uuid"
 ```
 
 These settings apply to **all data entries** within the secret.
+
+> **Note:** ESO's admission webhook injects `nullBytePolicy: Ignore` as a default on all ExternalSecrets. The chart renders it explicitly to match, preventing ArgoCD from seeing a persistent spec diff.
 
 ## Resources Created
 

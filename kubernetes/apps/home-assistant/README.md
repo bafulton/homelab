@@ -31,7 +31,7 @@ The Matter Server also uses hostNetwork and communicates with Home Assistant via
 | PVC | Size | Storage Class | Backup |
 |-----|------|---------------|--------|
 | `home-assistant-config` | 5Gi | longhorn-emmc | Daily (5 retained) |
-| Matter Server data | 1Gi | longhorn-emmc | No |
+| Matter Server data | 1Gi | longhorn-emmc | Daily (5 retained) |
 
 ## Metrics
 
