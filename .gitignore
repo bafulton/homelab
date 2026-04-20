@@ -19,3 +19,4 @@ talos/.env
 # Terraform state files
 terraform/**/*.tfstate*
 terraform/**/.terraform/
+memory/
