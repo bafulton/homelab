@@ -12,13 +12,15 @@ prometheus-smartctl-exporter:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9633"
 
-  # Collect SMART data every 5 minutes (default: 120s). The exporter blocks
-  # its HTTP handler during smartctl runs; sda on beelink is slow enough to
-  # exceed the OTel scrape timeout (10s) at the default 120s interval.
+  # Collect SMART data every 30 minutes. The exporter blocks its HTTP handler
+  # during smartctl runs; beelink has 10 USB drives and the full scan takes
+  # ~14 minutes, which exceeds the OTel scrape timeout (~6 min). Setting the
+  # interval to 30 min keeps the cache warm for long enough that OTel scrapes
+  # reliably hit cached data between collections.
   # This maps to --smartctl.interval in the binary.
   common:
     config:
-      collect_not_more_than_period: 300s
+      collect_not_more_than_period: 1800s
 
   # Tolerate all taints to run on all nodes
   tolerations:
