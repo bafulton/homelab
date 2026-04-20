@@ -4,7 +4,7 @@
   "version": "v5",
   "severity": "warning",
   "ruleType": "threshold_rule",
-  "evalWindow": "2m0s",
+  "evalWindow": "10m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
   "preferredChannels": [

@@ -86,6 +86,11 @@ signoz:
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "8888"
+    config:
+      service:
+        telemetry:
+          metrics:
+            address: 0.0.0.0:8888
 
   signoz:
     persistence:
