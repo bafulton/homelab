@@ -84,13 +84,10 @@ signoz:
 
   otelCollector:
     podAnnotations:
-      prometheus.io/scrape: "true"
-      prometheus.io/port: "8888"
-    config:
-      service:
-        telemetry:
-          metrics:
-            address: 0.0.0.0:8888
+      # SigNoz custom collector uses a non-standard telemetry schema; :8888 is
+      # not reachable. Scrape annotation intentionally omitted to avoid
+      # constant scrape failures in the OTel deployment logs.
+      prometheus.io/scrape: "false"
 
   signoz:
     persistence:
