@@ -12,6 +12,12 @@ prometheus-smartctl-exporter:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9633"
 
+  # Collect SMART data every 5 minutes. The exporter blocks its HTTP handler
+  # during smartctl runs; sda on beelink is slow enough to exceed the OTel
+  # scrape timeout (10s) when collections happen too frequently.
+  extraArgs:
+    collect.not_more_than_period: 300s
+
   # Tolerate all taints to run on all nodes
   tolerations:
     - effect: NoSchedule
