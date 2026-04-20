@@ -25,14 +25,16 @@ data:
         "severity": {{ .severity | default $defaults.severity | quote }}
       }
       {{- if eq .type "threshold" }},
+      "version": "v5",
       "ruleType": "threshold_rule",
       "condition": {{ include "signoz-alerts.thresholdCondition" (dict "alert" . "root" $) | nindent 6 }}
       {{- else if eq .type "ratio" }},
+      "version": "v5",
       "ruleType": "threshold_rule",
       "condition": {{ include "signoz-alerts.ratioCondition" (dict "alert" . "root" $) | nindent 6 }}
       {{- else if eq .type "promql" }},
-      "ruleType": "promql_rule",
       "version": "v5",
+      "ruleType": "promql_rule",
       "condition": {{ include "signoz-alerts.promqlCondition" (dict "alert" . "root" $) | nindent 6 }}
       {{- else }}
       {{ fail (printf "Unsupported alert type '%s'. Supported types: threshold, ratio, promql" .type) }}

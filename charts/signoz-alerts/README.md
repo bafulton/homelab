@@ -2,6 +2,8 @@
 
 Shared Helm chart for declarative SigNoz alert configuration.
 
+> **Note:** This chart is currently unused. Infrastructure-wide alerts are managed directly as JSON files in `kubernetes/infra/signoz/alerts/`. This chart exists for app-specific alerts that should live alongside the app (e.g., "Jellyfin disk full"). See the signoz README for the preferred approach.
+
 ## Overview
 
 This chart generates labeled ConfigMaps containing SigNoz alert definitions. The SigNoz PostSync job automatically discovers these ConfigMaps and syncs them to SigNoz via the Management API.
@@ -99,7 +101,7 @@ Complex queries:
 | `defaults.severity` | Default severity level | `warning` |
 | `defaults.evalWindow` | Evaluation window | `5m0s` |
 | `defaults.frequency` | Check frequency | `1m0s` |
-| `defaults.notificationChannel` | SigNoz channel UUID | Gmail channel |
+| `defaults.notificationChannel` | SigNoz channel **name** (not UUID) | `"Email"` |
 | `alerts[]` | Array of alert definitions | `[]` |
 
 ## Alert Parameters

@@ -3,8 +3,8 @@ defaults:
   severity: warning
   evalWindow: 5m0s
   frequency: 1m0s
-  # Gmail notification channel ID from SigNoz
-  notificationChannel: "019b9170-7e71-7dde-89c5-2c637c0d8646"
+  # SigNoz notification channel name (use name, not UUID — the rules API requires names)
+  notificationChannel: "Email"
 
 # Alert definitions (examples - override in parent chart)
 alerts: []
