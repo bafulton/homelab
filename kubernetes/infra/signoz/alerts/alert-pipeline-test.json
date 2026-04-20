@@ -1,5 +1,5 @@
 {
-  "alert": "Alert Pipeline Test (Always Fires)",
+  "alert": "SigNoz Alerts Heartbeat",
   "alertType": "METRIC_BASED_ALERT",
   "version": "v5",
   "severity": "warning",
@@ -11,8 +11,8 @@
     "Email"
   ],
   "disabled": false,
-  "description": "Intentionally always-firing alert to verify the end-to-end alerting pipeline (SigNoz \u2192 email). Safe to silence once confirmed working.",
-  "summary": "Alert pipeline test \u2014 confirm you received this, then silence or delete",
+  "description": "Always-firing heartbeat to confirm the SigNoz \u2192 email alerting pipeline is working. If this stops firing, the pipeline is broken.",
+  "summary": "SigNoz alerting heartbeat — pipeline is healthy",
   "labels": {
     "source": "gitops",
     "severity": "warning"

@@ -4,7 +4,7 @@
   "version": "v5",
   "severity": "warning",
   "ruleType": "threshold_rule",
-  "evalWindow": "5m0s",
+  "evalWindow": "15m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
   "preferredChannels": [
@@ -24,7 +24,7 @@
           "type": "builder_query",
           "spec": {
             "name": "A",
-            "stepInterval": 60,
+            "stepInterval": 300,
             "signal": "metrics",
             "source": "",
             "aggregations": [
