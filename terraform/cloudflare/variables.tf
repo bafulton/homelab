@@ -25,10 +25,10 @@ variable "domains" {
       public_subdomains = []
     }
     "catfish-mountain-com" = {
-      domain            = "catfish-mountain.com"
-      wildcard_public   = false  # Private by default (Tailscale Split DNS)
+      domain          = "catfish-mountain.com"
+      wildcard_public = false # Private by default (Tailscale Split DNS)
       public_subdomains = [
-        "argocd-webhook"  # GitHub webhook needs public access
+        "argocd-webhook" # GitHub webhook needs public access
       ]
     }
   }
