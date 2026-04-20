@@ -103,3 +103,6 @@ signoz:
           secretKeyRef:
             name: signoz-smtp-credentials
             key: password
+      # Re-notify every 24h for ongoing firing alerts (default 4h was too noisy
+      # with the always-firing heartbeat alert re-notifying 6x/day)
+      SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_REPEAT__INTERVAL: "24h"
