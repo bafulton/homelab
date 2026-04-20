@@ -51,6 +51,12 @@ longhorn-storage:
       groups:
         - jellyfin
       retain: 5
+    - name: jellyfin-config-backup
+      task: backup
+      cron: "30 3 * * *"
+      groups:
+        - jellyfin
+      retain: 5
 
 # VolSync backup credentials for restic (stored in Bitwarden)
 bitwarden-secret:
