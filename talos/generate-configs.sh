@@ -13,7 +13,7 @@ set -euo pipefail
 # Prerequisites:
 #   - talhelper: brew install budimanjojo/tap/talhelper
 #   - talosctl:  brew install siderolabs/tap/talosctl
-#   - .env file with TS_AUTHKEY
+#   - .env file with TS_CLIENT_ID and TS_CLIENT_SECRET
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
@@ -35,8 +35,8 @@ load_env() {
   set +a
 
   # Validate required variables
-  if [[ -z "${TS_AUTHKEY:-}" ]]; then
-    err "TS_AUTHKEY is required in .env file"
+  if [[ -z "${TS_CLIENT_ID:-}" ]] || [[ -z "${TS_CLIENT_SECRET:-}" ]]; then
+    err "TS_CLIENT_ID and TS_CLIENT_SECRET are required in .env file"
   fi
 }
 
