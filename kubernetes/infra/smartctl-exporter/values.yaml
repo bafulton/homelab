@@ -16,7 +16,7 @@ prometheus-smartctl-exporter:
   # during smartctl runs; sda on beelink is slow enough to exceed the OTel
   # scrape timeout (10s) when collections happen too frequently.
   extraArgs:
-    collect.not_more_than_period: 300s
+    smartctl.interval: 300s
 
   # Tolerate all taints to run on all nodes
   tolerations:
