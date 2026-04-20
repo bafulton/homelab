@@ -104,5 +104,7 @@ signoz:
             name: signoz-smtp-credentials
             key: password
       # Re-notify every 24h for ongoing firing alerts (default 4h was too noisy
-      # with the always-firing heartbeat alert re-notifying 6x/day)
+      # with the always-firing heartbeat alert re-notifying 6x/day).
+      # SigNoz stores this in SQLite on pod startup; env var is required to
+      # persist across restarts (without it, SigNoz reverts to the 4h default).
       SIGNOZ_ALERTMANAGER_SIGNOZ_ROUTE_REPEAT__INTERVAL: "24h"
