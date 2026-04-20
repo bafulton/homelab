@@ -82,17 +82,40 @@ Dashboards and alerts are managed as JSON files and automatically synced via the
 ### Adding an Alert
 
 1. Create the alert in SigNoz UI first to get the JSON structure
-2. Add `"preferredChannels": ["<channel-id>"]` with your notification channel ID
+2. Add `"preferredChannels": ["Email"]` — use the channel **name**, not its UUID
 3. Add `"labels": {"source": "gitops"}` to identify GitOps-managed alerts
-4. Save to `alerts/<name>.json`
-5. Commit and push - the PostSync Job will load it
+4. Add `"version": "v5"` (required by the SigNoz rules API)
+5. Save to `alerts/<name>.json`
+6. Commit and push - the PostSync Job will load it
+
+### Removing an Alert
+
+Delete the JSON file and push. The PostSync Job reconciles SigNoz against the
+files in git: any rule with `labels.source == "gitops"` that isn't present in
+git is deleted automatically. Manually-created rules (no `source: gitops` label)
+are never touched.
 
 ### How It Works
 
 1. An ArgoCD PostSync Job runs after each sync
 2. The Job clones the repo and reads JSON files directly (avoids ConfigMap size limits)
-3. For each file, it finds existing resources by title/name
+3. For each dashboard/alert, it finds existing resources by title/name
 4. If found, updates in place via PUT (preserves IDs and alert history)
-5. If not found, creates new resource via POST
+5. If not found, creates via POST
+6. After all upserts, reconciles: deletes any `source: gitops` rules not in git
 
-This ensures Git is the source of truth while preserving resource IDs for stable links and alert history.
+### Forcing a PostSync Run
+
+ArgoCD excludes hook resources (like the PostSync Job itself) from its diff
+calculation. Changing only `dashboard-sync-job.yaml` produces no detectable diff,
+so no sync is triggered and the new job never runs.
+
+**Workaround:** bump `sync-script-version` in `templates/dashboard-checksum-configmap.yaml`.
+This is a non-hook ConfigMap that ArgoCD _does_ diff, so incrementing the version
+creates a synthetic change that triggers a sync → which then fires the PostSync job.
+
+```yaml
+# templates/dashboard-checksum-configmap.yaml
+data:
+  sync-script-version: "5"  # bump this when changing dashboard-sync-job.yaml
+```
