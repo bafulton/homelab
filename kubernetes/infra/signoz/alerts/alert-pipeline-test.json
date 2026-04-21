@@ -1,21 +1,21 @@
 {
-  "alert": "SigNoz Alerts Heartbeat",
+  "alert": "SigNoz Alerting Pipeline Down",
   "alertType": "METRIC_BASED_ALERT",
   "version": "v5",
-  "severity": "warning",
+  "severity": "critical",
   "ruleType": "threshold_rule",
-  "evalWindow": "10m0s",
+  "evalWindow": "15m0s",
   "frequency": "1m0s",
   "broadcastToAll": true,
   "preferredChannels": [
     "Email"
   ],
   "disabled": false,
-  "description": "Always-firing heartbeat to confirm the SigNoz \u2192 email alerting pipeline is working. If this stops firing, the pipeline is broken.",
-  "summary": "SigNoz alerting heartbeat — pipeline is healthy",
+  "description": "No k8s.node.cpu.usage data for 10+ minutes. SigNoz metrics ingestion or the alerting pipeline is broken.",
+  "summary": "SigNoz alerting pipeline is DOWN",
   "labels": {
     "source": "gitops",
-    "severity": "warning"
+    "severity": "critical"
   },
   "condition": {
     "compositeQuery": {
@@ -40,18 +40,11 @@
             "filter": {
               "expression": ""
             },
-            "groupBy": [
-              {
-                "name": "k8s.node.name",
-                "signal": "",
-                "fieldContext": "attribute",
-                "fieldDataType": "string"
-              }
-            ],
+            "groupBy": [],
             "having": {
               "expression": ""
             },
-            "legend": "{{k8s.node.name}}"
+            "legend": "cpu.usage"
           }
         }
       ],
@@ -61,6 +54,13 @@
     "op": "1",
     "target": 0,
     "matchType": "1",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "alertOnAbsent": true,
+    "absentFor": 600
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": false
+    }
   }
 }
