@@ -18,4 +18,4 @@ data:
   {{- $allContent = printf "%s%s" $allContent ($.Files.Get $path) }}
   {{- end }}
   checksum: {{ $allContent | sha256sum | quote }}
-  sync-script-version: "7"
+  sync-script-version: "8"
