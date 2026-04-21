@@ -56,7 +56,7 @@
     "matchType": "1",
     "selectedQueryName": "A",
     "alertOnAbsent": true,
-    "absentFor": 600
+    "absentFor": 10
   },
   "notificationSettings": {
     "renotify": {
