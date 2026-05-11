@@ -4,7 +4,7 @@ k8s-infra:
   clusterName: homelab
 
   # Send metrics to the existing SigNoz OTel collector
-  otelCollectorEndpoint: http://signoz-otel-collector.signoz:4317
+  otelCollectorEndpoint: http://signoz-otel-collector.signoz:4318
   otelInsecure: true
 
   presets:
