@@ -54,3 +54,14 @@ mdnsServices:
       - type: _device-info._tcp
         txtRecords:
           - "model=TimeCapsule8,119"
+
+signoz-alerts:
+  alerts:
+    - name: Time Machine Down
+      description: Time Machine SMB server has no ready replicas
+      severity: critical
+      type: promql
+      query: 'kube_statefulset_status_replicas_ready{namespace="time-machine",statefulset="time-machine"}'
+      op: "<"
+      threshold: 1
+      evalWindow: 10m0s

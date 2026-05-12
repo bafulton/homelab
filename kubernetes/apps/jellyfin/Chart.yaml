@@ -24,3 +24,6 @@ dependencies:
   - name: local-storage
     version: 1.0.0
     repository: file://../../../charts/local-storage
+  - name: signoz-alerts
+    version: 1.0.0
+    repository: file://../../../charts/signoz-alerts

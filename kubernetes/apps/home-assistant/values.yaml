@@ -174,3 +174,14 @@ longhorn-storage:
       groups:
         - matter-server
       retain: 3
+
+signoz-alerts:
+  alerts:
+    - name: Home Assistant Down
+      description: Home Assistant has no available replicas
+      severity: critical
+      type: promql
+      query: 'kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}'
+      op: "<"
+      threshold: 1
+      evalWindow: 10m0s
