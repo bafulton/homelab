@@ -1,134 +1,170 @@
 {
-  "description": "Glanceable cluster health overview \u2014 node status, pod phases, container restarts, and ArgoCD sync health",
+  "description": "Glanceable cluster health overview \u2014 node status, pod phases, OOMKills, container restarts, node pressure, and ArgoCD sync health",
   "layout": [
     {
-      "h": 1,
       "i": "row-glance",
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12,
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 1,
       "moved": false,
       "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 0
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12
     },
     {
-      "h": 4,
       "i": "stat-nodes-ready",
-      "moved": false,
-      "static": false,
-      "w": 3,
       "x": 0,
-      "y": 1
+      "y": 1,
+      "w": 2,
+      "h": 4,
+      "moved": false,
+      "static": false
     },
     {
-      "h": 4,
       "i": "stat-pods-running",
+      "x": 2,
+      "y": 1,
+      "w": 2,
+      "h": 4,
       "moved": false,
-      "static": false,
-      "w": 3,
-      "x": 3,
-      "y": 1
+      "static": false
     },
     {
+      "i": "stat-pods-pending",
+      "x": 4,
+      "y": 1,
+      "w": 2,
       "h": 4,
+      "moved": false,
+      "static": false
+    },
+    {
       "i": "stat-pods-failed",
-      "moved": false,
-      "static": false,
-      "w": 3,
       "x": 6,
-      "y": 1
-    },
-    {
+      "y": 1,
+      "w": 2,
       "h": 4,
+      "moved": false,
+      "static": false
+    },
+    {
       "i": "stat-apps-outofsync",
+      "x": 8,
+      "y": 1,
+      "w": 2,
+      "h": 4,
       "moved": false,
-      "static": false,
-      "w": 3,
-      "x": 9,
-      "y": 1
+      "static": false
     },
     {
-      "h": 1,
+      "i": "stat-oomkilled",
+      "x": 10,
+      "y": 1,
+      "w": 2,
+      "h": 4,
+      "moved": false,
+      "static": false
+    },
+    {
       "i": "row-workload",
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12,
+      "x": 0,
+      "y": 5,
+      "w": 12,
+      "h": 1,
       "moved": false,
       "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 5
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12
     },
     {
-      "h": 7,
       "i": "graph-pod-phases",
-      "moved": false,
-      "static": false,
-      "w": 6,
       "x": 0,
-      "y": 6
-    },
-    {
+      "y": 6,
+      "w": 6,
       "h": 7,
+      "moved": false,
+      "static": false
+    },
+    {
       "i": "graph-container-restarts",
-      "moved": false,
-      "static": false,
-      "w": 6,
       "x": 6,
-      "y": 6
+      "y": 6,
+      "w": 6,
+      "h": 7,
+      "moved": false,
+      "static": false
     },
     {
-      "h": 1,
+      "i": "graph-oomkill",
+      "x": 0,
+      "y": 13,
+      "w": 12,
+      "h": 5,
+      "moved": false,
+      "static": false
+    },
+    {
       "i": "row-nodes",
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12,
-      "moved": false,
-      "static": false,
-      "w": 12,
       "x": 0,
-      "y": 13
-    },
-    {
-      "h": 6,
-      "i": "graph-node-ready",
-      "moved": false,
-      "static": false,
+      "y": 18,
       "w": 12,
-      "x": 0,
-      "y": 14
-    },
-    {
       "h": 1,
-      "i": "row-argocd",
+      "moved": false,
+      "static": false,
       "maxH": 1,
       "minH": 1,
-      "minW": 12,
-      "moved": false,
-      "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 20
+      "minW": 12
     },
     {
-      "h": 6,
-      "i": "graph-argocd-sync",
-      "moved": false,
-      "static": false,
-      "w": 6,
+      "i": "graph-node-ready",
       "x": 0,
-      "y": 21
+      "y": 19,
+      "w": 6,
+      "h": 6,
+      "moved": false,
+      "static": false
     },
     {
-      "h": 6,
-      "i": "graph-argocd-health",
-      "moved": false,
-      "static": false,
-      "w": 6,
+      "i": "graph-node-pressure",
       "x": 6,
-      "y": 21
+      "y": 19,
+      "w": 6,
+      "h": 6,
+      "moved": false,
+      "static": false
+    },
+    {
+      "i": "row-argocd",
+      "x": 0,
+      "y": 25,
+      "w": 12,
+      "h": 1,
+      "moved": false,
+      "static": false,
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12
+    },
+    {
+      "i": "graph-argocd-sync",
+      "x": 0,
+      "y": 26,
+      "w": 6,
+      "h": 6,
+      "moved": false,
+      "static": false
+    },
+    {
+      "i": "graph-argocd-health",
+      "x": 6,
+      "y": 26,
+      "w": 6,
+      "h": 6,
+      "moved": false,
+      "static": false
     }
   ],
   "panelMap": {},
@@ -144,7 +180,7 @@
       "description": "Name of the cluster",
       "id": "c80e3b31-d5cf-4cdf-9552-cf5e7c377102",
       "key": "c80e3b31-d5cf-4cdf-9552-cf5e7c377102",
-      "modificationUUID": "2193247a-83fc-493f-9e9c-eaf9305f2457",
+      "modificationUUID": "28dfc42d-9774-4c31-b165-be5e7a172afc",
       "multiSelect": false,
       "name": "k8s.cluster.name",
       "order": 0,
@@ -260,12 +296,9 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Nodes Ready",
-      "yAxisUnit": "none",
       "thresholds": [
         {
-          "index": "c4b9c581-4052-4248-8f38-8d3b04fa92a5",
+          "index": "3416d3d2-1eea-4f4d-915d-7cd8e735b9b4",
           "isEditEnabled": false,
           "keyIndex": 0,
           "selectedGraph": "value",
@@ -278,6 +311,9 @@
           "thresholdValue": 0
         }
       ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Nodes Ready",
+      "yAxisUnit": "none",
       "query": {
         "builder": {
           "queryData": [
@@ -319,7 +355,7 @@
             "query": ""
           }
         ],
-        "id": "bc631dd2-5c33-4321-a197-24d351cce22c",
+        "id": "41edf05c-3412-422d-8ce1-a02b2409e1dc",
         "promql": [
           {
             "disabled": false,
@@ -335,7 +371,7 @@
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
-      "description": "Pods currently in Running phase",
+      "description": "Pods in Running phase",
       "fillSpans": false,
       "id": "stat-pods-running",
       "isStacked": false,
@@ -400,12 +436,9 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Running Pods",
-      "yAxisUnit": "none",
       "thresholds": [
         {
-          "index": "95e67d80-53b6-4094-8328-7b741e79ee97",
+          "index": "7823181d-3fba-486f-a40f-de307a670215",
           "isEditEnabled": false,
           "keyIndex": 0,
           "selectedGraph": "value",
@@ -418,6 +451,9 @@
           "thresholdValue": 0
         }
       ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Running Pods",
+      "yAxisUnit": "none",
       "query": {
         "builder": {
           "queryData": [
@@ -459,7 +495,147 @@
             "query": ""
           }
         ],
-        "id": "86ad6062-b866-4fcb-a366-d338185aba51",
+        "id": "03909cd3-ce9e-47bc-8354-a7b6bb0ca81a",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Pods stuck in Pending \u2014 may indicate scheduling pressure",
+      "fillSpans": false,
+      "id": "stat-pods-pending",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "e251d935-1fd6-463f-8ebf-31fd9994c2d1",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Pending Pods",
+      "yAxisUnit": "none",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_pod_status_phase",
+                  "reduceTo": "last",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "phase = 'Pending'"
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "e8505be8-1089-4b87-aa5a-8b261fd2f908",
         "promql": [
           {
             "disabled": false,
@@ -540,12 +716,9 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Failed Pods",
-      "yAxisUnit": "none",
       "thresholds": [
         {
-          "index": "53d3e105-00cf-44dd-b3ff-839bfec9fbbe",
+          "index": "b09586c9-133c-41c2-a792-86466751272c",
           "isEditEnabled": false,
           "keyIndex": 0,
           "selectedGraph": "value",
@@ -558,6 +731,9 @@
           "thresholdValue": 0
         }
       ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Failed Pods",
+      "yAxisUnit": "none",
       "query": {
         "builder": {
           "queryData": [
@@ -599,7 +775,7 @@
             "query": ""
           }
         ],
-        "id": "2d779ac1-5986-46c5-bb5f-fbef09805bda",
+        "id": "7cda9805-2204-4236-bc2c-d9f8712be871",
         "promql": [
           {
             "disabled": false,
@@ -615,7 +791,7 @@
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
-      "description": "ArgoCD applications not in Synced state",
+      "description": "ArgoCD apps not in Synced state",
       "fillSpans": false,
       "id": "stat-apps-outofsync",
       "isStacked": false,
@@ -680,12 +856,9 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Apps Out of Sync",
-      "yAxisUnit": "none",
       "thresholds": [
         {
-          "index": "46916479-8fbd-415a-a3fe-ef644a888c78",
+          "index": "9518aafa-e5e9-4742-bef6-7c1d5b4ae6c3",
           "isEditEnabled": false,
           "keyIndex": 0,
           "selectedGraph": "value",
@@ -698,6 +871,9 @@
           "thresholdValue": 0
         }
       ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Apps Out of Sync",
+      "yAxisUnit": "none",
       "query": {
         "builder": {
           "queryData": [
@@ -739,7 +915,147 @@
             "query": ""
           }
         ],
-        "id": "d5120391-517d-45c0-9b89-e579fe26ffbb",
+        "id": "bdcf9562-60a6-4b9f-a806-4335435f604c",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Containers whose last termination was OOM",
+      "fillSpans": false,
+      "id": "stat-oomkilled",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "value",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "81ba0fbe-e33f-47ba-b23b-5ec1ae4b2313",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "value",
+          "thresholdColor": "Red",
+          "thresholdFormat": "Text",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "OOMKilled",
+      "yAxisUnit": "none",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_pod_container_status_last_terminated_reason",
+                  "reduceTo": "last",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "reason = 'OOMKilled'"
+              },
+              "functions": [],
+              "groupBy": [],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "ecc51f0a-5703-41e0-a593-b7ec497b18a5",
         "promql": [
           {
             "disabled": false,
@@ -854,10 +1170,10 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
+      "thresholds": [],
       "timePreferance": "GLOBAL_TIME",
       "title": "Pod Phases",
       "yAxisUnit": "none",
-      "thresholds": [],
       "query": {
         "builder": {
           "queryData": [
@@ -980,7 +1296,7 @@
             "query": ""
           }
         ],
-        "id": "d126b522-81ec-4764-a445-ea03a7d509be",
+        "id": "2338ff75-c095-49d1-a814-ee89f7707523",
         "promql": [
           {
             "disabled": false,
@@ -996,7 +1312,7 @@
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
-      "description": "Rate of container restarts \u2014 a rising trend indicates flapping workloads",
+      "description": "Rate of container restarts by namespace \u2014 a rising trend indicates flapping workloads",
       "fillSpans": false,
       "id": "graph-container-restarts",
       "isStacked": false,
@@ -1061,10 +1377,10 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
+      "thresholds": [],
       "timePreferance": "GLOBAL_TIME",
       "title": "Container Restart Rate",
       "yAxisUnit": "none",
-      "thresholds": [],
       "query": {
         "builder": {
           "queryData": [
@@ -1115,7 +1431,156 @@
             "query": ""
           }
         ],
-        "id": "26ad68e6-73b7-4470-8ee3-f3ca8aa15064",
+        "id": "1e25165f-8ba8-45fc-9f3d-97f7397240d5",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Containers whose last termination was OOM, by namespace",
+      "fillSpans": false,
+      "id": "graph-oomkill",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "f4c7fb29-a61f-4bfa-a685-8af23b1c0c23",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "graph",
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "OOMKill Events",
+      "yAxisUnit": "none",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_pod_container_status_last_terminated_reason",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "reason = 'OOMKilled'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "namespace--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "namespace",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{namespace}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "5158f777-37b5-48f1-adf6-700af38b8a87",
         "promql": [
           {
             "disabled": false,
@@ -1165,7 +1630,7 @@
       "bucketCount": 30,
       "bucketWidth": 0,
       "columnUnits": {},
-      "description": "Ready status per node (1=Ready, 0=Not Ready)",
+      "description": "Ready status per node (1 = Ready, 0 = Not Ready)",
       "fillSpans": false,
       "id": "graph-node-ready",
       "isStacked": false,
@@ -1230,12 +1695,9 @@
       "softMax": 1,
       "softMin": 0,
       "stackedBarChart": false,
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Node Readiness",
-      "yAxisUnit": "none",
       "thresholds": [
         {
-          "index": "bc56d146-6069-4b18-a973-2456815c36e9",
+          "index": "7bc7ad8d-da79-403d-8066-c11a4f7d92a2",
           "isEditEnabled": false,
           "keyIndex": 0,
           "selectedGraph": "graph",
@@ -1248,6 +1710,9 @@
           "thresholdValue": 1
         }
       ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Node Readiness",
+      "yAxisUnit": "none",
       "query": {
         "builder": {
           "queryData": [
@@ -1298,7 +1763,228 @@
             "query": ""
           }
         ],
-        "id": "e23f96b2-2da0-431f-9c22-48a3baf472b8",
+        "id": "c400a170-5d3f-4c2c-a357-acdcf1e67a1a",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Memory, disk, and PID pressure per node (1 = pressure active)",
+      "fillSpans": false,
+      "id": "graph-node-pressure",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 1,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "index": "fbe39675-d8c1-4895-a8dc-6f2480d8252c",
+          "isEditEnabled": false,
+          "keyIndex": 0,
+          "selectedGraph": "graph",
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdLabel": "",
+          "thresholdOperator": ">",
+          "thresholdTableOptions": "A",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Node Pressure Conditions",
+      "yAxisUnit": "none",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.node.condition_memory_pressure",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.node.name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "k8s.node.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.node.name}} memory",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.node.condition_disk_pressure",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "B",
+              "filter": {
+                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.node.name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "k8s.node.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.node.name}} disk",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.node.condition_pid_pressure",
+                  "reduceTo": "avg",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "C",
+              "filter": {
+                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.node.name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "k8s.node.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.node.name}} pid",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "C",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "5c473160-9445-4164-a0c6-9548429f7aa9",
         "promql": [
           {
             "disabled": false,
@@ -1413,10 +2099,10 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
+      "thresholds": [],
       "timePreferance": "GLOBAL_TIME",
       "title": "ArgoCD Sync Status",
       "yAxisUnit": "none",
-      "thresholds": [],
       "query": {
         "builder": {
           "queryData": [
@@ -1485,7 +2171,7 @@
             "query": ""
           }
         ],
-        "id": "13acab8f-4568-4e0a-8ad8-fd508ad53c14",
+        "id": "0abf0a2a-4d39-4665-ad3b-4740bbfc6a24",
         "promql": [
           {
             "disabled": false,
@@ -1566,10 +2252,10 @@
       "softMax": 0,
       "softMin": 0,
       "stackedBarChart": false,
+      "thresholds": [],
       "timePreferance": "GLOBAL_TIME",
       "title": "ArgoCD App Health",
       "yAxisUnit": "none",
-      "thresholds": [],
       "query": {
         "builder": {
           "queryData": [
@@ -1692,7 +2378,7 @@
             "query": ""
           }
         ],
-        "id": "6caf5764-b852-4f80-8645-906e0dcbbe14",
+        "id": "a6906366-90b6-45ef-b5a7-85db1cb34b17",
         "promql": [
           {
             "disabled": false,
