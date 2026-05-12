@@ -26,6 +26,10 @@ data:
       sleep 5
     done
 
+    # Track all IaC dashboard titles so we can reconcile at the end.
+    # Dashboards with tag "gitops" that are NOT in this list will be deleted.
+    : > /tmp/synced_dashboard_titles
+
     # Load dashboards (update existing or create new - preserves IDs for stable links)
     DASHBOARD_DIR="/repo/$REPO_PATH/dashboards"
     if [ -d "$DASHBOARD_DIR" ] && ls "$DASHBOARD_DIR"/*.json 1> /dev/null 2>&1; then
@@ -40,6 +44,7 @@ data:
         name=$(basename "$f" .json)
         title=$(jq -r '.title // .data.title // empty' "$f")
         echo "  Loading dashboard: $name (title: $title)"
+        echo "$title" >> /tmp/synced_dashboard_titles
 
         # Find existing dashboard by title
         existing_id=""
@@ -74,6 +79,30 @@ data:
     else
       echo "No dashboards found"
     fi
+
+    # Reconcile: delete gitops-managed dashboards removed from IaC.
+    # Only touches dashboards with the "gitops" tag — manually created dashboards are never deleted.
+    echo "Reconciling dashboards..."
+    all_dashboards=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
+      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+
+    echo "$all_dashboards" | jq -c '.data[]? | select(.data.tags[]? == "gitops")' 2>/dev/null | \
+    while read -r dash; do
+      dash_uuid=$(echo "$dash" | jq -r '.uuid')
+      dash_title=$(echo "$dash" | jq -r '.data.title')
+
+      if ! grep -qxF "$dash_title" /tmp/synced_dashboard_titles 2>/dev/null; then
+        echo "  Deleting removed gitops dashboard: $dash_title ($dash_uuid)"
+        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$dash_uuid" \
+          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+        http_code=$(echo "$response" | tail -n1)
+        if [ "$http_code" = "200" ]; then
+          echo "    Deleted"
+        else
+          echo "    Warning: HTTP $http_code"
+        fi
+      fi
+    done
 
     # Track all IaC alert names so we can reconcile at the end.
     # Rules with labels.source=gitops that are NOT in this file will be deleted.
