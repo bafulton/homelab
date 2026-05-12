@@ -156,7 +156,7 @@ signoz-alerts:
       description: Home Assistant has no available replicas
       severity: critical
       type: promql
-      query: 'kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}'
+      query: 'max_over_time(kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}[10m])'
       op: "<"
       threshold: 1
       evalWindow: 10m0s
