@@ -1,0 +1,72 @@
+{
+  "alert": "NVMe Spare Below Threshold",
+  "alertType": "METRIC_BASED_ALERT",
+  "version": "v5",
+  "severity": "critical",
+  "ruleType": "threshold_rule",
+  "evalWindow": "15m0s",
+  "frequency": "5m0s",
+  "broadcastToAll": true,
+  "preferredChannels": [
+    "Email"
+  ],
+  "disabled": false,
+  "description": "NVMe available spare capacity is below 10% — drive has exhausted most spare blocks and may fail soon",
+  "summary": "NVMe spare capacity critical on {{k8s.node.name}} ({{device}})",
+  "labels": {
+    "source": "gitops",
+    "severity": "critical"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 300,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "smartctl_device_available_spare",
+                "temporality": "",
+                "timeAggregation": "min",
+                "spaceAggregation": "min",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "device",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{k8s.node.name}} - {{device}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "2",
+    "target": 10,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}

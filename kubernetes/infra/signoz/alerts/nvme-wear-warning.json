@@ -1,0 +1,72 @@
+{
+  "alert": "NVMe Wear High",
+  "alertType": "METRIC_BASED_ALERT",
+  "version": "v5",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "15m0s",
+  "frequency": "5m0s",
+  "broadcastToAll": true,
+  "preferredChannels": [
+    "Email"
+  ],
+  "disabled": false,
+  "description": "NVMe drive percentage_used is above 70% — drive is approaching end of rated write endurance",
+  "summary": "NVMe wear indicator high on {{k8s.node.name}} ({{device}})",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 300,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "smartctl_device_percentage_used",
+                "temporality": "",
+                "timeAggregation": "max",
+                "spaceAggregation": "max",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": ""
+            },
+            "groupBy": [
+              {
+                "name": "k8s.node.name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "device",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{k8s.node.name}} - {{device}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "1",
+    "target": 70,
+    "matchType": "1",
+    "selectedQueryName": "A"
+  }
+}
