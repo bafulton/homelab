@@ -26,6 +26,25 @@ data:
       sleep 5
     done
 
+    # ── Hash cache ────────────────────────────────────────────────────────────
+    # Load stored hashes from the signoz-sync-hashes ConfigMap into /tmp/hashes/.
+    # Each entry is a file named by key (e.g. "dash-argocd-status") containing
+    # the sha256 of the last successfully synced file/content.  Only items whose
+    # hash has changed are pushed to SigNoz, preventing spurious "updated"
+    # notifications when nothing actually changed.
+    mkdir -p /tmp/hashes
+    kubectl get configmap signoz-sync-hashes -n signoz -o json 2>/dev/null | \
+      jq -r '.data // {} | to_entries[] | .key + "=" + .value' 2>/dev/null | \
+      while read -r entry; do
+        key="${entry%%=*}"
+        val="${entry#*=}"
+        printf '%s' "$val" > "/tmp/hashes/$key"
+      done || true
+
+    get_hash()    { cat "/tmp/hashes/$1" 2>/dev/null || true; }
+    record_hash() { printf '%s' "$2" > "/tmp/hashes/$1"; }
+
+    # ── Dashboards ────────────────────────────────────────────────────────────
     # Track all IaC dashboard titles so we can reconcile at the end.
     # Dashboards with tag "gitops" that are NOT in this list will be deleted.
     : > /tmp/synced_dashboard_titles
@@ -43,8 +62,16 @@ data:
         [ -f "$f" ] || continue
         name=$(basename "$f" .json)
         title=$(jq -r '.title // .data.title // empty' "$f")
-        echo "  Loading dashboard: $name (title: $title)"
         echo "$title" >> /tmp/synced_dashboard_titles
+
+        # Skip if file content unchanged since last successful sync
+        file_hash=$(sha256sum "$f" | cut -d' ' -f1)
+        if [ "$(get_hash "dash-$name")" = "$file_hash" ]; then
+          echo "  Skipping unchanged dashboard: $name"
+          continue
+        fi
+
+        echo "  Loading dashboard: $name (title: $title)"
 
         # Find existing dashboard by title
         existing_id=""
@@ -72,6 +99,7 @@ data:
 
         if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
           echo "    Success"
+          record_hash "dash-$name" "$file_hash"
         else
           echo "    Warning: HTTP $http_code - $body"
         fi
@@ -104,8 +132,9 @@ data:
       fi
     done
 
+    # ── Alerts ────────────────────────────────────────────────────────────────
     # Track all IaC alert names so we can reconcile at the end.
-    # Rules with labels.source=gitops that are NOT in this file will be deleted.
+    # Rules with labels.source=gitops that are NOT in this list will be deleted.
     : > /tmp/synced_alert_names
 
     # Load alerts from ConfigMaps (label: signoz.homelab.io/alert=true)
@@ -128,8 +157,17 @@ data:
       fi
 
       alert_name=$(echo "$alert_json" | jq -r '.alert // empty')
-      echo "  Loading alert from ConfigMap: $cm_namespace/$cm_name (name: $alert_name)"
       echo "$alert_name" >> /tmp/synced_alert_names
+
+      # Skip if content unchanged since last successful sync
+      content_hash=$(printf '%s' "$alert_json" | sha256sum | cut -d' ' -f1)
+      hash_key="alert-cm-$cm_namespace-$cm_name"
+      if [ "$(get_hash "$hash_key")" = "$content_hash" ]; then
+        echo "  Skipping unchanged alert (ConfigMap): $cm_namespace/$cm_name"
+        continue
+      fi
+
+      echo "  Loading alert from ConfigMap: $cm_namespace/$cm_name (name: $alert_name)"
 
       # Find existing alert by name
       existing_id=""
@@ -157,6 +195,7 @@ data:
 
       if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
         echo "    Success"
+        record_hash "$hash_key" "$content_hash"
       else
         echo "    Warning: HTTP $http_code - $body"
       fi
@@ -175,8 +214,16 @@ data:
         [ -f "$f" ] || continue
         name=$(basename "$f" .json)
         alert_name=$(jq -r '.alert // .data.alert // empty' "$f")
-        echo "  Loading alert: $name (name: $alert_name)"
         echo "$alert_name" >> /tmp/synced_alert_names
+
+        # Skip if file content unchanged since last successful sync
+        file_hash=$(sha256sum "$f" | cut -d' ' -f1)
+        if [ "$(get_hash "alert-$name")" = "$file_hash" ]; then
+          echo "  Skipping unchanged alert: $name"
+          continue
+        fi
+
+        echo "  Loading alert: $name (name: $alert_name)"
 
         # Find existing alert by name
         existing_id=""
@@ -204,6 +251,7 @@ data:
 
         if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
           echo "    Success"
+          record_hash "alert-$name" "$file_hash"
         else
           echo "    Warning: HTTP $http_code - $body"
         fi
@@ -237,4 +285,21 @@ data:
       fi
     done
 
-    echo "Config loading complete!"
+    # ── Save hash cache ───────────────────────────────────────────────────────
+    # Persist updated hashes to ConfigMap for next run.
+    hashes_json='{'
+    first=true
+    for hf in /tmp/hashes/*; do
+      [ -f "$hf" ] || continue
+      key=$(basename "$hf")
+      val=$(cat "$hf")
+      [ "$first" = "true" ] || hashes_json="$hashes_json,"
+      hashes_json="${hashes_json}\"${key}\":\"${val}\""
+      first=false
+    done
+    hashes_json="${hashes_json}}"
+
+    printf '{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"signoz-sync-hashes","namespace":"signoz"},"data":%s}\n' \
+      "$hashes_json" | kubectl apply -f - > /dev/null
+
+    echo "Sync complete!"

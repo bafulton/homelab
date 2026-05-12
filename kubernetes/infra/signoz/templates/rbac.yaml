@@ -14,8 +14,33 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: signoz-dashboard-sync
-    namespace: signoz
+    namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
   name: signoz-alert-sync
+  apiGroup: rbac.authorization.k8s.io
+---
+# Namespace-scoped write access for the sync hashes ConfigMap only
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: signoz-sync-hashes-writer
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: signoz-sync-hashes-writer
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: signoz-dashboard-sync
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: signoz-sync-hashes-writer
   apiGroup: rbac.authorization.k8s.io

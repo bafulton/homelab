@@ -1227,7 +1227,7 @@
           "type": "tag"
         }
       ],
-      "softMax": 0,
+      "softMax": 1,
       "softMin": 0,
       "stackedBarChart": false,
       "timePreferance": "GLOBAL_TIME",
