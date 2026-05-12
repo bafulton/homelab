@@ -1,0 +1,31 @@
+# GitOps-managed Home Assistant configuration
+# Settings that used to live in configuration.yaml but belong in version control.
+# This package is auto-applied via the home-assistant-packages ConfigMap.
+# Changes here take effect on the next HA restart (triggered by the reloader).
+
+# HTTP configuration for reverse proxy (Tailscale + Traefik)
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 10.244.0.0/16   # Kubernetes pod CIDR
+    - 192.168.1.0/24  # LAN subnet (cross-node traffic with hostNetwork)
+
+# Home Assistant core settings
+# Note: packages: !include_dir_named packages must stay in configuration.yaml
+homeassistant:
+  internal_url: "http://home.local"
+  external_url: "https://home.fultonhuffman.com"
+  latitude: 36.085348151351745
+  longitude: -80.25007509137713
+  elevation: 268  # 880 feet in meters
+  unit_system: us_customary
+  time_zone: America/New_York
+
+# Frontend themes
+frontend:
+  themes: !include_dir_merge_named themes
+
+# Prometheus metrics endpoint for SigNoz
+# requires_auth: false allows cluster-internal scraping without a token
+prometheus:
+  requires_auth: false

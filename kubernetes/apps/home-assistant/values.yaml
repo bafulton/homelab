@@ -24,46 +24,21 @@ home-assistant:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
 
-  # Configuration management - enables trusted_proxies for reverse proxies (Tailscale + Traefik)
-  # forceInit: true merges templateConfig into configuration.yaml on every restart (GitOps-friendly)
+  # Configuration management
+  # forceInit: false — only writes configuration.yaml on first boot (when it doesn't exist).
+  # After initial setup, configuration.yaml on the PVC is never overwritten by GitOps.
+  # All GitOps-owned settings (http, homeassistant, prometheus, etc.) live in the
+  # packages ConfigMap (files/packages/gitops_config.yaml) and are applied automatically
+  # via the reloader without touching configuration.yaml.
   configuration:
     enabled: true
-    forceInit: true
-    trusted_proxies:
-      - 10.244.0.0/16   # Kubernetes pod CIDR
-      - 192.168.1.0/24  # LAN subnet (cross-node traffic with hostNetwork)
+    forceInit: false
     templateConfig: |
-      # Loads default set of integrations. Do not remove.
       default_config:
 
-      # Home Assistant core configuration
       homeassistant:
-        internal_url: "http://home.local"
-        external_url: "https://home.fultonhuffman.com"
-        latitude: 36.085348151351745
-        longitude: -80.25007509137713
-        elevation: 268  # 880 feet in meters
-        unit_system: us_customary
-        time_zone: America/New_York
         # Load GitOps-managed packages from ConfigMap
         packages: !include_dir_named packages
-
-      # HTTP configuration for reverse proxy (Tailscale)
-      http:
-        use_x_forwarded_for: true
-        trusted_proxies:
-          {{- range .Values.configuration.trusted_proxies }}
-          - {{ . }}
-          {{- end }}
-
-      # Load frontend themes from the themes folder
-      frontend:
-        themes: !include_dir_merge_named themes
-
-      # Expose metrics for SigNoz via Prometheus endpoint
-      # requires_auth: false allows cluster-internal scraping without a token
-      prometheus:
-        requires_auth: false
 
   # Recreate strategy required because hostNetwork: true means only one pod can bind port 8123
   deploymentStrategy: Recreate
