@@ -1,0 +1,72 @@
+{
+  "alert": "Smart Home Device Offline",
+  "alertType": "METRIC_BASED_ALERT",
+  "version": "v5",
+  "severity": "warning",
+  "ruleType": "threshold_rule",
+  "evalWindow": "10m0s",
+  "frequency": "5m0s",
+  "broadcastToAll": true,
+  "preferredChannels": [
+    "Email"
+  ],
+  "disabled": false,
+  "description": "A smart home peripheral has been unavailable in Home Assistant for 10+ minutes. Covers Govee BLE sensors (H5140, H5106) and Meross devices (Homelab plug, Ben's lamp, Emilie's lamp, MTS960 thermostat).",
+  "summary": "Smart home device offline: {{friendly_name}} ({{entity}})",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "builder_query",
+          "spec": {
+            "name": "A",
+            "stepInterval": 300,
+            "signal": "metrics",
+            "source": "",
+            "aggregations": [
+              {
+                "metricName": "homeassistant_entity_available",
+                "temporality": "",
+                "timeAggregation": "min",
+                "spaceAggregation": "min",
+                "reduceTo": ""
+              }
+            ],
+            "disabled": false,
+            "filter": {
+              "expression": "entity IN ('sensor.govee_co2_sensor_h5140_tempc', 'sensor.govee_pm2_5_sensor_h5106_tempc', 'switch.homelab', 'light.bens_lamp', 'light.emilies_lamp', 'climate.mts960_844f_heater_cooler')"
+            },
+            "groupBy": [
+              {
+                "name": "entity",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              },
+              {
+                "name": "friendly_name",
+                "signal": "",
+                "fieldContext": "attribute",
+                "fieldDataType": "string"
+              }
+            ],
+            "having": {
+              "expression": ""
+            },
+            "legend": "{{friendly_name}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "builder"
+    },
+    "op": "2",
+    "target": 1,
+    "matchType": "2",
+    "selectedQueryName": "A"
+  }
+}
