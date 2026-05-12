@@ -3,6 +3,8 @@ kind: ConfigMap
 metadata:
   name: home-assistant-packages
   namespace: {{ .Release.Namespace }}
+  annotations:
+    reloader.stakater.com/match: "true"
 data:
   {{- range $path, $_ := .Files.Glob "files/packages/*.yaml" }}
   {{ base $path }}: |
