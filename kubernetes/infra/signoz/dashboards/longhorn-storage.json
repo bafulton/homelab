@@ -470,7 +470,7 @@
       "contextLinks": {
         "linksData": []
       },
-      "description": "Total Longhorn storage used across all nodes",
+      "description": "Total replica data stored on disk across all Longhorn nodes. Includes snapshot differentials, so may exceed provisioned capacity when snapshots are present.",
       "fillSpans": false,
       "id": "stat-used",
       "isStacked": false,
@@ -835,7 +835,7 @@
       "contextLinks": {
         "linksData": []
       },
-      "description": "Actual space consumed per Longhorn volume, labeled by namespace/PVC",
+      "description": "Replica data on disk per volume (namespace/PVC). Includes snapshot differentials \u2014 this is storage consumed on the node, not filesystem utilization inside the volume.",
       "fillSpans": false,
       "id": "graph-volume-sizes",
       "isStacked": false,
@@ -879,7 +879,7 @@
       "contextLinks": {
         "linksData": []
       },
-      "description": "Actual used space as a percentage of provisioned capacity per volume",
+      "description": "Replica data on disk as a percentage of provisioned capacity. Values over 100% are normal when snapshots are present \u2014 snapshot differentials accumulate alongside live data. This is not filesystem utilization.",
       "fillSpans": false,
       "id": "graph-volume-usage-pct",
       "isStacked": false,
