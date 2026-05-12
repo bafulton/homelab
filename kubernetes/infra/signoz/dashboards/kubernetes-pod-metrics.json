@@ -82,6 +82,54 @@
       "w": 6,
       "x": 0,
       "y": 24
+    },
+    {
+      "h": 1,
+      "i": "row-resource-limits",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 29
+    },
+    {
+      "h": 6,
+      "i": "cpu-request-util",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 30
+    },
+    {
+      "h": 6,
+      "i": "cpu-limit-util",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 30
+    },
+    {
+      "h": 6,
+      "i": "mem-request-util",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 36
+    },
+    {
+      "h": 6,
+      "i": "mem-limit-util",
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 36
     }
   ],
   "panelMap": {},
@@ -925,6 +973,410 @@
       "timePreferance": "GLOBAL_TIME",
       "title": "Pod network io",
       "yAxisUnit": "bytes"
+    },
+    {
+      "contextLinks": {
+        "linksData": []
+      },
+      "id": "row-resource-limits",
+      "panelTypes": "row",
+      "query": {
+        "builder": {
+          "queryData": [],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "Resource Limits vs. Usage"
+    },
+    {
+      "description": "",
+      "id": "cpu-request-util",
+      "isStacked": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.container.cpu_request_utilization",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "(k8s.cluster.name = $k8s.cluster.name AND k8s.node.name IN $k8s.node.name AND k8s.namespace.name IN $k8s.namespace.name)"
+              },
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.namespace.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.namespace.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.pod.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.pod.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.container.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.container.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.namespace.name}}/{{k8s.pod.name}}/{{k8s.container.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "cpu-request-util-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "CPU usage vs. request (% of request)",
+      "yAxisUnit": "percentunit"
+    },
+    {
+      "description": "",
+      "id": "cpu-limit-util",
+      "isStacked": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.container.cpu_limit_utilization",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "(k8s.cluster.name = $k8s.cluster.name AND k8s.node.name IN $k8s.node.name AND k8s.namespace.name IN $k8s.namespace.name)"
+              },
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.namespace.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.namespace.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.pod.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.pod.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.container.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.container.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.namespace.name}}/{{k8s.pod.name}}/{{k8s.container.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "cpu-limit-util-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.8
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.9
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "CPU usage vs. limit (% of limit)",
+      "yAxisUnit": "percentunit"
+    },
+    {
+      "description": "",
+      "id": "mem-request-util",
+      "isStacked": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.container.memory_request_utilization",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "(k8s.cluster.name = $k8s.cluster.name AND k8s.node.name IN $k8s.node.name AND k8s.namespace.name IN $k8s.namespace.name)"
+              },
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.namespace.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.namespace.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.pod.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.pod.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.container.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.container.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.namespace.name}}/{{k8s.pod.name}}/{{k8s.container.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "mem-request-util-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "thresholds": [],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Memory usage vs. request (% of request)",
+      "yAxisUnit": "percentunit"
+    },
+    {
+      "description": "",
+      "id": "mem-limit-util",
+      "isStacked": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "k8s.container.memory_limit_utilization",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "avg"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": false,
+              "expression": "A",
+              "filter": {
+                "expression": "(k8s.cluster.name = $k8s.cluster.name AND k8s.node.name IN $k8s.node.name AND k8s.namespace.name IN $k8s.namespace.name)"
+              },
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "k8s.namespace.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.namespace.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.pod.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.pod.name",
+                  "type": "tag"
+                },
+                {
+                  "dataType": "string",
+                  "id": "k8s.container.name--string--tag--false",
+                  "isColumn": false,
+                  "key": "k8s.container.name",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "{{k8s.namespace.name}}/{{k8s.pod.name}}/{{k8s.container.name}}",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "mem-limit-util-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.8
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.9
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Memory usage vs. limit (% of limit)",
+      "yAxisUnit": "percentunit"
     }
   ]
 }
