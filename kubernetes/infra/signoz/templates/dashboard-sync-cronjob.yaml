@@ -1,0 +1,41 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: signoz-dashboard-sync
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: signoz-dashboard-sync
+          restartPolicy: Never
+          containers:
+            - name: loader
+              image: alpine:3.21
+              env:
+                - name: SIGNOZ_API_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: signoz-api-token
+                      key: token
+                - name: SIGNOZ_URL
+                  value: "http://signoz.{{ .Release.Namespace }}.svc:8080"
+                - name: REPO_URL
+                  value: "https://github.com/bafulton/homelab.git"
+                - name: REPO_PATH
+                  value: "kubernetes/infra/signoz"
+              command: ["/bin/sh", "/scripts/sync.sh"]
+              volumeMounts:
+                - name: sync-script
+                  mountPath: /scripts
+          volumes:
+            - name: sync-script
+              configMap:
+                name: signoz-sync-script
+                defaultMode: 0755
