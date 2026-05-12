@@ -88,7 +88,7 @@ data:
 
     echo "$all_dashboards" | jq -c '.data[]? | select(.data.tags[]? == "gitops")' 2>/dev/null | \
     while read -r dash; do
-      dash_uuid=$(echo "$dash" | jq -r '.uuid')
+      dash_uuid=$(echo "$dash" | jq -r '.id')
       dash_title=$(echo "$dash" | jq -r '.data.title')
 
       if ! grep -qxF "$dash_title" /tmp/synced_dashboard_titles 2>/dev/null; then
