@@ -185,3 +185,31 @@ signoz-alerts:
       op: "<"
       threshold: 1
       evalWindow: 10m0s
+
+    - name: Smart Home Device Offline
+      description: >-
+        A smart home peripheral has been unavailable in Home Assistant for 10+
+        minutes. Covers: Govee BLE sensors (H5140 CO2, H5106 PM2.5), Kasa smart
+        bulbs (Ben's lamp, Emilie's lamp) and plug (Homelab), Meross MTS960
+        thermostat, and SwitchBot Hub 2 (via Matter temperature sensor). Add
+        Eufy vacuum entity IDs here once integrated into HA.
+      summary: "Smart home device offline: {{friendly_name}} ({{entity}})"
+      severity: warning
+      type: threshold
+      metric: homeassistant_entity_available
+      timeAggregation: min
+      spaceAggregation: min
+      filter: >-
+        entity IN ('sensor.govee_co2_sensor_h5140_tempc',
+        'sensor.govee_pm2_5_sensor_h5106_tempc', 'switch.homelab',
+        'light.bens_lamp', 'light.emilies_lamp',
+        'climate.mts960_844f_heater_cooler',
+        'sensor.hub_2_tempsensor_temperature')
+      groupBy:
+        - entity
+        - friendly_name
+      legend: "{{friendly_name}}"
+      op: "<"
+      threshold: 1
+      evalWindow: 10m0s
+      matchType: "2"

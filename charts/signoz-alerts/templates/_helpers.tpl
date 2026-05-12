@@ -87,7 +87,7 @@ Build threshold condition (single metric)
   },
   "op": "{{ include "signoz-alerts.opCode" $alert.op }}",
   "target": {{ $alert.threshold }},
-  "matchType": "1",
+  "matchType": {{ $alert.matchType | default "1" | quote }},
   "selectedQueryName": "A"
 }
 {{- end -}}
@@ -139,7 +139,7 @@ Build ratio condition (A/B formula)
   },
   "op": "{{ include "signoz-alerts.opCode" $alert.op }}",
   "target": {{ $alert.threshold }},
-  "matchType": "1",
+  "matchType": {{ $alert.matchType | default "1" | quote }},
   "selectedQueryName": "F1"
 }
 {{- end -}}
