@@ -1,5 +1,5 @@
 {
-  "description": "Physical storage utilization across homelab nodes \u2014 USB data drives, node system drives (/var), Longhorn managed storage, and all non-virtual filesystems.",
+  "description": "Physical storage utilization and NVMe drive health across homelab nodes \u2014 USB data drives, node system drives (/var), Longhorn managed storage, all non-virtual filesystems, and smartctl SMART health metrics.",
   "layout": [
     {
       "h": 1,
@@ -125,11 +125,67 @@
       "w": 12,
       "x": 0,
       "y": 25
+    },
+    {
+      "h": 1,
+      "i": "row-smart",
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12,
+      "moved": false,
+      "static": false,
+      "w": 12,
+      "x": 0,
+      "y": 32
+    },
+    {
+      "h": 7,
+      "i": "smart-wear",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 33
+    },
+    {
+      "h": 7,
+      "i": "smart-spare",
+      "minH": 5,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 33
+    },
+    {
+      "h": 6,
+      "i": "smart-status",
+      "minH": 4,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 0,
+      "y": 40
+    },
+    {
+      "h": 6,
+      "i": "smart-errors",
+      "minH": 4,
+      "minW": 4,
+      "moved": false,
+      "static": false,
+      "w": 6,
+      "x": 6,
+      "y": 40
     }
   ],
   "panelMap": {},
   "tags": ["gitops"],
-  "title": "Physical Disk Utilization",
+  "title": "Physical Disk Health",
   "variables": {},
   "version": "v5",
   "widgets": [
@@ -447,6 +503,192 @@
       "timePreferance": "GLOBAL_TIME",
       "title": "All Physical Filesystem Usage",
       "yAxisUnit": "bytes"
+    }
+    ,
+    {
+      "contextLinks": {"linksData": []},
+      "id": "row-smart",
+      "panelTypes": "row",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "NVMe SMART Health"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Percentage of rated NVMe write endurance used per device. Drives typically fail or become read-only near 100%.",
+      "fillSpans": false,
+      "id": "smart-wear",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}}",
+            "name": "A",
+            "query": "smartctl_device_percentage_used"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 70
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percent",
+          "thresholdValue": 90
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "NVMe Wear Level (% Endurance Used)",
+      "yAxisUnit": "percent"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "Available spare NVMe blocks (%) vs the drive's built-in critical threshold. Spare dropping below threshold indicates imminent block exhaustion.",
+      "fillSpans": false,
+      "id": "smart-spare",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}} spare",
+            "name": "A",
+            "query": "smartctl_device_available_spare"
+          },
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}} threshold",
+            "name": "B",
+            "query": "smartctl_device_available_spare_threshold"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 100,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": "<",
+          "thresholdUnit": "percent",
+          "thresholdValue": 10
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Available Spare Blocks",
+      "yAxisUnit": "percent"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "SMART overall self-assessment: 1 = PASSED, 0 = FAILED. A value of 0 means the drive has reported a critical health failure.",
+      "fillSpans": false,
+      "id": "smart-status",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}}",
+            "name": "A",
+            "query": "smartctl_device_smart_status"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMax": 1,
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": "<",
+          "thresholdUnit": "none",
+          "thresholdValue": 1
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "SMART Status (1=OK, 0=FAILED)",
+      "yAxisUnit": "none"
+    },
+    {
+      "contextLinks": {"linksData": []},
+      "description": "NVMe media errors and error log entry count. Both should be 0 at all times — any increase indicates drive damage or firmware issues.",
+      "fillSpans": false,
+      "id": "smart-errors",
+      "isStacked": false,
+      "nullZeroValues": "null",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {"queryData": [], "queryFormulas": []},
+        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}} media errors",
+            "name": "A",
+            "query": "smartctl_device_media_errors"
+          },
+          {
+            "disabled": false,
+            "legend": "{{k8s.node.name}} {{device}} error log entries",
+            "name": "B",
+            "query": "smartctl_device_num_err_log_entries"
+          }
+        ],
+        "queryType": "promql"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "softMin": 0,
+      "thresholds": [
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "none",
+          "thresholdValue": 0
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "NVMe Errors (should be 0)",
+      "yAxisUnit": "none"
     }
   ]
 }
