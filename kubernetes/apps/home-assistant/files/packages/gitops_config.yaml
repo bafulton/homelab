@@ -10,17 +10,6 @@ http:
     - 10.244.0.0/16   # Kubernetes pod CIDR
     - 192.168.1.0/24  # LAN subnet (cross-node traffic with hostNetwork)
 
-# Home Assistant core settings
-# Note: packages: !include_dir_named packages must stay in configuration.yaml
-homeassistant:
-  internal_url: "http://home.local"
-  external_url: "https://home.fultonhuffman.com"
-  latitude: 36.085348151351745
-  longitude: -80.25007509137713
-  elevation: 268  # 880 feet in meters
-  unit_system: us_customary
-  time_zone: America/New_York
-
 # Frontend themes
 frontend:
   themes: !include_dir_merge_named themes
