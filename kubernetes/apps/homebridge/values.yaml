@@ -1,6 +1,6 @@
 namespace: homebridge
 
-# Homebridge UI — LAN only, no public access
+# Homebridge UI — LAN + Tailscale private access
 gateway-route:
   routes:
     - name: lan
@@ -12,6 +12,12 @@ gateway-route:
       mdns:
         name: Homebridge
         ip: 192.168.1.200
+    - name: private
+      hostnames:
+        - homebridge.catfish-mountain.com  # Tailscale Split DNS only
+      service:
+        name: homebridge
+        port: 8581
 
 # HA long-lived access token from Bitwarden
 bitwarden-secret:

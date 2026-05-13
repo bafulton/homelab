@@ -6,7 +6,8 @@ HomeKit bridge that exposes Home Assistant entities to Apple Home. Replaces HA's
 
 | Method | URL | Use Case |
 |--------|-----|----------|
-| LAN | `http://homebridge.local` | Homebridge UI for managing plugins/accessories |
+| LAN | `http://homebridge.local` | Homebridge UI on home network |
+| Private (Tailscale) | `https://homebridge.catfish-mountain.com` | Remote access via Tailscale |
 
 The HomeKit bridge itself (HAP protocol, port 51826) is not a web endpoint — Apple devices discover and connect to it directly via mDNS. Use the Homebridge UI to get the QR code/PIN for pairing.
 
