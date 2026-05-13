@@ -174,7 +174,8 @@ signoz-alerts:
         minutes. Covers: Govee BLE sensors (H5140 CO2, H5106 PM2.5), Kasa smart
         bulbs (Ben's lamp, Emilie's lamp) and plug (Homelab), Meross MTS960
         thermostat, SwitchBot Hub 2 (via Matter temperature sensor), Eufy
-        downstairs vacuum (MQTT), upstairs vacuum (L60 battery sensor), and Brother MFC-L2710DW printer.
+        downstairs vacuum (MQTT), upstairs vacuum (L60 battery sensor),
+        and Brother MFC-L2710DW printer.
       summary: "Smart home device offline: {{friendly_name}} ({{entity}})"
       severity: warning
       type: threshold
