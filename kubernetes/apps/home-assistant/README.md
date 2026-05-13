@@ -94,7 +94,7 @@ These integrations are configured through the Home Assistant UI and stored in th
 | Brother Printer | Autodiscovered | MFC-L2710DW |
 | Eufy Robovac | Manual | |
 | HACS | Manual | Custom components store |
-| HomeKit Bridge | Manual | **Being replaced by Homebridge** (`kubernetes/apps/homebridge/`) for Robot Vacuum Cleaner support — remove after Homebridge migration is complete |
+| HomeKit Bridge | Manual | Expose HA entities to Apple Home |
 | HomeKit Device | Autodiscovered | |
 | IPP | Autodiscovered | Internet Printing Protocol |
 | Matter | Manual | WebSocket: `ws://matter-server:5580/ws` |
