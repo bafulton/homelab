@@ -55,5 +55,5 @@ homebridge:
   image:
     repository: homebridge/homebridge
     # renovate: datasource=docker depName=homebridge/homebridge
-    tag: "2024-11-19"
+    tag: "2026-05-11"
     pullPolicy: IfNotPresent

@@ -3,7 +3,7 @@ name: homebridge
 description: Homebridge HomeKit bridge with homebridge-homeassistant plugin
 type: application
 version: 1.0.0
-appVersion: "2024-11-19"
+appVersion: "2026-05-11"
 dependencies:
   - name: gateway-route
     version: 1.0.0
