@@ -19,7 +19,7 @@ data:
           "platform": "HomeAssistant",
           "name": "Home Assistant",
           "host": "http://home-assistant.home-assistant.svc.cluster.local",
-          "token": "__HA_TOKEN__",
+          "password": "__HA_TOKEN__",
           "filter_by_domains": ["alarm_control_panel"],
           "filter_by_entities": [
             "light.emilies_lamp",
