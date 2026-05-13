@@ -23,6 +23,13 @@ home-assistant:
   # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
+  # Reduce ndots from default 5 to 1 so aiodns/pycares tries the bare domain first
+  # instead of exhausting three cluster search-domain variants before reaching the
+  # real lookup. Fixes robovac_mqtt DNS timeout on startup for Eufy cloud auth.
+  dnsConfig:
+    options:
+      - name: ndots
+        value: "1"
 
   # Configuration management
   # forceInit: false — only writes configuration.yaml on first boot (when it doesn't exist).
