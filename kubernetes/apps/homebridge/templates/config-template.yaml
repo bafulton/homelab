@@ -16,7 +16,7 @@ data:
       "accessories": [],
       "platforms": [
         {
-          "platform": "HomebridgeHomeassistant",
+          "platform": "HomeAssistant",
           "name": "Home Assistant",
           "host": "http://home-assistant.home-assistant.svc.cluster.local",
           "token": "__HA_TOKEN__",
