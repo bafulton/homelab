@@ -49,7 +49,6 @@ Home Assistant automations, scripts, and sensors are managed via GitOps using HA
 | `light_effects.yaml` | Color cycling effects for smart bulbs |
 | `network_sensors.yaml` | Network sensors |
 | `sensor_fixes.yaml` | Temporary workarounds for upstream bugs |
-| `vacuum_startup.yaml` | Sends `vacuum.locate` 60s after HA start to trigger Eufy L60 DPS 153 state push — keeps `vacuum.upstairs_vacuum` available without running a cycle |
 
 ### Adding a New Package
 
