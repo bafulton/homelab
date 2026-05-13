@@ -1,0 +1,22 @@
+# Vacuum Startup Package
+# Sends a locate (beep) command to the upstairs vacuum ~90s after HA starts.
+# This triggers the vacuum to push DPS 153 (WorkStatus), which the robovac-damascus
+# integration needs to transition vacuum.upstairs_vacuum from unavailable → available.
+# Without this, the entity stays unavailable until the vacuum runs a clean cycle.
+
+automation:
+  - alias: "Refresh Upstairs Vacuum Status on Startup"
+    id: refresh_upstairs_vacuum_on_startup
+    description: >-
+      Wakes the Eufy L60 (T2277) integration after HA restart. The vacuum only
+      pushes DPS 153 on state transitions; sending locate forces it to emit its
+      current state, making the vacuum entity available without running a cycle.
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: "00:01:30"
+      - service: vacuum.locate
+        target:
+          entity_id: vacuum.upstairs_vacuum
+        continue_on_error: true
