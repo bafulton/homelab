@@ -45,9 +45,11 @@ Home Assistant automations, scripts, and sensors are managed via GitOps using HA
 
 | Package | Purpose |
 |---------|---------|
+| `gitops_config.yaml` | GitOps-managed config: HTTP trusted proxies, frontend themes, Prometheus metrics endpoint |
 | `light_effects.yaml` | Color cycling effects for smart bulbs |
 | `network_sensors.yaml` | Network sensors |
 | `sensor_fixes.yaml` | Temporary workarounds for upstream bugs |
+| `vacuum_startup.yaml` | Sends `vacuum.locate` 60s after HA start to trigger Eufy L60 DPS 153 state push — keeps `vacuum.upstairs_vacuum` available without running a cycle |
 
 ### Adding a New Package
 
@@ -92,7 +94,7 @@ These integrations are configured through the Home Assistant UI and stored in th
 | Brother Printer | Autodiscovered | MFC-L2710DW |
 | Eufy Robovac | Manual | |
 | HACS | Manual | Custom components store |
-| HomeKit Bridge | Manual | Expose HA entities to Apple Home |
+| HomeKit Bridge | Manual | **Being replaced by Homebridge** (`kubernetes/apps/homebridge/`) for Robot Vacuum Cleaner support — remove after Homebridge migration is complete |
 | HomeKit Device | Autodiscovered | |
 | IPP | Autodiscovered | Internet Printing Protocol |
 | Matter | Manual | WebSocket: `ws://matter-server:5580/ws` |
