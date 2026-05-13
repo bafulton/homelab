@@ -171,10 +171,8 @@ signoz-alerts:
     - name: Smart Home Device Offline
       description: >-
         A smart home peripheral has been unavailable in Home Assistant for 10+
-        minutes. Covers: Govee BLE sensors (H5140 CO2, H5106 PM2.5), Kasa smart
-        bulbs (Ben's lamp, Emilie's lamp) and plug (Homelab), Meross MTS960
-        thermostat, SwitchBot Hub 2 (via Matter temperature sensor), Eufy
-        downstairs vacuum (MQTT), upstairs vacuum (L60 battery sensor),
+        minutes. Covers: Govee BLE sensors (H5140 CO2, H5106 PM2.5), Meross
+        MTS960 thermostat, SwitchBot Hub 2 (via Matter temperature sensor),
         and Brother MFC-L2710DW printer.
       summary: "Smart home device offline: {{friendly_name}} ({{entity}})"
       severity: warning
@@ -184,12 +182,9 @@ signoz-alerts:
       spaceAggregation: min
       filter: >-
         entity IN ('sensor.govee_co2_sensor_h5140_tempc',
-        'sensor.govee_pm2_5_sensor_h5106_tempc', 'switch.homelab',
-        'light.bens_lamp', 'light.emilies_lamp',
+        'sensor.govee_pm2_5_sensor_h5106_tempc',
         'climate.mts960_844f_heater_cooler',
         'sensor.hub_2_tempsensor_temperature',
-        'vacuum.downstairs_vacuum',
-        'sensor.upstairs_vacuum_battery',
         'sensor.mfc_l2710dw_status')
       groupBy:
         - entity
