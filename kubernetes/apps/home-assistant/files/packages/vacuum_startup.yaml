@@ -15,7 +15,7 @@ automation:
       - platform: homeassistant
         event: start
     action:
-      - delay: "00:01:30"
+      - delay: "00:01:00"
       - service: vacuum.locate
         target:
           entity_id: vacuum.upstairs_vacuum
