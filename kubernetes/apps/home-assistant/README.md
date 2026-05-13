@@ -120,7 +120,7 @@ These integrations are configured through the Home Assistant UI and stored in th
 
 ## BLE Sensors (OpenMQTTGateway)
 
-An M5Stack running OpenMQTTGateway decodes BLE advertisements from Govee sensors and publishes to MQTT. Home Assistant auto-discovers these sensors.
+An M5Stack (ESP32-based board) running OpenMQTTGateway decodes BLE advertisements from Govee sensors and publishes to MQTT. Home Assistant auto-discovers these sensors.
 
 ### Flashing the M5Stack
 
