@@ -24,7 +24,8 @@ spec:
             - -c
             - |
               set -e
-              pip install --quiet --root-user-action=ignore zeroconf kubernetes pyyaml
+              # Pin kubernetes<36 due to auth_settings() regression in v36: https://github.com/kubernetes-client/python/issues/2582
+              pip install --quiet --root-user-action=ignore zeroconf "kubernetes==35.0.0" pyyaml
 
               python3 -u << 'PYTHON_SCRIPT'
               from zeroconf import ServiceInfo, Zeroconf
