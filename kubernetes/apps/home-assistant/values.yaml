@@ -192,5 +192,5 @@ signoz-alerts:
       legend: "{{friendly_name}}"
       op: "<"
       threshold: 1
-      evalWindow: 10m0s
+      evalWindow: 15m0s
       matchType: "2"
