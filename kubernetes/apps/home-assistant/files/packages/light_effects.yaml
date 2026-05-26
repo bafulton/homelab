@@ -81,7 +81,6 @@ automation:
                   area_id: bedroom
                 data:
                   hs_color: "{{ [90 + (now().timestamp() * 2.4 | int % 60), 80] }}"
-                  brightness_pct: 25
                   transition: 4
 
           # Sunset - warm reds, oranges, yellows (hue 0-45, ~25 sec cycle)
@@ -110,7 +109,6 @@ automation:
                   hs_color: >
                     {% set t = now().timestamp() * 2.4 | int % 120 %}
                     {{ [90 + t if t < 60 else 270 + (t - 60), 80] }}
-                  brightness_pct: 10
                   transition: 4
 
           # Candlelight - warm flickering yellows/oranges (hue 25-45, ~20 sec cycle)
@@ -124,7 +122,6 @@ automation:
                   area_id: bedroom
                 data:
                   hs_color: "{{ [25 + (now().timestamp() * 1.0 | int % 20), 60] }}"
-                  brightness_pct: "{{ 8 + (now().timestamp() | int % 3) }}"
                   transition: 4
 
 script:
