@@ -1,6 +1,13 @@
 # Light Effects Package
 # Cycles smart bulbs through color themes via dashboard buttons
 
+light:
+  - platform: relative_brightness_light_group
+    name: Bedroom Lamps
+    entities:
+      - light.bens_lamp
+      - light.emilies_lamp
+
 input_select:
   light_effect:
     name: Light Effect
