@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: time-machine
+  annotations:
+    # Reloader watches time-machine-config ConfigMap (match: "true") and restarts on changes
+    reloader.stakater.com/search: "true"
 spec:
   serviceName: time-machine
   replicas: 1  # Never go > 1
@@ -12,9 +15,6 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: time-machine
-      annotations:
-        # Reloader watches time-machine-config ConfigMap and restarts pod on changes
-        reloader.stakater.com/match: "true"
     spec:
       nodeSelector:
         storage.homelab/nvme: "true"
