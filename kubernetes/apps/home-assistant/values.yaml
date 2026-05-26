@@ -68,12 +68,14 @@ home-assistant:
   # Prometheus metrics for SigNoz integration
   # The prometheus: config above enables the /api/prometheus endpoint
   # These annotations tell SigNoz to scrape it
+  deploymentAnnotations:
+    # Reloader watches home-assistant-packages ConfigMap (match: "true") and restarts on changes
+    reloader.stakater.com/search: "true"
+
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "8123"
     prometheus.io/path: "/api/prometheus"
-    # Reloader watches home-assistant-packages ConfigMap and restarts pod on changes
-    reloader.stakater.com/match: "true"
 
   # Startup probe - allows up to 5 minutes for Home Assistant to initialize
   # Liveness/readiness probes won't run until startup probe succeeds
