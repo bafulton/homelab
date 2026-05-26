@@ -110,6 +110,7 @@ automation:
                   hs_color: >
                     {% set t = now().timestamp() * 2.4 | int % 120 %}
                     {{ [90 + t if t < 60 else 270 + (t - 60), 80] }}
+                  brightness_pct: 10
                   transition: 4
 
           # Candlelight - warm flickering yellows/oranges (hue 25-45, ~20 sec cycle)
