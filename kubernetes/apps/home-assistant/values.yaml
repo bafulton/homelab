@@ -169,6 +169,7 @@ signoz-alerts:
       op: "<"
       threshold: 1
       evalWindow: 10m0s
+      for: 5m0s
 
     - name: Smart Home Device Offline
       description: >-
