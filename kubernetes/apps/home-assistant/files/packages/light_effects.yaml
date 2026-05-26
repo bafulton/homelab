@@ -81,6 +81,7 @@ automation:
                   area_id: bedroom
                 data:
                   hs_color: "{{ [90 + (now().timestamp() * 2.4 | int % 60), 80] }}"
+                  brightness_pct: 25
                   transition: 4
 
           # Sunset - warm reds, oranges, yellows (hue 0-45, ~25 sec cycle)
