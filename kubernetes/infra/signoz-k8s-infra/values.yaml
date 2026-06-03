@@ -33,6 +33,16 @@ k8s-infra:
           parse_from: attributes.level
           preset: default
           on_error: send
+        # Parse Python logging format: YYYY-MM-DD HH:MM:SS.mmm LEVEL (thread)
+        # Handles ANSI-colored logs (e.g., Home Assistant integrations)
+        - type: regex_parser
+          if: 'body matches "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d+ [A-Z]+ \\("'
+          regex: '\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+ (?P<level>[A-Z]+) \('
+          parse_to: attributes
+          on_error: send
+          severity:
+            parse_from: attributes.level
+            preset: default
 
     # Enable host metrics (CPU, memory, disk, network per node)
     hostMetrics:
