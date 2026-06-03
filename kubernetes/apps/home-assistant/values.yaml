@@ -188,8 +188,8 @@ signoz-alerts:
       severity: warning
       type: threshold
       metric: homeassistant_entity_available
-      timeAggregation: max
-      spaceAggregation: max
+      timeAggregation: min
+      spaceAggregation: min
       filter: >-
         entity IN ('sensor.govee_co2_sensor_h5140_tempc',
         'sensor.govee_pm2_5_sensor_h5106_tempc',
