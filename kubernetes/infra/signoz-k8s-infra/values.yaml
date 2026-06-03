@@ -55,3 +55,45 @@ k8s-infra:
     prometheus:
       enabled: true
       annotationsPrefix: prometheus.io
+
+  # Normalize severity_text to canonical OTel values (Info/Warn/Error/Debug/Fatal)
+  # so that INFO, info, Information, Normal all resolve to "Info" etc.
+  otelAgent:
+    config:
+      processors:
+        transform/normalize_severity:
+          log_statements:
+            - context: log
+              statements:
+                - set(severity_text, "Trace") where severity_number >= 1 and severity_number <= 4
+                - set(severity_text, "Debug") where severity_number >= 5 and severity_number <= 8
+                - set(severity_text, "Info") where severity_number >= 9 and severity_number <= 12
+                - set(severity_text, "Warn") where severity_number >= 13 and severity_number <= 16
+                - set(severity_text, "Error") where severity_number >= 17 and severity_number <= 20
+                - set(severity_text, "Fatal") where severity_number >= 21
+      service:
+        pipelines:
+          logs:
+            processors:
+              - transform/normalize_severity
+              - batch
+
+  otelDeployment:
+    config:
+      processors:
+        transform/normalize_severity:
+          log_statements:
+            - context: log
+              statements:
+                - set(severity_text, "Trace") where severity_number >= 1 and severity_number <= 4
+                - set(severity_text, "Debug") where severity_number >= 5 and severity_number <= 8
+                - set(severity_text, "Info") where severity_number >= 9 and severity_number <= 12
+                - set(severity_text, "Warn") where severity_number >= 13 and severity_number <= 16
+                - set(severity_text, "Error") where severity_number >= 17 and severity_number <= 20
+                - set(severity_text, "Fatal") where severity_number >= 21
+      service:
+        pipelines:
+          logs:
+            processors:
+              - transform/normalize_severity
+              - batch
