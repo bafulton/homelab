@@ -99,7 +99,6 @@ k8s-infra:
               statements:
                 # Assign severity_number for text values stanza's default preset doesn't recognize
                 - set(severity_number, 9) where severity_text == "Information"
-                - set(severity_number, 9) where severity_text == "Normal"
                 - set(severity_number, 13) where severity_text == "Warning"
                 # Normalize severity_text to canonical OTel values based on severity_number
                 - set(severity_text, "Trace") where severity_number >= 1 and severity_number <= 4
@@ -128,7 +127,6 @@ k8s-infra:
               statements:
                 # Assign severity_number for text values stanza's default preset doesn't recognize
                 - set(severity_number, 9) where severity_text == "Information"
-                - set(severity_number, 9) where severity_text == "Normal"
                 - set(severity_number, 13) where severity_text == "Warning"
                 # Normalize severity_text to canonical OTel values based on severity_number
                 - set(severity_text, "Trace") where severity_number >= 1 and severity_number <= 4
