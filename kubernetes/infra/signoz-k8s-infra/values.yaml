@@ -30,6 +30,7 @@ k8s-infra:
           parse_to: attributes
           on_error: send_quiet
         - type: move
+          if: 'attributes["logfmt_content"] != nil'
           from: attributes.logfmt_content
           to: body
           on_error: send_quiet
@@ -56,12 +57,13 @@ k8s-infra:
             preset: default
         # Replace raw JSON/logfmt body with the human-readable message field.
         # Try "message" first (lower priority), then "msg" (wins if both exist).
-        # on_error: send_quiet means the operator is a no-op when the field doesn't exist.
         - type: move
+          if: 'attributes["message"] != nil'
           from: attributes.message
           to: body
           on_error: send_quiet
         - type: move
+          if: 'attributes["msg"] != nil'
           from: attributes.msg
           to: body
           on_error: send_quiet
