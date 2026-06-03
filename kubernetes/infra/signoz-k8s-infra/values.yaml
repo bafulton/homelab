@@ -22,7 +22,18 @@ k8s-infra:
           severity:
             parse_from: attributes.level
             preset: default
-        # Parse logrus logfmt logs (ArgoCD, etc.) and extract severity
+        # Strip [identifier] prefix from Longhorn-style prefixed logfmt logs so the
+        # key_value_parser below can match. Covers both [pvc-id] and [longhorn-instance-manager].
+        - type: regex_parser
+          if: 'body matches "^\\[[^\\]]+\\] time=\""'
+          regex: '^\[[^\]]+\] (?P<logfmt_content>.+)'
+          parse_to: attributes
+          on_error: send
+        - type: move
+          from: attributes.logfmt_content
+          to: body
+          on_error: send
+        # Parse logrus logfmt logs (ArgoCD, Longhorn, etc.) and extract severity
         - type: key_value_parser
           if: 'body matches "^time=\""'
           parse_from: body
