@@ -24,12 +24,12 @@ k8s-infra:
             preset: default
         # Parse logrus logfmt logs (ArgoCD, etc.) and extract severity
         - type: key_value_parser
-          if: 'body matches "^time=\\""'
+          if: 'body matches "^time=\""'
           parse_from: body
           parse_to: attributes
           on_error: send
         - type: severity_parser
-          if: 'body matches "^time=\\""'
+          if: 'body matches "^time=\""'
           parse_from: attributes.level
           preset: default
           on_error: send
