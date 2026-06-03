@@ -94,10 +94,17 @@ home-assistant:
     - name: packages
       configMap:
         name: home-assistant-packages
+    - name: abode-patch
+      configMap:
+        name: abode-event-controller-patch
 
   additionalMounts:
     - name: packages
       mountPath: /config/packages
+      readOnly: true
+    - name: abode-patch
+      mountPath: /usr/local/lib/python3.14/site-packages/jaraco/abode/event_controller.py
+      subPath: event_controller.py
       readOnly: true
 
 # AirCast - AirPlay bridge for Chromecast devices
