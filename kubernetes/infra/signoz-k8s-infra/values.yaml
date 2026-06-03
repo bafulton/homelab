@@ -11,6 +11,28 @@ k8s-infra:
     # Collect container logs from all pods
     logsCollection:
       enabled: true
+      operators:
+        - id: container-parser
+          type: container
+        # Parse JSON log bodies and extract severity
+        - type: json_parser
+          if: 'body matches "^\\s*\\{"'
+          parse_to: attributes
+          on_error: send
+          severity:
+            parse_from: attributes.level
+            preset: default
+        # Parse logrus logfmt logs (ArgoCD, etc.) and extract severity
+        - type: key_value_parser
+          if: 'body matches "^time=\\""'
+          parse_from: body
+          parse_to: attributes
+          on_error: send
+        - type: severity_parser
+          if: 'body matches "^time=\\""'
+          parse_from: attributes.level
+          preset: default
+          on_error: send
 
     # Enable host metrics (CPU, memory, disk, network per node)
     hostMetrics:
