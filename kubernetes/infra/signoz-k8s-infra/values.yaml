@@ -110,10 +110,8 @@ k8s-infra:
                 - set(severity_text, "Fatal") where severity_number >= 21
             - context: resource
               statements:
-                # Derive service.name from k8s workload name when not already set
-                - set(attributes["service.name"], attributes["k8s.deployment.name"]) where attributes["service.name"] == nil and attributes["k8s.deployment.name"] != nil
-                - set(attributes["service.name"], attributes["k8s.statefulset.name"]) where attributes["service.name"] == nil and attributes["k8s.statefulset.name"] != nil
-                - set(attributes["service.name"], attributes["k8s.daemonset.name"]) where attributes["service.name"] == nil and attributes["k8s.daemonset.name"] != nil
+                # Derive service.name from namespace — maps cleanly to "application" in this homelab
+                - set(attributes["service.name"], attributes["k8s.namespace.name"]) where attributes["service.name"] == nil
       service:
         pipelines:
           logs:
@@ -141,10 +139,8 @@ k8s-infra:
                 - set(severity_text, "Fatal") where severity_number >= 21
             - context: resource
               statements:
-                # Derive service.name from k8s workload name when not already set
-                - set(attributes["service.name"], attributes["k8s.deployment.name"]) where attributes["service.name"] == nil and attributes["k8s.deployment.name"] != nil
-                - set(attributes["service.name"], attributes["k8s.statefulset.name"]) where attributes["service.name"] == nil and attributes["k8s.statefulset.name"] != nil
-                - set(attributes["service.name"], attributes["k8s.daemonset.name"]) where attributes["service.name"] == nil and attributes["k8s.daemonset.name"] != nil
+                # Derive service.name from namespace — maps cleanly to "application" in this homelab
+                - set(attributes["service.name"], attributes["k8s.namespace.name"]) where attributes["service.name"] == nil
       service:
         pipelines:
           logs:
