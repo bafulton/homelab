@@ -89,7 +89,7 @@ argo-cd:
     initContainers:
       - name: download-avp
         # renovate: datasource=docker depName=alpine
-        image: alpine:3.23
+        image: alpine:3.24
         command: [sh, -c]
         # renovate: datasource=github-releases depName=argoproj-labs/argocd-vault-plugin
         args:
