@@ -31,4 +31,8 @@ spec:
             # Only run AirCast (Chromecast), not AirUPnP
             - name: AIRUPNP_VAR
               value: ""
+          {{- with .Values.aircast.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
 {{- end }}

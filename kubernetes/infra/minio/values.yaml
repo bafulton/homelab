@@ -19,14 +19,12 @@ minio:
   # Credentials from bitwarden-secret
   existingSecret: minio-credentials
 
-  # Default requests/limits are way too high; scale them back
   resources:
     requests:
-      cpu: 100m
-      memory: 512Mi
+      cpu: 25m
+      memory: 1330Mi
     limits:
-      cpu: 1000m
-      memory: 2Gi
+      memory: 1500Mi
 
   # Persistence using our custom PVC
   persistence:

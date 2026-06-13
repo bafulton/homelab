@@ -91,6 +91,12 @@ k8s-infra:
       annotationsPrefix: prometheus.io
 
   otelAgent:
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
     config:
       processors:
         transform/normalize_severity:
@@ -119,6 +125,12 @@ k8s-infra:
               - batch
 
   otelDeployment:
+    resources:
+      requests:
+        memory: 192Mi
+        cpu: 25m
+      limits:
+        memory: 384Mi
     config:
       processors:
         transform/normalize_severity:

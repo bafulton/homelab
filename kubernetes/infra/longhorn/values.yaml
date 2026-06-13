@@ -89,6 +89,14 @@ longhorn:
   # Disable default pod security policies (deprecated in k8s 1.25+)
   enablePSP: false
 
+  longhornManager:
+    resources:
+      requests:
+        memory: 320Mi
+        cpu: 50m
+      limits:
+        memory: 512Mi
+
 gateway-route:
   routes:
     - name: dashboard

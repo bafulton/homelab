@@ -77,10 +77,23 @@ signoz:
       podAnnotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9141"
+      resources:
+        requests:
+          memory: 350Mi
+          cpu: 25m
+        limits:
+          memory: 350Mi
+          cpu: 25m
     clickhouseOperator:
       podAnnotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "8888"
+    resources:
+      requests:
+        memory: 3Gi
+        cpu: 900m
+      limits:
+        memory: 4Gi
 
   otelCollector:
     podAnnotations:
@@ -88,6 +101,12 @@ signoz:
       # not reachable. Scrape annotation intentionally omitted to avoid
       # constant scrape failures in the OTel deployment logs.
       prometheus.io/scrape: "false"
+    resources:
+      requests:
+        memory: 384Mi
+        cpu: 150m
+      limits:
+        memory: 768Mi
 
   signoz:
     persistence:
@@ -103,3 +122,9 @@ signoz:
           secretKeyRef:
             name: signoz-smtp-credentials
             key: password
+    resources:
+      requests:
+        memory: 96Mi
+        cpu: 10m
+      limits:
+        memory: 256Mi

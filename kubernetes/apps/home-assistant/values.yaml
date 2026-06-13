@@ -77,6 +77,13 @@ home-assistant:
     prometheus.io/port: "8123"
     prometheus.io/path: "/api/prometheus"
 
+  resources:
+    requests:
+      memory: 576Mi
+      cpu: 25m
+    limits:
+      memory: 1.5Gi
+
   # Startup probe - allows up to 5 minutes for Home Assistant to initialize
   # Liveness/readiness probes won't run until startup probe succeeds
   startupProbe:
@@ -117,6 +124,12 @@ aircast:
     # renovate: datasource=docker depName=1activegeek/airconnect
     tag: "1.9.3"
     pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: 16Mi
+      cpu: 10m
+    limits:
+      memory: 64Mi
 
 # Matter Server - Controller for Matter smart home devices
 # Home Assistant connects via WebSocket at ws://matter-server:5580/ws
@@ -132,6 +145,12 @@ matterServer:
   persistence:
     storageClass: longhorn-emmc
     size: 1Gi
+  resources:
+    requests:
+      memory: 96Mi
+      cpu: 15m
+    limits:
+      memory: 256Mi
 
 # Longhorn storage - PVC with backup labels and daily snapshots
 longhorn-storage:
