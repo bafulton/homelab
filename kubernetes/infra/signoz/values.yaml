@@ -83,7 +83,6 @@ signoz:
           cpu: 25m
         limits:
           memory: 350Mi
-          cpu: 25m
     clickhouseOperator:
       podAnnotations:
         prometheus.io/scrape: "true"
