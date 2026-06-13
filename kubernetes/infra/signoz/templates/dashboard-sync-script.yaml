@@ -9,9 +9,20 @@ data:
     set -e
     apk add --no-cache curl jq git kubectl
 
-    # Clone repo (shallow, specific path)
+    # Clone repo with retries (DNS failures are intermittent)
     echo "Cloning repository..."
-    git clone --depth 1 --filter=blob:none --sparse "$REPO_URL" /repo
+    for i in $(seq 1 5); do
+      if git clone --depth 1 --filter=blob:none --sparse "$REPO_URL" /repo; then
+        break
+      fi
+      if [ "$i" -eq 5 ]; then
+        echo "ERROR: Failed to clone repository after 5 attempts"
+        exit 1
+      fi
+      delay=$((i * 10))
+      echo "  Clone attempt $i failed, retrying in ${delay}s..."
+      sleep "$delay"
+    done
     cd /repo
     git sparse-checkout set "$REPO_PATH"
 
