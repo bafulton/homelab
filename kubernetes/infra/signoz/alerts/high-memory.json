@@ -11,7 +11,7 @@
     "Email"
   ],
   "disabled": false,
-  "description": "Node memory usage is above 85%",
+  "description": "Node memory usage is above 95%",
   "summary": "High memory usage detected",
   "labels": {
     "source": "gitops",
@@ -99,7 +99,7 @@
       "queryType": "builder"
     },
     "op": "1",
-    "target": 85,
+    "target": 95,
     "matchType": "1",
     "selectedQueryName": "F1"
   }
