@@ -11,3 +11,9 @@ cloudflared:
   # renovate: datasource=docker depName=cloudflare/cloudflared
   image: cloudflare/cloudflared:2026.6.0
   replicas: 2
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi

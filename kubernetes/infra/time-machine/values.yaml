@@ -55,6 +55,13 @@ mdnsServices:
         txtRecords:
           - "model=TimeCapsule8,119"
 
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 10m
+  limits:
+    memory: 512Mi
+
 signoz-alerts:
   alerts:
     - name: Time Machine Down

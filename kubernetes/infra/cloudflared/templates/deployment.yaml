@@ -47,7 +47,7 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             failureThreshold: 1
+          {{- with .Values.cloudflared.resources }}
           resources:
-            requests:
-              cpu: 10m
-              memory: 64Mi
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

@@ -22,3 +22,9 @@ tailscale-operator:
     # (This is default, but it's good to make it explicit.)
     defaultTags:
       - "tag:k8s-operator"
+    resources:
+      requests:
+        memory: 32Mi
+        cpu: 10m
+      limits:
+        memory: 64Mi

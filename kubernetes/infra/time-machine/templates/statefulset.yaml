@@ -94,6 +94,10 @@ spec:
               port: smb
             initialDelaySeconds: 60
             periodSeconds: 10
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: time-machine-data
               mountPath: /opt/time-machine
