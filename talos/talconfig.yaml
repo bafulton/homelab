@@ -222,30 +222,6 @@ controlPlane:
             allowedKubernetesNamespaces:
               - tuppr
 
-    # Spread CoreDNS pods across nodes so a single-node issue doesn't break all DNS
-    # Uses preferred (not required) so both pods can still run on beelink if rpi5 is down
-    - |-
-      cluster:
-        inlineManifests:
-          - name: coredns-anti-affinity
-            contents: |
-              apiVersion: apps/v1
-              kind: Deployment
-              metadata:
-                name: coredns
-                namespace: kube-system
-              spec:
-                template:
-                  spec:
-                    affinity:
-                      podAntiAffinity:
-                        preferredDuringSchedulingIgnoredDuringExecution:
-                          - weight: 100
-                            podAffinityTerm:
-                              labelSelector:
-                                matchExpressions:
-                                  - key: k8s-app
-                                    operator: In
-                                    values:
-                                      - kube-dns
-                              topologyKey: kubernetes.io/hostname
+    # CoreDNS pod anti-affinity is applied via kubectl patch after upgrade-k8s
+    # (inline manifest approach conflicts with upgrade-k8s manifest reconciliation
+    # because partial Deployment specs fail Kubernetes validation)
