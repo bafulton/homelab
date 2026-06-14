@@ -96,7 +96,7 @@ jellyfin:
       gpu.intel.com/i915: "1"
     requests:
       cpu: 100m
-      memory: 512Mi
+      memory: 768Mi
 
   # FFmpeg tuning for hardware transcoding
   # Note: env is under jellyfin.jellyfin in upstream chart structure

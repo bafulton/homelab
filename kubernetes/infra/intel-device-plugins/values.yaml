@@ -11,7 +11,21 @@
 # Node Feature Discovery configuration
 # Labels nodes with intel.feature.node.kubernetes.io/gpu when Intel GPU is detected
 node-feature-discovery:
+  master:
+    resources:
+      requests:
+        memory: 32Mi
+        cpu: 10m
+      limits:
+        memory: 128Mi
+
   worker:
+    resources:
+      requests:
+        memory: 32Mi
+        cpu: 10m
+      limits:
+        memory: 128Mi
     config:
       core:
         sources:
@@ -25,9 +39,23 @@ node-feature-discovery:
           deviceLabelFields:
             - vendor
 
+  gc:
+    resources:
+      requests:
+        memory: 16Mi
+        cpu: 10m
+      limits:
+        memory: 64Mi
+
 # Intel Device Plugins Operator configuration
 # The operator watches for GpuDevicePlugin CRs and deploys the GPU plugin
-intel-device-plugins-operator: {}
+intel-device-plugins-operator:
+  resources:
+    requests:
+      memory: 48Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
 
 # GPU Device Plugin configuration
 gpuDevicePlugin:
