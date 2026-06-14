@@ -157,3 +157,7 @@ spec:
             capabilities:
               drop:
                 - ALL
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

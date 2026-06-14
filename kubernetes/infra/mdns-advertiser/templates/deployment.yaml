@@ -152,3 +152,7 @@ spec:
                   except Exception as e:
                       print(f"Error syncing services: {e}")
               PYTHON_SCRIPT
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}

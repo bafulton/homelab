@@ -8,6 +8,13 @@ namespace: coredns
 #    - Used for Split DNS to resolve *.catfish-mountain.com → 100.96.89.36
 
 coredns:
+  resources:
+    requests:
+      memory: 48Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+
   service:
     enabled: false  # Attempted disable, but chart still creates ClusterIP service
 

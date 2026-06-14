@@ -26,3 +26,10 @@ prometheus-smartctl-exporter:
   tolerations:
     - effect: NoSchedule
       operator: Exists
+
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 50m
+    limits:
+      memory: 128Mi

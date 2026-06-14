@@ -8,3 +8,10 @@ image:
 
 # Services are now configured in individual apps using the mdns-service shared chart.
 # The advertiser discovers ConfigMaps with label: mdns.homelab.io/advertise=true
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 10m
+  limits:
+    memory: 128Mi

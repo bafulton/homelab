@@ -16,6 +16,13 @@ healthchecks:
   # Timeout for curl requests in seconds
   timeout: 10
 
+resources:
+  requests:
+    memory: 16Mi
+    cpu: 10m
+  limits:
+    memory: 64Mi
+
 bitwarden-secret:
   secrets:
     - name: healthchecks-api-key
