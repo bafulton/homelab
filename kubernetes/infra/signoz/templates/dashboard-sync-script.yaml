@@ -10,9 +10,11 @@ data:
     apk add --no-cache curl jq git kubectl
 
     # Clone repo with retries (DNS failures are intermittent)
+    # Plain shallow clone avoids promisor remote fetch issues with --filter=blob:none --sparse
     echo "Cloning repository..."
     for i in $(seq 1 5); do
-      if git clone --depth 1 --filter=blob:none --sparse "$REPO_URL" /repo; then
+      rm -rf /repo
+      if git clone --depth 1 "$REPO_URL" /repo; then
         break
       fi
       if [ "$i" -eq 5 ]; then
@@ -24,7 +26,6 @@ data:
       sleep "$delay"
     done
     cd /repo
-    git sparse-checkout set "$REPO_PATH"
 
     # Wait for SigNoz to be ready
     echo "Waiting for SigNoz API to be ready..."
