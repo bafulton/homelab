@@ -161,7 +161,7 @@ patches:
     environment:
       - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
       - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
-      - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
+      - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh --advertise-tags=tag:k8s-node
 
   # Kernel modules for Longhorn storage
   - |-
