@@ -18,10 +18,33 @@ metallb:
   # A complete list of values can be found here:
   # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
 
+  controller:
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 10m
+      limits:
+        memory: 128Mi
+
   speaker:
     logLevel: info
+    resources:
+      requests:
+        memory: 48Mi
+        cpu: 10m
+      limits:
+        memory: 128Mi
     frr:
       enabled: false
     # Allow MetalLB to announce from control plane nodes
     # (Talos adds exclude-from-external-load-balancers label by default)
     ignoreExcludeLB: true
+
+  frr-k8s:
+    frrk8s:
+      resources:
+        requests:
+          memory: 128Mi
+          cpu: 15m
+        limits:
+          memory: 256Mi

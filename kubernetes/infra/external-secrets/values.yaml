@@ -13,5 +13,34 @@ external-secrets:
   # A complete list of values can be found here:
   # https://github.com/external-secrets/external-secrets/blob/main/deploy/charts/external-secrets/values.yaml
 
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+
+  webhook:
+    resources:
+      requests:
+        memory: 32Mi
+        cpu: 10m
+      limits:
+        memory: 96Mi
+
+  certController:
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 10m
+      limits:
+        memory: 128Mi
+
   bitwarden-sdk-server:
     enabled: true
+    resources:
+      requests:
+        memory: 96Mi
+        cpu: 15m
+      limits:
+        memory: 192Mi

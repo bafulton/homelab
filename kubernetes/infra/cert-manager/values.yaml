@@ -15,3 +15,26 @@ cert-manager:
 
   crds:
     enabled: true
+
+  resources:
+    requests:
+      memory: 48Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+
+  webhook:
+    resources:
+      requests:
+        memory: 24Mi
+        cpu: 10m
+      limits:
+        memory: 64Mi
+
+  cainjector:
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 10m
+      limits:
+        memory: 256Mi
