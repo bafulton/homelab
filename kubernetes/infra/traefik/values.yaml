@@ -82,6 +82,13 @@ traefik:
       service:
         enabled: true
 
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+
 # Gateway API HTTPRoute for dashboard (private access only)
 gateway-route:
   routes:
