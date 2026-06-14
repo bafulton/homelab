@@ -174,7 +174,8 @@ argo-cd:
         memory: 128Mi
 
   dex:
-    # Pin to beelink — argocd-dex exits immediately with SIGSEGV (exit 139) on rpi5; works fine on beelink. Cause unknown.
+    # Pin to beelink — argocd-dex exits immediately with SIGSEGV (exit 139)
+    # on rpi5; works fine on beelink. Cause unknown.
     nodeSelector:
       kubernetes.io/hostname: beelink
     resources:
