@@ -1088,7 +1088,22 @@
         ],
         "queryType": "builder"
       },
-      "thresholds": [],
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 1.0
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 1.5
+        }
+      ],
       "timePreferance": "GLOBAL_TIME",
       "title": "CPU usage vs. request (% of request)",
       "yAxisUnit": "percentunit"
@@ -1273,7 +1288,22 @@
         ],
         "queryType": "builder"
       },
-      "thresholds": [],
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 1.0
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 1.5
+        }
+      ],
       "timePreferance": "GLOBAL_TIME",
       "title": "Memory usage vs. request (% of request)",
       "yAxisUnit": "percentunit"
