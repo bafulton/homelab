@@ -130,7 +130,7 @@ k8s-infra:
         memory: 192Mi
         cpu: 25m
       limits:
-        memory: 384Mi
+        memory: 768Mi
     config:
       processors:
         transform/normalize_severity:
