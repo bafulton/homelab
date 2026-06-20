@@ -1,5 +1,5 @@
 {
-  "description": "Per-node memory and CPU request commitment vs allocatable — the scheduler's view of node fullness, plus namespace breakdown and absolute byte comparisons",
+  "description": "Per-node memory and CPU request and limit commitment vs allocatable — the scheduler's view of node fullness, plus namespace breakdown and absolute byte comparisons",
   "layout": [
     {
       "i": "row-node-alloc",
@@ -32,7 +32,7 @@
       "static": false
     },
     {
-      "i": "row-ns-breakdown",
+      "i": "row-limit-alloc",
       "x": 0,
       "y": 8,
       "w": 12,
@@ -44,7 +44,7 @@
       "minW": 12
     },
     {
-      "i": "mem-by-ns",
+      "i": "mem-limit-pct-node",
       "x": 0,
       "y": 9,
       "w": 6,
@@ -53,7 +53,7 @@
       "static": false
     },
     {
-      "i": "cpu-by-ns",
+      "i": "cpu-limit-pct-node",
       "x": 6,
       "y": 9,
       "w": 6,
@@ -62,7 +62,7 @@
       "static": false
     },
     {
-      "i": "row-raw-bytes",
+      "i": "row-ns-breakdown",
       "x": 0,
       "y": 16,
       "w": 12,
@@ -74,9 +74,39 @@
       "minW": 12
     },
     {
-      "i": "mem-actual-abs",
+      "i": "mem-by-ns",
       "x": 0,
       "y": 17,
+      "w": 6,
+      "h": 7,
+      "moved": false,
+      "static": false
+    },
+    {
+      "i": "cpu-by-ns",
+      "x": 6,
+      "y": 17,
+      "w": 6,
+      "h": 7,
+      "moved": false,
+      "static": false
+    },
+    {
+      "i": "row-raw-bytes",
+      "x": 0,
+      "y": 24,
+      "w": 12,
+      "h": 1,
+      "moved": false,
+      "static": false,
+      "maxH": 1,
+      "minH": 1,
+      "minW": 12
+    },
+    {
+      "i": "mem-actual-abs",
+      "x": 0,
+      "y": 25,
       "w": 6,
       "h": 6,
       "moved": false,
@@ -85,7 +115,7 @@
     {
       "i": "mem-req-abs",
       "x": 6,
-      "y": 17,
+      "y": 25,
       "w": 6,
       "h": 6,
       "moved": false,
@@ -528,6 +558,426 @@
           }
         ],
         "id": "cpu-req-pct-node-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "contextLinks": {
+        "linksData": []
+      },
+      "id": "row-limit-alloc",
+      "panelTypes": "row",
+      "query": {
+        "builder": {
+          "queryData": [],
+          "queryFormulas": []
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      },
+      "selectedLogFields": [],
+      "selectedTracesFields": [],
+      "thresholds": [],
+      "title": "Limit Commitment"
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "Fraction of allocatable memory committed by pod limits per node. Limits can be overcommitted (>100%) since not all pods burst at once; sustained high values mean OOM risk if they do. Yellow=70%, Red=85%.",
+      "fillSpans": false,
+      "id": "mem-limit-pct-node",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.7
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.85
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "Memory Limits % of Allocatable (per node)",
+      "yAxisUnit": "percentunit",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_pod_container_resource_limits",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": true,
+              "expression": "A",
+              "filter": {
+                "expression": "resource = 'memory'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "node--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "node",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_node_status_allocatable",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": true,
+              "expression": "B",
+              "filter": {
+                "expression": "resource = 'memory'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "node--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "node",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "disabled": false,
+              "expression": "A/B",
+              "legend": "{{node}}",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "mem-limit-pct-node-qid",
+        "promql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "queryType": "builder"
+      }
+    },
+    {
+      "bucketCount": 30,
+      "bucketWidth": 0,
+      "columnUnits": {},
+      "description": "CPU limits committed vs allocatable per node. This cluster intentionally sets no CPU limits (avoids CFS throttling), so this panel is normally empty — a populated series flags a workload that has set a CPU limit. Yellow=70%, Red=85%.",
+      "fillSpans": false,
+      "id": "cpu-limit-pct-node",
+      "isStacked": false,
+      "mergeAllActiveQueries": false,
+      "nullZeroValues": "zero",
+      "opacity": "1",
+      "panelTypes": "graph",
+      "selectedLogFields": [
+        {
+          "dataType": "string",
+          "name": "body",
+          "type": ""
+        },
+        {
+          "dataType": "string",
+          "name": "timestamp",
+          "type": ""
+        }
+      ],
+      "selectedTracesFields": [
+        {
+          "dataType": "string",
+          "id": "serviceName--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "serviceName",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "name--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "name",
+          "type": "tag"
+        },
+        {
+          "dataType": "float64",
+          "id": "durationNano--float64--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "durationNano",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "httpMethod--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "httpMethod",
+          "type": "tag"
+        },
+        {
+          "dataType": "string",
+          "id": "responseStatusCode--string--tag--true",
+          "isColumn": true,
+          "isJSON": false,
+          "key": "responseStatusCode",
+          "type": "tag"
+        }
+      ],
+      "softMax": 0,
+      "softMin": 0,
+      "stackedBarChart": false,
+      "thresholds": [
+        {
+          "thresholdColor": "Yellow",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.7
+        },
+        {
+          "thresholdColor": "Red",
+          "thresholdFormat": "1",
+          "thresholdOperator": ">",
+          "thresholdUnit": "percentunit",
+          "thresholdValue": 0.85
+        }
+      ],
+      "timePreferance": "GLOBAL_TIME",
+      "title": "CPU Limits % of Allocatable (per node)",
+      "yAxisUnit": "percentunit",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_pod_container_resource_limits",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": true,
+              "expression": "A",
+              "filter": {
+                "expression": "resource = 'cpu'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "node--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "node",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "A",
+              "stepInterval": null
+            },
+            {
+              "aggregations": [
+                {
+                  "metricName": "kube_node_status_allocatable",
+                  "reduceTo": "sum",
+                  "spaceAggregation": "sum",
+                  "temporality": null,
+                  "timeAggregation": "latest"
+                }
+              ],
+              "dataSource": "metrics",
+              "disabled": true,
+              "expression": "B",
+              "filter": {
+                "expression": "resource = 'cpu'"
+              },
+              "functions": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "node--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "node",
+                  "type": "tag"
+                }
+              ],
+              "having": {
+                "expression": ""
+              },
+              "legend": "",
+              "limit": null,
+              "orderBy": [],
+              "queryName": "B",
+              "stepInterval": null
+            }
+          ],
+          "queryFormulas": [
+            {
+              "disabled": false,
+              "expression": "A/B",
+              "legend": "{{node}}",
+              "queryName": "F1"
+            }
+          ]
+        },
+        "clickhouse_sql": [
+          {
+            "disabled": false,
+            "legend": "",
+            "name": "A",
+            "query": ""
+          }
+        ],
+        "id": "cpu-limit-pct-node-qid",
         "promql": [
           {
             "disabled": false,
