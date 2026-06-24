@@ -102,10 +102,13 @@ signoz:
       prometheus.io/scrape: "false"
     resources:
       requests:
-        memory: 384Mi
+        memory: 512Mi
         cpu: 150m
       limits:
-        memory: 768Mi
+        # Raised from 768Mi: gateway collector was OOMKilled ~27x/day and on
+        # startup (backlog after outages), which made the "SigNoz Alerting
+        # Pipeline Down" watchdog flap as metric ingestion stalled and recovered.
+        memory: 1536Mi
 
   signoz:
     persistence:
