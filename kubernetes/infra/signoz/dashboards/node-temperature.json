@@ -240,7 +240,7 @@
     },
     {
       "contextLinks": {"linksData": []},
-      "description": "Cabinet temperature from Meross MTS960 thermostat (sensor.mts960_844f_current_temperature) and its cooling setpoint",
+      "description": "Cabinet temperature from Meross MTS960 thermostat (sensor.mts960_844f_current_temperature) and its cooling setpoint. NOTE: the MTS960 probe physically rests on top of the beelink mini-PC. If it gets dislodged (e.g. during hands-on work on beelink) it reads ~7C low, drops below the setpoint, and the fans stop — reseat the probe after any work on beelink. See incident_cabinet_fan_probe_dislodged.",
       "fillSpans": false,
       "id": "cabinet-temp",
       "isStacked": false,
@@ -279,7 +279,7 @@
     },
     {
       "contextLinks": {"linksData": []},
-      "description": "Fan/cooling status from Meross MTS960 thermostat \u2014 1 = fans actively cooling, 0 = idle (homeassistant_climate_action{action=cooling})",
+      "description": "Fan/cooling status from Meross MTS960 thermostat \u2014 1 = fans actively cooling, 0 = idle (homeassistant_climate_action{action=cooling}). The MTS960 switches fan power directly off its probe temp vs setpoint, so there is no software failsafe \u2014 if this sits at 0 while node temps climb, suspect the probe (dislodged/miscalibrated). Alerting is the only safety net.",
       "fillSpans": false,
       "id": "fan-status",
       "isStacked": false,
