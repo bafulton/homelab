@@ -24,6 +24,11 @@ both CRD sets enabled — the pattern Traefik recommends for v40+.
   ships bundle **v1.5.1** (an upgrade from the v1.4.0 the Traefik v39 chart
   shipped; adds the now-GA `listenersets` and `tlsroutes`). Backward-compatible:
   existing standard-channel resources remain valid.
+- `hub: true` — the `hub.traefik.io` CRDs. Unused (Traefik Hub is disabled), but
+  the v39 main chart shipped them, so adopting them keeps the `traefik` app from
+  flagging 14 now-orphaned CRDs as `requiresPruning`. One v39 CRD
+  (`apiaccesses.hub.traefik.io`) isn't in chart 1.18.0 and stays orphaned —
+  unused, harmless, deletable by hand if desired.
 
 ## Ownership handoff (v39 → v41)
 

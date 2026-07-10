@@ -17,3 +17,7 @@ traefik-crds:
   # Gateway API standard-channel CRDs (v1.5.1 in chart 1.18.0). This is what the
   # cluster actually routes with.
   gatewayAPI: true
+  # hub.traefik.io CRDs - unused (Traefik Hub is disabled), but the v39 main chart
+  # shipped these too; adopting them stops the traefik app from flagging 14
+  # orphaned CRDs as requiresPruning after the migration.
+  hub: true
