@@ -1,0 +1,38 @@
+# Reference: a HEALTHY boot of the ble-gateway on the esp32-m5atom-lite development build.
+# Captured via the esp-web-tools serial console @115200. Trimmed: the ~30 repetitive
+# Home Assistant discovery `.../config` publishes and duplicate scan lines are elided.
+# Use it to recognize a good boot at a glance — the key markers are called out inline.
+
+************* WELCOME TO OpenMQTTGateway **************
+N: OpenMQTTGateway Version: b493dd                   # dev build reports a git SHA, not v1.x
+N: No config in flash, launching wifi manager        # only on first boot after erase
+*wm:Connecting to NEW AP: LAN of the Free
+*wm:Connect to new AP [SUCCESS]
+*wm:Got IP Address:
+*wm:192.168.1.82
+N: OpenMQTTGateway URL: http://192.168.1.82/
+N: Enabled BLE: true
+N: ZgatewayBT multicore ESP32 setup done
+N: OpenMQTTGateway modules: ["WebUI","IR","BT"]
+N: ************** Setup OpenMQTTGateway end **************
+N: Reconfiguring MQTT client...
+N: Connected to broker                               # <-- MQTT is up
+N: [ OMG->MQTT ] topic: home/ble-gateway/LWT msg: online
+# SYS status — the key one-line health summary:
+N: SYS json: {"uptime":240,"version":"b493dd","mqtt":true,"env":"esp32-m5atom-lite",
+   "freemem":55552,"tempc":67.78,"rssi":-65,"SSID":"LAN of the Free",
+   "ip":"192.168.1.82","mac":"00:4B:12:A1:39:F8","modules":["WebUI","IR","BT"]}
+# ... (~30 homeassistant/.../config auto-discovery publishes elided) ...
+N: Scan begin                                        # <-- BLE scanning started
+N: BT Device detected: D5:33:C4:06:31:40
+N: [ OMG->MQTT ] topic: home/ble-gateway/BTtoMQTT/D533C4063140 msg:
+   {"id":"D5:33:C4:06:31:40","name":"GVH5106_3140","rssi":-96,"brand":"Govee",
+    "model":"Smart Air Quality Monitor","model_id":"H5106","type":"AIR",
+    "tempc":24.8,"tempf":76.64,"hum":54.5,"pm25":2}   # <-- H5106 fully DECODED
+# A DECODED sensor line carries model + readings (tempc/hum/pm25/co2). A line with only
+# {"id":...,"rssi":...} means the device was heard but not decoded on that pass; expect a
+# decoded line on a later scan. On the development build the H5140 decodes CO2:
+N: [ OMG->MQTT ] topic: home/ble-gateway/BTtoMQTT/3CDC7513A2D6 msg:
+   {"id":"3C:DC:75:13:A2:D6","name":"GV5140A2D6","rssi":-76,"brand":"Govee",
+    "model":"Smart CO2 Monitor","model_id":"H5140","type":"AIR",
+    "tempc":24.8563,"tempf":76.74134,"hum":56.3,"co2":572}   # <-- H5140 CO2 DECODED
