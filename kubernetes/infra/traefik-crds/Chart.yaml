@@ -1,0 +1,13 @@
+apiVersion: v2
+name: traefik-crds
+description: >-
+  Traefik and Gateway API CRDs, owned independently of the Traefik controller.
+  The Traefik Helm chart stopped shipping CRDs in v40, so this app holds them to
+  prevent HTTPRoute/Gateway cascade-deletion when the controller is upgraded.
+type: application
+version: 1.0.0
+dependencies:
+  - name: traefik-crds
+    # renovate: datasource=helm registryUrl=https://traefik.github.io/charts
+    version: 1.18.0
+    repository: https://traefik.github.io/charts

@@ -1,0 +1,19 @@
+# Sync before the Traefik controller (and anything that creates HTTPRoutes),
+# alongside the other foundational CRD/PKI apps.
+syncWave: "-2"
+
+syncPolicy:
+  # Server-side apply required - Gateway API CRDs exceed the client-side apply
+  # last-applied annotation size limit.
+  serverSideApply: true
+  # Never prune cluster-wide CRDs: a stray prune would cascade-delete every
+  # Gateway/HTTPRoute in the cluster.
+  prune: false
+
+traefik-crds:
+  # traefik.io CRDs (IngressRoute, Middleware, etc.) - unused today but kept for
+  # parity with what the main chart shipped pre-v40.
+  traefik: true
+  # Gateway API standard-channel CRDs (v1.5.1 in chart 1.18.0). This is what the
+  # cluster actually routes with.
+  gatewayAPI: true
