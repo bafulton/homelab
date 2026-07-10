@@ -12,23 +12,34 @@ controller would leave the CRDs unmanaged — and because the `traefik`
 Application syncs with pruning, an orphaned Gateway API CRD would cascade-delete
 every `Gateway` and `HTTPRoute` in the cluster, taking down all ingress routing.
 
-This app uses Traefik's official companion chart, `traefik/traefik-crds`, with
-both CRD sets enabled — the pattern Traefik recommends for v40+.
+This app uses Traefik's official companion chart, `traefik/traefik-crds`, the
+pattern Traefik recommends for v40+.
 
 ## What's included
 
 - `traefik: true` — the `traefik.io` CRDs (IngressRoute, Middleware,
   TraefikService, …). Unused today (the homelab routes via Gateway API), kept for
-  parity with what the main chart used to ship.
+  parity with what the main chart used to ship (they're core Traefik CRDs, cheap
+  to keep, plausibly useful later e.g. Middleware).
 - `gatewayAPI: true` — the Gateway API **standard-channel** CRDs. Chart `1.18.0`
   ships bundle **v1.5.1** (an upgrade from the v1.4.0 the Traefik v39 chart
   shipped; adds the now-GA `listenersets` and `tlsroutes`). Backward-compatible:
   existing standard-channel resources remain valid.
-- `hub: true` — the `hub.traefik.io` CRDs. Unused (Traefik Hub is disabled), but
-  the v39 main chart shipped them, so adopting them keeps the `traefik` app from
-  flagging 14 now-orphaned CRDs as `requiresPruning`. One v39 CRD
-  (`apiaccesses.hub.traefik.io`) isn't in chart 1.18.0 and stays orphaned —
-  unused, harmless, deletable by hand if desired.
+
+## Excluded: `hub.traefik.io` CRDs (`hub: false`)
+
+Traefik Hub is a commercial add-on we don't use (Hub disabled, 0 Hub CRs). The
+v39 main chart shipped its 14 `hub.traefik.io` CRDs unconditionally; we don't
+carry that cruft forward.
+
+Those 14 CRDs stay on the cluster after the migration (the `traefik` app has
+`prune: false`), showing as `requiresPruning` on the `traefik` app until deleted.
+Because Hub CRDs move to a separate app in v40+, GitOps can't express their
+removal — delete them once, by hand, after this PR merges (safe: no CRs exist):
+
+```bash
+kubectl get crd -o name | grep hub.traefik.io | xargs kubectl delete
+```
 
 ## Ownership handoff (v39 → v41)
 
