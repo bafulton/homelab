@@ -1,0 +1,28 @@
+# Longhorn RecurringJobs
+#
+# filesystem-trim reclaims blocks that a volume's filesystem has freed but that
+# the sparse Longhorn volume still holds (Longhorn only releases freed space on
+# TRIM). Without this, churn-heavy volumes ratchet up to their high-water mark:
+# the time-machine volume grew to 1488Gi of actual data despite only ~678Gi of
+# live backups, pushing the nvme disk under Longhorn's 25% minimal-available
+# floor -> disk unschedulable -> auto-salvage refused to recover its replicas
+# after a power loss. See infra/longhorn/README.md.
+#
+# Targets the "default" group, which every dynamically-provisioned volume joins
+# automatically (label recurring-job-group.longhorn.io/default=enabled), so this
+# trims all volumes. Trim is online and safe; it only discards already-freed
+# blocks and does not trim through snapshots (remove-snapshots-during-filesystem-trim
+# is left at its default of false).
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: trim-daily
+  namespace: {{ .Release.Namespace }}
+spec:
+  cron: "0 3 * * *"        # daily at 03:00 (time-machine is idle overnight)
+  task: filesystem-trim
+  groups:
+    - default
+  concurrency: 1
+  retain: 1                # unused by filesystem-trim, but the field is required
+  labels: {}
