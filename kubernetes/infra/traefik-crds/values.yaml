@@ -1,7 +1,3 @@
-# Sync before the Traefik controller (and anything that creates HTTPRoutes),
-# alongside the other foundational CRD/PKI apps.
-syncWave: "-2"
-
 syncPolicy:
   # Server-side apply required - Gateway API CRDs exceed the client-side apply
   # last-applied annotation size limit.
