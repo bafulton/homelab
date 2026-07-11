@@ -1,7 +1,5 @@
 namespace: external-secrets
 
-syncWave: "-1"
-
 syncPolicy:
   serverSideApply: true
 

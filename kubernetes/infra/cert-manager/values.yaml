@@ -1,7 +1,5 @@
 namespace: cert-manager
 
-syncWave: "-2"
-
 # Bitwarden secrets for Let's Encrypt Cloudflare DNS-01 challenge
 bitwarden-secret:
   secrets:
