@@ -1,5 +1,10 @@
 namespace: traefik
 
+# Never prune: keeps a sync race during the v41 CRD-ownership handoff (CRDs moved
+# to the traefik-crds app) from cascade-deleting Gateways/HTTPRoutes.
+syncPolicy:
+  prune: false
+
 traefik:
   # A complete list of values can be found here:
   # https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
@@ -66,10 +71,13 @@ traefik:
     # Additional service - Tailscale for remote access
     additionalServices:
       tailscale:
-        type: LoadBalancer
-        loadBalancerClass: tailscale
         annotations:
           tailscale.com/hostname: cluster-gateway
+        # v40+ moved type/loadBalancerClass under spec (aligns with the k8s
+        # ServiceSpec); the old flat form silently drops them.
+        spec:
+          type: LoadBalancer
+          loadBalancerClass: tailscale
 
   additionalArguments:
     # Expose dashboard without TLS - safe because it's behind Gateway API
