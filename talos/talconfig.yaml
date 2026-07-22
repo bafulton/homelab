@@ -36,6 +36,16 @@ nodes:
       storage.homelab/emmc: "true"
       storage.homelab/nvme: "true"
       storage.homelab/usb: "true"
+    # Soft anti-affinity: bias movable workloads OFF this node toward rpi5.
+    # PreferNoSchedule is a preference, not a ban — pods that can only run here
+    # (Longhorn-PVC via node affinity, amd64-only images, static control-plane)
+    # still schedule because the soft taint yields when there's no alternative.
+    # Custom untolerated key so it applies to all genuinely-movable pods.
+    # Works together with the descheduler: descheduler evicts off beelink, this
+    # taint (TaintToleration weight 3 > ImageLocality weight 1) makes the
+    # scheduler re-home them onto rpi5 instead of straight back here.
+    nodeTaints:
+      homelab.io/prefer-off: "true:PreferNoSchedule"
     patches:
       # Mount NVME and USB drives for Longhorn storage
       - |-
