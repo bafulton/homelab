@@ -1,0 +1,70 @@
+namespace: descheduler
+
+descheduler:
+  # Runs as a short-lived CronJob rather than an always-on Deployment, so it
+  # doesn't add steady-state memory load to the already-tight beelink node.
+  kind: CronJob
+  schedule: "*/15 * * * *"
+
+  # Keep old job pods around briefly for debugging, but don't accumulate them.
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  ttlSecondsAfterFinished: 600
+
+  # Lean footprint for a job that runs for a few seconds every 15 min.
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+  # Full policy override. The chart's default profile enables ~7 plugins; we run
+  # ONLY LowNodeUtilization — the single plugin that addresses our actual problem
+  # (workloads concentrating on beelink). Everything else would be a no-op on a
+  # 2-node cluster of single-replica deployments, so we leave it off to keep the
+  # blast radius tiny and the intent obvious.
+  #
+  # LowNodeUtilization scores nodes by resource *requests* (not live usage) and
+  # evicts pods from over-utilized nodes so the scheduler can re-home them onto
+  # under-utilized ones. Current request allocation (2026-07-21):
+  #   beelink  cpu 66%  mem 75%   <- over target -> evict from here
+  #   rpi5     cpu 31%  mem 45%   <- under threshold -> receives pods
+  deschedulerPolicy:
+    # Evict at most a few pods per node per run: gentle, observable convergence.
+    maxNoOfPodsToEvictPerNode: 3
+    profiles:
+      - name: rebalance
+        pluginConfig:
+          - name: DefaultEvictor
+            args:
+              # CRITICAL: only evict a pod if it can actually schedule elsewhere.
+              # This is what protects the beelink-pinned workloads (Longhorn PVCs
+              # via longhorn-nvme/emmc node affinity, amd64-only images, static
+              # control-plane pods) from being thrashed — they have no other home,
+              # so the descheduler leaves them alone instead of churning them.
+              nodeFit: true
+              podProtections:
+                # emptyDir/hostPath scratch is ephemeral anyway (lost on any
+                # restart), so allow those stateless controllers to move.
+                defaultDisabled:
+                  - "PodsWithLocalStorage"
+                # But never touch pods backed by a real PVC (ClickHouse, minio,
+                # signoz-db, home-assistant, etc.) — belt-and-suspenders on top
+                # of nodeFit.
+                extraEnabled:
+                  - "PodsWithPVC"
+          - name: LowNodeUtilization
+            args:
+              # A node is a *target* (under-utilized) only if BOTH are below:
+              thresholds:
+                cpu: 40
+                memory: 50
+              # A node is a *source* (over-utilized) if EITHER is above:
+              targetThresholds:
+                cpu: 60
+                memory: 65
+        plugins:
+          balance:
+            enabled:
+              - LowNodeUtilization
