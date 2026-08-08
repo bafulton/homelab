@@ -1,6 +1,6 @@
 ---
 name: feedback_kubeconfig_caution
-description: 'On the work MacBook, be extra cautious before any write to ~/.kube/config — multiple work cluster contexts live there alongside homelab'
+description: 'On the work machine, be extra cautious before any write to ~/.kube/config — multiple work cluster contexts live there alongside homelab'
 metadata:
   node_type: memory
   type: feedback
@@ -8,7 +8,7 @@ metadata:
 permalink: homelab/feedback-kubeconfig-caution
 ---
 
-Before touching `~/.kube/config` on the work MacBook (`semgrep-macbook`), explicitly confirm the intent with the user, even for merge-style operations like `talosctl kubeconfig -f` that don't delete other contexts. The user has many Semgrep cluster contexts (prod-*, staging-*, dev-*) in this file and reasonably worries about clobbering work configs from a personal-project session.
+Before touching `~/.kube/config` on the work machine, explicitly confirm the intent with the user, even for merge-style operations like `talosctl kubeconfig -f` that don't delete other contexts. The user has many important work cluster contexts in this file and reasonably worries about clobbering them from a personal-project session.
 
 **Why:** User flagged this in a 2026-05-11 session when I was about to run `talosctl kubeconfig -f ~/.kube/config` for homelab without first confirming. They were concerned I'd nuke work configs.
 
