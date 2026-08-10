@@ -221,6 +221,16 @@ controlPlane:
           extraArgs:
             cloud-provider: external
 
+    # kube-apiserver has no memory limit, so nothing bounds Go's GC from
+    # holding onto its high-water mark. GOMEMLIMIT is a soft target — unlike
+    # a hard k8s limit, exceeding it triggers more GC, not an OOMKill, so
+    # it's safe on the cluster's only control-plane node.
+    - |-
+      cluster:
+        apiServer:
+          env:
+            GOMEMLIMIT: 2765MiB
+
     # Enable Talos API access from Kubernetes for tuppr upgrade controller
     - |-
       machine:
