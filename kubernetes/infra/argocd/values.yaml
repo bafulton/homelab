@@ -82,12 +82,12 @@ argo-cd:
         cpu: 100m
       limits:
         memory: 1.5Gi
-    # Soft GC target (~90% of the limit above) so Go returns freed heap to the
-    # OS instead of holding the high-water mark; unlike the k8s limit, going
-    # over this doesn't OOMKill, it just triggers more GC.
+    # Soft GC target, set ~18% above observed steady-state usage (not the
+    # 1.5Gi hard limit — that was too generous to ever engage the GC).
+    # Exceeding it doesn't OOMKill, it just triggers more GC.
     env:
       - name: GOMEMLIMIT
-        value: "1382MiB"
+        value: "600MiB"
 
   server:
     metrics:
