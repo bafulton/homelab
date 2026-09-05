@@ -1,12 +1,12 @@
 dependencies:
 - name: argo-cd
   repository: https://argoproj.github.io/argo-helm
-  version: 10.7.2
+  version: 10.8.0
 - name: gateway-route
   repository: file://../../../charts/gateway-route
   version: 1.0.0
 - name: bitwarden-secret
   repository: file://../../../charts/bitwarden-secret
   version: 1.0.0
-digest: sha256:715cf43318551489b396e0c974be375fe6f504d45dc5fd3c69ce3e47d1ab9610
-generated: "2026-09-04T11:38:56.578554562Z"
+digest: sha256:d300d3c589ef13b42577eb71e5881d45ff73fe4a06b561d00cff6ec535310d6e
+generated: "2026-09-05T01:26:20.677242662Z"
