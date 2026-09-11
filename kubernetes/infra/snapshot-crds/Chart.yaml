@@ -7,5 +7,5 @@ appVersion: "8.4.0"
 dependencies:
   - name: snapshot-controller-crds
     # renovate: datasource=helm registryUrl=https://wiremind.github.io/wiremind-helm-charts
-    version: 8.4.0
+    version: 8.6.0
     repository: https://wiremind.github.io/wiremind-helm-charts
