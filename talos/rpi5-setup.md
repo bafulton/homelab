@@ -2,9 +2,16 @@
 
 This document covers the RPi5 node setup, including why it uses community images, how to build custom images with extensions, and the migration path to official Talos support.
 
-## Current State (January 2026)
+## Current State (September 2026)
 
-The RPi5 node runs **talos-rpi5 community images (v1.11.5)** because official Talos lacks proper RPi5 support. The official Talos kernel is missing RP1 chip drivers required for ethernet and USB on RPi5.
+The RPi5 node runs **talos-rpi5 community images (v1.11.5)**. Official Talos support has progressed since this doc was written but is still not considered stable enough to migrate to:
+
+- `siderolabs/sbc-raspberrypi` merged a dedicated `rpi_5` overlay profile in Jan 2026 ([PR #71](https://github.com/siderolabs/sbc-raspberrypi/pull/71)), which fixed the root cause we hit (kernel missing RP1 driver support broke ethernet) by using kernel-package DTBs instead of Raspberry Pi firmware DTBs. Shipped starting in `sbc-raspberrypi` v0.1.8 and available via Image Factory/imager.
+- However: intermittent ethernet/DHCP dropouts on RPi5 control-plane nodes are unresolved ([issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82), open since Feb 2026, no maintainer response). Talos 1.14.0 also broke CM5 ethernet entirely via a DTB rebase, only fixed in v0.2.2 (Sept 14, 2026). Support has been fragile across Talos point releases (Image Factory rejected the overlay outright for v1.12.3 at one point).
+- Still no PWM/fan driver, and the official overlay's U-Boot (inherited from the RPi4 build) lacks the BCM2712 PCIe driver, so NVMe boot isn't supported — SD card only.
+- The official boot-assets guide still only documents `rpi_generic`, not `rpi_5` — a decent signal it isn't yet considered fully baked.
+
+**Assessment (checked Sept 2026):** ethernet fundamentally works now, which is real progress, but the open connectivity bug and recent regression/fix cycle mean it's not ready for our production node. Worth a spare-SD-card test, but hold off migrating until issue #82 closes and a documented `rpi_5` Image Factory example appears. Re-check in another 2-3 months.
 
 | Component | Value |
 |-----------|-------|
@@ -36,9 +43,11 @@ The RPi5 node runs **talos-rpi5 community images (v1.11.5)** because official Ta
 > **Note:** `talconfig.yaml` is already configured for official Talos support. When RPi5 support lands, simply regenerate configs and apply - no talconfig changes needed.
 
 **Tracking issues:**
-- https://github.com/siderolabs/talos/issues/7978
-- https://github.com/siderolabs/sbc-raspberrypi/issues/23
+- https://github.com/siderolabs/sbc-raspberrypi/issues/82 (open: intermittent ethernet/DHCP dropouts on RPi5, the current blocker)
+- https://github.com/siderolabs/sbc-raspberrypi/issues/107 (closed: Talos 1.14.0 broke CM5 ethernet, fixed in v0.2.2)
 - https://github.com/siderolabs/talos/discussions/7821
+- https://github.com/siderolabs/talos/issues/7978 (closed: original "no RPi5 support" tracking issue)
+- https://github.com/siderolabs/sbc-raspberrypi/issues/23 (closed: original "RPi5 unable to boot" issue)
 
 ---
 
