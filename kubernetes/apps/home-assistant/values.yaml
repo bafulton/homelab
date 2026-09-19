@@ -109,6 +109,9 @@ home-assistant:
     - name: packages
       mountPath: /config/packages
       readOnly: true
+    # Remove once https://github.com/jaraco/jaraco.abode/pull/43 is merged and released
+    # (that's the actual upstream fix - not tracked as a home-assistant/core issue since
+    # the bug lives in the vendored jaraco.abode library, not HA's own integration code)
     - name: abode-patch
       mountPath: /usr/local/lib/python3.14/site-packages/jaraco/abode/event_controller.py
       subPath: event_controller.py
