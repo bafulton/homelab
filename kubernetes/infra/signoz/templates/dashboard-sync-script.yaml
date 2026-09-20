@@ -57,6 +57,11 @@ data:
     record_hash() { printf '%s' "$2" > "/tmp/hashes/$1"; }
 
     # ── Dashboards ────────────────────────────────────────────────────────────
+    # NOTE: SigNoz removed the v1 dashboard API (v0.142.1) — this section uses
+    # /api/v2/dashboards. Dashboard JSON files are the "postable" v2/Perses
+    # shape: {tags, spec: {display, layouts, panels, variables, ...}[, image]}.
+    # Alerts below are unaffected and remain on /api/v1/rules.
+    #
     # Track all IaC dashboard titles so we can reconcile at the end.
     # Dashboards with tag "gitops" that are NOT in this list will be deleted.
     : > /tmp/synced_dashboard_titles
@@ -67,13 +72,13 @@ data:
       echo "Loading dashboards..."
 
       # Get existing dashboards
-      existing=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
+      existing=$(curl -s "$SIGNOZ_URL/api/v2/dashboards" \
         -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
 
       for f in "$DASHBOARD_DIR"/*.json; do
         [ -f "$f" ] || continue
         name=$(basename "$f" .json)
-        title=$(jq -r '.title // .data.title // empty' "$f")
+        title=$(jq -r '.spec.display.name // empty' "$f")
         echo "$title" >> /tmp/synced_dashboard_titles
 
         # Skip if file content unchanged since last successful sync
@@ -89,18 +94,18 @@ data:
         existing_id=""
         if [ -n "$title" ]; then
           existing_id=$(echo "$existing" | jq -r --arg t "$title" \
-            '.data[]? | select(.data.title == $t) | .id // empty' 2>/dev/null | head -1)
+            '.data.dashboards[]? | select(.spec.display.name == $t) | .id // empty' 2>/dev/null | head -1)
         fi
 
         if [ -n "$existing_id" ]; then
           echo "    Updating existing dashboard: $existing_id"
-          response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/dashboards/$existing_id" \
+          response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v2/dashboards/$existing_id" \
             -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d @"$f")
         else
           echo "    Creating new dashboard"
-          response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/dashboards" \
+          response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v2/dashboards" \
             -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d @"$f")
@@ -123,17 +128,17 @@ data:
     # Reconcile: delete gitops-managed dashboards removed from IaC.
     # Only touches dashboards with the "gitops" tag — manually created dashboards are never deleted.
     echo "Reconciling dashboards..."
-    all_dashboards=$(curl -s "$SIGNOZ_URL/api/v1/dashboards" \
+    all_dashboards=$(curl -s "$SIGNOZ_URL/api/v2/dashboards" \
       -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
 
-    echo "$all_dashboards" | jq -c '.data[]? | select(.data.tags[]? == "gitops")' 2>/dev/null | \
+    echo "$all_dashboards" | jq -c '.data.dashboards[]? | select(.tags[]? | .key == "tag" and .value == "gitops")' 2>/dev/null | \
     while read -r dash; do
       dash_uuid=$(echo "$dash" | jq -r '.id')
-      dash_title=$(echo "$dash" | jq -r '.data.title')
+      dash_title=$(echo "$dash" | jq -r '.spec.display.name')
 
       if ! grep -qxF "$dash_title" /tmp/synced_dashboard_titles 2>/dev/null; then
         echo "  Deleting removed gitops dashboard: $dash_title ($dash_uuid)"
-        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v1/dashboards/$dash_uuid" \
+        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v2/dashboards/$dash_uuid" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
         http_code=$(echo "$response" | tail -n1)
         if [ "$http_code" = "200" ]; then

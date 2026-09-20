@@ -1,2651 +1,1749 @@
 {
-  "description": "Glanceable cluster health overview \u2014 node status, pod phases, OOMKills, container restarts, node pressure, and ArgoCD sync health",
-  "layout": [
-    {
-      "i": "row-glance",
-      "x": 0,
-      "y": 0,
-      "w": 12,
-      "h": 1,
-      "moved": false,
-      "static": false,
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12
-    },
-    {
-      "i": "stat-nodes-ready",
-      "x": 0,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "stat-pods-running",
-      "x": 2,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "stat-pods-pending",
-      "x": 4,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "stat-pods-failed",
-      "x": 6,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "stat-apps-outofsync",
-      "x": 8,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "stat-oomkilled",
-      "x": 10,
-      "y": 1,
-      "w": 2,
-      "h": 4,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "row-workload",
-      "x": 0,
-      "y": 5,
-      "w": 12,
-      "h": 1,
-      "moved": false,
-      "static": false,
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12
-    },
-    {
-      "i": "graph-pod-phases",
-      "x": 0,
-      "y": 6,
-      "w": 6,
-      "h": 7,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "graph-container-restarts",
-      "x": 6,
-      "y": 6,
-      "w": 6,
-      "h": 7,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "graph-oomkill",
-      "x": 0,
-      "y": 13,
-      "w": 12,
-      "h": 5,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "row-nodes",
-      "x": 0,
-      "y": 18,
-      "w": 12,
-      "h": 1,
-      "moved": false,
-      "static": false,
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12
-    },
-    {
-      "i": "graph-node-ready",
-      "x": 0,
-      "y": 19,
-      "w": 6,
-      "h": 6,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "graph-node-pressure",
-      "x": 6,
-      "y": 19,
-      "w": 6,
-      "h": 6,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "row-argocd",
-      "x": 0,
-      "y": 25,
-      "w": 12,
-      "h": 1,
-      "moved": false,
-      "static": false,
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12
-    },
-    {
-      "i": "graph-argocd-sync",
-      "x": 0,
-      "y": 26,
-      "w": 6,
-      "h": 6,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "graph-argocd-health",
-      "x": 6,
-      "y": 26,
-      "w": 6,
-      "h": 6,
-      "moved": false,
-      "static": false
-    },
-    {
-      "i": "row-resource-pressure",
-      "x": 0,
-      "y": 32,
-      "w": 12,
-      "h": 1,
-      "moved": false,
-      "static": false,
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12
-    },
-    {
-      "i": "graph-mem-req-pct",
-      "x": 0,
-      "y": 33,
-      "w": 12,
-      "h": 7,
-      "moved": false,
-      "static": false
-    }
-  ],
-  "panelMap": {},
   "tags": [
-    "gitops"
-  ],
-  "title": "Cluster Health Overview",
-  "uploadedGrafana": false,
-  "variables": {
-    "c80e3b31-d5cf-4cdf-9552-cf5e7c377102": {
-      "allSelected": false,
-      "customValue": "",
-      "description": "Name of the cluster",
-      "id": "c80e3b31-d5cf-4cdf-9552-cf5e7c377102",
-      "key": "c80e3b31-d5cf-4cdf-9552-cf5e7c377102",
-      "modificationUUID": "28dfc42d-9774-4c31-b165-be5e7a172afc",
-      "multiSelect": false,
-      "name": "k8s.cluster.name",
-      "order": 0,
-      "queryValue": "SELECT JSONExtractString(labels, 'k8s.cluster.name') AS `k8s.cluster.name` FROM signoz_metrics.distributed_time_series_v4_1day WHERE `metric_name` = 'k8s.node.cpu.time' GROUP BY `k8s.cluster.name`",
-      "showALLOption": false,
-      "sort": "DISABLED",
-      "textboxValue": "",
-      "type": "QUERY"
+    {
+      "key": "tag",
+      "value": "gitops"
     }
-  },
-  "version": "v5",
-  "widgets": [
-    {
-      "contextLinks": {
-        "linksData": []
-      },
-      "id": "row-glance",
-      "panelTypes": "row",
-      "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "At a Glance"
+  ],
+  "spec": {
+    "display": {
+      "description": "Glanceable cluster health overview — node status, pod phases, OOMKills, container restarts, node pressure, and ArgoCD sync health",
+      "name": "Cluster Health Overview"
     },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Nodes in Ready state",
-      "fillSpans": false,
-      "id": "stat-nodes-ready",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "3416d3d2-1eea-4f4d-915d-7cd8e735b9b4",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Green",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Nodes Ready",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
+    "duration": "",
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "At a Glance"
+          },
+          "items": [
             {
-              "aggregations": [
-                {
-                  "metricName": "k8s.node.condition_ready",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              "content": {
+                "$ref": "#/spec/panels/stat-nodes-ready"
               },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "41edf05c-3412-422d-8ce1-a02b2409e1dc",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Pods in Running phase",
-      "fillSpans": false,
-      "id": "stat-pods-running",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "7823181d-3fba-486f-a40f-de307a670215",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Blue",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Running Pods",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "phase = 'Running'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "03909cd3-ce9e-47bc-8354-a7b6bb0ca81a",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Pods stuck in Pending \u2014 may indicate scheduling pressure",
-      "fillSpans": false,
-      "id": "stat-pods-pending",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "e251d935-1fd6-463f-8ebf-31fd9994c2d1",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Yellow",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Pending Pods",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "phase = 'Pending'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "e8505be8-1089-4b87-aa5a-8b261fd2f908",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Pods in Failed phase",
-      "fillSpans": false,
-      "id": "stat-pods-failed",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "b09586c9-133c-41c2-a792-86466751272c",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Red",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Failed Pods",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "phase = 'Failed'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "7cda9805-2204-4236-bc2c-d9f8712be871",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "ArgoCD apps not in Synced state",
-      "fillSpans": false,
-      "id": "stat-apps-outofsync",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "9518aafa-e5e9-4742-bef6-7c1d5b4ae6c3",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Yellow",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Apps Out of Sync",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "sync_status = 'OutOfSync'"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "name",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "bdcf9562-60a6-4b9f-a806-4335435f604c",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Containers whose last termination was OOM",
-      "fillSpans": false,
-      "id": "stat-oomkilled",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "value",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "81ba0fbe-e33f-47ba-b23b-5ec1ae4b2313",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "value",
-          "thresholdColor": "Red",
-          "thresholdFormat": "Text",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "OOMKilled",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_container_status_last_terminated_reason",
-                  "reduceTo": "last",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "reason = 'OOMKilled'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "ecc51f0a-5703-41e0-a593-b7ec497b18a5",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "contextLinks": {
-        "linksData": []
-      },
-      "id": "row-workload",
-      "panelTypes": "row",
-      "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "Workload Health"
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Count of pods in each phase over time",
-      "fillSpans": false,
-      "id": "graph-pod-phases",
-      "isStacked": true,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Pod Phases",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "phase = 'Running'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Running",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
+              "height": 4,
+              "width": 2,
+              "x": 0,
+              "y": 0
             },
             {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "B",
-              "filter": {
-                "expression": "phase = 'Pending'"
+              "content": {
+                "$ref": "#/spec/panels/stat-pods-running"
               },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Pending",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "B",
-              "stepInterval": null
+              "height": 4,
+              "width": 2,
+              "x": 2,
+              "y": 0
             },
             {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "C",
-              "filter": {
-                "expression": "phase = 'Failed'"
+              "content": {
+                "$ref": "#/spec/panels/stat-pods-pending"
               },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Failed",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "C",
-              "stepInterval": null
+              "height": 4,
+              "width": 2,
+              "x": 4,
+              "y": 0
             },
             {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_status_phase",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "D",
-              "filter": {
-                "expression": "phase = 'Unknown'"
+              "content": {
+                "$ref": "#/spec/panels/stat-pods-failed"
               },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Unknown",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "D",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "2338ff75-c095-49d1-a814-ee89f7707523",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Rate of container restarts by namespace \u2014 a rising trend indicates flapping workloads",
-      "fillSpans": false,
-      "id": "graph-container-restarts",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Container Restart Rate",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_container_status_restarts_total",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "rate"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": ""
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "namespace--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "namespace",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{namespace}}",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "1e25165f-8ba8-45fc-9f3d-97f7397240d5",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Containers whose last termination was OOM, by namespace",
-      "fillSpans": false,
-      "id": "graph-oomkill",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "f4c7fb29-a61f-4bfa-a685-8af23b1c0c23",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "graph",
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "OOMKill Events",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_container_status_last_terminated_reason",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "reason = 'OOMKilled'"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "namespace--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "namespace",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{namespace}}",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "5158f777-37b5-48f1-adf6-700af38b8a87",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "contextLinks": {
-        "linksData": []
-      },
-      "id": "row-nodes",
-      "panelTypes": "row",
-      "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "Node Health"
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Ready status per node (1 = Ready, 0 = Not Ready)",
-      "fillSpans": false,
-      "id": "graph-node-ready",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 1,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "7bc7ad8d-da79-403d-8066-c11a4f7d92a2",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "graph",
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdLabel": "",
-          "thresholdOperator": "<",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 1
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Node Readiness",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "k8s.node.condition_ready",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "k8s.cluster.name = $k8s.cluster.name"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "k8s.node.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "k8s.node.name",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{k8s.node.name}}",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "c400a170-5d3f-4c2c-a357-acdcf1e67a1a",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Memory, disk, and PID pressure per node (1 = pressure active)",
-      "fillSpans": false,
-      "id": "graph-node-pressure",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 1,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "index": "fbe39675-d8c1-4895-a8dc-6f2480d8252c",
-          "isEditEnabled": false,
-          "keyIndex": 0,
-          "selectedGraph": "graph",
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdLabel": "",
-          "thresholdOperator": ">",
-          "thresholdTableOptions": "A",
-          "thresholdUnit": "none",
-          "thresholdValue": 0
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Node Pressure Conditions",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "k8s.node.condition_memory_pressure",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "k8s.cluster.name = $k8s.cluster.name"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "k8s.node.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "k8s.node.name",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{k8s.node.name}} memory",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
+              "height": 4,
+              "width": 2,
+              "x": 6,
+              "y": 0
             },
             {
-              "aggregations": [
-                {
-                  "metricName": "k8s.node.condition_disk_pressure",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "B",
-              "filter": {
-                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              "content": {
+                "$ref": "#/spec/panels/stat-apps-outofsync"
               },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "k8s.node.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "k8s.node.name",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{k8s.node.name}} disk",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "B",
-              "stepInterval": null
+              "height": 4,
+              "width": 2,
+              "x": 8,
+              "y": 0
             },
             {
-              "aggregations": [
-                {
-                  "metricName": "k8s.node.condition_pid_pressure",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "C",
-              "filter": {
-                "expression": "k8s.cluster.name = $k8s.cluster.name"
+              "content": {
+                "$ref": "#/spec/panels/stat-oomkilled"
               },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "k8s.node.name--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "k8s.node.name",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "{{k8s.node.name}} pid",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "C",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "5c473160-9445-4164-a0c6-9548429f7aa9",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "contextLinks": {
-        "linksData": []
-      },
-      "id": "row-argocd",
-      "panelTypes": "row",
-      "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "ArgoCD"
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Count of apps by sync state over time",
-      "fillSpans": false,
-      "id": "graph-argocd-sync",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "ArgoCD Sync Status",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "sync_status = 'Synced'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Synced",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            },
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "B",
-              "filter": {
-                "expression": "sync_status = 'OutOfSync'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Out of Sync",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "B",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "0abf0a2a-4d39-4665-ad3b-4740bbfc6a24",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Count of apps by health state over time",
-      "fillSpans": false,
-      "id": "graph-argocd-health",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "ArgoCD App Health",
-      "yAxisUnit": "none",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {
-                "expression": "health_status = 'Healthy'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Healthy",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            },
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "B",
-              "filter": {
-                "expression": "health_status = 'Degraded'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Degraded",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "B",
-              "stepInterval": null
-            },
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "C",
-              "filter": {
-                "expression": "health_status = 'Progressing'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Progressing",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "C",
-              "stepInterval": null
-            },
-            {
-              "aggregations": [
-                {
-                  "metricName": "argocd_app_info",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "D",
-              "filter": {
-                "expression": "health_status = 'Missing'"
-              },
-              "functions": [],
-              "groupBy": [],
-              "having": {
-                "expression": ""
-              },
-              "legend": "Missing",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "D",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "a6906366-90b6-45ef-b5a7-85db1cb34b17",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      }
-    },
-    {
-      "contextLinks": {
-        "linksData": []
-      },
-      "id": "row-resource-pressure",
-      "panelTypes": "row",
-      "query": {
-        "builder": {
-          "queryData": [],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "Resource Pressure"
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "description": "Memory requests committed vs allocatable per node — yellow=70%, red=85%. Rising line means the scheduler has less room to place new pods.",
-      "fillSpans": false,
-      "id": "graph-mem-req-pct",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "selectedLogFields": [
-        {
-          "dataType": "string",
-          "name": "body",
-          "type": ""
-        },
-        {
-          "dataType": "string",
-          "name": "timestamp",
-          "type": ""
-        }
-      ],
-      "selectedTracesFields": [
-        {
-          "dataType": "string",
-          "id": "serviceName--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "serviceName",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "name--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "name",
-          "type": "tag"
-        },
-        {
-          "dataType": "float64",
-          "id": "durationNano--float64--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "durationNano",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "httpMethod--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "httpMethod",
-          "type": "tag"
-        },
-        {
-          "dataType": "string",
-          "id": "responseStatusCode--string--tag--true",
-          "isColumn": true,
-          "isJSON": false,
-          "key": "responseStatusCode",
-          "type": "tag"
-        }
-      ],
-      "softMax": 0,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {
-          "thresholdColor": "Yellow",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "percentunit",
-          "thresholdValue": 0.7
-        },
-        {
-          "thresholdColor": "Red",
-          "thresholdFormat": "1",
-          "thresholdOperator": ">",
-          "thresholdUnit": "percentunit",
-          "thresholdValue": 0.85
-        }
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Memory Requests % of Allocatable (per node)",
-      "yAxisUnit": "percentunit",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_pod_container_resource_requests",
-                  "reduceTo": "sum",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": true,
-              "expression": "A",
-              "filter": {
-                "expression": "resource = 'memory'"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "node--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "node",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            },
-            {
-              "aggregations": [
-                {
-                  "metricName": "kube_node_status_allocatable",
-                  "reduceTo": "sum",
-                  "spaceAggregation": "sum",
-                  "temporality": null,
-                  "timeAggregation": "latest"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": true,
-              "expression": "B",
-              "filter": {
-                "expression": "resource = 'memory'"
-              },
-              "functions": [],
-              "groupBy": [
-                {
-                  "dataType": "string",
-                  "id": "node--string--tag--false",
-                  "isColumn": false,
-                  "isJSON": false,
-                  "key": "node",
-                  "type": "tag"
-                }
-              ],
-              "having": {
-                "expression": ""
-              },
-              "legend": "",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "B",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": [
-            {
-              "disabled": false,
-              "expression": "A/B",
-              "legend": "{{node}}",
-              "queryName": "F1"
+              "height": 4,
+              "width": 2,
+              "x": 10,
+              "y": 0
             }
           ]
-        },
-        "clickhouse_sql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "id": "graph-mem-req-pct-qid",
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "",
-            "name": "A",
-            "query": ""
-          }
-        ],
-        "queryType": "builder"
+        }
+      },
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "Workload Health"
+          },
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-pod-phases"
+              },
+              "height": 7,
+              "width": 6,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-container-restarts"
+              },
+              "height": 7,
+              "width": 6,
+              "x": 6,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-oomkill"
+              },
+              "height": 5,
+              "width": 12,
+              "x": 0,
+              "y": 7
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "Node Health"
+          },
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-node-ready"
+              },
+              "height": 6,
+              "width": 6,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-node-pressure"
+              },
+              "height": 6,
+              "width": 6,
+              "x": 6,
+              "y": 0
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "ArgoCD"
+          },
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-argocd-sync"
+              },
+              "height": 6,
+              "width": 6,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-argocd-health"
+              },
+              "height": 6,
+              "width": 6,
+              "x": 6,
+              "y": 0
+            }
+          ]
+        }
+      },
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "Resource Pressure"
+          },
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/graph-mem-req-pct"
+              },
+              "height": 7,
+              "width": 12,
+              "x": 0,
+              "y": 0
+            }
+          ]
+        }
       }
-    }
-  ]
+    ],
+    "links": [],
+    "panels": {
+      "graph-argocd-health": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Count of apps by health state over time",
+            "name": "ArgoCD App Health"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "health_status = 'Healthy'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Healthy",
+                          "name": "A",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "health_status = 'Degraded'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Degraded",
+                          "name": "B",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "health_status = 'Progressing'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Progressing",
+                          "name": "C",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "health_status = 'Missing'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Missing",
+                          "name": "D",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-argocd-sync": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Count of apps by sync state over time",
+            "name": "ArgoCD Sync Status"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "sync_status = 'Synced'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Synced",
+                          "name": "A",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "sync_status = 'OutOfSync'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Out of Sync",
+                          "name": "B",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-container-restarts": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Rate of container restarts by namespace — a rising trend indicates flapping workloads",
+            "name": "Container Restart Rate"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_container_status_restarts_total",
+                        "reduceTo": "avg",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "rate"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": ""
+                    },
+                    "functions": [],
+                    "groupBy": [
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "namespace",
+                        "signal": ""
+                      }
+                    ],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "{{namespace}}",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-mem-req-pct": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Memory requests committed vs allocatable per node — yellow=70%, red=85%. Rising line means the scheduler has less room to place new pods.",
+            "name": "Memory Requests % of Allocatable (per node)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "percentunit"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "label": "",
+                  "unit": "percentunit",
+                  "value": 0.7
+                },
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "percentunit",
+                  "value": 0.85
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_pod_container_resource_requests",
+                              "reduceTo": "sum",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": true,
+                          "filter": {
+                            "expression": "resource = 'memory'"
+                          },
+                          "functions": [],
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "node",
+                              "signal": ""
+                            }
+                          ],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "",
+                          "name": "A",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_node_status_allocatable",
+                              "reduceTo": "sum",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": true,
+                          "filter": {
+                            "expression": "resource = 'memory'"
+                          },
+                          "functions": [],
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "node",
+                              "signal": ""
+                            }
+                          ],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "",
+                          "name": "B",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "disabled": false,
+                          "expression": "A/B",
+                          "functions": null,
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "{{node}}",
+                          "name": "F1",
+                          "order": null
+                        },
+                        "type": "builder_formula"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-node-pressure": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Memory, disk, and PID pressure per node (1 = pressure active)",
+            "name": "Node Pressure Conditions"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 1,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "k8s.node.condition_memory_pressure",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "k8s.cluster.name = $k8s.cluster.name"
+                          },
+                          "functions": [],
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "k8s.node.name",
+                              "signal": ""
+                            }
+                          ],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "{{k8s.node.name}} memory",
+                          "name": "A",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "k8s.node.condition_disk_pressure",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "k8s.cluster.name = $k8s.cluster.name"
+                          },
+                          "functions": [],
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "k8s.node.name",
+                              "signal": ""
+                            }
+                          ],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "{{k8s.node.name}} disk",
+                          "name": "B",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "k8s.node.condition_pid_pressure",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "k8s.cluster.name = $k8s.cluster.name"
+                          },
+                          "functions": [],
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "k8s.node.name",
+                              "signal": ""
+                            }
+                          ],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "{{k8s.node.name}} pid",
+                          "name": "C",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-node-ready": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Ready status per node (1 = Ready, 0 = Not Ready)",
+            "name": "Node Readiness"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 1,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 1
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "k8s.node.condition_ready",
+                        "reduceTo": "avg",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "k8s.cluster.name = $k8s.cluster.name"
+                    },
+                    "functions": [],
+                    "groupBy": [
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "k8s.node.name",
+                        "signal": ""
+                      }
+                    ],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "{{k8s.node.name}}",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-oomkill": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Containers whose last termination was OOM, by namespace",
+            "name": "OOMKill Events"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_container_status_last_terminated_reason",
+                        "reduceTo": "avg",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "reason = 'OOMKilled'"
+                    },
+                    "functions": [],
+                    "groupBy": [
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "namespace",
+                        "signal": ""
+                      }
+                    ],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "{{namespace}}",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "graph-pod-phases": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Count of pods in each phase over time",
+            "name": "Pod Phases"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_pod_status_phase",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "phase = 'Running'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Running",
+                          "name": "A",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_pod_status_phase",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "phase = 'Pending'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Pending",
+                          "name": "B",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_pod_status_phase",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "phase = 'Failed'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Failed",
+                          "name": "C",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      },
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "kube_pod_status_phase",
+                              "reduceTo": "avg",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "phase = 'Unknown'"
+                          },
+                          "functions": [],
+                          "groupBy": [],
+                          "having": {
+                            "expression": ""
+                          },
+                          "legend": "Unknown",
+                          "name": "D",
+                          "order": [],
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-apps-outofsync": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "ArgoCD apps not in Synced state",
+            "name": "Apps Out of Sync"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "aggregations": [
+                            {
+                              "metricName": "argocd_app_info",
+                              "reduceTo": "last",
+                              "spaceAggregation": "sum",
+                              "temporality": "",
+                              "timeAggregation": "latest"
+                            }
+                          ],
+                          "disabled": false,
+                          "filter": {
+                            "expression": "sync_status = 'OutOfSync'"
+                          },
+                          "functions": null,
+                          "groupBy": [
+                            {
+                              "fieldContext": "attribute",
+                              "fieldDataType": "string",
+                              "name": "name",
+                              "signal": ""
+                            }
+                          ],
+                          "legend": "",
+                          "name": "A",
+                          "order": null,
+                          "secondaryAggregations": null,
+                          "selectFields": null,
+                          "signal": "metrics",
+                          "source": "",
+                          "stepInterval": 0
+                        },
+                        "type": "builder_query"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-nodes-ready": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Nodes in Ready state",
+            "name": "Nodes Ready"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Green",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "k8s.node.condition_ready",
+                        "reduceTo": "last",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "k8s.cluster.name = $k8s.cluster.name"
+                    },
+                    "functions": [],
+                    "groupBy": [],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-oomkilled": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Containers whose last termination was OOM",
+            "name": "OOMKilled"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Red",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_container_status_last_terminated_reason",
+                        "reduceTo": "last",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "reason = 'OOMKilled'"
+                    },
+                    "functions": [],
+                    "groupBy": [],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-pods-failed": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Pods in Failed phase",
+            "name": "Failed Pods"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Red",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_status_phase",
+                        "reduceTo": "last",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "phase = 'Failed'"
+                    },
+                    "functions": [],
+                    "groupBy": [],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-pods-pending": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Pods stuck in Pending — may indicate scheduling pressure",
+            "name": "Pending Pods"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_status_phase",
+                        "reduceTo": "last",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "phase = 'Pending'"
+                    },
+                    "functions": [],
+                    "groupBy": [],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "stat-pods-running": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Pods in Running phase",
+            "name": "Running Pods"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/NumberPanel",
+            "spec": {
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "thresholds": [
+                {
+                  "color": "Blue",
+                  "format": "text",
+                  "operator": "above",
+                  "unit": "none",
+                  "value": 0
+                }
+              ],
+              "visualization": {
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "scalar",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "kube_pod_status_phase",
+                        "reduceTo": "last",
+                        "spaceAggregation": "sum",
+                        "temporality": "",
+                        "timeAggregation": "latest"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": "phase = 'Running'"
+                    },
+                    "functions": [],
+                    "groupBy": [],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "refreshInterval": "",
+    "variables": [
+      {
+        "kind": "ListVariable",
+        "spec": {
+          "allowAllValue": false,
+          "allowMultiple": false,
+          "capturingRegexp": "",
+          "customAllValue": "",
+          "display": {
+            "description": "Name of the cluster",
+            "name": "k8s.cluster.name"
+          },
+          "name": "k8s.cluster.name",
+          "plugin": {
+            "kind": "signoz/QueryVariable",
+            "spec": {
+              "queryValue": "SELECT JSONExtractString(labels, 'k8s.cluster.name') AS `k8s.cluster.name` FROM signoz_metrics.distributed_time_series_v4_1day WHERE `metric_name` = 'k8s.node.cpu.time' GROUP BY `k8s.cluster.name`"
+            }
+          },
+          "sort": "none"
+        }
+      }
+    ]
+  }
 }

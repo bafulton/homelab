@@ -1,341 +1,536 @@
 {
-  "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors, plus cabinet ambient temperature, fan/cooling status, and homelab power consumption from Home Assistant.",
-  "layout": [
+  "tags": [
     {
-      "h": 1,
-      "i": "header-row",
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12,
-      "moved": false,
-      "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 0
-    },
-    {
-      "h": 6,
-      "i": "temp-graph",
-      "moved": false,
-      "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 1
-    },
-    {
-      "h": 6,
-      "i": "thermal-zone-graph",
-      "moved": false,
-      "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 7
-    },
-    {
-      "h": 1,
-      "i": "row-cabinet",
-      "maxH": 1,
-      "minH": 1,
-      "minW": 12,
-      "moved": false,
-      "static": false,
-      "w": 12,
-      "x": 0,
-      "y": 13
-    },
-    {
-      "h": 6,
-      "i": "cabinet-temp",
-      "moved": false,
-      "static": false,
-      "w": 4,
-      "x": 0,
-      "y": 14
-    },
-    {
-      "h": 6,
-      "i": "fan-status",
-      "moved": false,
-      "static": false,
-      "w": 4,
-      "x": 4,
-      "y": 14
-    },
-    {
-      "h": 6,
-      "i": "homelab-power",
-      "moved": false,
-      "static": false,
-      "w": 4,
-      "x": 8,
-      "y": 14
+      "key": "tag",
+      "value": "gitops"
     }
   ],
-  "panelMap": {},
-  "tags": ["gitops"],
-  "title": "Node Temperature",
-  "variables": {},
-  "version": "v5",
-  "widgets": [
-    {
-      "contextLinks": {"linksData": []},
-      "description": "",
-      "id": "header-row",
-      "isStacked": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "row",
-      "query": {
-        "builder": {"queryData": [], "queryFormulas": []},
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "Temperature Metrics",
-      "yAxisUnit": "none"
+  "spec": {
+    "display": {
+      "description": "Node temperature metrics from prometheus-node-exporter hwmon and thermal_zone collectors, plus cabinet ambient temperature, fan/cooling status, and homelab power consumption from Home Assistant.",
+      "name": "Node Temperature"
     },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "contextLinks": {"linksData": []},
-      "description": "CPU/SoC temperature from hwmon sensors",
-      "fillSpans": false,
-      "id": "temp-graph",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "node_hwmon_temp_celsius",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "avg",
-                  "temporality": null,
-                  "timeAggregation": "avg"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {"expression": ""},
-              "functions": [],
-              "groupBy": [
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "instance", "type": "tag"},
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "chip", "type": "tag"},
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "sensor", "type": "tag"}
-              ],
-              "having": {"expression": ""},
-              "legend": "{{instance}} - {{chip}} {{sensor}}",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "id": "temp-graph-query",
-        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "softMax": 100,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 70},
-        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 85}
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Hardware Monitor Temperature (\u00b0C)",
-      "yAxisUnit": "celsius"
-    },
-    {
-      "bucketCount": 30,
-      "bucketWidth": 0,
-      "columnUnits": {},
-      "contextLinks": {"linksData": []},
-      "description": "Temperature from kernel thermal zones",
-      "fillSpans": false,
-      "id": "thermal-zone-graph",
-      "isStacked": false,
-      "mergeAllActiveQueries": false,
-      "nullZeroValues": "zero",
-      "opacity": "1",
-      "panelTypes": "graph",
-      "query": {
-        "builder": {
-          "queryData": [
-            {
-              "aggregations": [
-                {
-                  "metricName": "node_thermal_zone_temp",
-                  "reduceTo": "avg",
-                  "spaceAggregation": "avg",
-                  "temporality": null,
-                  "timeAggregation": "avg"
-                }
-              ],
-              "dataSource": "metrics",
-              "disabled": false,
-              "expression": "A",
-              "filter": {"expression": ""},
-              "functions": [],
-              "groupBy": [
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "instance", "type": "tag"},
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "zone", "type": "tag"},
-                {"dataType": "string", "isColumn": false, "isJSON": false, "key": "type", "type": "tag"}
-              ],
-              "having": {"expression": ""},
-              "legend": "{{instance}} - {{type}} (zone {{zone}})",
-              "limit": null,
-              "orderBy": [],
-              "queryName": "A",
-              "stepInterval": null
-            }
-          ],
-          "queryFormulas": []
-        },
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "id": "thermal-zone-query",
-        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "softMax": 100,
-      "softMin": 0,
-      "stackedBarChart": false,
-      "thresholds": [
-        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 70},
-        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 85}
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Thermal Zone Temperature (\u00b0C)",
-      "yAxisUnit": "celsius"
-    },
-    {
-      "contextLinks": {"linksData": []},
-      "id": "row-cabinet",
-      "panelTypes": "row",
-      "query": {
-        "builder": {"queryData": [], "queryFormulas": []},
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "promql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "queryType": "builder"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "thresholds": [],
-      "title": "Cabinet & Power (Home Assistant / Meross MTS960)"
-    },
-    {
-      "contextLinks": {"linksData": []},
-      "description": "Cabinet temperature from Meross MTS960 thermostat (sensor.mts960_844f_current_temperature) and its cooling setpoint. NOTE: the MTS960 probe physically rests on top of the beelink mini-PC. If it gets dislodged (e.g. during hands-on work on beelink) it reads ~7C low, drops below the setpoint, and the fans stop — reseat the probe after any work on beelink. See incident_cabinet_fan_probe_dislodged.",
-      "fillSpans": false,
-      "id": "cabinet-temp",
-      "isStacked": false,
-      "nullZeroValues": "null",
-      "panelTypes": "graph",
-      "query": {
-        "builder": {"queryData": [], "queryFormulas": []},
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "Cabinet (actual)",
-            "name": "A",
-            "query": "{\"homeassistant_sensor_temperature_celsius\", entity=\"sensor.mts960_844f_current_temperature\"}"
+    "duration": "",
+    "layouts": [
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "Temperature Metrics"
           },
-          {
-            "disabled": false,
-            "legend": "Target",
-            "name": "B",
-            "query": "{\"homeassistant_climate_target_temperature_celsius\", entity=\"climate.mts960_844f_heater_cooler\"}"
-          }
-        ],
-        "queryType": "promql"
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/temp-graph"
+              },
+              "height": 6,
+              "width": 12,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/thermal-zone-graph"
+              },
+              "height": 6,
+              "width": 12,
+              "x": 0,
+              "y": 6
+            }
+          ]
+        }
       },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "softMax": 50,
-      "softMin": 0,
-      "thresholds": [
-        {"thresholdColor": "Yellow", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 40},
-        {"thresholdColor": "Red", "thresholdFormat": "1", "thresholdOperator": ">", "thresholdUnit": "none", "thresholdValue": 45}
-      ],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Cabinet Temperature (\u00b0C)",
-      "yAxisUnit": "celsius"
+      {
+        "kind": "Grid",
+        "spec": {
+          "display": {
+            "collapse": {
+              "open": true
+            },
+            "title": "Cabinet & Power (Home Assistant / Meross MTS960)"
+          },
+          "items": [
+            {
+              "content": {
+                "$ref": "#/spec/panels/cabinet-temp"
+              },
+              "height": 6,
+              "width": 4,
+              "x": 0,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/fan-status"
+              },
+              "height": 6,
+              "width": 4,
+              "x": 4,
+              "y": 0
+            },
+            {
+              "content": {
+                "$ref": "#/spec/panels/homelab-power"
+              },
+              "height": 6,
+              "width": 4,
+              "x": 8,
+              "y": 0
+            }
+          ]
+        }
+      }
+    ],
+    "links": [],
+    "panels": {
+      "cabinet-temp": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Cabinet temperature from Meross MTS960 thermostat (sensor.mts960_844f_current_temperature) and its cooling setpoint. NOTE: the MTS960 probe physically rests on top of the beelink mini-PC. If it gets dislodged (e.g. during hands-on work on beelink) it reads ~7C low, drops below the setpoint, and the fans stop — reseat the probe after any work on beelink. See incident_cabinet_fan_probe_dislodged.",
+            "name": "Cabinet Temperature (°C)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 50,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "celsius"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "label": "",
+                  "unit": "none",
+                  "value": 40
+                },
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 45
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "plugin": {
+                  "kind": "signoz/CompositeQuery",
+                  "spec": {
+                    "queries": [
+                      {
+                        "spec": {
+                          "disabled": false,
+                          "legend": "Cabinet (actual)",
+                          "name": "A",
+                          "query": "{\"homeassistant_sensor_temperature_celsius\", entity=\"sensor.mts960_844f_current_temperature\"}",
+                          "stats": false,
+                          "step": 0
+                        },
+                        "type": "promql"
+                      },
+                      {
+                        "spec": {
+                          "disabled": false,
+                          "legend": "Target",
+                          "name": "B",
+                          "query": "{\"homeassistant_climate_target_temperature_celsius\", entity=\"climate.mts960_844f_heater_cooler\"}",
+                          "stats": false,
+                          "step": 0
+                        },
+                        "type": "promql"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "fan-status": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Fan/cooling status from Meross MTS960 thermostat — 1 = fans actively cooling, 0 = idle (homeassistant_climate_action{action=cooling}). The MTS960 switches fan power directly off its probe temp vs setpoint, so there is no software failsafe — if this sits at 0 while node temps climb, suspect the probe (dislodged/miscalibrated). Alerting is the only safety net.",
+            "name": "Cabinet Fan Status (1=Cooling, 0=Idle)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 1,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "none"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/PromQLQuery",
+                  "spec": {
+                    "disabled": false,
+                    "legend": "Fans Running",
+                    "name": "A",
+                    "query": "{\"homeassistant_climate_action\", entity=\"climate.mts960_844f_heater_cooler\", action=\"cooling\"}",
+                    "stats": false,
+                    "step": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "homelab-power": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Homelab power consumption from TP-Link Kasa smart plug (sensor.homelab_current_consumption)",
+            "name": "Homelab Power Consumption (W)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 0,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "watt"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": null,
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/PromQLQuery",
+                  "spec": {
+                    "disabled": false,
+                    "legend": "Homelab",
+                    "name": "A",
+                    "query": "{\"homeassistant_sensor_power_w\", entity=\"sensor.homelab_current_consumption\"}",
+                    "stats": false,
+                    "step": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "temp-graph": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "CPU/SoC temperature from hwmon sensors",
+            "name": "Hardware Monitor Temperature (°C)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 100,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "celsius"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "label": "",
+                  "unit": "none",
+                  "value": 70
+                },
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 85
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "node_hwmon_temp_celsius",
+                        "reduceTo": "avg",
+                        "spaceAggregation": "avg",
+                        "temporality": "",
+                        "timeAggregation": "avg"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": ""
+                    },
+                    "functions": [],
+                    "groupBy": [
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "instance",
+                        "signal": ""
+                      },
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "chip",
+                        "signal": ""
+                      },
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "sensor",
+                        "signal": ""
+                      }
+                    ],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "{{instance}} - {{chip}} {{sensor}}",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "thermal-zone-graph": {
+        "kind": "Panel",
+        "spec": {
+          "display": {
+            "description": "Temperature from kernel thermal zones",
+            "name": "Thermal Zone Temperature (°C)"
+          },
+          "links": [],
+          "plugin": {
+            "kind": "signoz/TimeSeriesPanel",
+            "spec": {
+              "axes": {
+                "isLogScale": false,
+                "softMax": 100,
+                "softMin": 0
+              },
+              "chartAppearance": {
+                "fillMode": "none",
+                "lineInterpolation": "spline",
+                "lineStyle": "solid",
+                "showPoints": false,
+                "spanGaps": {
+                  "fillLessThan": "",
+                  "fillOnlyBelow": false
+                }
+              },
+              "formatting": {
+                "decimalPrecision": "2",
+                "unit": "celsius"
+              },
+              "legend": {
+                "customColors": null,
+                "mode": "list",
+                "position": "bottom"
+              },
+              "thresholds": [
+                {
+                  "color": "Yellow",
+                  "label": "",
+                  "unit": "none",
+                  "value": 70
+                },
+                {
+                  "color": "Red",
+                  "label": "",
+                  "unit": "none",
+                  "value": 85
+                }
+              ],
+              "visualization": {
+                "fillSpans": false,
+                "timePreference": "global_time"
+              }
+            }
+          },
+          "queries": [
+            {
+              "kind": "time_series",
+              "spec": {
+                "name": "A",
+                "plugin": {
+                  "kind": "signoz/BuilderQuery",
+                  "spec": {
+                    "aggregations": [
+                      {
+                        "metricName": "node_thermal_zone_temp",
+                        "reduceTo": "avg",
+                        "spaceAggregation": "avg",
+                        "temporality": "",
+                        "timeAggregation": "avg"
+                      }
+                    ],
+                    "disabled": false,
+                    "filter": {
+                      "expression": ""
+                    },
+                    "functions": [],
+                    "groupBy": [
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "instance",
+                        "signal": ""
+                      },
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "zone",
+                        "signal": ""
+                      },
+                      {
+                        "fieldContext": "attribute",
+                        "fieldDataType": "string",
+                        "name": "type",
+                        "signal": ""
+                      }
+                    ],
+                    "having": {
+                      "expression": ""
+                    },
+                    "legend": "{{instance}} - {{type}} (zone {{zone}})",
+                    "name": "A",
+                    "order": [],
+                    "signal": "metrics",
+                    "source": ""
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
     },
-    {
-      "contextLinks": {"linksData": []},
-      "description": "Fan/cooling status from Meross MTS960 thermostat \u2014 1 = fans actively cooling, 0 = idle (homeassistant_climate_action{action=cooling}). The MTS960 switches fan power directly off its probe temp vs setpoint, so there is no software failsafe \u2014 if this sits at 0 while node temps climb, suspect the probe (dislodged/miscalibrated). Alerting is the only safety net.",
-      "fillSpans": false,
-      "id": "fan-status",
-      "isStacked": false,
-      "nullZeroValues": "null",
-      "panelTypes": "graph",
-      "query": {
-        "builder": {"queryData": [], "queryFormulas": []},
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "Fans Running",
-            "name": "A",
-            "query": "{\"homeassistant_climate_action\", entity=\"climate.mts960_844f_heater_cooler\", action=\"cooling\"}"
-          }
-        ],
-        "queryType": "promql"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "softMax": 1,
-      "softMin": 0,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Cabinet Fan Status (1=Cooling, 0=Idle)",
-      "yAxisUnit": "none"
-    },
-    {
-      "contextLinks": {"linksData": []},
-      "description": "Homelab power consumption from TP-Link Kasa smart plug (sensor.homelab_current_consumption)",
-      "fillSpans": false,
-      "id": "homelab-power",
-      "isStacked": false,
-      "nullZeroValues": "null",
-      "panelTypes": "graph",
-      "query": {
-        "builder": {"queryData": [], "queryFormulas": []},
-        "clickhouse_sql": [{"disabled": false, "legend": "", "name": "A", "query": ""}],
-        "promql": [
-          {
-            "disabled": false,
-            "legend": "Homelab",
-            "name": "A",
-            "query": "{\"homeassistant_sensor_power_w\", entity=\"sensor.homelab_current_consumption\"}"
-          }
-        ],
-        "queryType": "promql"
-      },
-      "selectedLogFields": [],
-      "selectedTracesFields": [],
-      "softMax": 0,
-      "softMin": 0,
-      "thresholds": [],
-      "timePreferance": "GLOBAL_TIME",
-      "title": "Homelab Power Consumption (W)",
-      "yAxisUnit": "watt"
-    }
-  ]
+    "refreshInterval": "",
+    "variables": []
+  }
 }
