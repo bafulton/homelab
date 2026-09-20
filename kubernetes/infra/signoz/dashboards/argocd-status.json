@@ -583,7 +583,16 @@
                 "expression": "(namespace = $namespace AND health_status = 'Progressing')"
               },
               "functions": [],
-              "groupBy": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "name",
+                  "type": "tag"
+                }
+              ],
               "having": {
                 "expression": ""
               },
@@ -723,7 +732,16 @@
                 "expression": "(namespace = $namespace AND health_status = 'Healthy')"
               },
               "functions": [],
-              "groupBy": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "name",
+                  "type": "tag"
+                }
+              ],
               "having": {
                 "expression": ""
               },
@@ -863,7 +881,16 @@
                 "expression": "(namespace = $namespace AND health_status = 'Suspended')"
               },
               "functions": [],
-              "groupBy": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "name",
+                  "type": "tag"
+                }
+              ],
               "having": {
                 "expression": ""
               },
@@ -1003,7 +1030,16 @@
                 "expression": "(namespace = $namespace AND health_status = 'Degraded')"
               },
               "functions": [],
-              "groupBy": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "name",
+                  "type": "tag"
+                }
+              ],
               "having": {
                 "expression": ""
               },

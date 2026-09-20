@@ -915,7 +915,16 @@
                 "expression": "sync_status = 'OutOfSync'"
               },
               "functions": [],
-              "groupBy": [],
+              "groupBy": [
+                {
+                  "dataType": "string",
+                  "id": "name--string--tag--false",
+                  "isColumn": false,
+                  "isJSON": false,
+                  "key": "name",
+                  "type": "tag"
+                }
+              ],
               "having": {
                 "expression": ""
               },
