@@ -164,13 +164,19 @@ patches:
             - 100.64.0.0/10
 
   # Tailscale extension configuration via ExtensionServiceConfig
+  #
+  # NOTE: containerboot registers OAuth client secrets as ephemeral nodes by
+  # default (Tailscale deletes the node soon after it goes offline). Appending
+  # ?ephemeral=false makes the node durable, so a power loss / extended outage
+  # doesn't cause the node to be reaped and re-registered as an ephemeral node
+  # on reconnect.
   - |-
     apiVersion: v1alpha1
     kind: ExtensionServiceConfig
     name: tailscale
     environment:
       - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
-      - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
+      - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
       - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh --advertise-tags=tag:k8s-node
 
   # Kernel modules for Longhorn storage
