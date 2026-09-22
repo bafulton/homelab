@@ -88,7 +88,7 @@ Routes `*.catfish-mountain.com` queries from Tailscale clients to the cluster. C
 - Anything you want accessible remotely but **not** public
 
 ### Cloudflare Tunnel
-Routes specific public subdomains (defined in `terraform/cloudflare/variables.tf`) to the cluster via secure tunnel. Most domains are **private by default** - only explicitly configured subdomains are public.
+Routes specific public subdomains (defined in `opentofu/cloudflare/variables.tf`) to the cluster via secure tunnel. Most domains are **private by default** - only explicitly configured subdomains are public.
 
 **Use for public services:**
 - Personal websites and blogs

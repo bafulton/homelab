@@ -166,7 +166,7 @@ metadata:
 - `*.catfish-mountain.ts.net` → Tailscale network resources (gateway, DNS, physical devices)
 - `*.catfish-mountain.com` → Infrastructure (dashboards, webhooks, etc.) - **private by default**
   - Accessible only via Tailscale Split DNS when connected to tailnet
-  - Specific public exceptions defined in `terraform/cloudflare/variables.tf` (`public_subdomains`)
+  - Specific public exceptions defined in `opentofu/cloudflare/variables.tf` (`public_subdomains`)
 - `*.fultonhuffman.com`, `*.yak-shave.com`, `*.benfulton.me` → Public services
 
 **Cloudflare Tunnel routing** is explicitly controlled:

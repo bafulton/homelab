@@ -21,7 +21,7 @@ Currently, this configuration is applied manually:
    ```
 3. Run OpenTofu:
    ```bash
-   cd terraform/cloudflare
+   cd opentofu/cloudflare
    tofu init    # First time only
    tofu plan    # Review changes
    tofu apply   # Apply changes

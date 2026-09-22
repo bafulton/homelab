@@ -25,12 +25,12 @@ HTTPRoute → Service → Pod
 
 The tunnel is configured in Cloudflare's dashboard with:
 - **Tunnel token**: Stored in Bitwarden, synced as `tunnel-credentials` secret
-- **Public hostnames**: Defined in `terraform/cloudflare/variables.tf` (`public_subdomains`)
+- **Public hostnames**: Defined in `opentofu/cloudflare/variables.tf` (`public_subdomains`)
 - **Tunnel route**: Routes to `http://192.168.1.200:80` (Traefik Gateway)
 
 ### What's Public?
 
-By default, **all domains are private** (accessible only via Tailscale Split DNS). Only subdomains explicitly listed in `terraform/cloudflare/variables.tf` are routed through the tunnel and publicly accessible:
+By default, **all domains are private** (accessible only via Tailscale Split DNS). Only subdomains explicitly listed in `opentofu/cloudflare/variables.tf` are routed through the tunnel and publicly accessible:
 
 ```hcl
 variable "public_subdomains" {
@@ -66,14 +66,14 @@ The tunnel itself is created and configured in Cloudflare's dashboard:
 4. Tunnel token is stored in Bitwarden secret ID `d2f5ee49-1c69-4fc3-b286-b3e10043a1d0`
 
 **Note:** Changing public hostnames requires updating both:
-- `terraform/cloudflare/variables.tf` (declares DNS records)
+- `opentofu/cloudflare/variables.tf` (declares DNS records)
 - Cloudflare Tunnel routes (in dashboard)
 
 ## How Services Become Public
 
 To make a service publicly accessible:
 
-1. Add hostname to `terraform/cloudflare/variables.tf`:
+1. Add hostname to `opentofu/cloudflare/variables.tf`:
    ```hcl
    variable "public_subdomains" {
      default = {
