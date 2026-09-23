@@ -9,9 +9,7 @@ crossplane:
   # https://github.com/crossplane/crossplane/blob/master/cluster/charts/crossplane/values.yaml
 
   # Core just manages packages; the actual tofu work happens in the separate
-  # provider-opentofu pod (sized when that provider is installed). Memory limit
-  # lowered from the chart default (1024Mi) given beelink's memory headroom.
-  # CPU request but no CPU limit, per repo convention (avoid CFS throttling).
+  # provider-opentofu pod (sized when that provider is installed).
   resourcesCrossplane:
     requests:
       cpu: 100m
