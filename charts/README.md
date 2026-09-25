@@ -154,7 +154,7 @@ dependencies:
 Nodes carry a `homelab.io/location` label — `local` for on-prem/LAN nodes
 (beelink, rpi5), `remote` for cloud nodes (e.g. `ocifree`). It expresses *where
 a workload is allowed to run*, orthogonal to the disk-type labels
-(`storage.homelab/emmc|nvme|usb`) that pin storage.
+(`storage.homelab.io/emmc|nvme|usb`) that pin storage.
 
 **Default is "anywhere": most workloads set no location selector** and the
 scheduler is free to place them on any node — including a remote node, which is
@@ -181,7 +181,7 @@ Pin `location: local` when a workload:
   ClickHouse).
 
 **Don't** pin `location: local` on a workload already pinned to a
-local-exclusive constraint — a disk-type label (`storage.homelab/*`) or a
+local-exclusive constraint — a disk-type label (`storage.homelab.io/*`) or a
 specific `kubernetes.io/hostname` (minio→rpi5, jellyfin, time-machine,
 argocd-dex). That selector is already more specific than location; a second key
 is redundant noise. Pin on the most specific real constraint.
