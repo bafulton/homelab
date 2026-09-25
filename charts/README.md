@@ -148,3 +148,49 @@ dependencies:
 ```
 
 **Important**: Only include `mdns-config` if you're actually using the `.routes[].mdns` field in your values.yaml. If you're only using gateway-route for routing without mDNS advertisement (like traefik), you don't need to list mdns-config.
+
+## Placement (node location)
+
+Nodes carry a `homelab.io/location` label — `local` for on-prem/LAN nodes
+(beelink, rpi5), `remote` for cloud nodes (e.g. `ocifree`). It expresses *where
+a workload is allowed to run*, orthogonal to the disk-type labels
+(`storage.homelab/emmc|nvme|usb`) that pin storage.
+
+**Default is "anywhere": most workloads set no location selector** and the
+scheduler is free to place them on any node — including a remote node, which is
+how a cloud node absorbs overflow and relieves memory pressure at home.
+
+Only pin the exceptions, via the upstream chart's own `nodeSelector`:
+
+```yaml
+# values.yaml — keep a workload on LAN nodes only
+<upstream-chart>:
+  nodeSelector:
+    homelab.io/location: local
+```
+
+Pin `location: local` when a workload:
+
+- is **hostNetwork** and needs the LAN (Home Assistant, mDNS advertiser,
+  Matter/Chromecast bridges),
+- does **L2/ARP** for the LAN (MetalLB speaker/controller/frr-k8s),
+- is backed by **Longhorn** storage (mosquitto, SigNoz ClickHouse/Zookeeper) —
+  Longhorn's CSI plugin runs only on local nodes, so the volume can't attach on
+  a remote node, and block I/O over the WAN would be unusable anyway, or
+- has strong **data gravity** to a local store (SigNoz OTel collector → local
+  ClickHouse).
+
+**Don't** pin `location: local` on a workload already pinned to a
+local-exclusive constraint — a disk-type label (`storage.homelab/*`) or a
+specific `kubernetes.io/hostname` (minio→rpi5, jellyfin, time-machine,
+argocd-dex). That selector is already more specific than location; a second key
+is redundant noise. Pin on the most specific real constraint.
+
+Node agents (`node-health`, `smartctl-exporter`, node-feature-discovery, OTel
+node collectors) stay unpinned: they *should* run on every node, remote
+included, so the cloud node is monitored like any other.
+
+Longhorn itself is kept off remote nodes not with a chart `nodeSelector`
+(changing Longhorn's `systemManagedComponentsNodeSelector` on a running cluster
+forces a volume detach), but by marking the remote Longhorn node
+`allowScheduling: false` with no disk at join time.

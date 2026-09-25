@@ -13,6 +13,10 @@ spec:
         app.kubernetes.io/name: mdns-advertiser
     spec:
       serviceAccountName: mdns-advertiser
+      # Placement: local only — hostNetwork mDNS advertiser must be on a LAN node
+      # to broadcast .local records. See charts/README.md "Placement".
+      nodeSelector:
+        homelab.io/location: local
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       containers:

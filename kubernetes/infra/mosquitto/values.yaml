@@ -1,6 +1,12 @@
 namespace: mosquitto
 
 mosquitto:
+  # Placement: local only — LAN MQTT broker (LoadBalancer @ 192.168.1.202) whose
+  # data lives on longhorn-emmc; a remote node has no Longhorn CSI to attach it.
+  # See charts/README.md "Placement".
+  nodeSelector:
+    homelab.io/location: local
+
   # MetalLB LoadBalancer for LAN access (Theengs Gateway, etc.)
   resources:
     requests:

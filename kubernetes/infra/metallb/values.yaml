@@ -19,6 +19,10 @@ metallb:
   # https://github.com/metallb/metallb/blob/main/charts/metallb/values.yaml
 
   controller:
+    # Placement: local (LAN) nodes only — MetalLB does L2/ARP for the LAN pool
+    # and must never run on a remote/cloud node. See charts/README.md "Placement".
+    nodeSelector:
+      homelab.io/location: local
     resources:
       requests:
         memory: 64Mi
@@ -28,6 +32,10 @@ metallb:
 
   speaker:
     logLevel: info
+    # Placement: local (LAN) nodes only — the speaker answers ARP for LAN IPs
+    # (e.g. 192.168.1.200); on a cloud node it would break L2 announcement.
+    nodeSelector:
+      homelab.io/location: local
     resources:
       requests:
         memory: 48Mi
@@ -42,6 +50,9 @@ metallb:
 
   frr-k8s:
     frrk8s:
+      # Placement: local only — frr-k8s is the speaker's L2/BGP backend DaemonSet.
+      nodeSelector:
+        homelab.io/location: local
       resources:
         requests:
           memory: 128Mi

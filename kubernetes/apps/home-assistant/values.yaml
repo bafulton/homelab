@@ -31,6 +31,11 @@ home-assistant:
       - name: ndots
         value: "1"
 
+  # Placement: local only — hostNetwork service that must reach LAN devices
+  # (mDNS/SSDP) and whose config lives on longhorn-emmc. See charts/README.md.
+  nodeSelector:
+    homelab.io/location: local
+
   # Configuration management
   # forceInit: false — only writes configuration.yaml on first boot (when it doesn't exist).
   # After initial setup, configuration.yaml on the PVC is never overwritten by GitOps.

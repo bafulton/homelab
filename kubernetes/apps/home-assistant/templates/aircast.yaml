@@ -20,6 +20,9 @@ spec:
         app.kubernetes.io/name: aircast
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      # Placement: local only — hostNetwork Chromecast/mDNS bridge on the LAN.
+      nodeSelector:
+        homelab.io/location: local
       # hostNetwork required for Chromecast/mDNS discovery on LAN
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet

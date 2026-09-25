@@ -45,6 +45,10 @@ signoz:
     storageClass: longhorn-nvme
 
   clickhouse:
+    # Placement: local only — 50Gi ClickHouse on longhorn-nvme with constant
+    # ingest; data gravity keeps it home. See charts/README.md "Placement".
+    nodeSelector:
+      homelab.io/location: local
     persistence:
       enabled: true
       size: 50Gi
@@ -74,6 +78,9 @@ signoz:
         </clickhouse>
     zookeeper:
       heapSize: 256
+      # Placement: local only — ClickHouse coordination, PVC on longhorn-nvme.
+      nodeSelector:
+        homelab.io/location: local
       podAnnotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9141"
@@ -95,6 +102,10 @@ signoz:
         memory: 4Gi
 
   otelCollector:
+    # Placement: local only — writes to the local ClickHouse; keep it beside the
+    # store rather than shipping all telemetry cloud->home.
+    nodeSelector:
+      homelab.io/location: local
     podAnnotations:
       # SigNoz custom collector uses a non-standard telemetry schema; :8888 is
       # not reachable. Scrape annotation intentionally omitted to avoid
@@ -108,6 +119,9 @@ signoz:
         memory: 1536Mi
 
   signoz:
+    # Placement: local only — signoz app has a longhorn-nvme PVC (signoz-db).
+    nodeSelector:
+      homelab.io/location: local
     persistence:
       enabled: true
       size: 1Gi
