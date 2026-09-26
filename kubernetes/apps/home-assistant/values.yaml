@@ -130,7 +130,7 @@ aircast:
   image:
     repository: 1activegeek/airconnect
     # renovate: datasource=docker depName=1activegeek/airconnect
-    tag: "1.11.3"
+    tag: "1.12.3"
     pullPolicy: IfNotPresent
   resources:
     requests:
