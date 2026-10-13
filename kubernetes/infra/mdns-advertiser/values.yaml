@@ -3,7 +3,7 @@ namespace: mdns-advertiser
 image:
   repository: python
   # renovate: datasource=docker depName=python versioning=docker
-  tag: 3.14-alpine
+  tag: 3.15-alpine
   pullPolicy: IfNotPresent
 
 # Services are now configured in individual apps using the mdns-service shared chart.
