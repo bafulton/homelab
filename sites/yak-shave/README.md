@@ -193,7 +193,22 @@ is ever reused.
 The write-back commit only touches `kubernetes/`, which is not in the
 workflow's path filter, so it cannot retrigger the workflow.
 
+The GHCR package published public on its own, unlike the ones in `images/`
+which needed flipping by hand. If a future replica ever sits in
+`ImagePullBackOff`, check that first.
+
 ### Serving
+
+The image strips `cap_net_bind_service` from the Caddy binary. Upstream sets
+it as a file capability so Caddy can bind :80; the pod runs with
+`capabilities.drop: [ALL]`, and execve refuses a file whose permitted
+capabilities are not in the bounding set — the container dies with
+`exec /usr/bin/caddy: operation not permitted` before writing a log line.
+Serving :8080 means the capability is unnecessary anyway.
+
+Reproduce that locally with `docker run --cap-drop ALL`. Without the flag,
+Docker's default bounding set includes `NET_BIND_SERVICE` and the container
+starts fine, which hides the failure until it reaches the cluster.
 
 Caddy serves `/srv` on :8080, read-only and non-root, with `/config` and
 `/data` as emptyDirs. Two replicas with soft anti-affinity, unpinned so they
@@ -215,19 +230,14 @@ docker run --rm --read-only --user 1000:1000 \
 
 ### Still to do
 
-1. **Make the GHCR package public.** New packages default to private even from
-   a public repo, so after the first successful build, set
-   `ghcr.io/bafulton/yak-shave` to public in its package settings. The symptom
-   of missing this is `ImagePullBackOff` on every replica. Same manual step the
-   images in `images/` needed.
-2. **Three posts are unpublished stand-ins** — `2026-09-02-committed-*`,
+1. **Three posts are unpublished stand-ins** — `2026-09-02-committed-*`,
    `2026-09-18-signoz-*` and `2026-10-15-sign-your-own-pull-requests`. They
    were drafted by Claude and are set `public: false` so they stay in the repo
    without going out under your byline. Rewrite or delete them, then flip the
    flag.
-3. **Self-host the fonts.** They load from Google. Moving them to `@fontsource`
+2. **Self-host the fonts.** They load from Google. Moving them to `@fontsource`
    removes a third-party request from a page served out of the cluster.
-4. **Decide where RSS is advertised.** The feed builds and is declared in
+3. **Decide where RSS is advertised.** The feed builds and is declared in
    `<link rel="alternate">`, so feed readers find it, but no visible link
    points at it.
 

@@ -10,6 +10,20 @@
 #   npm ci && npm run build && docker build -t yak-shave .
 FROM caddy:2.11.7-alpine
 
+# The upstream binary ships cap_net_bind_service as a *file* capability so it
+# can bind :80. We serve :8080 behind Traefik and never need it - and the pod
+# runs with capabilities.drop: [ALL], under which execve refuses a file whose
+# permitted capabilities are not in the bounding set:
+#
+#   exec /usr/bin/caddy: operation not permitted
+#
+# Strip the capability rather than loosening the pod. Reproduce the failure
+# locally with `docker run --cap-drop ALL`; Docker's default bounding set
+# includes NET_BIND_SERVICE, so without that flag it starts fine and hides it.
+RUN apk add --no-cache libcap \
+    && setcap -r /usr/bin/caddy \
+    && apk del libcap
+
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY dist /srv
 

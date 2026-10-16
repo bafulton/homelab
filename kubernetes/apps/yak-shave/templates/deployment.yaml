@@ -28,6 +28,9 @@ spec:
         runAsNonRoot: true
         runAsUser: 1000
         runAsGroup: 1000
+        # Without this the emptyDirs below mount root-owned and 0755, and a
+        # non-root Caddy cannot create /config/caddy or /data/caddy.
+        fsGroup: 1000
       containers:
         - name: caddy
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
