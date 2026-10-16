@@ -58,7 +58,6 @@ spec:
             - -c
             - |
               set -e
-              apk add --no-cache curl jq > /dev/null
 
               echo "Starting health pinger for node: ${NODE_NAME}"
               echo "Ping URL: ${PING_URL}/<key>/${NODE_NAME}"
@@ -150,10 +149,13 @@ spec:
                 sleep "${PING_INTERVAL}"
                 ping_with_retry || true
               done
+          # curl and jq come baked into the image, so nothing needs to write to
+          # the filesystem or run as root any more.
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false  # apk needs to write
-            runAsNonRoot: false  # alpine base needs root for apk
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
             capabilities:
               drop:
                 - ALL

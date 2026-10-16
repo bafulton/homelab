@@ -1,11 +1,16 @@
 namespace: kube-system
 
 image:
-  # Bitnami kubectl includes bash/awk needed for ReplicaSet cleanup scripting.
-  # Bitnami doesn't publish semantic version tags, only 'latest' and sha256 digests.
-  # This is acceptable for a homelab - the image is well-maintained by VMware/Bitnami.
-  repository: bitnami/kubectl
-  tag: "latest"
+  # Was bitnami/kubectl:latest, which publishes no semantic version tags (only
+  # 'latest' + sha256 digests): Renovate couldn't track it, and with
+  # IfNotPresent each node pinned whatever digest it happened to cache first.
+  # The toolbox pins kubectl to one minor of the API server and is Renovate-
+  # tracked. Its ENTRYPOINT is /bin/sh, not kubectl, so the pod-cleanup jobs
+  # set an explicit `command: [kubectl]`; busybox sh/sort/awk cover the
+  # ReplicaSet cleanup scripting that previously wanted bash.
+  repository: ghcr.io/bafulton/homelab-toolbox
+  # renovate: datasource=docker depName=ghcr.io/bafulton/homelab-toolbox
+  tag: "1.0.1"
   pullPolicy: IfNotPresent
 
 podCleanup:

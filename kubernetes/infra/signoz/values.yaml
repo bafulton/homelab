@@ -1,5 +1,15 @@
 namespace: signoz
 
+dashboardSync:
+  image:
+    # Prebuilt toolbox (curl + jq + git + kubectl) instead of `apk add` at job
+    # start, which made every run depend on Alpine's CDN and pulled an unpinned
+    # kubectl that could drift from the API server.
+    repository: ghcr.io/bafulton/homelab-toolbox
+    # renovate: datasource=docker depName=ghcr.io/bafulton/homelab-toolbox
+    tag: "1.0.1"
+    pullPolicy: IfNotPresent
+
 # Ignore Kubernetes runtime defaults that cause perpetual drift
 ignoreDifferences:
   # ClickHouse operator metrics-exporter adds divisor: "0" defaults to resourceFieldRef

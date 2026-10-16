@@ -7,7 +7,7 @@ data:
   sync.sh: |
     #!/bin/sh
     set -e
-    apk add --no-cache curl jq git kubectl
+    # curl, jq, git and kubectl are baked into the toolbox image.
 
     # Clone repo with retries (DNS failures are intermittent)
     # Plain shallow clone avoids promisor remote fetch issues with --filter=blob:none --sparse
