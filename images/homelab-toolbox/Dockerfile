@@ -8,8 +8,10 @@
 FROM alpine:3.24
 
 # kubectl must stay within one minor of the API server (beelink, control-plane).
+# Value carries the leading "v" so it matches kubernetes/kubernetes release tags
+# verbatim and Renovate can rewrite it in place.
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
-ARG KUBECTL_VERSION=1.36.2
+ARG KUBECTL_VERSION=v1.36.2
 ARG TARGETARCH
 
 RUN apk add --no-cache \
@@ -19,7 +21,7 @@ RUN apk add --no-cache \
       jq
 
 RUN curl -fsSLo /usr/local/bin/kubectl \
-      "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
+      "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl" \
     && chmod +x /usr/local/bin/kubectl \
     && kubectl version --client=true
 

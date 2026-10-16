@@ -32,7 +32,19 @@ Each image directory holds a `VERSION` file. The workflow tags the build
 `:<VERSION>` plus `:sha-<commit>`, and Renovate tracks the semver tag in the
 consuming `values.yaml`. **Bump `VERSION` whenever you change a Dockerfile or
 its scripts** — otherwise the new build overwrites an existing tag and nodes
-with `imagePullPolicy: IfNotPresent` keep serving the cached layer.
+with `imagePullPolicy: IfNotPresent` keep serving the cached layer while a
+freshly provisioned node pulls different content under that same tag.
+
+A guard step in the workflow enforces this: if anything under `images/<name>/`
+changes without `images/<name>/VERSION` changing, the build fails. That matters
+because `renovate.json` automerges minor and patch updates once CI is green, and
+a base-image bump edits the Dockerfile without touching `VERSION` — so the guard
+is what turns that into a red check you have to resolve deliberately.
+
+Pinned versions in `ARG <NAME>_VERSION=` lines are tracked by a `customManager`
+in `renovate.json`, keyed off the `# renovate: datasource=... depName=...`
+comment directly above each one. Keep that comment attached or the pin silently
+stops receiving updates.
 
 Both images are built for `linux/amd64` and `linux/arm64` (beelink is amd64;
 rpi5 and ocifree are arm64).

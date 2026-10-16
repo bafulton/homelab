@@ -30,6 +30,53 @@ jobs:
           - mdns-advertiser
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history so the VERSION guard can diff against the base commit.
+          fetch-depth: 0
+
+      # Renovate bumps Dockerfile deps without touching VERSION. Publishing that
+      # would overwrite an existing tag: nodes with imagePullPolicy: IfNotPresent
+      # keep their cached layer while a freshly provisioned node pulls different
+      # content under the same tag. Fail the build instead.
+      - name: Guard - VERSION must change when the image does
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          IMAGE: ${{ matrix.image }}
+          HEAD_SHA: ${{ github.sha }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE="$PR_BASE"
+          else
+            BASE="$PUSH_BASE"
+          fi
+          case "$BASE" in
+            ''|0000000000000000000000000000000000000000)
+              BASE=$(git rev-parse "${HEAD_SHA}^" 2>/dev/null || echo "")
+              ;;
+          esac
+          if [ -z "$BASE" ]; then
+            echo "No base commit to compare against; skipping guard."
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD_SHA" -- "images/${IMAGE}/")
+          if [ -z "$CHANGED" ]; then
+            echo "No changes under images/${IMAGE}/ - nothing to guard."
+            exit 0
+          fi
+
+          echo "Changed under images/${IMAGE}/:"
+          echo "$CHANGED" | sed 's/^/  /'
+
+          if echo "$CHANGED" | grep -qx "images/${IMAGE}/VERSION"; then
+            echo "VERSION was bumped alongside the change."
+            exit 0
+          fi
+
+          echo "::error file=images/${IMAGE}/VERSION::images/${IMAGE}/ changed but VERSION did not. Publishing would overwrite the existing tag and nodes using imagePullPolicy: IfNotPresent would keep the stale cached layer. Bump images/${IMAGE}/VERSION."
+          exit 1
 
       - name: Read image version
         id: meta

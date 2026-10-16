@@ -1,64 +1,116 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": [
+    "config:recommended"
+  ],
   "customManagers": [
     {
       "customType": "regex",
       "description": "Track Talos version in talconfig.yaml",
-      "fileMatch": ["talos/talconfig\\.yaml$"],
-      "matchStrings": ["talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "fileMatch": [
+        "talos/talconfig\\.yaml$"
+      ],
+      "matchStrings": [
+        "talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
       "depNameTemplate": "siderolabs/talos",
       "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",
       "description": "Track Kubernetes version in talconfig.yaml",
-      "fileMatch": ["talos/talconfig\\.yaml$"],
-      "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "fileMatch": [
+        "talos/talconfig\\.yaml$"
+      ],
+      "matchStrings": [
+        "kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
       "depNameTemplate": "kubernetes/kubernetes",
       "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",
       "description": "Track Talos version for Tuppr TalosUpgrade",
-      "fileMatch": ["kubernetes/infra/tuppr/values\\.yaml$"],
-      "matchStrings": ["talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "fileMatch": [
+        "kubernetes/infra/tuppr/values\\.yaml$"
+      ],
+      "matchStrings": [
+        "talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
       "depNameTemplate": "siderolabs/talos",
       "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",
       "description": "Track Kubernetes version for Tuppr KubernetesUpgrade",
-      "fileMatch": ["kubernetes/infra/tuppr/values\\.yaml$"],
-      "matchStrings": ["kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"],
+      "fileMatch": [
+        "kubernetes/infra/tuppr/values\\.yaml$"
+      ],
+      "matchStrings": [
+        "kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
+      ],
       "depNameTemplate": "kubernetes/kubernetes",
       "datasourceTemplate": "github-releases"
     },
     {
       "customType": "regex",
       "description": "Track argocd-diff-preview Docker image in GitHub Actions",
-      "fileMatch": ["\\.github/workflows/.*\\.yaml$"],
-      "matchStrings": ["dagandersen/argocd-diff-preview:(?<currentValue>v[\\d\\.]+)"],
+      "fileMatch": [
+        "\\.github/workflows/.*\\.yaml$"
+      ],
+      "matchStrings": [
+        "dagandersen/argocd-diff-preview:(?<currentValue>v[\\d\\.]+)"
+      ],
       "depNameTemplate": "dagandersen/argocd-diff-preview",
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Track pinned versions in images/*/Dockerfile ARG lines",
+      "fileMatch": [
+        "^images/[^/]+/Dockerfile$"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+?)(?: versioning=(?<versioning>\\S+))?\\s+ARG \\w+_VERSION=(?<currentValue>\\S+)"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
   ],
   "packageRules": [
     {
       "description": "Automerge minor and patch updates (after CI passes)",
-      "matchUpdateTypes": ["minor", "patch"],
+      "matchUpdateTypes": [
+        "minor",
+        "patch"
+      ],
       "automerge": true
     },
     {
       "description": "Never automerge major updates",
-      "matchUpdateTypes": ["major"],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false
     },
     {
       "description": "Group Talos, Kubernetes, and kubectl together, never automerge",
-      "matchPackageNames": ["siderolabs/talos", "kubernetes/kubernetes", "registry.k8s.io/kubectl"],
+      "matchPackageNames": [
+        "siderolabs/talos",
+        "kubernetes/kubernetes",
+        "registry.k8s.io/kubectl"
+      ],
       "groupName": "talos-kubernetes",
       "automerge": false
+    },
+    {
+      "description": "Hold the python kubernetes client below v36 - auth_settings() regression: https://github.com/kubernetes-client/python/issues/2582",
+      "matchDatasources": [
+        "pypi"
+      ],
+      "matchPackageNames": [
+        "kubernetes"
+      ],
+      "allowedVersions": "<36"
     }
   ]
 }
