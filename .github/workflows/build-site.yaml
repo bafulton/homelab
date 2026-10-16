@@ -66,7 +66,7 @@ jobs:
       # both architectures are a file copy rather than an emulated npm install.
       # Pull requests build without pushing, so a broken Dockerfile fails review.
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: sites/yak-shave
           platforms: linux/amd64,linux/arm64
