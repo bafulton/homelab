@@ -119,3 +119,9 @@ mdns-config:
 For each service in `services`:
 
 - **ConfigMap**: `<release>-mdns-<hostname>` with label `mdns.homelab.io/advertise: "true"`
+
+The service definition is stored under the `config.json` key. JSON rather than
+YAML so the advertiser parses it with the standard library instead of declaring
+PyYAML as a direct dependency. (PyYAML still arrives transitively via the
+kubernetes client, so the advertiser image builds it in a builder stage — see
+[`images/mdns-advertiser/`](../../images/mdns-advertiser/).)

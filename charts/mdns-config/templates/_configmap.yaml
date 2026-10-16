@@ -7,19 +7,14 @@ metadata:
   labels:
     mdns.homelab.io/advertise: "true"
 data:
-  config.yaml: |
-    name: {{ .service.name | quote }}
-    hostname: {{ .service.hostname | quote }}
-    ip: {{ .service.ip | quote }}
-    port: {{ .service.port }}
-    types:
-    {{- range .service.types }}
-      - type: {{ .type | quote }}
-        {{- if .txtRecords }}
-        txtRecords:
-          {{- range .txtRecords }}
-          - {{ . | quote }}
-          {{- end }}
-        {{- end }}
-    {{- end }}
+  # JSON so the advertiser can parse with stdlib json and carry no PyYAML
+  # dependency. Built as an explicit dict rather than `toJson .service` so
+  # callers passing extra keys under `mdns:` don't leak into the payload.
+  config.json: {{ dict
+      "name" .service.name
+      "hostname" .service.hostname
+      "ip" .service.ip
+      "port" (.service.port | int)
+      "types" .service.types
+    | toJson | quote }}
 {{- end }}

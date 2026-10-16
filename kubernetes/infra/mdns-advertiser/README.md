@@ -1,6 +1,8 @@
 # mdns-advertiser
 
-Central mDNS advertisement service for LAN device discovery. Runs a Python script that advertises services via Zeroconf/Bonjour.
+Central mDNS advertisement service for LAN device discovery. Advertises services
+via Zeroconf/Bonjour using the prebuilt `ghcr.io/bafulton/mdns-advertiser` image
+(built from [`images/mdns-advertiser/`](../../../images/mdns-advertiser/)).
 
 ## How It Works
 
@@ -69,4 +71,10 @@ Test mDNS resolution from a Mac:
 ```bash
 dns-sd -B _http._tcp local.
 dns-sd -L "Home Assistant" _http._tcp local.
+```
+
+`dns-sd` buffers its output when stdout isn't a terminal, so it prints nothing
+when piped or captured. Give it a pty to script against it:
+```bash
+script -q /dev/null timeout 5 dns-sd -B _adisk._tcp local
 ```
