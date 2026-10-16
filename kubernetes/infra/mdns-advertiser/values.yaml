@@ -11,10 +11,7 @@ image:
 
 resources:
   requests:
-    memory: 128Mi
+    memory: 64Mi
     cpu: 10m
   limits:
-    # 128Mi was too tight once the base image moved to python:3.15-alpine (#474):
-    # the runtime `pip install` of zeroconf + kubernetes + pyyaml OOMKilled the
-    # container in a loop, so mDNS records never stayed registered.
-    memory: 256Mi
+    memory: 128Mi
