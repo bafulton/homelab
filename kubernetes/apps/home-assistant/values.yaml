@@ -207,10 +207,10 @@ signoz-alerts:
 
     - name: Smart Home Device Offline
       description: >-
-        A smart home peripheral has been unavailable in Home Assistant for 10+
+        A smart home peripheral has been unavailable in Home Assistant for 15+
         minutes. Covers: Govee BLE sensors (H5140 CO2, H5106 PM2.5), Meross
-        MTS960 thermostat, SwitchBot Hub 2 (via Matter temperature sensor),
-        and Brother MFC-L2710DW printer.
+        MTS960 thermostat, and SwitchBot Hub 2 (via Matter temperature sensor).
+        The Brother printer has its own rule with a longer window.
       summary: "Smart home device offline: {{friendly_name}} ({{entity}})"
       severity: warning
       type: threshold
@@ -221,8 +221,7 @@ signoz-alerts:
         entity IN ('sensor.govee_co2_sensor_h5140_tempc',
         'sensor.govee_pm2_5_sensor_h5106_tempc',
         'climate.mts960_844f_heater_cooler',
-        'sensor.hub_2_tempsensor_temperature',
-        'sensor.mfc_l2710dw_status')
+        'sensor.hub_2_tempsensor_temperature')
       groupBy:
         - entity
         - friendly_name
@@ -230,4 +229,29 @@ signoz-alerts:
       op: "<"
       threshold: 1
       evalWindow: 15m0s
+      matchType: "2"
+
+    # Split out of Smart Home Device Offline: the printer is non-critical and
+    # drops off the network for 20-25 minutes at a time during normal use, so
+    # the 15m window paged roughly weekly for nothing. A full continuous hour
+    # of unavailability is the signal that it is actually having problems.
+    - name: Printer Offline
+      description: >-
+        The Brother MFC-L2710DW printer has been unavailable in Home Assistant
+        for a full hour. Shorter dropouts are normal for this device and are
+        deliberately not alerted on.
+      summary: "Printer offline: {{friendly_name}} ({{entity}})"
+      severity: warning
+      type: threshold
+      metric: homeassistant_entity_available
+      timeAggregation: min
+      spaceAggregation: min
+      filter: "entity = 'sensor.mfc_l2710dw_status'"
+      groupBy:
+        - entity
+        - friendly_name
+      legend: "{{friendly_name}}"
+      op: "<"
+      threshold: 1
+      evalWindow: 1h0m0s
       matchType: "2"
