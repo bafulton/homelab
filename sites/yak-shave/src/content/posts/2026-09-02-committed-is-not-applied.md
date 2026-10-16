@@ -18,7 +18,7 @@ tags:
   - tailscale
   - gitops
   - drift
-public: false
+public: true
 ---
 
 I was doing something else entirely. Renaming node labels, with the Tailscale

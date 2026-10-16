@@ -11,7 +11,7 @@ tags:
   - pull-requests
   - code-review
   - process
-public: false
+public: true
 ---
 
 Every agentic coding tool wants to sign its work. Claude Code appends a

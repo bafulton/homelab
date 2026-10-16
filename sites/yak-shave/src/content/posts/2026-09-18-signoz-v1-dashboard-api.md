@@ -17,7 +17,7 @@ tags:
   - observability
   - gitops
   - api-migration
-public: false
+public: true
 ---
 
 My dashboards are IaC. Twelve JSON files in the repo, and a PostSync CronJob
