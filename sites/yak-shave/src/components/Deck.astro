@@ -1,0 +1,103 @@
+---
+/**
+ * The descent, drawn as a Victorian multi-deck headline.
+ *
+ * Nineteenth-century papers stacked progressively smaller subheads so you
+ * could read the shape of a story before the first paragraph. A yak-shaving
+ * post has exactly that shape, so the frontmatter's `descent` gets the same
+ * treatment: each rung steps further right than the one above it, and the
+ * indent is the argument.
+ */
+interface Props {
+  descent: string[];
+  /** Section slugs, one per rung, when the post has a section for each. */
+  anchors?: string[];
+  compact?: boolean;
+}
+const { descent, anchors, compact = false } = Astro.props;
+---
+
+<ol class:list={["deck", compact && "deck--compact"]}>
+  {
+    descent.map((rung, i) => (
+      <li style={`--i:${i}`}>
+        <span class="deck__n">{String(i + 1).padStart(2, "0")}</span>
+        {
+          anchors?.[i] ? (
+            <a class="deck__t" href={`#${anchors[i]}`}>
+              {rung}
+            </a>
+          ) : (
+            <span class="deck__t">{rung}</span>
+          )
+        }
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .deck {
+    --step: 0.9rem;
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 0.85rem;
+    border-left: var(--rule-mid) solid var(--ink);
+  }
+
+  .deck li {
+    display: flex;
+    gap: 0.6rem;
+    align-items: baseline;
+    /* Capped at five steps: past that the indent eats the measure on a phone
+       and stops reading as descent. */
+    padding-left: calc(min(var(--i), 5) * var(--step));
+    padding-block: 0.22rem;
+  }
+
+  .deck__n {
+    font-family: var(--text);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--ink-3);
+    flex: none;
+    /* Lining so the numerals share a height, tabular so they stay in
+       column as the text indents. */
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  .deck__t {
+    font-family: var(--text);
+    font-size: 0.8125rem;
+    line-height: 1.45;
+    color: var(--ink-2);
+  }
+
+  /* Quiet by default so the ladder still reads as a ladder, not a menu. */
+  a.deck__t {
+    color: inherit;
+    text-decoration: none;
+    text-decoration-color: var(--hairline);
+  }
+  a.deck__t:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+
+  .deck--compact .deck__t {
+    font-size: 0.75rem;
+  }
+
+  /* The last rung is the actual cause, so it stops being a whisper. */
+  .deck li:last-child .deck__t {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  @media (max-width: 34rem) {
+    .deck {
+      --step: 0.45rem;
+    }
+  }
+</style>

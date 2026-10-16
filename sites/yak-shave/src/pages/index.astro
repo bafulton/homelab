@@ -1,0 +1,32 @@
+---
+import Paper from "../layouts/Paper.astro";
+import Article from "../components/Article.astro";
+import { getPosts } from "../lib/posts";
+
+// The front page is the latest post. Its canonical URL is its own /blog/ one,
+// so sharing the front page and sharing the post never disagree, and the link
+// someone saved does not quietly become a different article next month.
+const posts = await getPosts();
+const latest = posts[0];
+---
+
+{
+  latest ? (
+    <Paper
+      title="Yak Shave"
+      description={latest.entry.data.summary}
+      path={`/blog/${latest.slug}/`}
+      current={latest.slug}
+    >
+      <Article post={latest} permalink />
+    </Paper>
+  ) : (
+    <Paper
+      title="Yak Shave"
+      description="Depth-first notes from a homelab, and ruminations on building software with AI."
+      path="/"
+    >
+      <p>Nothing published yet. Posts need <code>public: true</code>.</p>
+    </Paper>
+  )
+}

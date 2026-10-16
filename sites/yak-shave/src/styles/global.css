@@ -1,0 +1,227 @@
+@import "./tokens.css";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--text);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  font-synthesis-weight: none;
+}
+
+/* The page gutter is set once, here, and never with a `padding` shorthand
+   that could zero the sides out further down. */
+.sheet {
+  max-width: var(--page);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
+}
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: var(--rule-mid) solid var(--ink);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--text);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.006em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+/* Rules do structural work here, so they are elements, not borders-by-accident. */
+.rule {
+  border: 0;
+  border-top: var(--rule-heavy) solid var(--ink);
+  margin: 0;
+}
+.rule--mid {
+  border-top-width: var(--rule-mid);
+}
+.rule--hair {
+  border-top-width: var(--rule-hair);
+  border-top-color: var(--hairline);
+}
+
+/* The only "accent": ink and paper swapped. */
+.invert {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.meta {
+  font-family: var(--text);
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Rendered markdown ---- */
+.prose {
+    max-width: var(--measure);
+    margin-top: 2.5rem;
+  }
+  .prose > * + * {
+    margin-top: 1.1em;
+  }
+  .prose h2 {
+    font-size: 1.6rem;
+    scroll-margin-top: 1.5rem;
+    margin-top: 2.4em;
+    padding-top: 0.5rem;
+    border-top: var(--rule-mid) solid var(--ink);
+  }
+  .prose h3 {
+    font-size: 1.2rem;
+    margin-top: 2em;
+  }
+  .prose a {
+    text-decoration: underline;
+  }
+  .prose strong {
+    font-weight: 600;
+  }
+  .prose blockquote {
+    margin-inline: 0;
+    padding-left: 1rem;
+    border-left: var(--rule-mid) solid var(--ink);
+    font-style: italic;
+    color: var(--ink-2);
+  }
+  .prose ul,
+  .prose ol {
+    padding-left: 1.2rem;
+  }
+  .prose li + li {
+    margin-top: 0.35em;
+  }
+  .prose code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--band);
+    padding: 0.1em 0.3em;
+  }
+  .prose pre {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+    border: var(--rule-mid) solid var(--ink);
+    /* Shiki writes its own background; a one-ink page overrides it. */
+    background: var(--band) !important;
+  }
+  .prose pre code {
+    background: none;
+    padding: 0;
+    /* Monochrome page, monochrome code: keep the token weights, drop the hue. */
+    filter: grayscale(1) contrast(1.1);
+  }
+  :root[data-theme="dark"] .prose pre code,
+  :root:not([data-theme="light"]) .prose pre code {
+    filter: grayscale(1) invert(1) contrast(1.05);
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .prose pre code {
+      filter: grayscale(1) contrast(1.1);
+    }
+  }
+  /* Tables carry real weight in these posts, so they get newsprint rules:
+     heavy above, mid under the head, hairline between rows. `display:block`
+     is what lets a wide one scroll on a phone instead of forcing the page
+     sideways. */
+  .prose table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+    border-top: var(--rule-heavy) solid var(--ink);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .prose thead th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+    padding: 0.45rem 1.1rem 0.45rem 0;
+    border-bottom: var(--rule-mid) solid var(--ink);
+  }
+  .prose tbody td {
+    padding: 0.45rem 1.1rem 0.45rem 0;
+    vertical-align: top;
+    font-variant-numeric: tabular-nums;
+    border-bottom: var(--rule-hair) solid var(--hairline);
+  }
+  .prose tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .prose table code {
+    background: none;
+    padding: 0;
+    font-size: 0.85em;
+  }
+
+  .prose img,
+  .prose svg {
+    max-width: 100%;
+    height: auto;
+  }
+  .prose hr {
+    border: 0;
+    border-top: var(--rule-hair) solid var(--hairline);
+  }

@@ -1,0 +1,23 @@
+---
+import Paper from "../layouts/Paper.astro";
+---
+
+<Paper title="Not found · Yak Shave" description="No such page." path="/">
+  <h1 class="gone">Shaved too far</h1>
+  <p class="gone__body">
+    There is nothing at this address. The rail on the left has everything
+    there is.
+  </p>
+</Paper>
+
+<style>
+  .gone {
+    font-size: clamp(2rem, 7vw, 3.4rem);
+  }
+  .gone__body {
+    margin-top: 1rem;
+    max-width: var(--measure);
+    font-style: italic;
+    color: var(--ink-2);
+  }
+</style>

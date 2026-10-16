@@ -1,0 +1,61 @@
+# yak-shave.com - the blog.
+#
+# Source, design and posts live in sites/yak-shave/. CI builds the static site,
+# bakes it into an image tagged with the commit, and writes that tag into
+# `image.tag` below, so publishing a post is one push to main and nothing here
+# is edited by hand.
+#
+# Access:
+#   - Public: https://yak-shave.com (via Cloudflare Tunnel)
+#   - www redirects to the apex
+#
+# No OpenTofu changes were needed: opentofu/cloudflare already gives
+# yak-shave.com an apex and wildcard CNAME to the tunnel, routes both to
+# Traefik, and Cloudflare Universal SSL covers the certificate.
+
+namespace: yak-shave
+
+image:
+  repository: ghcr.io/bafulton/yak-shave
+  # Written by .github/workflows/build-site.yaml on every push to main.
+  # Immutable per commit, so there is no tag to overwrite and no VERSION to
+  # remember to bump - the failure mode the images/ guard exists for cannot
+  # happen here. Renovate deliberately does not track this.
+  tag: "sha-unbuilt"
+  pullPolicy: IfNotPresent
+
+# Two, spread across nodes: the site is stateless, so a node reboot or a
+# Longhorn drain should never take the blog off the internet.
+replicaCount: 2
+
+resources:
+  requests:
+    memory: 32Mi
+    cpu: 10m
+  limits:
+    memory: 96Mi
+
+gateway-route:
+  routes:
+    - name: apex
+      hostnames:
+        - yak-shave.com
+      service:
+        name: yak-shave
+        port: 80
+    # www exists because the wildcard CNAME answers for it; without a route of
+    # its own Traefik would 404. Redirect rather than serve, so there is one
+    # canonical host.
+    - name: www
+      hostnames:
+        - www.yak-shave.com
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: RequestRedirect
+              requestRedirect:
+                hostname: yak-shave.com
+                statusCode: 301

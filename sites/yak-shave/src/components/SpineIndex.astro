@@ -1,0 +1,99 @@
+---
+import { formatDay, type KindGroup } from "../lib/posts";
+
+interface Props {
+  groups: KindGroup[];
+  current?: string;
+}
+const { groups, current } = Astro.props;
+---
+
+<nav class="spine" aria-label="All posts">
+  {
+    groups.map((group) => (
+      <section class="spine__group">
+        <p class="spine__label">{group.label}</p>
+        <ul>
+          {group.posts.map((post) => (
+            <li>
+              <a
+                href={`/blog/${post.slug}/`}
+                aria-current={post.slug === current ? "page" : undefined}
+              >
+                <span class="spine__date">
+                  {formatDay(post.entry.data.date)}
+                </span>
+                <span class="spine__title">{post.entry.data.title}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))
+  }
+</nav>
+
+<style>
+  .spine {
+    font-family: var(--text);
+  }
+
+  .spine__group + .spine__group {
+    margin-top: 1.75rem;
+  }
+
+  .spine__label {
+    font-family: var(--text);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1.4;
+    margin: 0 0 0.2rem;
+    padding-bottom: 0.4rem;
+    border-bottom: var(--rule-mid) solid var(--ink);
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    border-bottom: var(--rule-hair) solid var(--hairline);
+  }
+
+  li a {
+    display: block;
+    padding-block: 0.55rem;
+    text-decoration: none;
+    color: var(--ink-2);
+  }
+  li a:hover {
+    color: var(--ink);
+  }
+
+  .spine__date {
+    display: block;
+    font-variant-numeric: lining-nums tabular-nums;
+    font-size: 0.5625rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    margin-bottom: 0.15rem;
+  }
+
+  .spine__title {
+    display: block;
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  li a[aria-current] .spine__title {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  li a[aria-current] .spine__date {
+    color: var(--ink-2);
+  }
+</style>

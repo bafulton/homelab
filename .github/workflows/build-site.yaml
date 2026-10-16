@@ -1,0 +1,108 @@
+name: Build Site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'sites/yak-shave/**'
+      - '.github/workflows/build-site.yaml'
+  pull_request:
+    paths:
+      - 'sites/yak-shave/**'
+      - '.github/workflows/build-site.yaml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: sites/yak-shave/package-lock.json
+
+      # The site's own schema does the content checking: a filename whose date
+      # disagrees with its frontmatter, a shave with one rung, a descent rung
+      # whose wording has drifted from the section it links to - each of those
+      # fails right here rather than reaching the internet.
+      - name: Build the site
+        working-directory: sites/yak-shave
+        run: |
+          npm ci
+          npm run build
+
+      - name: Check the build produced a site
+        working-directory: sites/yak-shave
+        run: |
+          for f in dist/index.html dist/404.html dist/rss.xml dist/sitemap-index.xml; do
+            test -s "$f" || { echo "::error::$f missing or empty"; exit 1; }
+          done
+          posts=$(find dist/blog -name index.html | wc -l)
+          echo "Built $(find dist -name '*.html' | wc -l) pages, $posts posts."
+          [ "$posts" -gt 0 ] || { echo "::error::no posts were published"; exit 1; }
+
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Only the Caddy base and the already-built dist/ go into the image, so
+      # both architectures are a file copy rather than an emulated npm install.
+      # Pull requests build without pushing, so a broken Dockerfile fails review.
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: sites/yak-shave
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ghcr.io/${{ github.repository_owner }}/yak-shave:sha-${{ github.sha }}
+          provenance: false
+          cache-from: type=gha,scope=yak-shave
+          cache-to: type=gha,mode=max,scope=yak-shave
+
+      # This is what removes the per-post ceremony: no VERSION to bump, no
+      # values.yaml to edit by hand. The tag is immutable per commit, so the
+      # stale-cached-layer problem the images/ guard exists for cannot happen.
+      #
+      # It cannot loop: this commit only touches kubernetes/, which is not in
+      # the paths filter above.
+      - name: Point the chart at the new image
+        if: github.event_name == 'push'
+        env:
+          TAG: sha-${{ github.sha }}
+          VALUES: kubernetes/apps/yak-shave/values.yaml
+        run: |
+          matches=$(grep -cE '^  tag: ' "$VALUES")
+          if [ "$matches" != "1" ]; then
+            echo "::error file=$VALUES::expected exactly one '  tag:' line, found $matches"
+            exit 1
+          fi
+          sed -i -E "s|^  tag: .*|  tag: \"${TAG}\"|" "$VALUES"
+
+          if git diff --quiet -- "$VALUES"; then
+            echo "Chart already points at ${TAG}."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$VALUES"
+          git commit -m "chore(yak-shave): deploy ${TAG}"
+          git push
+          echo "Chart now points at ${TAG}; ArgoCD will sync it."

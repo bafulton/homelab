@@ -1,0 +1,156 @@
+---
+import { render } from "astro:content";
+import Deck from "./Deck.astro";
+import Thesis from "./Thesis.astro";
+import { formatDay, type Post } from "../lib/posts";
+
+interface Props {
+  post: Post;
+  /** True on the front page, where the title links to the post's own URL. */
+  permalink?: boolean;
+}
+const { post, permalink = false } = Astro.props;
+const { data } = post.entry;
+const { Content, headings } = await render(post.entry);
+
+// Narrow once here so the template can branch without TypeScript losing the
+// discriminated union inside JSX expressions.
+const shave = data.kind === "shave" ? data : null;
+const rumination = data.kind === "rumination" ? data : null;
+const href = `/blog/${post.slug}/`;
+
+// A shave's prose is written as one section per rung, so the ladder can double
+// as navigation. Wire it up only when the post really does have a heading for
+// every rung: a ladder where some rungs jump and others do not is worse than
+// one that never moves, and posts whose prose is shaped differently simply
+// keep a plain deck.
+const sections = headings.filter((h) => h.depth === 2);
+const deckAnchors =
+  shave && sections.length >= shave.descent.length
+    ? sections.slice(0, shave.descent.length).map((h) => h.slug)
+    : undefined;
+
+// A rung and the section it points at are the same claim, so they get the same
+// words. Checked rather than trusted: the two live in different halves of the
+// file and would otherwise drift the first time a heading is reworded.
+if (shave && deckAnchors) {
+  shave.descent.forEach((rung, i) => {
+    if (rung !== sections[i]!.text) {
+      throw new Error(
+        `Post "${post.slug}": descent rung ${i + 1} reads "${rung}" but ` +
+          `section ${i + 1} is headed "${sections[i]!.text}". A linked ladder ` +
+          `must use the section's own heading text.`,
+      );
+    }
+  });
+}
+---
+
+<article>
+  <header class="head">
+    <h1>{permalink ? <a href={href}>{data.title}</a> : data.title}</h1>
+    <p class="head__summary">{data.summary}</p>
+
+    {/* Byline and dateline sit under the headline, where a paper puts them.
+        The kind is not repeated here - the rail already says which it is. */}
+    <p class="head__meta">
+      <span>Ben Fulton</span>
+      <span class="head__dot">&middot;</span>
+      <time datetime={data.date}>{formatDay(data.date)}</time>
+    </p>
+
+    <hr class="rule rule--mid" />
+
+    {
+      shave && (
+        <>
+          <p class="head__decklabel">How far down it went</p>
+          <Deck descent={shave.descent} anchors={deckAnchors} />
+          <p class="head__resolution">
+            <span class="head__resolution-label invert">The fix</span>
+            <span>{shave.resolution}</span>
+          </p>
+        </>
+      )
+    }
+
+    {rumination && <Thesis thesis={rumination.thesis} label />}
+  </header>
+
+  <div class="prose">
+    <Content />
+  </div>
+
+</article>
+
+
+<style>
+  .head__meta {
+    display: flex;
+    font-variant-numeric: lining-nums tabular-nums;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1.2rem 0 1.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .head__dot {
+    color: var(--hairline);
+  }
+
+  .head h1 {
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    /* Wide enough that a long title sets in two lines rather than three;
+       narrow enough to stay a headline rather than a paragraph. */
+    max-width: 24ch;
+  }
+  .head h1 a {
+    text-decoration: none;
+  }
+  .head h1 a:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+  }
+
+  .head__summary {
+    margin: 0.9rem 0 0;
+    max-width: var(--measure);
+    font-style: italic;
+    font-size: 1.0625rem;
+    color: var(--ink-2);
+  }
+
+  .head__decklabel {
+    margin: 1.1rem 0 0.6rem;
+    font-family: var(--text);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .head__resolution {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 1.4rem 0 0;
+    max-width: var(--measure);
+    font-family: var(--text);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+  .head__resolution-label {
+    flex: none;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+
+</style>

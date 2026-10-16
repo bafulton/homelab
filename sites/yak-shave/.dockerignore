@@ -1,0 +1,10 @@
+# Only the Caddyfile and the built site belong in the image.
+node_modules
+src
+public
+.astro
+*.md
+*.json
+*.mjs
+Dockerfile
+.dockerignore

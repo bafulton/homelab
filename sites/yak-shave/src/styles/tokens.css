@@ -1,0 +1,54 @@
+/*
+ * Newsprint brutalism, monochrome.
+ *
+ * There is no accent colour. Emphasis is carried by inverting ink and paper,
+ * by rule weight, and by type size — the way a one-ink press had to do it.
+ * Keeping the palette to two values is also what lets the whole site survive
+ * being printed, screenshotted, or read in a terminal browser.
+ *
+ * Every colour is defined once on bare :root. The dark blocks only swap the
+ * two ground values; nothing else needs to know.
+ */
+
+:root {
+  --paper: #fffef8;
+  --ink: #121210;
+
+  /* Mixed from the two grounds so the dark theme derives for free. */
+  --ink-2: color-mix(in srgb, var(--ink) 72%, var(--paper));
+  --ink-3: color-mix(in srgb, var(--ink) 52%, var(--paper));
+  --hairline: color-mix(in srgb, var(--ink) 22%, var(--paper));
+  --band: color-mix(in srgb, var(--ink) 5%, var(--paper));
+
+  /* One typeface. Newsreader is a news text face: it holds up at headline
+     sizes without Bodoni's hairline serifs, which is what made the old
+     headlines hard to read. Mono appears only where monospacing does real
+     work - console output, YAML, code - never as a second voice. */
+  --text: "Newsreader", Georgia, "Times New Roman", Times, serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --rule-heavy: 4px;
+  --rule-mid: 2px;
+  --rule-hair: 1px;
+
+  /* ~68 characters of Spectral at the body size: a newspaper column measure. */
+  --measure: 36rem;
+  --gutter: clamp(1rem, 5vw, 3rem);
+  --page: 60rem;
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #100f0d;
+    --ink: #f2efe4;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #100f0d;
+  --ink: #f2efe4;
+  color-scheme: dark;
+}

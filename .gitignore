@@ -20,3 +20,8 @@ talos/.env
 opentofu/**/*.tfstate*
 opentofu/**/.terraform/
 memory/
+
+# Static site build artefacts (sites/yak-shave)
+sites/*/node_modules/
+sites/*/dist/
+sites/*/.astro/

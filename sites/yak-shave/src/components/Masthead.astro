@@ -1,0 +1,95 @@
+---
+import Yak from "./Yak.astro";
+---
+
+<header class="masthead">
+  <button type="button" id="theme-toggle" class="scheme" aria-label="Switch colour scheme">
+    <svg class="light-only" viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
+      <circle cx="8" cy="8" r="3.1" fill="none" stroke="currentColor" stroke-width="1.3"></circle>
+      <g stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"></path>
+      </g>
+    </svg>
+    <svg class="dark-only" viewBox="0 0 16 16" width="17" height="17" aria-hidden="true">
+      <path d="M10.6 2.2A6 6 0 1 0 13.9 9.6 5 5 0 0 1 10.6 2.2z" fill="none"
+        stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"></path>
+    </svg>
+  </button>
+
+  <a class="nameplate" href="/" aria-label="Yak Shave, home">
+    <span class="nameplate__yak"><Yak /></span>
+    <span class="sr-only">Yak Shave</span>
+  </a>
+
+  <hr class="rule rule--mid" />
+</header>
+
+<style>
+  .masthead {
+    position: relative;
+    padding-top: 0.5rem;
+  }
+
+  /* Top right, which is where a reader already looks for this. Absolute
+     rather than fixed so it scrolls away instead of sitting on the text. */
+  .scheme {
+    position: absolute;
+    top: 0.5rem;
+    right: 0;
+    display: flex;
+    padding: 0.4rem;
+    color: var(--ink-3);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .scheme:hover {
+    color: var(--ink);
+  }
+
+  /* The yak is the whole nameplate: no wordmark, no standing line. */
+  .nameplate {
+    display: flex;
+    justify-content: center;
+    padding-block: 1.5rem 1.4rem;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .nameplate__yak {
+    display: block;
+    width: min(100%, 24rem);
+  }
+  .nameplate__yak :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+</style>
+
+<style is:global>
+  /* Glyph swap lives global so it can read the root theme attribute. */
+  .dark-only {
+    display: none;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .dark-only {
+      display: inline;
+    }
+    :root:not([data-theme="light"]) .light-only {
+      display: none;
+    }
+  }
+  :root[data-theme="dark"] .dark-only {
+    display: inline;
+  }
+  :root[data-theme="dark"] .light-only {
+    display: none;
+  }
+  :root[data-theme="light"] .dark-only {
+    display: none;
+  }
+  :root[data-theme="light"] .light-only {
+    display: inline;
+  }
+</style>

@@ -1,0 +1,51 @@
+---
+/**
+ * A rumination's equivalent of the descent deck.
+ *
+ * A shave descends, so it gets a ladder. A rumination takes a position, so it
+ * gets the thing an editorial page gives a position: one sentence, set large,
+ * under a rule. If it cannot be said in a line it is not finished being
+ * thought about, which is why the schema caps it.
+ */
+interface Props {
+  thesis: string;
+  compact?: boolean;
+  label?: boolean;
+}
+const { thesis, compact = false, label = false } = Astro.props;
+---
+
+<div class:list={["thesis", compact && "thesis--compact"]}>
+  {label && <p class="thesis__label">The claim</p>}
+  <p class="thesis__text">{thesis}</p>
+</div>
+
+<style>
+  .thesis {
+    border-left: var(--rule-mid) solid var(--ink);
+    padding-left: 0.95rem;
+  }
+
+  .thesis__label {
+    margin: 0 0 0.4rem;
+    font-family: var(--text);
+    font-size: 0.6875rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .thesis__text {
+    margin: 0;
+    font-family: var(--text);
+    font-size: clamp(1.25rem, 3.4vw, 1.75rem);
+    line-height: 1.22;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    max-width: 30ch;
+  }
+
+  .thesis--compact .thesis__text {
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
+  }
+</style>

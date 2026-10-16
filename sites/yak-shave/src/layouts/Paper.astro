@@ -1,0 +1,54 @@
+---
+import Base from "./Base.astro";
+import Masthead from "../components/Masthead.astro";
+import SpineIndex from "../components/SpineIndex.astro";
+import { getPosts, groupByKind } from "../lib/posts";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Canonical path. The front page passes the post's own /blog/ URL. */
+  path: string;
+  current?: string;
+}
+const { title, description, path, current } = Astro.props;
+const groups = groupByKind(await getPosts());
+---
+
+<Base title={title} description={description} path={path}>
+  <div class="sheet">
+    <Masthead />
+
+    <div class="journal">
+      <aside class="journal__spine">
+        <SpineIndex groups={groups} current={current} />
+      </aside>
+
+      <main>
+        <slot />
+      </main>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .journal {
+    display: grid;
+    gap: 2.5rem;
+    padding-top: 1.75rem;
+  }
+
+  @media (min-width: 52rem) {
+    .journal {
+      grid-template-columns: 13rem 1fr;
+      gap: 3rem;
+    }
+    .journal__spine {
+      position: sticky;
+      top: 2rem;
+      align-self: start;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+  }
+</style>
