@@ -57,5 +57,6 @@ gateway-route:
           filters:
             - type: RequestRedirect
               requestRedirect:
+                scheme: https
                 hostname: yak-shave.com
                 statusCode: 301
