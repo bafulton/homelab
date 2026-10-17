@@ -27,7 +27,6 @@ descent:                     # 2-8 rungs, symptom first, cause last
   - Time Machine says the backup disk is unavailable
   - The disk is fine - nothing is advertising it over mDNS
   - The mDNS advertiser has been OOMKilled 296 times
-resolution: One line, what actually ended the descent.
 tags: [kubernetes, homelab, mdns]   # up to 6, lowercase, hyphens allowed
 public: true                 # drafts stay in the repo until this is true
 ---
@@ -158,10 +157,6 @@ because the rail already is the section list. A post does not restate its own
 kind either: the rail has already said which it is. No search, no pagination,
 no reading time, no previous-post link, no tag list. The restraint is the
 design.
-
-The one place ink and paper swap is the **The fix** label on a shave. Keeping
-it to a single element is what makes it read as emphasis rather than
-decoration.
 
 **`/` redirects to the latest post** (302), so a post has one address. Without
 that, the front page renders the latest post inline and every fragment link on

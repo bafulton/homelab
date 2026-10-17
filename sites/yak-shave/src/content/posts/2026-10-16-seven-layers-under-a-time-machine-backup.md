@@ -11,7 +11,6 @@ descent:
   - PyYAML has no wheel for 3.15
   - Nobody checked
   - It had already happened somewhere else
-resolution: Dependencies are baked into a prebuilt image at build time, so a bad version bump fails a CI check instead of the cluster.
 tags:
   - kubernetes
   - homelab

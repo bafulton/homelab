@@ -66,10 +66,6 @@ if (shave && deckAnchors) {
         <>
           <p class="head__decklabel">How far down it went</p>
           <Deck descent={shave.descent} anchors={deckAnchors} />
-          <p class="head__resolution">
-            <span class="head__resolution-label invert">The fix</span>
-            <span>{shave.resolution}</span>
-          </p>
         </>
       )
     }
@@ -132,25 +128,6 @@ if (shave && deckAnchors) {
     color: var(--ink-3);
   }
 
-  .head__resolution {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.6rem;
-    margin: 1.4rem 0 0;
-    max-width: var(--measure);
-    font-family: var(--text);
-    font-size: 0.8125rem;
-    line-height: 1.5;
-  }
-  .head__resolution-label {
-    flex: none;
-    padding: 0.15rem 0.45rem;
-    font-size: 0.625rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-weight: 700;
-  }
 
 
 </style>

@@ -42,9 +42,6 @@ const shave = base
       .array(z.string().min(1).max(120))
       .min(2, "a shave needs at least two layers of descent")
       .max(8, "more than eight layers is probably two posts"),
-
-    // What ended the descent. One line.
-    resolution: z.string().min(1).max(200),
   })
   .strict();
 

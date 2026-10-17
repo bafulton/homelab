@@ -12,7 +12,6 @@ descent:
   - talconfig.yaml sets ?ephemeral=false and has done for months
   - That commit was never applied to either running node
   - Regenerating the config is blocked - the Pi's Talos rejects a newer key
-resolution: Pull the running config, edit the single field, apply with --mode=no-reboot.
 tags:
   - talos
   - tailscale

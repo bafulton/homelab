@@ -11,7 +11,6 @@ descent:
   - SigNoz v0.142.1 removed the v1 dashboard API outright
   - The MCP server I manage dashboards through still spoke v1
   - All twelve dashboard files in git are written in the v1 shape
-resolution: Move the CronJob, the MCP server and all twelve dashboard files to v2 together.
 tags:
   - signoz
   - observability
