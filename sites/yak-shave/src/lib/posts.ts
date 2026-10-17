@@ -15,6 +15,7 @@ const FILENAME_DATE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
 const RESERVED = new Set([
   "404",
   "rss.xml",
+  "robots.txt",
   "sitemap-index.xml",
   "sitemap-0.xml",
   "favicon.svg",

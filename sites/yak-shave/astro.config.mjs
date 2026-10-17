@@ -31,7 +31,10 @@ function latestPostRedirect() {
           !target || target === "/"
             ? "# No published posts, so / serves the front page directly.\n"
             : [
-                "@root path /",
+                // /index.html as well as /: the file is reachable under its
+                // own name, and it is precisely the URL whose fragment links
+                // rot when a newer post takes the front page.
+                "@root path / /index.html",
                 "# 302, never 301: the latest post changes, and a permanent",
                 "# redirect would be cached - pinning a returning visitor to",
                 "# whichever post happened to be newest on their first visit.",
@@ -115,7 +118,12 @@ export default defineConfig({
     // asset URL moves to a prefix with nothing poisoned in it.
     assets: "assets",
   },
-  integrations: [sitemap(), latestPostRedirect()],
+  integrations: [
+    // / 302s to the newest post, so listing it would put a redirect in the
+    // sitemap; the post it points at is listed on its own.
+    sitemap({ filter: (page) => new URL(page).pathname !== "/" }),
+    latestPostRedirect(),
+  ],
   markdown: {
     shikiConfig: {
       // Monochrome page, monochrome code. `github-light` is the least

@@ -7,6 +7,25 @@
 	root * /srv
 	encode zstd gzip
 
+	# Request logging to stdout, where the cluster's log pipeline picks it up.
+	# Without this Caddy logs startup and errors only, and the one public
+	# service in the cluster produces no request telemetry at all.
+	log {
+		output stdout
+		format json
+	}
+
+	# Liveness and readiness. Kubelet polls this on every pod every few
+	# seconds, which would otherwise be almost the whole access log, so it is
+	# skipped. `respond` answers before the file server is reached: the probe
+	# is asking whether Caddy is up, and CI already asserts the site built.
+	@health path /healthz
+	log_skip @health
+	handle @health {
+		header Cache-Control "no-store"
+		respond "ok" 200
+	}
+
 	# HTML is short-lived because a republish reuses the same URLs. Astro's
 	# assets are content-hashed, so they can be cached forever.
 	#
@@ -14,7 +33,7 @@
 	# `header` plus a path-matched one both apply to an asset request, and the
 	# broader rule wins, silently capping assets at the short TTL.
 	@assets path /assets/*
-	@pages not path /assets/*
+	@pages not path /assets/* /healthz
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 	header @pages Cache-Control "public, max-age=300"
 
@@ -34,6 +53,15 @@
 	file_server
 
 	handle_errors {
+		# handle_errors is its own route chain, so the header block above does
+		# not run for it: without repeating them, the 404 page goes out with
+		# no nosniff, no Referrer-Policy, and Caddy's own Server header.
+		header {
+			X-Content-Type-Options nosniff
+			Referrer-Policy strict-origin-when-cross-origin
+			-Server
+		}
+
 		# Never let an error inherit the immutable asset header above. That
 		# header is chosen by request path, so a 404 on a hashed asset path
 		# would carry max-age=31536000 - and a transient 404 (a rollout
