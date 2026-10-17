@@ -47,6 +47,10 @@ jobs:
           for f in dist/index.html dist/404.html dist/rss.xml dist/sitemap-index.xml caddy/latest.caddy; do
             test -s "$f" || { echo "::error::$f missing or empty"; exit 1; }
           done
+          # The type is self-hosted, so the woff2 files are part of the
+          # deliverable: without them every page silently falls back to Times.
+          fonts=$(find dist/assets/fonts -name '*.woff2' 2>/dev/null | wc -l)
+          [ "$fonts" -gt 0 ] || { echo "::error::no self-hosted fonts emitted"; exit 1; }
           posts=$(find dist -mindepth 2 -name index.html | wc -l)
           echo "Built $(find dist -name '*.html' | wc -l) pages, $posts posts."
           [ "$posts" -gt 0 ] || { echo "::error::no posts were published"; exit 1; }

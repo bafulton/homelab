@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 import sitemap from "@astrojs/sitemap";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -49,8 +49,66 @@ function latestPostRedirect() {
   };
 }
 
+/*
+ * Self-hosted type.
+ *
+ * The woff2 files come from the Fontsource npm packages, so Renovate keeps
+ * them current and the build never reaches out to fonts.googleapis.com - which
+ * used to cost a blocking cross-origin stylesheet before any text could paint.
+ *
+ * Both families are variable, and only the `latin` subset ships: a glyph
+ * outside it (a Polish or Vietnamese name, say) falls through to the next
+ * family in the stack per-character, which is what the fallbacks are for.
+ *
+ * The `opsz` cut of Newsreader carries two axes - wght 200..800 and opsz 6..72.
+ * Browsers set `font-optical-sizing: auto` by default, so a 2.6rem headline
+ * gets the fine-serifed optical size and body copy gets the sturdy one, with
+ * no CSS asking for it. The old Google request served discrete 400/500/600
+ * instances, so the 700s in the stylesheet were being faux-bolded; against a
+ * real axis they are now drawn.
+ */
+const SERIF = "@fontsource-variable/newsreader/files/newsreader-latin-opsz";
+const MONO = "@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght";
+
+const fonts = [
+  {
+    name: "Newsreader",
+    cssVariable: "--font-serif",
+    provider: fontProviders.local(),
+    display: "swap",
+    // Ends in a generic family, which is what lets Astro generate the
+    // metric-adjusted fallback face that keeps the swap from shifting text.
+    fallbacks: ["Georgia", "Times New Roman", "Times", "serif"],
+    options: {
+      variants: [
+        { src: [`${SERIF}-normal.woff2`], weight: "200 800", style: "normal" },
+        { src: [`${SERIF}-italic.woff2`], weight: "200 800", style: "italic" },
+      ],
+    },
+  },
+  {
+    name: "JetBrains Mono",
+    cssVariable: "--font-mono",
+    provider: fontProviders.local(),
+    display: "swap",
+    fallbacks: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+    // `monospace` resolves to Courier New, so the metric-adjusted face would
+    // be a worse permanent fallback than Menlo for the console output and
+    // YAML this family exists to set. Code is a small share of the page, and
+    // mono metrics are close enough that the unoptimized swap barely moves.
+    optimizedFallbacks: false,
+    options: {
+      variants: [
+        // No italic cut: nothing on the site sets mono in italic.
+        { src: [`${MONO}-normal.woff2`], weight: "100 800", style: "normal" },
+      ],
+    },
+  },
+];
+
 export default defineConfig({
   site: "https://yak-shave.com",
+  fonts,
   build: {
     // Was "_astro". A 404 under that prefix got cached by Cloudflare with a
     // one-year immutable header (see the Caddyfile's handle_errors), so every

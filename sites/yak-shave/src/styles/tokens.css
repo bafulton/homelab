@@ -23,9 +23,14 @@
   /* One typeface. Newsreader is a news text face: it holds up at headline
      sizes without Bodoni's hairline serifs, which is what made the old
      headlines hard to read. Mono appears only where monospacing does real
-     work - console output, YAML, code - never as a second voice. */
-  --text: "Newsreader", Georgia, "Times New Roman", Times, serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+     work - console output, YAML, code - never as a second voice.
+
+     Both are self-hosted; the stacks, including the metric-adjusted fallback
+     face, are assembled by the fonts block in astro.config.mjs and delivered
+     through these two variables. Everything on the site still reaches for
+     --text and --mono, so this is the only place that knows the difference. */
+  --text: var(--font-serif);
+  --mono: var(--font-mono);
 
   --rule-heavy: 4px;
   --rule-mid: 2px;

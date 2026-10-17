@@ -132,6 +132,13 @@ swap.
 - **JetBrains Mono appears only where monospacing does real work**: code
   blocks, console output, YAML. Never as a second voice for UI text. Tables
   are set in the text face, with mono only on the `code` spans inside them.
+- **Both are self-hosted**, declared in the `fonts` block of
+  `astro.config.mjs` and reached through `--text` and `--mono` in
+  `tokens.css`. They are the variable cuts, so the 600s and 700s in the
+  stylesheet are drawn rather than faux-bolded, and Newsreader's `opsz` axis
+  lets the browser pick the headline cut for headlines and the text cut for
+  body copy on its own. See Decisions for why they are not loaded from
+  Google.
 - The yak is a solid woodcut silhouette in `src/components/Yak.astro`, filled
   with `currentColor` so it inverts with the theme. Edit the path data
   directly; it is hand-drawn, not traced.
@@ -240,22 +247,20 @@ To run the image locally exactly as the cluster does:
 ```sh
 npm ci && npm run build
 docker build -t yak-shave .
-docker run --rm --read-only --user 1000:1000 \
+# --cap-drop ALL matters: Caddy ships cap_net_bind_service as a file
+# capability, and execve refuses a binary whose permitted caps are outside
+# the bounding set. Docker's default bounding set hides this; the cluster's
+# securityContext does not. The image strips the cap with setcap -r.
+docker run --rm --cap-drop ALL --read-only --user 1000:1000 \
   --tmpfs /config --tmpfs /data -p 8099:8080 yak-shave
 ```
 
 ### Still to do
 
-1. **Three posts are unpublished stand-ins** — `2026-09-02-committed-*`,
+1. **Three of the four posts are stand-ins** — `2026-09-02-committed-*`,
    `2026-09-18-signoz-*` and `2026-10-15-sign-your-own-pull-requests`. They
-   were drafted by Claude and are set `public: false` so they stay in the repo
-   without going out under your byline. Rewrite or delete them, then flip the
-   flag.
-2. **Self-host the fonts.** They load from Google. Moving them to `@fontsource`
-   removes a third-party request from a page served out of the cluster.
-3. **Decide where RSS is advertised.** The feed builds and is declared in
-   `<link rel="alternate">`, so feed readers find it, but no visible link
-   points at it.
+   were drafted by Claude from incident notes and are live under your byline.
+   Rewrite or delete them.
 
 ## Decisions
 
@@ -272,3 +277,15 @@ through the GitHub API, with no backend and no database.
 
 **In the homelab monorepo.** One commit can carry a post and a design change
 together, and ArgoCD already watches this repo.
+
+**Self-hosted fonts, from npm, through Astro's fonts API.** Loading from
+Google meant a render-blocking stylesheet on a third-party origin before the
+first word could paint — an odd dependency for a page otherwise served
+entirely out of the cluster. The woff2 files come from the Fontsource
+packages rather than being committed as binaries or fetched at build time, so
+Renovate keeps them current and the build never needs the network. Astro
+fingerprints them into `/assets/fonts/`, where the Caddyfile's immutable
+cache header already applies, preloads only the roman serif, and generates a
+metric-matched `local("Times New Roman")` face so the swap does not move text
+down the page. Only the `latin` subset ships; a glyph outside it falls
+through to the next family per-character.

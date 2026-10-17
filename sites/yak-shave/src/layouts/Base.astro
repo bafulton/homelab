@@ -1,4 +1,5 @@
 ---
+import { Font } from "astro:assets";
 import "../styles/global.css";
 
 interface Props {
@@ -29,12 +30,13 @@ const canonical = new URL(path, Astro.site).href;
     </script>
 
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=JetBrains+Mono:wght@400;500&display=swap"
-    />
+
+    <!-- Self-hosted, so there is no third-party stylesheet standing between
+         the HTML and the first word of text. Only the roman serif is
+         preloaded: it sets every headline and every paragraph, whereas the
+         italic is incidental and the mono waits for a code block. -->
+    <Font cssVariable="--font-serif" preload={[{ style: "normal" }]} />
+    <Font cssVariable="--font-mono" />
 
     <title>{title}</title>
     <meta name="description" content={description} />
