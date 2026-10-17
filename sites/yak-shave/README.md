@@ -232,10 +232,7 @@ can land on any node (`ocifree` included, once it joins) — a stateless site
 should not go dark because one node is draining.
 
 Astro writes directory-style URLs, so `try_files` resolves `/<slug>` as well
-as `/<slug>/`. Posts briefly lived under `/blog/`, and the feed went out with
-those links, so `/blog/*` 301s to the root equivalent — permanent is right
-there, since those paths will never mean anything else.
-`/_astro/*` is content-hashed and cached for a year;
+as `/<slug>/`. `/_astro/*` is content-hashed and cached for a year;
 everything else gets five minutes. A miss serves `404.html` with a real 404.
 
 To run the image locally exactly as the cluster does:

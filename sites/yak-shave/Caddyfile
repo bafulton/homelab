@@ -24,12 +24,6 @@
 		-Server
 	}
 
-	# Posts used to live under /blog/. The feed went out with those links and
-	# they are already in the wild, so keep them working. Permanent is right
-	# here: these paths will never mean anything else.
-	@oldblog path_regexp oldblog ^/blog/(.+)$
-	redir @oldblog /{re.oldblog.1} 301
-
 	# Generated at build time by the latest-post-redirect integration: / goes
 	# to the newest post's own URL, so the fragment links on the front page
 	# cannot rot when a newer post takes its place.

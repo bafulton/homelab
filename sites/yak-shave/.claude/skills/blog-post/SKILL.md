@@ -127,8 +127,8 @@ push to main (sites/yak-shave/**)
 ```
 
 Served at `https://yak-shave.com` through the existing Cloudflare Tunnel. Posts
-live at `/<slug>/` — the whole site is the blog. `www` 301s to the apex, `/`
-302s to the latest post, and the old `/blog/*` paths 301 to the root. Tags are the commit SHA, so no `VERSION` file and no tag is
+live at `/<slug>/` — the whole site is the blog. `www` 301s to the apex and `/`
+302s to the latest post. Tags are the commit SHA, so no `VERSION` file and no tag is
 ever reused. See `sites/yak-shave/README.md` for the serving details.
 
 ## Housekeeping
