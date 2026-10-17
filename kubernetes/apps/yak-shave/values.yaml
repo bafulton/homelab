@@ -24,8 +24,14 @@ image:
   tag: "sha-067b7f498af088f662c8366e62a9304870e3ce81"
   pullPolicy: IfNotPresent
 
-# Two, spread across nodes: the site is stateless, so a node reboot or a
-# Longhorn drain should never take the blog off the internet.
+# Two, one per node. The spread is enforced rather than preferred: beelink
+# carries a PreferNoSchedule taint for the descheduler rebalance, and that
+# preference outscores a soft podAntiAffinity, so both replicas were landing
+# on rpi5 and a single node reboot would have taken the blog off the internet.
+#
+# The cost is that while a node is down or cordoned the second replica sits
+# Pending rather than doubling up - which is the intended trade: one replica
+# serving beats two replicas that share a failure domain.
 replicaCount: 2
 
 resources:
@@ -60,3 +66,37 @@ gateway-route:
                 scheme: https
                 hostname: yak-shave.com
                 statusCode: 301
+
+signoz-alerts:
+  # The hold-down lives in the query, not in `for:`. The chart never emits a
+  # `for` field, and for promql rules it hardcodes matchType "1" - fire if the
+  # condition was true even once inside evalWindow. So a `for: 5m0s` here
+  # would read like hysteresis and provide none, and a bare `< 2` would fire
+  # on every pod restart. `max_over_time`/`min_over_time` say the same thing
+  # in a place the rule engine actually honours.
+  #
+  # The other alerts in this repo (jellyfin, home-assistant, time-machine)
+  # still carry that no-op `for:`.
+  alerts:
+    - name: Yak Shave Down
+      description: yak-shave.com has served nothing for five minutes
+      severity: critical
+      type: promql
+      query: 'max_over_time(kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"}[5m])'
+      op: "<"
+      threshold: 1
+      evalWindow: 10m0s
+
+    # The hard topology spread means a node outage leaves the second replica
+    # Pending indefinitely: the site still serves, quietly, with no redundancy
+    # left and nothing else to say so. An hour clears a rollout, a pod
+    # restart and a safe-reboot-node.sh drain, so this only fires when a node
+    # has been down long enough to have been forgotten about.
+    - name: Yak Shave Running Degraded
+      description: yak-shave.com has been down to a single replica for an hour
+      severity: warning
+      type: promql
+      query: 'min_over_time(kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"}[1h])'
+      op: "<"
+      threshold: 2
+      evalWindow: 10m0s

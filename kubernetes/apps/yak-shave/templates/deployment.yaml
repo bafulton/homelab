@@ -15,15 +15,20 @@ spec:
       # Deliberately unpinned: nothing here is stateful or LAN-bound, so it can
       # run on any node - ocifree included, once that joins.
       # See charts/README.md "Placement".
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 100
-              podAffinityTerm:
-                topologyKey: kubernetes.io/hostname
-                labelSelector:
-                  matchLabels:
-                    app.kubernetes.io/name: yak-shave
+      #
+      # DoNotSchedule, not ScheduleAnyway. This was a soft podAntiAffinity and
+      # both replicas still ran on rpi5: beelink's PreferNoSchedule taint is
+      # scored by the TaintToleration plugin at a higher weight than either
+      # soft-spreading plugin, so the preference to avoid beelink beat the
+      # preference to spread. A hard constraint filters instead of scoring,
+      # which the taint cannot outrank.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: yak-shave
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -44,15 +49,19 @@ spec:
             capabilities:
               drop:
                 - ALL
+          # /healthz rather than /, for two reasons: / is a redirect whose
+          # target changes with every post, and kubelet polling it on every
+          # pod would be almost all of the access log. The Caddyfile keeps
+          # this path out of that log.
           readinessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
             initialDelaySeconds: 2
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /
+              path: /healthz
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30

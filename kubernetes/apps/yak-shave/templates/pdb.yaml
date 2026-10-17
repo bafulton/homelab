@@ -1,0 +1,13 @@
+# Without this a drain evicts both replicas at once. `safe-reboot-node.sh`
+# drains before rebooting, and with the topology spread above the evicted pod
+# cannot reschedule onto the one remaining node - so the budget is what holds
+# the drain until the site is actually still being served somewhere.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: yak-shave
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: yak-shave

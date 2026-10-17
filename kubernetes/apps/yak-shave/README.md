@@ -72,6 +72,38 @@ Transient 404s during the mixed-version window of a rollout are still possible; 
 
 Note that Cloudflare does not edge-cache HTML by default (`cf-cache-status: DYNAMIC`), so `max-age=300` on pages is honoured by browsers, not the edge. Assets are edge-cached on extension.
 
+## Availability
+
+Two replicas, one per node, enforced by a `topologySpreadConstraint` with
+`whenUnsatisfiable: DoNotSchedule`. A soft `podAntiAffinity` was not enough:
+beelink carries a `PreferNoSchedule` taint for the descheduler rebalance, and
+the scheduler weights that preference above either soft-spreading plugin, so
+both replicas sat on rpi5 and a single node reboot would have taken the site
+down.
+
+The trade is that while a node is down or cordoned the second replica stays
+`Pending` rather than doubling up on the surviving node. That is deliberate —
+one replica serving beats two replicas sharing a failure domain — and the
+`Yak Shave Running Degraded` alert is what stops that state going unnoticed.
+
+A `PodDisruptionBudget` of `minAvailable: 1` keeps a drain from taking both.
+
+| Alert | Fires when |
+|-------|-----------|
+| `Yak Shave Down` (critical) | No replica available for 5 minutes |
+| `Yak Shave Running Degraded` (warning) | Only one replica available for a full hour |
+
+Both put their hold-down inside the PromQL (`max_over_time` / `min_over_time`)
+rather than in a `for:` field, which the `signoz-alerts` chart does not emit.
+
+## Logs
+
+Caddy writes a JSON access log to stdout, where the cluster's log pipeline
+collects it. `/healthz` — the probe endpoint, polled by kubelet on every pod
+every few seconds — is excluded with `log_skip`, so what lands in SigNoz is
+real traffic. Probes deliberately do not hit `/`: that is a redirect whose
+target changes with every post.
+
 ## Troubleshooting
 
 **Site is up but unstyled.** Check whether an asset is 404ing and what `cf-cache-status` and `age` say:
