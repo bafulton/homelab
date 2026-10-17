@@ -117,5 +117,4 @@ signoz-alerts:
       query: 'kube_deployment_status_replicas_available{namespace="jellyfin",deployment="jellyfin"}'
       op: "<"
       threshold: 1
-      evalWindow: 10m0s
       for: 5m0s

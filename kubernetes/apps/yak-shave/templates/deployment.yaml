@@ -12,6 +12,9 @@ spec:
       labels:
         app.kubernetes.io/name: yak-shave
     spec:
+      # Caddy never talks to the Kubernetes API, so the default service
+      # account token it would otherwise mount is only a foothold.
+      automountServiceAccountToken: false
       # Deliberately unpinned: nothing here is stateful or LAN-bound, so it can
       # run on any node - ocifree included, once that joins.
       # See charts/README.md "Placement".
@@ -31,6 +34,8 @@ spec:
               app.kubernetes.io/name: yak-shave
       securityContext:
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
         runAsUser: 1000
         runAsGroup: 1000
         # Without this the emptyDirs below mount root-owned and 0755, and a

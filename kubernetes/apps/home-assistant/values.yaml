@@ -199,11 +199,12 @@ signoz-alerts:
       description: Home Assistant has no available replicas
       severity: critical
       type: promql
-      query: 'max_over_time(kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}[10m])'
+      query: 'kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}'
       op: "<"
       threshold: 1
-      evalWindow: 10m0s
-      for: 5m0s
+      # Ten minutes, not five: a routine HA image upgrade is a slow boot on a
+      # single replica and regularly takes longer than five.
+      for: 10m0s
 
     - name: Smart Home Device Offline
       description: >-
@@ -228,8 +229,7 @@ signoz-alerts:
       legend: "{{friendly_name}}"
       op: "<"
       threshold: 1
-      evalWindow: 15m0s
-      matchType: "2"
+      for: 15m0s
 
     # Split out of Smart Home Device Offline: the printer is non-critical and
     # drops off the network for 20-25 minutes at a time during normal use, so
@@ -253,5 +253,4 @@ signoz-alerts:
       legend: "{{friendly_name}}"
       op: "<"
       threshold: 1
-      evalWindow: 1h0m0s
-      matchType: "2"
+      for: 1h0m0s

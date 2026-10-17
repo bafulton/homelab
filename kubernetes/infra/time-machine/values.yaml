@@ -71,5 +71,4 @@ signoz-alerts:
       query: 'kube_statefulset_status_replicas_ready{namespace="time-machine",statefulset="time-machine"}'
       op: "<"
       threshold: 1
-      evalWindow: 10m0s
       for: 5m0s

@@ -104,6 +104,19 @@ every few seconds — is excluded with `log_skip`, so what lands in SigNoz is
 real traffic. Probes deliberately do not hit `/`: that is a redirect whose
 target changes with every post.
 
+## Hardening
+
+The pod meets PodSecurity `restricted`, not just `baseline`: non-root, no
+privilege escalation, all capabilities dropped, read-only root, `seccompProfile:
+RuntimeDefault`, and no service-account token mounted (Caddy never calls the
+Kubernetes API). The namespace is not labelled to *enforce* `restricted` yet.
+
+Security headers come from two places. Most of the Content-Security-Policy is a
+per-page `<meta>` tag written by Astro, carrying a hash for every inline script
+and style, so the policy needs no `'unsafe-inline'`. `frame-ancestors` is
+ignored inside a meta tag, so the Caddyfile sends that one - plus
+`X-Frame-Options` for older browsers - as real headers, on error responses too.
+
 ## Troubleshooting
 
 **Site is up but unstyled.** Check whether an asset is 404ing and what `cf-cache-status` and `age` say:

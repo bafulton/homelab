@@ -1,3 +1,24 @@
+# Hold-downs: use `for`.
+#
+# SigNoz has no separate Prometheus-style `for` field. A sustained condition is
+# expressed as matchType "All the Time" - every sample in the evaluation window
+# must breach - over a window equal to the duration you want held. This chart
+# accepts `for` and compiles it to exactly that, so
+#
+#   for: 5m0s
+#
+# means what it means in Prometheus: fire once the condition has held for five
+# minutes. `for` sets the evaluation window, so setting `evalWindow` or
+# `matchType` alongside it fails the render rather than silently winning.
+#
+# Without `for`, matchType defaults to at_least_once: fire if the condition was
+# true even once inside evalWindow. That is the right choice for genuinely
+# instantaneous events and the wrong one for "is it still broken".
+#
+# Caveat for sparse metrics: "all the time" is evaluated only over the samples
+# that exist, so a window with two scrapes in it holds on two data points. Keep
+# the window comfortably longer than the scrape interval.
+
 # Global defaults for all alerts
 defaults:
   severity: warning
@@ -20,6 +41,8 @@ alerts: []
   #   threshold: 85
   #   groupBy:
   #     - instance
+  #   # Fire only once it has been true for a continuous 10 minutes.
+  #   for: 10m0s
   #
   # Ratio alert (percentage)
   # - name: High Memory Usage

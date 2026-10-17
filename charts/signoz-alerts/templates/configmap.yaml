@@ -13,7 +13,7 @@ data:
       "alert": {{ .name | quote }},
       "alertType": "METRIC_BASED_ALERT",
       "severity": {{ .severity | default $defaults.severity | quote }},
-      "evalWindow": {{ .evalWindow | default $defaults.evalWindow | quote }},
+      "evalWindow": {{ include "signoz-alerts.evalWindow" (dict "alert" . "root" $) | quote }},
       "frequency": {{ .frequency | default $defaults.frequency | quote }},
       "broadcastToAll": true,
       "preferredChannels": [{{ $defaults.notificationChannel | quote }}],
