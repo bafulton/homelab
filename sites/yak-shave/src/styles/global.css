@@ -119,7 +119,11 @@ h3 {
     font-size: 1.6rem;
     scroll-margin-top: 1.5rem;
     margin-top: 2.6em;
-    padding-bottom: 0.3rem;
+    /* The font's own descender space already sits between the baseline and
+       the rule, so very little padding is needed on top of it - more and the
+       heading stops reading as one unit with its rule. */
+    line-height: 1.04;
+    padding-bottom: 0.08rem;
     border-bottom: var(--rule-mid) solid var(--ink);
   }
   .prose h2 + * {
