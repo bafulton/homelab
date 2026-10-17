@@ -21,7 +21,7 @@ image:
   # Immutable per commit, so there is no tag to overwrite and no VERSION to
   # remember to bump - the failure mode the images/ guard exists for cannot
   # happen here. Renovate deliberately does not track this.
-  tag: "sha-c98252c6bce9b0bc8a2102c78fb9bd68b4836256"
+  tag: "sha-b082ba78695b7b8d6b7cabac841c023c9e07a7d0"
   pullPolicy: IfNotPresent
 
 # Two, spread across nodes: the site is stateless, so a node reboot or a
