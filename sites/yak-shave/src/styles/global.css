@@ -110,12 +110,20 @@ h3 {
   .prose > * + * {
     margin-top: 1.1em;
   }
+  /* Rule under the heading, not over it - the same "label, then rule"
+     figure the archive rail and the masthead already use. The margins do the
+     separating instead: a large gap above opens the section, and a tight gap
+     below keeps the heading and its rule attached to the text they
+     introduce. */
   .prose h2 {
     font-size: 1.6rem;
     scroll-margin-top: 1.5rem;
-    margin-top: 2.4em;
-    padding-top: 0.5rem;
-    border-top: var(--rule-mid) solid var(--ink);
+    margin-top: 2.6em;
+    padding-bottom: 0.3rem;
+    border-bottom: var(--rule-mid) solid var(--ink);
+  }
+  .prose h2 + * {
+    margin-top: 0.85em;
   }
   .prose h3 {
     font-size: 1.2rem;
