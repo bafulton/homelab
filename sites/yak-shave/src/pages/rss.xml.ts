@@ -13,7 +13,7 @@ export async function GET(context: APIContext) {
     items: posts.map((post) => ({
       title: post.entry.data.title,
       pubDate: new Date(`${post.entry.data.date}T12:00:00Z`),
-      link: `/blog/${post.slug}/`,
+      link: `/${post.slug}/`,
       // Each kind's headline furniture is the most useful thing a reader can
       // see in a feed preview, so it travels with the summary rather than
       // being page-only.

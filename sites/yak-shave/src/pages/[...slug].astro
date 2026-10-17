@@ -1,7 +1,7 @@
 ---
-import Paper from "../../layouts/Paper.astro";
-import Article from "../../components/Article.astro";
-import { getPosts, type Post } from "../../lib/posts";
+import Paper from "../layouts/Paper.astro";
+import Article from "../components/Article.astro";
+import { getPosts, type Post } from "../lib/posts";
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -20,7 +20,7 @@ const { post } = Astro.props;
 <Paper
   title={`${post.entry.data.title} · Yak Shave`}
   description={post.entry.data.summary}
-  path={`/blog/${post.slug}/`}
+  path={`/${post.slug}/`}
   current={post.slug}
 >
   <Article post={post} />

@@ -17,7 +17,7 @@ const { groups, current } = Astro.props;
           {group.posts.map((post) => (
             <li>
               <a
-                href={`/blog/${post.slug}/`}
+                href={`/${post.slug}/`}
                 aria-current={post.slug === current ? "page" : undefined}
               >
                 <span class="spine__date">

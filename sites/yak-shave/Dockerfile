@@ -25,6 +25,8 @@ RUN apk add --no-cache libcap \
     && apk del libcap
 
 COPY Caddyfile /etc/caddy/Caddyfile
+# Written by `npm run build`; names the post that / redirects to.
+COPY caddy/latest.caddy /etc/caddy/latest.caddy
 COPY dist /srv
 
 # Caddy autosaves config and keeps data under XDG paths. Pointing them at

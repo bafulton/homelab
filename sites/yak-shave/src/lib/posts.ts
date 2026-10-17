@@ -9,6 +9,18 @@ export type Post = {
 
 const FILENAME_DATE = /^(\d{4}-\d{2}-\d{2})-(.+)$/;
 
+// Posts live at the site root, so a slug that collides with a generated file
+// would shadow it. Astro's duplicate-route error for this is opaque; this one
+// names the post.
+const RESERVED = new Set([
+  "404",
+  "rss.xml",
+  "sitemap-index.xml",
+  "sitemap-0.xml",
+  "favicon.svg",
+  "_astro",
+]);
+
 // Noon UTC, so the calendar date is the same on both sides of the date line.
 const at = (date: string) => new Date(`${date}T12:00:00Z`);
 
@@ -40,6 +52,12 @@ export async function getPosts(kind?: Kind): Promise<Post[]> {
       throw new Error(
         `Post "${entry.id}" is dated ${entry.data.date} in frontmatter but ` +
           `${filenameDate} in its filename.`,
+      );
+    }
+    if (RESERVED.has(slug!)) {
+      throw new Error(
+        `Post "${entry.id}" has the slug "${slug}", which collides with a ` +
+          `file the site generates. Rename it.`,
       );
     }
     return { entry, slug: slug!, date: entry.data.date };

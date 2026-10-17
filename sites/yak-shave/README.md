@@ -6,8 +6,9 @@ JavaScript beyond a theme toggle.
 ## Writing a post
 
 Create `src/content/posts/YYYY-MM-DD-<slug>.md`. The URL is the slug with the
-date stripped, so the file above publishes at `/blog/<slug>/` — the permanent,
-shareable link for that post.
+date stripped, so the file above publishes at `/<slug>/` — the permanent,
+shareable link for that post. The whole site is the blog, so posts sit at the
+root rather than under a section.
 
 Every post declares a `kind`, and the two kinds take different frontmatter.
 The rail groups by kind, so adding a post files it automatically.
@@ -162,10 +163,25 @@ The one place ink and paper swap is the **The fix** label on a shave. Keeping
 it to a single element is what makes it read as emphasis rather than
 decoration.
 
-The front page sets its canonical URL to the latest post's own `/blog/` link,
-so sharing the front page and sharing the post never disagree, and a link
-somebody saved does not quietly become a different article next month. On the
-front page the headline is itself that link.
+**`/` redirects to the latest post** (302), so a post has one address. Without
+that, the front page renders the latest post inline and every fragment link on
+it — the descent ladder most of all — reads as `yak-shave.com/#some-section`
+and breaks the moment a newer post takes over the front page.
+
+The redirect target is generated at build time by the `latest-post-redirect`
+integration in `astro.config.mjs`, which reads it back out of the built
+`index.html`'s canonical link rather than recomputing it, so the redirect
+cannot disagree with the page's own idea of where it lives. It lands in
+`caddy/latest.caddy` (gitignored, built artefact) and the Dockerfile copies it
+to `/etc/caddy/`.
+
+It is a **302, never a 301**: the latest post changes, and browsers and CDNs
+cache permanent redirects — a 301 would pin a returning visitor to whichever
+post happened to be newest the first time they visited.
+
+`dist/index.html` is still built, and still carries the post's canonical URL,
+so the site keeps working as plain static files anywhere the redirect is not
+applied.
 
 ## How it ships
 
@@ -215,8 +231,11 @@ Caddy serves `/srv` on :8080, read-only and non-root, with `/config` and
 can land on any node (`ocifree` included, once it joins) — a stateless site
 should not go dark because one node is draining.
 
-Astro writes directory-style URLs, so `try_files` resolves `/blog/<slug>` as
-well as `/blog/<slug>/`. `/_astro/*` is content-hashed and cached for a year;
+Astro writes directory-style URLs, so `try_files` resolves `/<slug>` as well
+as `/<slug>/`. Posts briefly lived under `/blog/`, and the feed went out with
+those links, so `/blog/*` 301s to the root equivalent — permanent is right
+there, since those paths will never mean anything else.
+`/_astro/*` is content-hashed and cached for a year;
 everything else gets five minutes. A miss serves `404.html` with a real 404.
 
 To run the image locally exactly as the cluster does:

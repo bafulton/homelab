@@ -126,8 +126,9 @@ push to main (sites/yak-shave/**)
   -> ArgoCD syncs; Caddy serves the static files
 ```
 
-Served at `https://yak-shave.com` through the existing Cloudflare Tunnel; `www`
-301s to the apex. Tags are the commit SHA, so no `VERSION` file and no tag is
+Served at `https://yak-shave.com` through the existing Cloudflare Tunnel. Posts
+live at `/<slug>/` — the whole site is the blog. `www` 301s to the apex, `/`
+302s to the latest post, and the old `/blog/*` paths 301 to the root. Tags are the commit SHA, so no `VERSION` file and no tag is
 ever reused. See `sites/yak-shave/README.md` for the serving details.
 
 ## Housekeeping

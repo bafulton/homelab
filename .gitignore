@@ -25,3 +25,4 @@ memory/
 sites/*/node_modules/
 sites/*/dist/
 sites/*/.astro/
+sites/*/caddy/

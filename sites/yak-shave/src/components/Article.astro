@@ -17,7 +17,7 @@ const { Content, headings } = await render(post.entry);
 // discriminated union inside JSX expressions.
 const shave = data.kind === "shave" ? data : null;
 const rumination = data.kind === "rumination" ? data : null;
-const href = `/blog/${post.slug}/`;
+const href = `/${post.slug}/`;
 
 // A shave's prose is written as one section per rung, so the ladder can double
 // as navigation. Wire it up only when the post really does have a heading for

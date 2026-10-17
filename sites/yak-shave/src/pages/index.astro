@@ -15,7 +15,7 @@ const latest = posts[0];
     <Paper
       title="Yak Shave"
       description={latest.entry.data.summary}
-      path={`/blog/${latest.slug}/`}
+      path={`/${latest.slug}/`}
       current={latest.slug}
     >
       <Article post={latest} permalink />
