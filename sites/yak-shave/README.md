@@ -278,6 +278,17 @@ through the GitHub API, with no backend and no database.
 **In the homelab monorepo.** One commit can carry a post and a design change
 together, and ArgoCD already watches this repo.
 
+**A CSP with hashes, not `'unsafe-inline'`.** Astro hashes every inline script
+and style it emits, so the policy can be `default-src 'self'` with no blanket
+inline permission - which is the only kind of CSP worth having on a page that
+carries an inline theme script and inlined critical CSS. Self-hosting the
+fonts is what made `'self'` reachable; it would otherwise have to allowlist
+two Google origins. Two directives cannot ride in the meta tag a static build
+produces - `frame-ancestors` is ignored there - so the Caddyfile sends those
+as headers. The `is:inline` theme script is the one thing Astro will not hash,
+by definition, so its hash is listed explicitly and a build-time check fails
+if the two ever drift apart.
+
 **Self-hosted fonts, from npm, through Astro's fonts API.** Loading from
 Google meant a render-blocking stylesheet on a third-party origin before the
 first word could paint — an odd dependency for a page otherwise served

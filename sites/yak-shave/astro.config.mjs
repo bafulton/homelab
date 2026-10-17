@@ -1,7 +1,9 @@
 // @ts-check
 import { defineConfig, fontProviders } from "astro/config";
 import sitemap from "@astrojs/sitemap";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import path from "node:path";
 
 /**
@@ -109,9 +111,96 @@ const fonts = [
   },
 ];
 
+/**
+ * Fail the build if any inline script or style is missing from its page's CSP.
+ *
+ * Astro hashes what it manages, but anything it deliberately does not touch -
+ * an `is:inline` script above all - is invisible to it. A missing hash does
+ * not announce itself: the browser blocks the tag and the page merely behaves
+ * slightly wrong, which is the sort of thing that is noticed months later.
+ */
+function assertInlineHashesCovered() {
+  const INLINE = /<(script|style)(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/\1>/g;
+  const META = /<meta http-equiv="content-security-policy" content="([^"]*)"/i;
+
+  return {
+    name: "assert-inline-hashes-covered",
+    hooks: {
+      "astro:build:done": async ({ dir, logger }) => {
+        const pages = (await readdir(fileURLToPath(dir), { recursive: true }))
+          .filter((f) => f.endsWith(".html"));
+
+        let checked = 0;
+        for (const page of pages) {
+          const html = await readFile(new URL(page, dir), "utf8");
+          const csp = html.match(META)?.[1];
+          if (!csp) throw new Error(`${page} has no CSP meta tag.`);
+
+          for (const [, tag, body] of html.matchAll(INLINE)) {
+            const digest =
+              "sha256-" + createHash("sha256").update(body).digest("base64");
+            if (!csp.includes(digest)) {
+              throw new Error(
+                `${page}: an inline <${tag}> is not covered by the page's CSP ` +
+                  `(${digest}). If this is the is:inline theme script, update ` +
+                  `scriptDirective.hashes in this file to match it.`,
+              );
+            }
+            checked++;
+          }
+        }
+        logger.info(`${checked} inline scripts/styles covered by CSP`);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: "https://yak-shave.com",
   fonts,
+
+  /*
+   * Content Security Policy.
+   *
+   * Astro hashes every inline <script> and <style> it emits and writes them
+   * into script-src/style-src, so the policy does not need 'unsafe-inline' -
+   * which is the only version of a CSP worth having on a page that carries an
+   * inline theme script and inlined critical CSS.
+   *
+   * default-src 'self' is only possible because the fonts are self-hosted;
+   * it would otherwise have to allowlist fonts.googleapis.com and
+   * fonts.gstatic.com. Links out to GitHub are navigations, which CSP does
+   * not restrict, so nothing on the site needs an exception.
+   *
+   * frame-ancestors is deliberately not here: it is ignored in a meta tag,
+   * which is how a static build delivers CSP. The Caddyfile sends that one as
+   * a header.
+   */
+  security: {
+    csp: {
+      /*
+       * The theme script in Base.astro is `is:inline` - it has to run before
+       * first paint or a night reader gets a white flash - and `is:inline`
+       * is precisely the directive that tells Astro not to process a script,
+       * so Astro does not hash it. It currently executes only because a
+       * meta-delivered policy does not cover the markup above it, which is an
+       * accident of ordering rather than a permission.
+       *
+       * Hashing it explicitly makes it allowed rather than merely unreached.
+       * `assertInlineHashesCovered` below fails the build if this value stops
+       * matching the script, so editing one without the other cannot ship.
+       */
+      scriptDirective: {
+        hashes: ["sha256-Qh3B7/ms8U4ygcRlkxd9Sem9GAHbAN3PTlPY3n5hD+0="],
+      },
+      directives: [
+        "default-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'none'",
+      ],
+    },
+  },
   build: {
     // Was "_astro". A 404 under that prefix got cached by Cloudflare with a
     // one-year immutable header (see the Caddyfile's handle_errors), so every
@@ -123,6 +212,7 @@ export default defineConfig({
     // sitemap; the post it points at is listed on its own.
     sitemap({ filter: (page) => new URL(page).pathname !== "/" }),
     latestPostRedirect(),
+    assertInlineHashesCovered(),
   ],
   markdown: {
     shikiConfig: {

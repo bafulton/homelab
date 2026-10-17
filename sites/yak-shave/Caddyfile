@@ -40,6 +40,12 @@
 	header {
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
+		# The rest of the policy is a meta tag, written per page by Astro with
+		# a hash for every inline script and style - see astro.config.mjs. Two
+		# directives have to be a header instead: frame-ancestors is ignored in
+		# a meta tag, and X-Frame-Options covers browsers predating it.
+		Content-Security-Policy "frame-ancestors 'none'"
+		X-Frame-Options DENY
 		-Server
 	}
 
@@ -59,6 +65,8 @@
 		header {
 			X-Content-Type-Options nosniff
 			Referrer-Policy strict-origin-when-cross-origin
+			Content-Security-Policy "frame-ancestors 'none'"
+			X-Frame-Options DENY
 			-Server
 		}
 
