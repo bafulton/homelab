@@ -18,6 +18,7 @@ const RESERVED = new Set([
   "sitemap-index.xml",
   "sitemap-0.xml",
   "favicon.svg",
+  "assets",
   "_astro",
 ]);
 

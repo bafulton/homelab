@@ -51,6 +51,12 @@ function latestPostRedirect() {
 
 export default defineConfig({
   site: "https://yak-shave.com",
+  build: {
+    // Was "_astro". A 404 under that prefix got cached by Cloudflare with a
+    // one-year immutable header (see the Caddyfile's handle_errors), so every
+    // asset URL moves to a prefix with nothing poisoned in it.
+    assets: "assets",
+  },
   integrations: [sitemap(), latestPostRedirect()],
   markdown: {
     shikiConfig: {

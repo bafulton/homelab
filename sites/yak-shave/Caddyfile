@@ -13,8 +13,8 @@
 	# The two matchers are mutually exclusive on purpose: an unmatched
 	# `header` plus a path-matched one both apply to an asset request, and the
 	# broader rule wins, silently capping assets at the short TTL.
-	@assets path /_astro/*
-	@pages not path /_astro/*
+	@assets path /assets/*
+	@pages not path /assets/*
 	header @assets Cache-Control "public, max-age=31536000, immutable"
 	header @pages Cache-Control "public, max-age=300"
 
@@ -34,6 +34,12 @@
 	file_server
 
 	handle_errors {
+		# Never let an error inherit the immutable asset header above. That
+		# header is chosen by request path, so a 404 on a hashed asset path
+		# would carry max-age=31536000 - and a transient 404 (a rollout
+		# serving new HTML from one pod and old files from another) would be
+		# cached by Cloudflare for a year, pinning the site unstyled.
+		header Cache-Control "no-store"
 		rewrite * /404.html
 		file_server
 	}

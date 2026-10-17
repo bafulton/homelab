@@ -227,8 +227,13 @@ can land on any node (`ocifree` included, once it joins) — a stateless site
 should not go dark because one node is draining.
 
 Astro writes directory-style URLs, so `try_files` resolves `/<slug>` as well
-as `/<slug>/`. `/_astro/*` is content-hashed and cached for a year;
-everything else gets five minutes. A miss serves `404.html` with a real 404.
+as `/<slug>/`. `/assets/*` is content-hashed and cached for a year;
+everything else gets five minutes. A miss serves `404.html` with a real 404 **and `Cache-Control: no-store`**.
+That last part matters: the long-cache header is chosen by request path, so
+without it a 404 on a hashed asset path inherits `max-age=31536000`. A
+transient 404 — a rollout serving new HTML from one pod while the other still
+has the old files — then gets cached by the CDN for a year and pins the site
+unstyled. That happened once; hence the rule.
 
 To run the image locally exactly as the cluster does:
 
