@@ -118,7 +118,10 @@ h3 {
   .prose h2 {
     font-size: 1.6rem;
     scroll-margin-top: 1.5rem;
-    margin-top: 2.6em;
+    /* rem, not em: an em here resolves against the heading's own 1.6rem, so
+       2.6em was ~67px against a ~19px paragraph rhythm. rem keeps the section
+       break tied to the page, not to how large the heading happens to be. */
+    margin-top: 2.1rem;
     /* The font's own descender space already sits between the baseline and
        the rule, so very little padding is needed on top of it - more and the
        heading stops reading as one unit with its rule. */
@@ -131,7 +134,7 @@ h3 {
   }
   .prose h3 {
     font-size: 1.2rem;
-    margin-top: 2em;
+    margin-top: 1.6rem;
   }
   .prose a {
     text-decoration: underline;
