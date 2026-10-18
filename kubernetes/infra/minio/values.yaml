@@ -8,9 +8,9 @@ bitwarden-secret:
         rootPassword: "0a3a525c-8a89-4513-ae77-b3f00030686f"
 
 minio:
-  # Deployment mode
+  # Deployment mode (standalone renders a single-replica Deployment; the chart
+  # hardcodes the replica count, so .Values.replicas has no effect here)
   mode: standalone
-  replicas: 1
 
   # Pin to rpi5 node
   nodeSelector:
