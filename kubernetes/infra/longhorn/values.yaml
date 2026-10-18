@@ -1,13 +1,16 @@
 namespace: longhorn
 
-# MinIO backup credentials for Longhorn
+# Garage backup credentials for Longhorn. The key is named longhorn-backup in
+# Garage; AWS_ACCESS_KEY_ID is its key ID, which Garage requires to be in
+# GK + 24-hex form. backupTarget below keeps its us-east-1 region, which
+# matches s3_region in Garage's config.
 bitwarden-secret:
   secrets:
     - name: longhorn-backup-credentials
       data:
-        AWS_ACCESS_KEY_ID: "longhorn-backup"
-        AWS_SECRET_ACCESS_KEY: "0a3a525c-8a89-4513-ae77-b3f00030686f"
-        AWS_ENDPOINTS: "http://minio.minio.svc.cluster.local:9000"
+        AWS_ACCESS_KEY_ID: "GK692f81c1982632383b08d5ff"
+        AWS_SECRET_ACCESS_KEY: "154f9f3f-ec4f-40d8-8ae1-b4e701515074"
+        AWS_ENDPOINTS: "http://garage.garage.svc.cluster.local:3900"
 
 # Ignore preserveUnknownFields on CRDs (per Longhorn ArgoCD docs)
 # https://longhorn.io/docs/1.7.2/deploy/install/install-with-argocd/
