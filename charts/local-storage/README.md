@@ -61,7 +61,7 @@ bitwarden-secret:
   secrets:
     - name: my-restic-secret
       data:
-        RESTIC_REPOSITORY: "s3:http://minio.minio.svc.cluster.local:9000/volsync-backups/my-app"
+        RESTIC_REPOSITORY: "s3:http://garage.garage.svc.cluster.local:3900/volsync-backups/my-app"
         AWS_ACCESS_KEY_ID: "longhorn-backup"
         AWS_SECRET_ACCESS_KEY: "<bitwarden-uuid>"
         RESTIC_PASSWORD: "<bitwarden-uuid>"

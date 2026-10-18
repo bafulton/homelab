@@ -182,7 +182,7 @@ Pin `location: local` when a workload:
 
 **Don't** pin `location: local` on a workload already pinned to a
 local-exclusive constraint — a disk-type label (`storage.homelab.io/*`) or a
-specific `kubernetes.io/hostname` (minio→rpi5, jellyfin, time-machine,
+specific `kubernetes.io/hostname` (garage→rpi5, jellyfin, time-machine,
 argocd-dex). That selector is already more specific than location; a second key
 is redundant noise. Pin on the most specific real constraint.
 

@@ -49,7 +49,7 @@ descheduler:
                 # restart), so allow those stateless controllers to move.
                 defaultDisabled:
                   - "PodsWithLocalStorage"
-                # But never touch pods backed by a real PVC (ClickHouse, minio,
+                # But never touch pods backed by a real PVC (ClickHouse, garage,
                 # signoz-db, home-assistant, etc.) — belt-and-suspenders on top
                 # of nodeFit.
                 extraEnabled:

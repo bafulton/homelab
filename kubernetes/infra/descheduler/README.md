@@ -37,7 +37,7 @@ rpi5 31%/45%) so beelink classifies as a source and rpi5 as a target. Re-check w
   `longhorn-nvme`/`longhorn-emmc` node affinity, amd64-only images, static
   control-plane pods) from being churned — they have no other home, so they're left
   alone.
-- **`PodsWithPVC` protection** — PVC-backed stateful pods (ClickHouse, minio,
+- **`PodsWithPVC` protection** — PVC-backed stateful pods (ClickHouse, garage,
   signoz-db, home-assistant, …) are never evicted, on top of `nodeFit`.
 - **`maxNoOfPodsToEvictPerNode: 3`** — at most a few evictions per run.
 - DaemonSets, mirror (static) pods, and system-critical pods are protected by the
