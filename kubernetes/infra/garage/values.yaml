@@ -15,6 +15,20 @@
 
 namespace: garage
 
+# The upstream chart stamps checksum/secret on the pod template by hashing
+# garage.secret.content, which falls back to randHex(64) for any value not set
+# in values.yaml. Because rpcSecret and adminToken come from an external Secret
+# (garage.secret.create: false), that hash is different on every render, so
+# ArgoCD saw a changed pod template and rolled garage-0 on every single sync.
+# checksum/config is computed the same way but over garage.toml, which is
+# deterministic, so it is left alone and still triggers a roll on real config
+# changes.
+ignoreDifferences:
+  - group: apps
+    kind: StatefulSet
+    name: garage
+    jsonPointers: ["/spec/template/metadata/annotations/checksum~1secret"]
+
 # Both secrets are consumed by the garage subchart:
 #   garage-secret         -> garage.secret.name (rpcSecret + adminToken)
 #   garage-s3-credentials -> clusterConfig.keys.longhorn-backup.secretName
