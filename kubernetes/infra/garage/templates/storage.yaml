@@ -1,0 +1,52 @@
+# Static hostPath PVs on the rpi5 USB disk.
+#
+# The garage subchart provisions its volumes through StatefulSet
+# volumeClaimTemplates, which cannot reference an existingClaim. With
+# persistence.*.storageClass set to "" the generated PVCs carry no
+# storageClassName, so they bind to these PVs instead of waiting on a
+# provisioner. claimRef pre-binds each PV to exactly one PVC name so the meta
+# and data volumes can never land on the wrong path.
+#
+# PVC names are derived by Kubernetes as <template>-<statefulset>-<ordinal>,
+# i.e. meta-garage-0 and data-garage-0. They change if the release name or
+# replicaCount changes.
+#
+# type: Directory (not DirectoryOrCreate) is deliberate. If the USB disk is not
+# mounted, the mount fails loudly instead of kubelet silently creating an empty
+# directory on the root filesystem and Garage coming up with an empty store.
+# The pre-install Job in permissions-fix.yaml creates these paths.
+{{- $pvs := list
+  (dict "name" "garage-meta-rpi5-usb" "claim" "meta-garage-0" "path" "/var/mnt/usb/garage/meta" "size" .Values.garage.persistence.meta.size)
+  (dict "name" "garage-data-rpi5-usb" "claim" "data-garage-0" "path" "/var/mnt/usb/garage/data" "size" .Values.garage.persistence.data.size)
+}}
+{{- range $pv := $pvs }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $pv.name }}
+spec:
+  capacity:
+    storage: {{ $pv.size }}
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  # Retain: never let a reclaim delete backup data.
+  persistentVolumeReclaimPolicy: Retain
+  claimRef:
+    apiVersion: v1
+    kind: PersistentVolumeClaim
+    namespace: {{ $.Release.Namespace }}
+    name: {{ $pv.claim }}
+  hostPath:
+    path: {{ $pv.path }}
+    type: Directory
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values:
+                - rpi5
+{{- end }}

@@ -1,0 +1,120 @@
+# Garage - S3-compatible object storage
+#
+# Replaces MinIO, whose images were pulled from every public registry when the
+# project was archived (Apr 2026). Serves two consumers:
+#   - Longhorn volume backups  (backupTarget s3://longhorn-backups@us-east-1/)
+#   - VolSync restic backups   (jellyfin-media, which is hostPath, not Longhorn)
+#
+# Upstream chart is datahub-local/garage-helm, a fork of the in-repo Deuxfleurs
+# chart that adds a declarative bootstrap job (layout + buckets + keys). The
+# official chart is not published to any Helm repo or OCI registry, so it cannot
+# be a chart-of-charts dependency. The container image is upstream's
+# dxflrs/garage either way - the fork ships templates only, no binaries.
+#
+# See README.md for the credential layout and the MinIO migration history.
+
+namespace: garage
+
+# Both secrets are consumed by the garage subchart:
+#   garage-secret         -> garage.secret.name (rpcSecret + adminToken)
+#   garage-s3-credentials -> clusterConfig.keys.longhorn-backup.secretName
+#
+# AWS_ACCESS_KEY_ID is a literal: Garage key IDs are public identifiers (like a
+# username), and the bitwarden-secret chart only resolves UUID-shaped values.
+bitwarden-secret:
+  secrets:
+    - name: garage-secret
+      data:
+        rpcSecret: "47d36e14-99a8-4e19-8476-b4e7015113d0"
+        adminToken: "5fb33d5f-8ee5-4533-80e9-b4e7015137df"
+    - name: garage-s3-credentials
+      data:
+        AWS_ACCESS_KEY_ID: "GK692f81c1982632383b08d5ff"
+        AWS_SECRET_ACCESS_KEY: "154f9f3f-ec4f-40d8-8ae1-b4e701515074"
+
+garage:
+  # Garage's own configuration (renders to garage.toml)
+  garage:
+    # Single node, single disk: this IS the backup copy, the primaries live in
+    # the cluster. Must stay in step with deployment.replicaCount below.
+    replicationFactor: "1"
+
+    # lmdb is the default and wants fsync-friendly storage; the USB disk is a
+    # SanDisk Extreme SSD, so this is fine. Do not move meta onto the SD card.
+    dbEngine: "lmdb"
+
+    # Matches the region Longhorn already signs with, so the existing
+    # backupTarget string (s3://longhorn-backups@us-east-1/) is unchanged.
+    s3:
+      api:
+        region: "us-east-1"
+
+    # rpcSecret and adminToken come from Bitwarden via the secret above. Letting
+    # the chart generate them would re-randomise on every ArgoCD render and
+    # churn the pod, so create: false is deliberate.
+    secret:
+      create: false
+      name: garage-secret
+
+  deployment:
+    # StatefulSet, not DaemonSet: the bootstrap job resolves nodes by
+    # StatefulSet ordinal DNS (garage-0.garage-headless...). A DaemonSet has no
+    # ordinal hostnames and the job would wait forever.
+    kind: StatefulSet
+    # Must be 1. The bootstrap job walks one host per replica, so the chart
+    # default of 3 leaves it polling garage-1 and garage-2 indefinitely.
+    replicaCount: 1
+
+  # storageClass "" makes volumeClaimTemplates emit no storageClassName, so the
+  # PVCs bind to the static hostPath PVs in templates/storage.yaml rather than
+  # waiting on a provisioner (the cluster has no default StorageClass).
+  #
+  # Sizes are generous on purpose: volumeClaimTemplates are immutable, so
+  # growing them later would require recreating the StatefulSet. Garage's own
+  # usable capacity is set by clusterConfig.layout.capacity, which IS adjustable
+  # at runtime.
+  persistence:
+    enabled: true
+    meta:
+      storageClass: ""
+      size: 10Gi
+    data:
+      storageClass: ""
+      size: 1700Gi
+
+  # rpi5 is the only node with the USB disk. This label is set in the Talos
+  # machine config, so it survives reboots and re-flashes.
+  nodeSelector:
+    storage.homelab.io/usb: "true"
+
+  # Declarative bootstrap: assigns the cluster layout, creates both buckets, and
+  # imports the S3 key from garage-s3-credentials. Runs as a post-install/
+  # post-upgrade hook and is idempotent (every garage command is `|| true`).
+  clusterConfig:
+    enabled: true
+    layout:
+      enabled: true
+      zone: rpi5
+      # Leaves headroom beside the cold minio-data tree (~601 GiB) on the 2 TB
+      # disk. Raise with `garage layout assign -c` after minio-data is removed.
+      capacity: 1200G
+    buckets:
+      - name: longhorn-backups
+      - name: volsync-backups
+    keys:
+      longhorn-backup:
+        secretName: garage-s3-credentials
+        keyId: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+        buckets:
+          - longhorn-backups
+          - volsync-backups
+
+  # Repo convention: requests for cpu+memory, a hard limit on memory only.
+  # Never a CPU limit (CFS throttling on idle cores).
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 1Gi

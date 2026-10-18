@@ -1,0 +1,49 @@
+# Creates and chowns the Garage directories on the rpi5 USB disk before the
+# StatefulSet mounts them.
+#
+# The garage container runs as 1000:1000. fsGroup does not reliably apply
+# ownership to hostPath volumes, so the directories are chowned here instead.
+# Runs as a pre-install/pre-upgrade hook so the paths exist by the time the
+# PVs' `type: Directory` check runs.
+#
+# This Job mounts /var/mnt/usb with type: Directory, so if the USB disk is not
+# mounted the Job fails rather than seeding empty directories on the root
+# filesystem.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: garage-permissions-fix
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: rpi5
+      containers:
+        - name: fix-permissions
+          # renovate: datasource=docker depName=busybox
+          image: busybox:1.36.1
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              mkdir -p /mnt/garage/meta /mnt/garage/data
+              chown -R 1000:1000 /mnt/garage
+              chmod 755 /mnt/garage /mnt/garage/meta /mnt/garage/data
+          securityContext:
+            runAsUser: 0
+            runAsGroup: 0
+          volumeMounts:
+            - name: usb-host
+              mountPath: /mnt
+      volumes:
+        - name: usb-host
+          hostPath:
+            path: /var/mnt/usb
+            type: Directory
