@@ -82,10 +82,13 @@ garage:
       storageClass: ""
       size: 1700Gi
 
-  # rpi5 is the only node with the USB disk. This label is set in the Talos
-  # machine config, so it survives reboots and re-flashes.
+  # Pin to rpi5, which holds the USB disk this data lives on. Pinned by
+  # hostname rather than storage.homelab.io/usb because beelink carries that
+  # label too (for the jellyfin-media disk at its own /var/mnt/usb). The PVs in
+  # templates/storage.yaml carry matching nodeAffinity, so the volumes are the
+  # hard constraint and this selector keeps the scheduler honest about it.
   nodeSelector:
-    storage.homelab.io/usb: "true"
+    kubernetes.io/hostname: rpi5
 
   # Declarative bootstrap: assigns the cluster layout, creates both buckets, and
   # imports the S3 key from garage-s3-credentials. Runs as a post-install/
