@@ -5,7 +5,7 @@ longhornNamespace: longhorn
 pvcs: []
   # - name: my-app-data              # PVC name (required)
   #   size: 10Gi                     # Storage size (default: 1Gi)
-  #   storageClass: longhorn-emmc    # Storage class (default: longhorn-emmc)
+  #   storageClass: longhorn-nvme    # Storage class (default: longhorn-nvme)
   #   accessMode: ReadWriteOnce      # Access mode (default: ReadWriteOnce)
   #   backupGroup: my-app            # Optional: adds recurring-job-group label for backups
 

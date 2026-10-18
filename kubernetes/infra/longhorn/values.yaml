@@ -26,30 +26,33 @@ nodeConfig:
     - name: beelink
       allowScheduling: true
       disks:
-        # eMMC drive (Talos EPHEMERAL partition) - for ClickHouse/etc.
+        # eMMC drive (Talos EPHEMERAL partition). Being retired - see
+        # README.md "Retiring longhorn-emmc". Talos state leaves only ~6Gi
+        # safely schedulable here, so put new volumes on nvme-disk.
         emmc-disk:
           path: /var/lib/longhorn
           storageReserved: 16106127360  # 15GB reserved for OS
           tags: ["emmc"]
-        # NVMe SSD - for Time Machine backups
+        # NVMe SSD - Time Machine, SigNoz, and the destination for everything
+        # migrating off emmc-disk.
         nvme-disk:
           path: /var/mnt/nvme
           storageReserved: 0
           tags: ["nvme"]
 
     - name: rpi5
-      allowScheduling: false  # USB drive now owned by MinIO
+      allowScheduling: false  # USB drive is owned by Garage (see infra/garage)
       disks: {}
 
 storageClasses:
-  # eMMC - for ClickHouse and other workloads
+  # eMMC - retained only until the last volumes migrate off it; use nvme instead.
   # Single replica (only one eMMC drive), no data locality since there's only one disk
   - name: longhorn-emmc
     diskSelector: emmc
     replicas: 1
     dataLocality: disabled
 
-  # NVMe - for Time Machine backups
+  # NVMe - the default class for all Longhorn volumes
   # Single replica (only one NVMe drive), no data locality since there's only one disk
   - name: longhorn-nvme
     diskSelector: nvme

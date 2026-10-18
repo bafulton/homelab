@@ -18,8 +18,8 @@ Self-hosted media server with Intel QuickSync hardware transcoding. 100% free an
 
 | PVC | Size | Backed by | Backup |
 |-----|------|-----------|--------|
-| `jellyfin-config` | 5Gi | Longhorn (longhorn-emmc) | Daily snapshots via Longhorn (5 retained) |
-| `jellyfin-media` | 2Ti | Static hostPath on beelink (`/var/mnt/usb/jellyfin-media`) | Weekly restic backup to MinIO via VolSync (3 weekly, 1 monthly) |
+| `jellyfin-config` | 5Gi | Longhorn (longhorn-emmc, migrating to longhorn-nvme) | Daily snapshots via Longhorn (5 retained) |
+| `jellyfin-media` | 2Ti | Static hostPath on beelink (`/var/mnt/usb/jellyfin-media`) | Weekly restic backup to Garage via VolSync (3 weekly, 1 monthly) |
 
 `jellyfin-media` is managed by the `local-storage` chart rather than Longhorn — Longhorn's engine timeout is incompatible with TB-scale volumes on slow USB drives. VolSync reads the live PVC directly (no snapshot step) and backs up via restic deduplication.
 
@@ -91,13 +91,13 @@ talosctl read /proc/mounts -n 192.168.1.86 | grep '/dev/sd'
 Confirm the filesystem type from inside a privileged pod (see step 2):
 
 ```bash
-kubectl exec -n minio media-import -- blkid /dev/sdj1
+kubectl exec -n garage media-import -- blkid /dev/sdj1
 # Should show TYPE="exfat"
 ```
 
 ### 2. Create the import pod
 
-The pod runs in the `minio` namespace (already labeled `privileged`), pinned to beelink, with three hostPath volumes: the host `/dev` tree (for raw device access), the host kernel modules (for `modprobe`), and the destination directory.
+The pod runs in the `garage` namespace (already labeled `privileged`), pinned to beelink, with three hostPath volumes: the host `/dev` tree (for raw device access), the host kernel modules (for `modprobe`), and the destination directory.
 
 ```bash
 kubectl apply -f - <<'EOF'
@@ -105,7 +105,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: media-import
-  namespace: minio
+  namespace: garage
 spec:
   restartPolicy: Never
   nodeSelector:
@@ -135,17 +135,17 @@ spec:
         path: /var/mnt/usb/jellyfin-media
 EOF
 
-kubectl wait --for=condition=Ready pod/media-import -n minio --timeout=120s
+kubectl wait --for=condition=Ready pod/media-import -n garage --timeout=120s
 ```
 
-> **Why `minio` namespace?** The `jellyfin` namespace doesn't have the `privileged` pod-security label, so direct `hostPath` volumes in pod specs are blocked there. The `minio` namespace is already labeled privileged.
+> **Why `garage` namespace?** The `jellyfin` namespace doesn't have the `privileged` pod-security label, so direct `hostPath` volumes in pod specs are blocked there. The `garage` namespace is already labeled privileged (its permissions-fix Job needs a direct hostPath).
 
 ### 3. Mount the exFAT drive
 
 The Talos kernel on beelink does **not** have the native exFAT module, but does have FUSE. Use `fuse-exfat`:
 
 ```bash
-kubectl exec -n minio media-import -- sh -c "
+kubectl exec -n garage media-import -- sh -c "
   modprobe fuse
   apk add --no-cache fuse fuse-exfat
   mkdir -p /mnt/src
@@ -159,7 +159,7 @@ kubectl exec -n minio media-import -- sh -c "
 Both copy operations run sequentially, logged to `/tmp/rsync.log` inside the pod:
 
 ```bash
-kubectl exec -n minio media-import -- sh -c "
+kubectl exec -n garage media-import -- sh -c "
   mkdir -p /mnt/dst/Movies '/mnt/dst/TV Shows'
   nohup sh -c '
     echo \"[\$(date)] Starting Movies copy\" >> /tmp/rsync.log
@@ -178,13 +178,13 @@ kubectl exec -n minio media-import -- sh -c "
 
 ```bash
 # Check if rsync is still running
-kubectl exec -n minio media-import -- ps aux | grep rsync
+kubectl exec -n garage media-import -- ps aux | grep rsync
 
 # Tail the log (note: --info=progress2 output is noisy with carriage returns)
-kubectl exec -n minio media-import -- tail -20 /tmp/rsync.log
+kubectl exec -n garage media-import -- tail -20 /tmp/rsync.log
 
 # Check destination file count / size
-kubectl exec -n minio media-import -- du -sh /mnt/dst/Movies '/mnt/dst/TV Shows'
+kubectl exec -n garage media-import -- du -sh /mnt/dst/Movies '/mnt/dst/TV Shows'
 ```
 
 ### 6. Unmount and clean up
@@ -192,8 +192,8 @@ kubectl exec -n minio media-import -- du -sh /mnt/dst/Movies '/mnt/dst/TV Shows'
 **Important:** unmount the source drive before deleting the pod. Killing a pod with an active FUSE mount leaves the device dirty.
 
 ```bash
-kubectl exec -n minio media-import -- umount /mnt/src
-kubectl delete pod media-import -n minio
+kubectl exec -n garage media-import -- umount /mnt/src
+kubectl delete pod media-import -n garage
 ```
 
 Once the pod is deleted, safely eject/unplug the external drive.
