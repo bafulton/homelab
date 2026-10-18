@@ -127,6 +127,13 @@ garage:
           - longhorn-backups
           - volsync-backups
 
+  # Bucket/key/usage browser, replacing the old MinIO console. Exposed only on
+  # catfish-mountain.com, which is wildcard_public = false, so it resolves
+  # solely through Tailscale Split DNS - the same trust boundary as the
+  # Longhorn dashboard. Chart-level basic auth is therefore left off.
+  webui:
+    enabled: true
+
   # Repo convention: requests for cpu+memory, a hard limit on memory only.
   # Never a CPU limit (CFS throttling on idle cores).
   resources:
@@ -135,3 +142,12 @@ garage:
       memory: 256Mi
     limits:
       memory: 1Gi
+
+gateway-route:
+  routes:
+    - name: private
+      hostnames:
+        - garage.catfish-mountain.com
+      service:
+        name: garage-webui
+        port: 3909

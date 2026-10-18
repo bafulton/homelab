@@ -11,7 +11,7 @@ for VolSync's restic repositories, replacing MinIO.
   - `/var/mnt/usb/garage/data` — object blocks
 - **Buckets**: `longhorn-backups`, `volsync-backups` (created by the bootstrap job)
 - **Credentials**: Bitwarden Secrets Manager via the `bitwarden-secret` chart
-- **Ports**: 3900 S3 API, 3901 RPC, 3902 S3 web, 3903 admin API
+- **Ports**: 3900 S3 API, 3901 RPC, 3902 S3 web, 3903 admin API, 3909 web console
 
 ### Consumers
 
@@ -119,9 +119,14 @@ kubectl exec -n garage garage-0 -- /garage key list
 kubectl exec -n garage garage-0 -- /garage key info longhorn-backup
 ```
 
-A web console is available but off by default (`webui.enabled`). Enable it with
-the `gateway-route` chart for a `garage.catfish-mountain.com` route if you want
-bucket browsing in a browser.
+The web console (`garage-webui`) is served at
+**https://garage.catfish-mountain.com** for browsing buckets, keys and usage -
+the replacement for the old MinIO console. catfish-mountain.com is
+`wildcard_public = false`, so it resolves only through Tailscale Split DNS, the
+same trust boundary as the Longhorn dashboard. Chart-level basic auth
+(`webui.auth`) is therefore left off; enabling it requires an
+`existingSecret` holding a `webuiAuthUserPass` bcrypt hash, because this chart
+sets `garage.secret.create: false`.
 
 ## Monitoring
 

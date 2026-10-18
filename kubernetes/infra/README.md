@@ -12,7 +12,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [cluster-maintenance](./cluster-maintenance) | Cluster-level maintenance utilities (pod cleanup) | - |
 | [coredns](./coredns) | Split DNS for *.catfish-mountain.com via Tailscale | *.ts.net |
 | [external-secrets](./external-secrets) | Syncs secrets from Bitwarden into Kubernetes | - |
-| [garage](./garage) | S3-compatible object storage - backup target for Longhorn and VolSync | - |
+| [garage](./garage) | S3-compatible object storage - backup target for Longhorn and VolSync | *.catfish-mountain.com |
 | [intel-device-plugins](./intel-device-plugins) | Intel GPU device plugins for QuickSync hardware transcoding | - |
 | [kube-state-metrics](./kube-state-metrics) | Kubernetes object state metrics (deployments, pods, PVCs) | - |
 | [longhorn](./longhorn) | Distributed block storage for persistent volumes | - |
