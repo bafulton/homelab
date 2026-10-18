@@ -96,7 +96,7 @@ nodes:
     # BCM54213PE AutogrEEEn LPI-wake race) + iscsi-tools, tailscale, util-linux-tools.
     # Pi 5 is community-tested, not officially tested: skim
     # github.com/siderolabs/sbc-raspberrypi before bumping talosVersion.
-    # See talos/rpi5-setup.md
+    # See talos/rpi5-notes.md
     talosImageURL: factory.talos.dev/installer/3ec14befcbf3baad2a84ae0dd95bdfaaed37364451e02b8f3c4b79c52a948d37
     nodeLabels:
       storage.homelab.io/usb: "true"
