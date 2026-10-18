@@ -1,248 +1,121 @@
-# Raspberry Pi 5 Talos Setup Guide
+# Raspberry Pi 5 Talos Setup
 
-This document covers the RPi5 node setup, including why it uses community images, how to build custom images with extensions, and the migration path to official Talos support.
+The RPi5 node runs **official Talos** via the `siderolabs/sbc-raspberrypi` `rpi_5`
+overlay, built through Image Factory. It migrated off the `talos-rpi5` community
+images on 2026-10-18.
 
-## Current State (September 2026)
-
-The RPi5 node runs **talos-rpi5 community images (v1.11.5)**. Official Talos support has progressed since this doc was written but is still not considered stable enough to migrate to:
-
-- `siderolabs/sbc-raspberrypi` merged a dedicated `rpi_5` overlay profile in Jan 2026 ([PR #71](https://github.com/siderolabs/sbc-raspberrypi/pull/71)), which fixed the root cause we hit (kernel missing RP1 driver support broke ethernet) by using kernel-package DTBs instead of Raspberry Pi firmware DTBs. Shipped starting in `sbc-raspberrypi` v0.1.8 and available via Image Factory/imager.
-- However: intermittent ethernet/DHCP dropouts on RPi5 control-plane nodes are unresolved ([issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82), open since Feb 2026, no maintainer response). Talos 1.14.0 also broke CM5 ethernet entirely via a DTB rebase, only fixed in v0.2.2 (Sept 14, 2026). Support has been fragile across Talos point releases (Image Factory rejected the overlay outright for v1.12.3 at one point).
-- Still no PWM/fan driver, and the official overlay's U-Boot (inherited from the RPi4 build) lacks the BCM2712 PCIe driver, so NVMe boot isn't supported — SD card only.
-- The official boot-assets guide still only documents `rpi_generic`, not `rpi_5` — a decent signal it isn't yet considered fully baked.
-
-**Assessment (checked Sept 2026):** ethernet fundamentally works now, which is real progress, but the open connectivity bug and recent regression/fix cycle mean it's not ready for our production node. Worth a spare-SD-card test, but hold off migrating until issue #82 closes and a documented `rpi_5` Image Factory example appears. Re-check in another 2-3 months.
+## Current State
 
 | Component | Value |
 |-----------|-------|
-| Talos Version | v1.11.5-1-gfe840f161 (talos-rpi5) |
-| Kubernetes | v1.34.1 |
-| Installer Image | ghcr.io/talos-rpi5/installer:v1.11.5 |
+| Talos | v1.13.4 |
+| Kubernetes | v1.36.2 |
+| Schematic | `3ec14befcbf3baad2a84ae0dd95bdfaaed37364451e02b8f3c4b79c52a948d37` |
+| Overlay | `rpi_5` |
+| Install disk | `/dev/mmcblk0` (SD card) |
+| LAN / Tailscale | 192.168.1.84 / 100.115.32.126 |
 
-### Installed Extensions
+The schematic is the `rpi_5` overlay plus `configTxtAppend: dtparam=eee=off` and
+three extensions:
 
-| Extension | Version | Status |
-|-----------|---------|--------|
-| iscsi-tools | v0.2.0 | Running (for Longhorn) |
-| tailscale | 1.88.1 | Running |
-| util-linux-tools | 2.41.1 | Installed |
+| Extension | Version | Purpose |
+|-----------|---------|---------|
+| iscsi-tools | v0.2.0 | Longhorn |
+| tailscale | 1.98.3 | tailnet membership |
+| util-linux-tools | 2.41.4 | disk tooling |
 
-### Storage Configuration
+Pi 5 is community-tested rather than officially tested, so skim
+[sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) before bumping
+`talosVersion` — support has moved across point releases before (Talos 1.14.0
+broke CM5 ethernet, fixed in overlay v0.2.2).
 
-| Mount | Device | Filesystem | Purpose |
-|-------|--------|------------|---------|
-| /var/lib/longhorn | SD card | XFS | Longhorn default disk |
-| /var/mnt/usb | /dev/sda | XFS | USB disk (~2TB) |
+## Config Workflow
 
-### Known Limitations
-
-- **Cannot use `talosctl upgrade`** - efivarfs limitation on RPi5
-- **Must rebuild and re-flash** metal image to change extensions
-- **Manual config management** - pull state from machine, modify, and apply (see below)
-
-> **Note:** `talconfig.yaml` is already configured for official Talos support. When RPi5 support lands, simply regenerate configs and apply - no talconfig changes needed.
-
-**Tracking issues:**
-- https://github.com/siderolabs/sbc-raspberrypi/issues/82 (open: intermittent ethernet/DHCP dropouts on RPi5, the current blocker)
-- https://github.com/siderolabs/sbc-raspberrypi/issues/107 (closed: Talos 1.14.0 broke CM5 ethernet, fixed in v0.2.2)
-- https://github.com/siderolabs/talos/discussions/7821
-- https://github.com/siderolabs/talos/issues/7978 (closed: original "no RPi5 support" tracking issue)
-- https://github.com/siderolabs/sbc-raspberrypi/issues/23 (closed: original "RPi5 unable to boot" issue)
-
----
-
-## Manual Configuration
-
-Since the RPi5 can't use the standard talhelper workflow, config changes must be done manually by pulling the current state from the machine, modifying it, and applying it back.
-
-**Note:** Don't maintain a separate config file in the repo - it gets deleted when `generate-configs.sh` runs and contains secrets that shouldn't be committed.
-
-### Key Differences from talhelper Config
-
-| Setting | RPi5 (running) | talhelper Config |
-|---------|----------------|------------------|
-| kubelet image | v1.34.1 | v1.35.0 |
-| install image | ghcr.io/talos-rpi5/installer:v1.11.5 | factory.talos.dev/... |
-| hostname | Under machine.network.hostname | HostnameConfig document |
-| grubUseUKICmdline | Not present (v1.11.5 incompatible) | Present |
-
-### Applying Config Changes
-
-#### Step 1: Pull Current Config
+rpi5 takes a standard talhelper config. Edit `talconfig.yaml`, then:
 
 ```bash
-# Get the main machine config
-talosctl get machineconfig -n rpi5.catfish-mountain.ts.net -o yaml | yq '.spec' > /tmp/rpi5-config.yaml
-
-# Get the ExtensionServiceConfig (Tailscale)
-talosctl get extensionserviceconfig -n rpi5.catfish-mountain.ts.net -o yaml | yq '.spec'
+cd talos
+./generate-configs.sh
+talosctl apply-config --nodes 192.168.1.84 --file clusterconfig/homelab-rpi5.yaml
 ```
 
-#### Step 2: Modify and Combine
+Reach rpi5 by **LAN IP** (`192.168.1.84`) for config operations. Applying config
+over the Tailscale hostname can cut the connection mid-apply when the Tailscale
+extension restarts.
 
-Edit `/tmp/rpi5-config.yaml` with your changes. If you need to include the ExtensionServiceConfig, append it as a separate YAML document with `---` separator.
+Use `apply-config` rather than `patch`: `talosctl patch` does not preserve
+separate YAML documents and will strip the Tailscale `ExtensionServiceConfig`.
 
-#### Step 3: Apply
+For a single-field change on a running node, pull the live config, edit only
+that field, and confirm the diff before applying:
 
 ```bash
-talosctl apply-config \
-  --nodes rpi5.catfish-mountain.ts.net \
-  --file /tmp/rpi5-config.yaml
+talosctl get mc v1alpha1 -n 192.168.1.84 -o yaml | yq '.spec' > /tmp/rpi5.yaml
+# edit /tmp/rpi5.yaml
+talosctl apply-config --nodes 192.168.1.84 --file /tmp/rpi5.yaml --dry-run
+talosctl apply-config --nodes 192.168.1.84 --file /tmp/rpi5.yaml --mode=no-reboot
 ```
 
-**Warning:** `talosctl patch` does NOT preserve separate YAML documents (like ExtensionServiceConfig). Always use `apply-config` with the full config.
+Applying the exact running `ExtensionServiceConfig` means Tailscale does not
+restart.
 
----
+## Ethernet: macb TX Stalls
 
-## Tailscale Extension Configuration
+The on-board NIC (`end0`, Cadence macb driver) stalls its TX ring under sustained
+upload. Two mitigations are in place:
 
-The Tailscale extension is configured via `ExtensionServiceConfig` as a **separate YAML document** (not under machine.pods):
+1. `dtparam=eee=off` baked into the schematic, disabling the BCM54213PE
+   AutogrEEEn LPI-wake race ([sbc-raspberrypi#91](https://github.com/siderolabs/sbc-raspberrypi/issues/91))
+2. An `EthernetConfig` document in `talconfig.yaml` turning off TSO/GSO and
+   enlarging both rings to 4096
+
+Confirm they are live:
+
+```bash
+talosctl -n 192.168.1.84 get ethernetstatus end0 -o yaml | grep -A4 rings
+# rings: rx 4096 / tx 4096, tx-tcp-segmentation off, tx-generic-segmentation off
+```
+
+Stalls still occur under heavy sustained TX and are **recovered automatically**
+by the in-kernel watchdog (Talos >= v1.13.3). This log line is expected and
+needs no action:
+
+```
+macb 1f00100000.ethernet end0: TX stall detected on queue 0 (tail=... head=...); re-kicking TSTART
+```
+
+For reference, a 598 GiB restic upload produced two stalls in four hours, both
+re-kicked, with no link drop. Investigate only if you see link-down events, or
+stalls while the link is otherwise idle:
+
+```bash
+talosctl -n 192.168.1.84 dmesg | grep -iE "tx stall|link (up|down)"
+```
+
+## Tailscale Extension
+
+Configured as a **separate YAML document**, not under `machine.pods`:
 
 ```yaml
-# Main config document
-version: v1alpha1
-machine:
-  # ... machine config ...
-cluster:
-  # ... cluster config ...
----
-# Separate document for extension config
 apiVersion: v1alpha1
 kind: ExtensionServiceConfig
 name: tailscale
 environment:
   - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
-  - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
+  - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
   - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh
 ```
 
-**Notes:**
-- Use **OAuth client credentials** (`TS_CLIENT_ID` / `TS_CLIENT_SECRET`), not a pre-auth key — OAuth clients don't expire and survive reboots reliably
+- Use **OAuth client credentials**, not a pre-auth key — OAuth clients don't
+  expire and survive reboots
+- `?ephemeral=false` keeps the node in the tailnet when it goes offline;
+  without it a power loss can get the device reaped
 - Credentials live in `talos/.env` (gitignored)
-- The `---` separator is required - this must be a separate YAML document
 
----
+## USB Disk
 
-## Building Custom Metal Images
-
-Extensions cannot be added via `talosctl upgrade` due to efivarfs limitations:
-
-```
-Firmware does not support SetVariableRT. Can not remount with rw
-Error: failed to install bootloader: failed to create efivarfs reader/writer: invalid argument
-```
-
-The solution is to build a fresh metal image with extensions baked in.
-
-### Build on RPi5 Itself (Recommended)
-
-Run the imager as a privileged pod on the rpi5 node. This provides:
-- Native arm64 execution (no cross-compilation)
-- Access to loopback devices (doesn't work in Docker Desktop on macOS)
-
-#### Step 1: Deploy Builder Pod
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: talos-image-builder
-  namespace: longhorn  # or any namespace with privileged access
-spec:
-  restartPolicy: Never
-  nodeSelector:
-    kubernetes.io/hostname: rpi5
-  initContainers:
-  - name: builder
-    image: ghcr.io/talos-rpi5/imager:v1.11.5-1-gfe840f161
-    args:
-    - metal
-    - --arch=arm64
-    - --overlay-image=ghcr.io/talos-rpi5/sbc-raspberrypi5:7d04484-v1.11.0-1-g34f19c2
-    - --overlay-name=rpi5
-    - --system-extension-image=ghcr.io/siderolabs/iscsi-tools:v0.2.0
-    - --system-extension-image=ghcr.io/siderolabs/tailscale:1.88.1
-    - --system-extension-image=ghcr.io/siderolabs/util-linux-tools:2.41.1
-    - --output-kind=image
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - name: dev
-      mountPath: /dev
-    - name: output
-      mountPath: /out
-  containers:
-  - name: server
-    image: python:3.12-alpine
-    command: ["python3", "-m", "http.server", "8080", "--directory", "/out"]
-    ports:
-    - containerPort: 8080
-    volumeMounts:
-    - name: output
-      mountPath: /out
-  volumes:
-  - name: dev
-    hostPath:
-      path: /dev
-  - name: output
-    emptyDir:
-      sizeLimit: 4Gi
-```
-
-#### Step 2: Download the Image
-
-```bash
-# Watch build progress
-kubectl logs talos-image-builder -n longhorn -c builder -f
-
-# Download via port-forward
-kubectl port-forward pod/talos-image-builder -n longhorn 8080:8080 &
-curl -o metal-arm64-rpi5-ext.raw.zst http://localhost:8080/metal-arm64.raw.zst
-kill %1
-
-# Clean up
-kubectl delete pod talos-image-builder -n longhorn
-```
-
-#### Step 3: Flash and Configure
-
-```bash
-# Decompress
-zstd -d metal-arm64-rpi5-ext.raw.zst
-
-# Flash to SD card (replace diskN with your SD card)
-sudo diskutil unmountDisk /dev/diskN
-sudo dd if=metal-arm64-rpi5-ext.raw of=/dev/rdiskN bs=4M status=progress
-
-# Boot rpi5, then apply config (pull from existing node or use saved config)
-# If this is a fresh install, you can use the talhelper-generated config as a base:
-talosctl apply-config --insecure --nodes 192.168.1.17 \
-  --file /tmp/rpi5-config.yaml
-```
-
-#### Step 4: Post-Flash Cleanup
-
-```bash
-# Restart Longhorn pods if they're in crashloop
-kubectl delete pods -n longhorn --field-selector spec.nodeName=rpi5
-
-# Verify extensions
-talosctl get extensions --nodes rpi5.catfish-mountain.ts.net
-```
-
-### What Doesn't Work
-
-| Method | Error |
-|--------|-------|
-| `talosctl upgrade` | efivarfs read-only error |
-| Docker Desktop on macOS | Loopback device errors |
-| Cross-arch build (amd64→arm64) | exec format error |
-
----
-
-## USB Disk Setup
-
-The USB disk is configured in the machine config:
+A 2 TB SanDisk Extreme at `/var/mnt/usb`, holding the Garage object store (the
+backup target for Longhorn and VolSync). Declared in `talconfig.yaml`:
 
 ```yaml
 machine:
@@ -255,125 +128,81 @@ machine:
       - destination: /var/mnt/usb
         type: bind
         source: /var/mnt/usb
-        options:
-          - bind
-          - rshared
-          - rw
+        options: [bind, rshared, rw]
 ```
 
-### Wiping an Existing Disk
+Keep this disk attached. Because the config declares `/dev/sda` as a user disk,
+`UserDiskConfigController` retries indefinitely when it is missing, and the
+overlay mounts for `/etc/kubernetes`, `/etc/cni`, `/opt` and
+`/usr/libexec/kubernetes` never complete — so the kubelet never starts, even
+though `EPHEMERAL` provisioned fine. Reattaching the disk clears it immediately
+and the existing XFS is mounted, not reformatted.
 
-If the USB disk has an existing filesystem (e.g., APFS from macOS), Talos will refuse to format it. Wipe it first:
+To adopt a disk that already carries a foreign filesystem, wipe it first:
 
 ```bash
-talosctl wipe disk sda --nodes rpi5.catfish-mountain.ts.net
-talosctl wipe disk sda1 --nodes rpi5.catfish-mountain.ts.net  # if partition exists
+talosctl wipe disk sda --nodes 192.168.1.84
+talosctl wipe disk sda1 --nodes 192.168.1.84   # if a partition exists
 ```
 
-Then apply config and reboot for Talos to format the disk.
+## Upgrades
 
----
+`talosctl upgrade` should now work, since the efivarfs limitation belonged to the
+community image. It has not yet been exercised on this node, which is why tuppr
+still has `talos.supportsRpi5: false` in `kubernetes/infra/tuppr/values.yaml`.
+Run one manual upgrade first, then flip that flag:
+
+```bash
+talosctl upgrade --nodes 192.168.1.84 \
+  --image factory.talos.dev/installer/3ec14befcbf3baad2a84ae0dd95bdfaaed37364451e02b8f3c4b79c52a948d37:v1.X.X
+```
+
+Upgrade `talosctl` itself before upgrading nodes, and drain through
+`talos/scripts/safe-reboot-node.sh` rather than rebooting directly — direct
+reboots with Longhorn volumes attached risk filesystem corruption.
 
 ## Troubleshooting
 
-### Kubelet Not Starting - CA Certificate Error
+### Kubelet not starting — CA certificate error
 
 ```
 error adding CA to root pool: %!w(<nil>)
 ```
 
-This indicates a corrupted cluster CA certificate. Compare your config's `cluster.ca.crt` with the talhelper-generated config to ensure it's correct. The certificate should decode to show `O=kubernetes` for both subject and issuer:
+A corrupted cluster CA. Compare the config's `cluster.ca.crt` against the
+talhelper-generated config; it should decode with `O=kubernetes` as both subject
+and issuer:
 
 ```bash
 echo "<base64-cert>" | base64 -d | openssl x509 -noout -subject -issuer
-# Should show:
-# subject=O=kubernetes
-# issuer=O=kubernetes
 ```
 
-### ExtensionServiceConfig Lost After Patch
+### Kubelet not starting — no overlay mounts
 
-The `talosctl patch` command doesn't preserve separate YAML documents. If you use `talosctl patch`, you'll lose the Tailscale ExtensionServiceConfig.
+Check that the USB disk is present; see the USB Disk section above.
 
-**Solution:** Always use `talosctl apply-config` with the full config (including the ExtensionServiceConfig as a separate YAML document). See the "Applying Config Changes" section above for the workflow.
+### Longhorn pods crashlooping
 
-### Longhorn Pods Crashlooping
-
-After adding iscsi-tools extension, restart Longhorn pods:
+After an `iscsi-tools` change, clear the backoff:
 
 ```bash
 kubectl delete pods -n longhorn --field-selector spec.nodeName=rpi5
 ```
 
----
+### Port 50000 checks
 
-## Migration to Official Talos
+Use `nc -vz 192.168.1.84 50000` to test the Talos API. The maintenance-mode API
+presents a self-signed cert, so `talosctl` needs `--insecure` until the config is
+applied.
 
-### When to Migrate
+## Links
 
-Watch for:
-1. Talos release notes mentioning "Raspberry Pi 5" support
-2. `sbc-raspberrypi` overlay updates with RPi5 device trees
-3. Kernel 6.19+ in Talos (has full RPi5 device tree support)
+- [sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) — the overlay
+- [issue #91](https://github.com/siderolabs/sbc-raspberrypi/issues/91) — macb TX stall / EEE
+- [issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82) — intermittent ethernet dropouts
+- [Image Factory](https://factory.talos.dev/)
 
-Test by checking if Image Factory produces working RPi5 images.
+## Still Unsupported
 
-### Migration Steps
-
-#### 1. Verify Official Support Works
-
-```bash
-# Download test image with the schematic (same as rpi3)
-curl -LO "https://factory.talos.dev/image/59a07420a7e77b52dce55311856a16b377e2f9ef61762e8873de65a945954d91/v1.X.X/metal-arm64.raw.zst"
-
-# Flash to spare SD card and test boot + ethernet
-```
-
-#### 2. Regenerate and Apply
-
-`talconfig.yaml` is already configured for official support. Just regenerate:
-
-```bash
-cd talos
-./generate-configs.sh
-
-# Flash the new image to SD card, then apply config
-talosctl apply-config --insecure --nodes 192.168.1.17 \
-  --file talos/clusterconfig/homelab-rpi5.yaml
-
-# Or if talosctl upgrade works on official images:
-talosctl upgrade \
-  --nodes rpi5.catfish-mountain.ts.net \
-  --image factory.talos.dev/installer/59a07420a7e77b52dce55311856a16b377e2f9ef61762e8873de65a945954d91:v1.X.X
-```
-
-#### 3. Clean Up
-
-Once on official images, you can delete this document (`rpi5-setup.md`).
-
----
-
-## Reference
-
-### Image References
-
-| Component | Image |
-|-----------|-------|
-| Imager | ghcr.io/talos-rpi5/imager:v1.11.5-1-gfe840f161 |
-| Installer | ghcr.io/talos-rpi5/installer:v1.11.5 |
-| Overlay | ghcr.io/talos-rpi5/sbc-raspberrypi5:7d04484-v1.11.0-1-g34f19c2 |
-
-### Extension Versions (for Talos v1.11.5)
-
-| Extension | Version |
-|-----------|---------|
-| iscsi-tools | v0.2.0 |
-| tailscale | 1.88.1 |
-| util-linux-tools | 2.41.1 |
-
-### Links
-
-- talos-rpi5 project: https://github.com/talos-rpi5
-- RPi5 support discussion: https://github.com/siderolabs/talos/discussions/7821
-- Official RPi5 overlay issue: https://github.com/siderolabs/sbc-raspberrypi/issues/23
-- Installation guide: https://rcwz.pl/2025-10-04-installing-talos-on-raspberry-pi-5/
+- PWM/fan control — no driver in the overlay
+- NVMe boot — the overlay's U-Boot lacks the BCM2712 PCIe driver; SD card only
