@@ -42,7 +42,16 @@ export const formatDay = (date: string) => DAY.format(at(date)).toUpperCase();
  * to find in CI, not six months later when the archive sorts oddly.
  */
 export async function getPosts(kind?: Kind): Promise<Post[]> {
-  const entries = await getCollection("posts", (p) => p.data.public);
+  // Drafts - `public: false`, which is the schema default, so a new post is one
+  // automatically - are visible under `astro dev` and never in a build. That
+  // makes the file in src/content/posts the draft as well as the post: it can
+  // be written, previewed and rewritten in place, with the heading/ladder check
+  // and the rest of the schema running on every save rather than once at the
+  // end. Flipping `public: true` is the whole of publishing.
+  const entries = await getCollection(
+    "posts",
+    (p) => p.data.public || import.meta.env.DEV,
+  );
 
   const withSlugs = entries.map((entry) => {
     const match = FILENAME_DATE.exec(entry.id);

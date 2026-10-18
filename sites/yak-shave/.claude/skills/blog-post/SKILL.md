@@ -11,6 +11,63 @@ An Astro site in `sites/yak-shave`. Posts are markdown in `src/content/posts/`.
 self-documenting and changes often — read it rather than trusting any field
 list written down elsewhere, including here.
 
+## Default mode: skeleton, not prose
+
+**Ben writes the sentences. Unless he asks for a full draft, hand him a
+skeleton.**
+
+This is not modesty, it is editing economics. Replacing someone else's finished
+paragraphs means line-editing prose you did not choose the shape of, which is
+slower than writing your own and leaves a seam where the rewrite meets whatever
+survived. A skeleton has nothing to replace.
+
+The split that works: **the archaeology is yours, the voice is his.** Most of
+the work in a shave post is reconstructing what actually happened — digging the
+chain of causes out of git history, SigNoz, pod logs and PR threads, finding the
+commit a line lived at, capturing the real output. Do that properly; it is the
+part that makes the post true, and the part Ben would otherwise spend an evening
+on. Then stop before the prose.
+
+A skeleton is:
+
+- frontmatter complete and valid, `public` left at its default
+- `descent` drafted — rungs as realisations, in order
+- one `##` per rung, worded **exactly** as the rung (the build checks this)
+- under each heading, the **evidence**: the real command and its real output,
+  a table of real numbers, a permalink pinned to the commit being discussed
+- one `TK` line per section saying what that section has to establish
+
+Nothing else. No connective paragraphs, no transitions, no opening line, and
+above all no closing generalisation — the ending is the most voice-dependent
+sentence in the post and the one most worth writing yourself.
+
+`TK` is the newsroom convention for "to come" and is used here because it
+appears in almost no English word, so `grep -n 'TK' <post>` finds every
+placeholder and nothing else. A post with a `TK` in it is not ready to publish.
+
+````markdown
+## The disk was fine
+
+TK — establish that every obvious check passed, so the reader stops
+suspecting the disk and starts suspecting the name.
+
+| check | result |
+| --- | --- |
+| SMB server pod | Running, 20d uptime, 0 restarts |
+| `nc 192.168.1.201 445` | succeeded |
+
+```console
+$ tmutil destinationinfo
+Name          : Family
+Kind          : Network
+URL           : smb://family@Time%20Machine._smb._tcp.local./Family
+```
+````
+
+Write the prose out in full only when Ben asks for it in so many words — "write
+it out", "full draft", "take a pass at the prose". Then the voice notes below
+apply and they matter a great deal.
+
 ## Pick the kind first
 
 The schema is a discriminated union on `kind`; each branch requires a different
@@ -98,11 +155,19 @@ line ranges before committing to them; they drift.
 2. **`public: false` by default.** Drafts live in the repo and simply don't
    publish. Flipping to `true` is the editorial act.
 
+A draft renders under `npm run dev` and never in a build (`lib/posts.ts` gates
+on `import.meta.env.DEV`), so the file in `src/content/posts/` is the draft as
+well as the post: write it, preview it, rewrite it in place, with the schema and
+the ladder/heading check running on every save instead of once at the end. The
+rail tags an unpublished post `DRAFT`, which matters because the front page
+renders the newest post — while you are drafting, that is your draft.
+
 Both branches are `.strict()` — an unrecognised key fails the build. `date`
 accepts quoted or unquoted; the schema normalises.
 
 ## Before flipping `public: true`
 
+- [ ] `grep -n 'TK' <post>` returns nothing
 - [ ] Filename date matches frontmatter date
 - [ ] `descent` rungs are realisations, and the body doesn't repeat them
 - [ ] Every claim has its evidence — output, table, or a pinned link
@@ -133,9 +198,13 @@ ever reused. See `sites/yak-shave/README.md` for the serving details.
 
 ## Housekeeping
 
-Three posts carry `# STAND-IN DRAFTED BY CLAUDE` headers and are set
-`public: false`, so they sit in the repo without going out under Ben's byline.
-Rewrite or delete them, then flip the flag.
+Three posts carry `# STAND-IN DRAFTED BY CLAUDE` headers in their frontmatter:
+`2026-09-02-committed-*`, `2026-09-18-signoz-*` and
+`2026-10-15-sign-your-own-pull-requests`. They were drafted by Claude from
+incident notes and are **live** under Ben's byline — he published them
+deliberately, intending to rewrite them. Rewrite or delete; don't treat their
+prose as a model for the house voice.
 
-Because those three are unpublished, the ~520–580 word house length above is
-measured against drafts rather than shipped posts. Treat it as provisional.
+Which also means the ~520–580 word house length above is measured partly
+against Claude-drafted text. Treat it as provisional; the one post that is
+wholly Ben's is the Time Machine one.
