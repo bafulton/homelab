@@ -11,13 +11,15 @@ metadata:
     helm.sh/resource-policy: keep
 spec:
   name: {{ .name }}
-  allowScheduling: {{ .allowScheduling | default true }}
+  # hasKey, not `default`: Helm treats false as empty, so `false | default true`
+  # renders true and makes an explicit `allowScheduling: false` a silent no-op.
+  allowScheduling: {{ if hasKey . "allowScheduling" }}{{ .allowScheduling }}{{ else }}true{{ end }}
   evictionRequested: false
   tags: {{ .tags | default list | toJson }}
   disks:
     {{- range $diskName, $disk := .disks }}
     {{ $diskName }}:
-      allowScheduling: {{ $disk.allowScheduling | default true }}
+      allowScheduling: {{ if hasKey $disk "allowScheduling" }}{{ $disk.allowScheduling }}{{ else }}true{{ end }}
       evictionRequested: false
       path: {{ $disk.path }}
       storageReserved: {{ $disk.storageReserved | default 0 | int64 }}

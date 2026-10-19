@@ -60,12 +60,33 @@ it blocked the VolSync restic cache from attaching until the cache moved to
 Moving application writes off the boot device also protects the chip holding
 the OS from wear.
 
-Remaining volumes to migrate: `jellyfin-config`, `home-assistant-config`,
-`matter-server-data`, `mosquitto-data`. A PVC's `storageClassName` is
-immutable, so each is restore-from-backup into a new PVC on `longhorn-nvme`
-(or recreate-empty for `mosquitto-data`, which has no backup job yet). Once
-they are off, set `emmc-disk` to `allowScheduling: false`, then drop the disk
-and the storage class.
+**Status: the disk is vacated.** All four replicas (`jellyfin-config`,
+`home-assistant-config`, `matter-server-data`, `mosquitto-data`) were migrated
+to `nvme-disk` on 2026-10-19 with no data loss or downtime, and `emmc-disk` is
+now `allowScheduling: false`. Freeing that 7 Gi also put the disk back above
+the 25% floor (20 Gi avail), so the `DiskPressure` deadlock is gone.
+
+The migration is a three-step dance, because Longhorn will not evict the last
+replica of an attached single-replica volume:
+
+1. Repoint each volume's `spec.diskSelector` from `emmc` to `nvme`
+2. Temporarily set `replica-soft-anti-affinity: true` and each volume's
+   `numberOfReplicas: 2`, so a second replica builds on nvme (strict node
+   anti-affinity otherwise blocks it - nvme exists on one node only)
+3. Once healthy, drop back to `numberOfReplicas: 1` and set
+   `spec.evictionRequested: true` on the **replica** objects
+
+Set eviction on the replicas, not the disk: `templates/node-config.yaml`
+renders `evictionRequested: false` for every disk, so ArgoCD reverts a
+disk-level request within seconds. Remember to revert
+`replica-soft-anti-affinity` afterwards.
+
+**Still outstanding.** The PVCs continue to name the `longhorn-emmc` class,
+which is immutable, so the volumes live on nvme only by virtue of their
+per-volume `diskSelector`. Fully retiring the class means recreating those
+PVCs on `longhorn-nvme` (restore-from-backup, or recreate-empty for
+`mosquitto-data`) during a planned window, then deleting the disk and the
+storage class.
 
 TB-scale volumes on slow USB drives are not managed by Longhorn — Longhorn's V1 engine timeout (hard-capped at 30s) causes rebuild failures on large slow drives. Use the `local-storage` chart with VolSync for those instead.
 
