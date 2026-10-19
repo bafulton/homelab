@@ -13,7 +13,10 @@ spec:
   storageClassName: ""
   hostPath:
     path: {{ .path }}
-    type: DirectoryOrCreate
+    # Directory, not DirectoryOrCreate: if the underlying disk is not mounted,
+    # fail the pod rather than let kubelet silently create an empty directory
+    # on the root filesystem and present it as the volume.
+    type: Directory
   nodeAffinity:
     required:
       nodeSelectorTerms:

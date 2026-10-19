@@ -52,10 +52,10 @@ nodes:
       - |-
         machine:
           disks:
-            - device: /dev/nvme0n1
+            - device: {{ env "BEELINK_NVME_DISK" }}
               partitions:
                 - mountpoint: /var/mnt/nvme
-            - device: /dev/sda
+            - device: {{ env "BEELINK_USB_DISK" }}
               partitions:
                 - mountpoint: /var/mnt/usb
 
@@ -128,7 +128,7 @@ nodes:
       - |-
         machine:
           disks:
-            - device: /dev/sda
+            - device: {{ env "RPI5_USB_DISK" }}
               partitions:
                 - mountpoint: /var/mnt/usb
 
