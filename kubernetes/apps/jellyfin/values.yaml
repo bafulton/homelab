@@ -75,14 +75,6 @@ bitwarden-secret:
 
 # Jellyfin chart configuration
 jellyfin:
-  # TEMPORARY: scaled to 0 to recreate the jellyfin-media PV with
-  # hostPath.type: Directory. spec.persistentVolumeSource is immutable, so the
-  # type change cannot be patched onto the existing PV - ArgoCD has been stuck
-  # OutOfSync on it. The PV is reclaimPolicy: Retain over a hostPath, so
-  # deleting the PVC and PV does not touch /var/mnt/usb/jellyfin-media.
-  # REVERT TO 1 once the PV is recreated and bound.
-  replicaCount: 0
-
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:
