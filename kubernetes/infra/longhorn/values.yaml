@@ -26,18 +26,18 @@ nodeConfig:
     - name: beelink
       allowScheduling: true
       disks:
-        # eMMC drive (Talos EPHEMERAL partition). Vacated 2026-10-19 - all
-        # replicas were migrated to nvme-disk and scheduling is now off, so
-        # nothing new lands on the boot device. See README.md "Retiring
-        # longhorn-emmc" for the remaining work (the PVCs still name the
-        # longhorn-emmc class, which is immutable).
+        # eMMC drive (Talos EPHEMERAL partition). Vacated 2026-10-19: every
+        # replica now lives on nvme-disk. Kept declared with scheduling off
+        # rather than deleted, so the boot device stays a named, visible part
+        # of the topology instead of something a future disk edit might
+        # silently start filling.
         emmc-disk:
           path: /var/lib/longhorn
           storageReserved: 16106127360  # 15GB reserved for OS
           tags: ["emmc"]
           allowScheduling: false
-        # NVMe SSD - Time Machine, SigNoz, and the destination for everything
-        # migrating off emmc-disk.
+        # NVMe SSD - backs all three storage classes, and therefore every
+        # Longhorn volume in the cluster.
         nvme-disk:
           path: /var/mnt/nvme
           storageReserved: 0
