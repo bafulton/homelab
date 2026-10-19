@@ -40,10 +40,43 @@ Data is stored in ClickHouse with default retention:
 - Logs & Traces: 7 days
 - Metrics: 30 days
 
-Persistent volumes (on Longhorn nvme):
+Persistent volumes, all on the Longhorn `state` class - this data is
+rebuildable, so it is snapshotted but not backed up:
 - ClickHouse: 50Gi
 - Zookeeper: 8Gi
 - SigNoz DB: 1Gi
+
+## Quiescing SigNoz
+
+Three of the four workloads scale through `replicaCount: 0` in `values.yaml`.
+ClickHouse does not: its StatefulSet belongs to
+`ClickHouseInstallation/signoz-clickhouse`, and the operator ignores
+`layout.replicasCount: 0`. Use the CHI's own switch instead:
+
+```sh
+kubectl patch chi signoz-clickhouse -n signoz --type merge -p '{"spec":{"stop":"yes"}}'
+```
+
+ArgoCD leaves that alone, because the chart renders no `stop` field and the
+three-way diff ignores fields absent from both desired and last-applied state.
+Remove it with a JSON-patch `remove` of `/spec/stop` to start back up.
+
+Both Jobs in this app are hooks, and a hook that cannot finish blocks every
+later sync - including the push that would fix it:
+
+- `telemetrystore-migrator` needs ClickHouse up. Kept out of syncs via
+  `telemetryStoreMigrator.upgradeHelmHooks: false`. (The key is
+  `telemetryStoreMigrator`; `schemaMigrator` is not read by this chart and
+  setting it does nothing.)
+- `dashboard-sync` is a PostSync hook that waits on the SigNoz API, so it
+  spins for its full timeout whenever the app is scaled down.
+
+So scale **back up before the hook's retry budget runs out**, or clear the
+wedged operation first - a corrective push alone will not land:
+
+```sh
+kubectl patch application signoz -n argocd --type json -p '[{"op":"remove","path":"/operation"}]'
+```
 
 ## Email Notifications
 
