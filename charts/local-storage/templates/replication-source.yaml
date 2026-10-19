@@ -8,7 +8,15 @@ metadata:
 spec:
   sourcePVC: {{ .name }}
   trigger:
+    {{- if .backup.manual }}
+    # A manual token runs the backup once, then VolSync waits - and while the
+    # token is set the schedule does not run at all (the two triggers are
+    # mutually exclusive). Remove it to resume the schedule; the run is done
+    # when status.lastManualSync matches the token.
+    manual: {{ .backup.manual | quote }}
+    {{- else }}
     schedule: {{ .backup.schedule | quote }}
+    {{- end }}
   restic:
     repository: {{ .backup.repository }}
     copyMethod: Direct

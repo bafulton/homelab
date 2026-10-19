@@ -32,6 +32,10 @@ local-storage:
       node: beelink
       backup:
         schedule: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
+        # TEMPORARY: one-off run to confirm the scratch-class restic cache
+        # works end-to-end. Suspends the schedule while present - remove once
+        # status.lastManualSync reports this token.
+        manual: "verify-scratch-20261019-1949"
         repository: volsync-jellyfin-media-restic
         # 1Gi of restic metadata cache - disposable, so it belongs on the
         # scratch class. Losing it costs a slower next run, nothing more.

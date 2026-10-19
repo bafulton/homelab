@@ -86,6 +86,7 @@ bitwarden-secret:
 |-----|-------------|---------|
 | `pvcs[].backup` | VolSync ReplicationSource config | - |
 | `pvcs[].backup.schedule` | Cron schedule for backups | Required |
+| `pvcs[].backup.manual` | Run once now; **suspends the schedule while set** | - |
 | `pvcs[].backup.repository` | Name of the restic credentials Secret | Required |
 | `pvcs[].backup.retain.weekly` | Weekly backups to keep | - |
 | `pvcs[].backup.retain.monthly` | Monthly backups to keep | - |
@@ -103,6 +104,19 @@ bitwarden-secret:
 For each entry in `pvcs`:
 - **PersistentVolume**: `<name>` (cluster-scoped, hostPath, Retain policy)
 - **PersistentVolumeClaim**: `<name>` bound to the PV
+
+## Running a backup on demand
+
+Set `backup.manual` to any token that has not been used before, commit, and
+push. VolSync syncs once and records the token in `status.lastManualSync`:
+
+```sh
+kubectl get replicationsource <name> -n <ns> \
+  -o jsonpath='{.status.lastManualSync}{" "}{.status.lastSyncDuration}'
+```
+
+Then remove the field and push again - the schedule only resumes once the
+token is gone, so do not leave it in place.
 
 For each entry with `backup`:
 - **ReplicationSource**: `<name>` (VolSync, restic, Direct copy method)

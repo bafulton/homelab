@@ -95,6 +95,15 @@ storageClasses:
     dataLocality: disabled
     reclaimPolicy: Retain
 
+  # Two classes exist live that are deliberately NOT declared here:
+  #
+  # - `longhorn` is suppressed by persistence.createStorageClass: false below.
+  # - `longhorn-static` CANNOT be suppressed. longhorn-manager recreates it
+  #   from its own default-longhorn-static-storage-class setting, which it
+  #   uses internally for statically provisioned volumes - it has been deleted
+  #   before and came back within minutes. Nothing here references it, so it
+  #   is harmless. Leave it alone rather than trying again.
+
 
 longhorn:
   # Talos-specific configuration
