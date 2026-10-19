@@ -75,13 +75,6 @@ bitwarden-secret:
 
 # Jellyfin chart configuration
 jellyfin:
-  # TEMPORARY: scaled to 0 while beelink's media USB disk is moved from a
-  # USB 2.0 port (480 Mbps, throttling all media reads) to a USB 3 port.
-  # Jellyfin is the only consumer of /var/mnt/usb, and a pod holding an active
-  # mount must be stopped before the device is unplugged or the filesystem is
-  # left dirty. REVERT TO 1 once the disk is back and /var/mnt/usb is mounted.
-  replicaCount: 0
-
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:
