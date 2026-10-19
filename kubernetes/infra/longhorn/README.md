@@ -40,8 +40,34 @@ Classes are named for what the data **is**, not which drive it sits on.
 Naming by drive (the previous `longhorn-emmc` / `longhorn-nvme` scheme) couples
 a PVC to a hardware detail. Because `storageClassName` is immutable, the name
 becomes a lie the moment data moves and cannot be corrected without recreating
-the PVC - which is exactly what happened when the eMMC tier was vacated: four
-PVCs still name `longhorn-emmc` while their data lives on nvme.
+the PVC - which is what happened when the eMMC tier was vacated: four PVCs went
+on naming `longhorn-emmc` while their data sat on nvme.
+
+All three classes are `reclaimPolicy: Retain`, so a deleted PVC leaves its PV
+and Longhorn volume behind instead of destroying the data. That is what makes a
+class migration a relabel rather than a copy (below), and it means a mistaken
+PVC deletion is recoverable. The cost is orphaned PVs to clean up by hand.
+`reclaimPolicy` is immutable on a StorageClass, so changing it means deleting
+and recreating the class.
+
+### Classes Longhorn creates for itself
+
+Two classes are created by longhorn-manager rather than by this chart, so
+neither carries an ArgoCD tracking-id and neither can be removed with
+`kubectl delete` - the manager puts them straight back.
+
+`longhorn` is gated by `persistence.createStorageClass: false`, which is what
+actually removes it. Setting `defaultClass: false` alone is not enough: that
+only un-defaults it, leaving behind a class that requests 3 replicas, which can
+never schedule here (one node has Longhorn disks and
+`replica-soft-anti-affinity` is false), so any PVC naming it would sit Pending
+forever. The flag gates a ConfigMap the manager reads, so deleting the
+StorageClass object by hand does nothing on its own.
+
+`longhorn-static` cannot be removed at all. longhorn-manager recreates it from
+the `default-longhorn-static-storage-class` setting, which Longhorn uses
+internally for statically provisioned volumes - it reappeared within minutes of
+being deleted. Nothing in this repo references it; leave it alone.
 
 ### How a class maps to a drive
 
