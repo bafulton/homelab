@@ -29,13 +29,16 @@ pattern Traefik recommends for v40+.
 ## Excluded: `hub.traefik.io` CRDs (`hub: false`)
 
 Traefik Hub is a commercial add-on we don't use (Hub disabled, 0 Hub CRs). The
-v39 main chart shipped its 14 `hub.traefik.io` CRDs unconditionally; we don't
-carry that cruft forward.
+main chart still ships 15 `hub.traefik.io` CRDs in its `crds/` directory; we
+don't carry that cruft forward.
 
-Those 14 CRDs stay on the cluster after the migration (the `traefik` app has
-`prune: false`), showing as `requiresPruning` on the `traefik` app until deleted.
-Because Hub CRDs move to a separate app in v40+, GitOps can't express their
-removal — delete them once, by hand, after this PR merges (safe: no CRs exist):
+Deleting them only sticks once the `traefik` app stops rendering them. v41 did
+**not** stop shipping CRDs - only the `templates/` copies went away, and
+`crds/` is still there - so until `skipCrds: true` was set on that app it
+re-applied all 15 on its next sync, and a hand-deletion would reappear within
+minutes. With `skipCrds` in place nothing declares them, `prune: false` means
+ArgoCD won't touch them either, so they can be removed once by hand (safe: no
+CRs exist):
 
 ```bash
 kubectl get crd -o name | grep hub.traefik.io | xargs kubectl delete

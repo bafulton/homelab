@@ -43,10 +43,21 @@ spec:
           {{- if and (get . "syncPolicy") (index .syncPolicy "serverSideApply") }}
           - ServerSideApply=true
           {{- end }}
-      {{- if (get . "useAVP") }}
+      {{- if or (get . "useAVP") (get . "skipCrds") }}
       source:
+        {{- if (get . "useAVP") }}
         plugin:
           name: argocd-vault-plugin-helm
+        {{- end }}
+        {{- if (get . "skipCrds") }}
+        # Do not apply the chart's crds/ directory. Helm's `helm template`
+        # omits crds/ unless --include-crds is passed, but ArgoCD always
+        # includes it - so a chart can be shipping CRDs that a local render
+        # never shows. Use this where a companion chart owns the CRDs, so two
+        # apps do not both claim them and fight over the schema.
+        helm:
+          skipCrds: true
+        {{- end }}
       {{- end }}
       {{- if (get . "ignoreDifferences") }}
       ignoreDifferences:

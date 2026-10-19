@@ -1,9 +1,20 @@
 namespace: traefik
 
-# Never prune: keeps a sync race during the v41 CRD-ownership handoff (CRDs moved
-# to the traefik-crds app) from cascade-deleting Gateways/HTTPRoutes.
+# Never prune: keeps a sync race from cascade-deleting Gateways/HTTPRoutes,
+# since the CRDs those depend on are owned by the traefik-crds app.
 syncPolicy:
   prune: false
+
+# The chart still ships 25 CRDs in crds/ (v41 did NOT stop shipping them - only
+# the templates/ copies went away), and traefik-crds ships 10 of the same ones.
+# Both apps then claimed them, and their copies of middlewares.traefik.io
+# disagree on one schema field, so each app saw the other's apply as drift and
+# self-healed it back: ~130 syncs in under two hours, forever. traefik-crds is
+# the single owner, so this app renders no CRDs at all.
+#
+# Note `helm template` hides this - it omits crds/ unless --include-crds is
+# passed, while ArgoCD always includes it.
+skipCrds: true
 
 traefik:
   # A complete list of values can be found here:
