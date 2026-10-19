@@ -50,19 +50,17 @@ signoz:
   # set as `schemaMigrator.upgradeHelmHooks` for a long time, which silently did
   # nothing - the chart has no such key - so the sync hook kept running.
   #
-  # TEMPORARY: enabled: false for the storage-class migration. Its Job is an
-  # ArgoCD sync hook, and a failing hook wedges the whole app: the sync blocks
-  # on "waiting for healthy state of batch/Job/signoz-telemetrystore-migrator"
-  # and never applies anything else, so even pushing a fix does not recover.
-  # REVERT enabled to true.
+  # Its Job is an ArgoCD sync hook, and a failing hook wedges the whole app: the
+  # sync blocks on "waiting for healthy state of batch/Job/..." and applies
+  # nothing else, so pushing a fix does not recover it - the stuck operation has
+  # to be terminated first. upgradeHelmHooks: false keeps it out of the sync.
   telemetryStoreMigrator:
-    enabled: false
     upgradeHelmHooks: false
 
   # Use longhorn-nvme for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
   # Moved from emmc to free space for smaller apps
   global:
-    storageClass: longhorn-nvme
+    storageClass: state
 
   clickhouse:
     # Placement: local only — 50Gi ClickHouse on longhorn-nvme with constant
@@ -97,8 +95,6 @@ signoz:
           <crash_log remove="1"/>
         </clickhouse>
     zookeeper:
-      # TEMPORARY: 0 for the storage-class migration. REVERT to 1.
-      replicaCount: 0
       heapSize: 256
       # Placement: local only — ClickHouse coordination, PVC on longhorn-nvme.
       nodeSelector:
@@ -124,8 +120,6 @@ signoz:
         memory: 4Gi
 
   otelCollector:
-    # TEMPORARY: 0 for the storage-class migration. REVERT to 1.
-    replicaCount: 0
     # Placement: local only — writes to the local ClickHouse; keep it beside the
     # store rather than shipping all telemetry cloud->home.
     nodeSelector:
@@ -143,8 +137,6 @@ signoz:
         memory: 1536Mi
 
   signoz:
-    # TEMPORARY: 0 for the storage-class migration. REVERT to 1.
-    replicaCount: 0
     # Placement: local only — signoz app has a longhorn-nvme PVC (signoz-db).
     nodeSelector:
       homelab.io/location: local
