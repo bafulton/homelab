@@ -42,11 +42,10 @@ local-storage:
 
 # Longhorn storage - config PVC only (media PVC managed by local-storage chart)
 longhorn-storage:
-  pvcs:
-    - name: jellyfin-config
-      size: 5Gi
-      storageClass: longhorn-emmc
-      backupGroup: jellyfin
+  # jellyfin-config withdrawn while its PV is relabelled onto the config class;
+  # re-added in step 2. Group membership lives on the Longhorn Volume, which is
+  # not recreated, so it survives.
+  pvcs: []
   jobs:
     - name: jellyfin-config-daily
       cron: "0 3 * * *"
@@ -72,6 +71,10 @@ bitwarden-secret:
 
 # Jellyfin chart configuration
 jellyfin:
+  # TEMPORARY: 0 while jellyfin-config's PV is relabelled onto the config
+  # class. REVERT by deleting this override.
+  replicaCount: 0
+
   # Pin to nodes with USB storage and Intel GPU
   # GPU constraint is also enforced via gpu.intel.com/i915 resource request
   nodeSelector:
