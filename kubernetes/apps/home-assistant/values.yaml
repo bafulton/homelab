@@ -19,6 +19,10 @@ gateway-route:
           - type: _http._tcp
 
 home-assistant:
+  # TEMPORARY: 0 while home-assistant-config's PV is relabelled onto the config
+  # class. REVERT TO 1.
+  replicaCount: 0
+
   # Enable host networking for device auto-discovery (mDNS, SSDP, etc.)
   # Required for discovering Kasa, Meross, SwitchBot, and other LAN devices
   hostNetwork: true
@@ -162,11 +166,10 @@ matterServer:
 
 # Longhorn storage - PVC with backup labels and daily snapshots
 longhorn-storage:
-  pvcs:
-    - name: home-assistant-config
-      size: 5Gi
-      storageClass: longhorn-emmc
-      backupGroup: home-assistant
+  # home-assistant-config is withdrawn while its PV is relabelled onto the
+  # config class; re-added in step 2. The RecurringJob group membership lives on
+  # the Longhorn Volume, which is not recreated, so it survives.
+  pvcs: []
   jobs:
     - name: home-assistant-daily
       cron: "0 2 * * *"
