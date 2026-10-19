@@ -33,12 +33,9 @@ local-storage:
       backup:
         schedule: "0 8 * * 0"  # Sundays at 3am EST (8am UTC)
         repository: volsync-jellyfin-media-restic
-        # nvme, not emmc: beelink's emmc-disk sits under Longhorn's 25%
-        # minimal-available floor (13Gi free of 56Gi, mostly Talos EPHEMERAL
-        # rather than Longhorn data), so it reports Schedulable=False and a new
-        # cache volume cannot attach - the mover pod hangs on FailedAttachVolume.
-        # This is 1Gi of restic scratch space, so the disk choice is arbitrary.
-        cacheStorageClassName: longhorn-nvme
+        # 1Gi of restic metadata cache - disposable, so it belongs on the
+        # scratch class. Losing it costs a slower next run, nothing more.
+        cacheStorageClassName: scratch
         retain:
           weekly: 3
           monthly: 1
