@@ -4,9 +4,20 @@ namespace: time-machine
 service:
   loadBalancerIP: "192.168.1.201"
 
+# Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
+# SMB share backed by a single RWO volume.
+replicaCount: 0
+
 # Storage configuration
 # NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
+#
+# `enabled` exists so the claim can be withdrawn without deleting the app,
+# which is what makes a storage-class migration possible: storageClassName is
+# immutable on a PVC, so the claim has to be recreated. Gated with a plain
+# `if` and always set explicitly here - Helm's `default` treats false as empty,
+# so `.enabled | default true` would render true and silently ignore false.
 storage:
+  enabled: false
   storageClass: longhorn-nvme
   size: 1800Gi
 

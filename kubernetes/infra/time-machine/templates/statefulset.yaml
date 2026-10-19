@@ -7,7 +7,9 @@ metadata:
     reloader.stakater.com/search: "true"
 spec:
   serviceName: time-machine
-  replicas: 1  # Never go > 1
+  # Never go above 1: a single SMB share backed by one RWO volume.
+  # 0 is the supported way to quiesce it for volume maintenance.
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: time-machine
