@@ -32,11 +32,13 @@ mosquitto:
     logLevel: information
 
   # Persistence for retained messages and subscriptions.
-  # STEP 1 OF 2: temporarily off so ArgoCD prunes the longhorn-emmc PVC.
-  # storageClassName is immutable, so the claim has to be recreated to move
-  # onto the `config` class. Re-enabled with existingClaim in step 2.
+  # The claim is created by the longhorn-storage chart below rather than by this
+  # chart, so it can carry the recurring-job-group label Longhorn needs for
+  # scheduled snapshots and backups - the upstream chart can set PVC
+  # annotations but not labels.
   persistence:
-    enabled: false
+    enabled: true
+    existingClaim: mosquitto-data
 
 # mDNS advertisement for MQTT broker discovery
 # Allows Theengs Gateway and other devices to find the broker
@@ -47,3 +49,26 @@ mdnsServices:
     port: 1883
     types:
       - type: _mqtt._tcp
+
+# PVC + backup schedule. mosquitto-data was previously created by the upstream
+# chart on longhorn-emmc with no backup at all; moving it here puts it on the
+# `config` class and gives it the same snapshot/backup treatment as the other
+# config volumes.
+longhorn-storage:
+  pvcs:
+    - name: mosquitto-data
+      size: 1Gi
+      storageClass: config
+      backupGroup: mosquitto
+  jobs:
+    - name: mosquitto-daily
+      cron: "0 5 * * *"
+      groups:
+        - mosquitto
+      retain: 5
+    - name: mosquitto-backup
+      task: backup
+      cron: "30 5 * * *"
+      groups:
+        - mosquitto
+      retain: 3

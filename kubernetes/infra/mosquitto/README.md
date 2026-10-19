@@ -20,7 +20,7 @@ Eclipse Mosquitto MQTT broker for IoT device communication. Serves as the messag
 
 | PVC | Size | Storage Class |
 |-----|------|---------------|
-| `mosquitto-data` | 1Gi | longhorn-emmc (migrating to longhorn-nvme) |
+| `mosquitto-data` | 1Gi | `config` (daily snapshot 05:00, backup 05:30) |
 
 ## Home Assistant Integration
 
