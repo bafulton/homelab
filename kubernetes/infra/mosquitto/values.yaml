@@ -31,11 +31,12 @@ mosquitto:
     allowAnonymous: true
     logLevel: information
 
-  # Persistence for retained messages and subscriptions
+  # Persistence for retained messages and subscriptions.
+  # STEP 1 OF 2: temporarily off so ArgoCD prunes the longhorn-emmc PVC.
+  # storageClassName is immutable, so the claim has to be recreated to move
+  # onto the `config` class. Re-enabled with existingClaim in step 2.
   persistence:
-    enabled: true
-    storageClass: longhorn-emmc
-    size: 1Gi
+    enabled: false
 
 # mDNS advertisement for MQTT broker discovery
 # Allows Theengs Gateway and other devices to find the broker
