@@ -12,15 +12,21 @@ prometheus-smartctl-exporter:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9633"
 
-  # Collect SMART data every 30 minutes. The exporter blocks its HTTP handler
-  # during smartctl runs; beelink has 10 USB drives and the full scan takes
-  # ~14 minutes, which exceeds the OTel scrape timeout (~6 min). Setting the
-  # interval to 30 min keeps the cache warm for long enough that OTel scrapes
-  # reliably hit cached data between collections.
+  # Collect SMART data every 5 minutes. The exporter blocks its HTTP handler
+  # during smartctl runs, so this has to stay comfortably above the scan time.
+  #
+  # This was 30 min, justified by "beelink has 10 USB drives and the full scan
+  # takes ~14 minutes". That is no longer true: `smartctl --scan` finds two
+  # devices on beelink (/dev/sda, /dev/nvme0) and one on rpi5. The eight
+  # sdb-sdi entries are Longhorn's iSCSI VIRTUAL-DISK exports, which smartctl
+  # correctly skips. A scan of two devices takes ~1s each.
+  #
+  # Fresher data matters: the Oct 2026 USB-link investigation was slowed by
+  # 30-minute-old SMART samples.
   # This maps to --smartctl.interval in the binary.
   common:
     config:
-      collect_not_more_than_period: 1800s
+      collect_not_more_than_period: 300s
 
   # Tolerate all taints to run on all nodes
   tolerations:
