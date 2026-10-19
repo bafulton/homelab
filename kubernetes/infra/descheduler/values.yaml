@@ -40,7 +40,7 @@ descheduler:
             args:
               # CRITICAL: only evict a pod if it can actually schedule elsewhere.
               # This is what protects the beelink-pinned workloads (Longhorn PVCs
-              # via longhorn-nvme/emmc node affinity, amd64-only images, static
+              # via Longhorn disk/node affinity, amd64-only images, static
               # control-plane pods) from being thrashed — they have no other home,
               # so the descheduler leaves them alone instead of churning them.
               nodeFit: true

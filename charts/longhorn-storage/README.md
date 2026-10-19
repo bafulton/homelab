@@ -57,7 +57,7 @@ my-app:
 | `pvcs` | List of PVC configurations | `[]` |
 | `pvcs[].name` | PVC name | Required |
 | `pvcs[].size` | Storage size | `1Gi` |
-| `pvcs[].storageClass` | Longhorn storage class | `longhorn-nvme` |
+| `pvcs[].storageClass` | Longhorn storage class (`config`, `state`, `scratch`) | `config` |
 | `pvcs[].accessMode` | Access mode | `ReadWriteOnce` |
 | `pvcs[].backupGroup` | Adds `recurring-job-group.longhorn.io/<group>: enabled` label | - |
 

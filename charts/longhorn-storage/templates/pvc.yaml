@@ -11,7 +11,7 @@ metadata:
 spec:
   accessModes:
     - {{ .accessMode | default "ReadWriteOnce" }}
-  storageClassName: {{ .storageClass | default "longhorn-nvme" }}
+  storageClassName: {{ .storageClass | default "config" }}
   resources:
     requests:
       storage: {{ .size | default "1Gi" }}

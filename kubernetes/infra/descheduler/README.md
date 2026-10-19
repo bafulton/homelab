@@ -34,7 +34,7 @@ rpi5 31%/45%) so beelink classifies as a source and rpi5 as a target. Re-check w
 
 - **`nodeFit: true`** — a pod is only evicted if it could actually schedule elsewhere.
   This is what keeps the beelink-pinned workloads (Longhorn-PVC pods via
-  `longhorn-nvme`/`longhorn-emmc` node affinity, amd64-only images, static
+  Longhorn disk/node affinity, amd64-only images, static
   control-plane pods) from being churned — they have no other home, so they're left
   alone.
 - **`PodsWithPVC` protection** — PVC-backed stateful pods (ClickHouse, garage,
