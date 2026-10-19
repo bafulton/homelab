@@ -2,7 +2,7 @@ namespace: mosquitto
 
 mosquitto:
   # Placement: local only — LAN MQTT broker (LoadBalancer @ 192.168.1.202) whose
-  # data lives on longhorn-emmc; a remote node has no Longhorn CSI to attach it.
+  # data lives on a Longhorn volume; a remote node has no Longhorn CSI to attach it.
   # See charts/README.md "Placement".
   nodeSelector:
     homelab.io/location: local
@@ -51,7 +51,7 @@ mdnsServices:
       - type: _mqtt._tcp
 
 # PVC + backup schedule. mosquitto-data was previously created by the upstream
-# chart on longhorn-emmc with no backup at all; moving it here puts it on the
+# chart with no backup at all; moving it here puts it on the
 # `config` class and gives it the same snapshot/backup treatment as the other
 # config volumes.
 longhorn-storage:

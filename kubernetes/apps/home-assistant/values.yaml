@@ -32,7 +32,7 @@ home-assistant:
         value: "1"
 
   # Placement: local only — hostNetwork service that must reach LAN devices
-  # (mDNS/SSDP) and whose config lives on longhorn-emmc. See charts/README.md.
+  # (mDNS/SSDP) and whose config lives on a Longhorn volume. See charts/README.md.
   nodeSelector:
     homelab.io/location: local
 

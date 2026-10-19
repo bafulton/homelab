@@ -69,30 +69,63 @@ provisioning-time label, and why stale ones are harmless.
 
 ### Migration state
 
-`storageClassName` is immutable, so each app moves to a new class only when its
-PVC is recreated. This is done opportunistically rather than as a big-bang.
+Moving a PVC between classes is a **relabel, not a copy**: `storageClassName`
+is immutable on a PVC, but both `PV.spec.storageClassName` and
+`PV.spec.claimRef` are mutable. With the PV on `reclaimPolicy: Retain`:
 
-| PVC | Current | Target |
-|-----|---------|--------|
-| `mosquitto/mosquitto-data` | `config` | done (pilot) |
-| `home-assistant/home-assistant-config` | `longhorn-emmc` | `config` |
-| `home-assistant/matter-server-data` | `longhorn-emmc` | `config` |
-| `jellyfin/jellyfin-config` | `longhorn-emmc` | `config` |
-| `signoz/*` (3 StatefulSet templates) | `longhorn-nvme` | `state` |
-| `time-machine/time-machine-data` | `longhorn-nvme` | `state` |
-| `jellyfin/volsync-src-...-cache` | `longhorn-nvme` | `scratch` |
+1. Quiesce the app and withdraw the PVC declaration so ArgoCD prunes the claim;
+   the PV survives as `Released`, still holding the Longhorn volume
+2. Patch the PV: `storageClassName` to the new class, and `claimRef` to the same
+   namespace/name with `uid` and `resourceVersion` cleared - that returns it to
+   `Available`, pre-bound by name
+3. Restore the app with the new class; the recreated PVC binds back to the same
+   volume
 
-`longhorn-emmc` and `longhorn-nvme` are retained until nothing names them, then
-deleted. `longhorn-static` was removed already, having had no references.
+No data is read or written, so volume size is irrelevant - `time-machine-data`
+moved 1.1TB this way in seconds. Verify afterwards that the PVC's `VOLUME`
+column still shows the original `pvc-...` name.
 
-The chart-provided `longhorn` class is removed via
-`persistence.createStorageClass: false`. Setting `defaultClass: false` alone is
-not enough - that only un-defaults it, leaving a class behind that requests 3
-replicas, which can never schedule here.
+| PVC | Class | State |
+|-----|-------|-------|
+| `mosquitto/mosquitto-data` | `config` | done (recreated, not relabelled) |
+| `home-assistant/home-assistant-config` | `config` | done |
+| `home-assistant/matter-server-data` | `config` | done |
+| `jellyfin/jellyfin-config` | `config` | done |
+| `time-machine/time-machine-data` | `state` | done |
+| `jellyfin/volsync-src-...-cache` | `scratch` | done (recreated on demand) |
+| `signoz/signoz-db-signoz-0` | `longhorn-nvme` | **outstanding** |
+| `signoz/data-signoz-zookeeper-0` | `longhorn-nvme` | **outstanding** |
+| `signoz/data-volumeclaim-template-chi-...` | `longhorn-nvme` | **outstanding** |
 
-TB-scale node-pinned volumes do not use Longhorn at all; see the
-`local-storage` chart. Longhorn's V1 engine timeout (hard-capped at 30s) causes
-rebuild failures on large slow drives.
+The signoz three are harder: their `volumeClaimTemplates` are immutable too, so
+each needs `kubectl delete sts --cascade=orphan` plus deleting the PVC and pod
+so the claim is recreated from the new template. The ClickHouse StatefulSet is
+owned by `ClickHouseInstallation/signoz-clickhouse`, so the operator reconciles
+it rather than ArgoCD. `longhorn-nvme` stays until they are done.
+
+### Verifying a recurring-job group actually applies
+
+RecurringJobs match on **Volume** labels, and Longhorn copies
+`recurring-job-group.longhorn.io/*` from the PVC to the Volume at provision
+time - but not reliably. `mosquitto-data` was created with the label on its PVC
+and the Volume came up with only `default`, so the backup schedule looked
+correct in git and would have backed up nothing.
+
+After adding a volume to a group, check the Volume, not the PVC:
+
+```bash
+kubectl get volumes.longhorn.io -n longhorn <pvc-...> -o jsonpath='{.metadata.labels}'
+```
+
+If the group label is missing, set it directly:
+
+```bash
+kubectl label volumes.longhorn.io -n longhorn <pvc-...> \
+  recurring-job-group.longhorn.io/<group>=enabled --overwrite
+```
+
+A relabelled volume keeps its group labels, because the Volume object is never
+recreated.
 
 ### Migrating replicas between disks
 

@@ -97,15 +97,10 @@ storageClasses:
     dataLocality: disabled
     reclaimPolicy: Retain
 
-  # DEPRECATED - retained only because live PVCs and StatefulSet
-  # volumeClaimTemplates still name them, and storageClassName is immutable.
-  # Each is removed once the apps naming it have been rebuilt onto the classes
-  # above; see README.md for the per-app migration state. longhorn-static was
-  # removed already, having had no references at all.
-  - name: longhorn-emmc
-    diskSelector: emmc
-    replicas: 1
-    dataLocality: disabled
+  # DEPRECATED - retained only because the three signoz StatefulSet
+  # volumeClaimTemplates still name it, and storageClassName is immutable
+  # there too. Removed once signoz is rebuilt onto `state`; see README.md.
+  # longhorn-emmc and longhorn-static are already gone.
   - name: longhorn-nvme
     diskSelector: nvme
     replicas: 1

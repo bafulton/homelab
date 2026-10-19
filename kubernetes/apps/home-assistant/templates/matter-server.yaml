@@ -61,7 +61,7 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       # Placement: local only — hostNetwork + Matter LAN discovery, data on
-      # longhorn-emmc. Keeps it off remote/cloud nodes. See charts/README.md.
+      # a Longhorn volume. Keeps it off remote/cloud nodes. See charts/README.md.
       nodeSelector:
         homelab.io/location: local
       # hostNetwork required for Matter mDNS device discovery on LAN
