@@ -28,6 +28,12 @@ ignoreDifferences:
     kind: StatefulSet
     name: garage
     jsonPointers: ["/spec/template/metadata/annotations/checksum~1secret"]
+  # The webui Deployment stamps the same annotation from the same helper, so it
+  # rolled on every sync too (6 ReplicaSets in 11 hours before this was caught).
+  - group: apps
+    kind: Deployment
+    name: garage-webui
+    jsonPointers: ["/spec/template/metadata/annotations/checksum~1secret"]
 
 # Both secrets are consumed by the garage subchart:
 #   garage-secret         -> garage.secret.name (rpcSecret + adminToken)
