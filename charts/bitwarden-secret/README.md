@@ -66,13 +66,13 @@ This allows mixing sensitive data from Bitwarden with non-sensitive configuratio
 ```yaml
 bitwarden-secret:
   secrets:
-    - name: minio-credentials
+    - name: garage-s3-credentials
       data:
-        rootUser: "longhorn-backup"  # Literal value (not sensitive)
-        rootPassword: "0a3a525c-8a89-4513-ae77-b3f00030686f"  # Bitwarden UUID
+        AWS_ACCESS_KEY_ID: "GKexample0123456789abcdef"            # Literal value (not sensitive)
+        AWS_SECRET_ACCESS_KEY: "00000000-0000-0000-0000-000000000000"  # Bitwarden UUID (placeholder)
 ```
 
-In this example, `rootUser` is stored directly in the Secret as a literal string, while `rootPassword` is fetched from Bitwarden using the UUID.
+In this example, `AWS_ACCESS_KEY_ID` is stored directly in the Secret as a literal string, while `AWS_SECRET_ACCESS_KEY` is fetched from Bitwarden using the UUID.
 
 ## Values
 
