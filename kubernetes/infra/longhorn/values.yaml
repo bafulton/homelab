@@ -66,6 +66,13 @@ storageClasses:
 #
 # Moving EXISTING replicas is a separate operation - see "Migrating replicas
 # between disks" in README.md.
+#
+# reclaimPolicy: Retain on all three. A deleted PVC then leaves its PV and
+# Longhorn volume behind rather than destroying the data, which is what makes a
+# class migration a relabel instead of a copy, and what stops a mistaken PVC
+# deletion being unrecoverable. The cost is orphaned volumes to clean up by
+# hand. reclaimPolicy is immutable on a StorageClass, so changing this later
+# means deleting and recreating the class.
 
   # Small, precious application config. Snapshotted and backed up via
   # RecurringJobs (see the per-app backupGroup in each app's values.yaml).
@@ -73,6 +80,7 @@ storageClasses:
     diskSelector: nvme
     replicas: 1
     dataLocality: disabled
+    reclaimPolicy: Retain
 
   # Operational state that is either rebuildable or too large to back up
   # (observability stores, Time Machine's own backup target).
@@ -80,12 +88,14 @@ storageClasses:
     diskSelector: nvme
     replicas: 1
     dataLocality: disabled
+    reclaimPolicy: Retain
 
   # Disposable scratch space. Losing it costs a slower next run, nothing more.
   - name: scratch
     diskSelector: nvme
     replicas: 1
     dataLocality: disabled
+    reclaimPolicy: Retain
 
   # DEPRECATED - retained only because live PVCs and StatefulSet
   # volumeClaimTemplates still name them, and storageClassName is immutable.
