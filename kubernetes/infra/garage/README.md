@@ -1,7 +1,7 @@
 # Garage
 
 S3-compatible object storage. The backup target for Longhorn volume backups and
-for VolSync's restic repositories, replacing MinIO.
+for VolSync's restic repositories.
 
 ## Architecture
 
@@ -20,9 +20,8 @@ for VolSync's restic repositories, replacing MinIO.
 | Longhorn | `defaultBackupStore.backupTarget` in `infra/longhorn/values.yaml` | `s3://longhorn-backups@us-east-1/` |
 | VolSync (restic) | `RESTIC_REPOSITORY` in `apps/jellyfin/values.yaml` | `volsync-backups/jellyfin-media` |
 
-Garage is configured with `s3_region = "us-east-1"` so Longhorn's existing
-`backupTarget` string needs no change — only the endpoint in
-`longhorn-backup-credentials` differs from the MinIO era.
+Garage is configured with `s3_region = "us-east-1"`, which is the region
+Longhorn signs with in its `backupTarget` string.
 
 ## Why hostPath Instead of a Longhorn PVC
 
@@ -126,8 +125,8 @@ kubectl exec -n garage garage-0 -- /garage key info longhorn-backup
 ```
 
 The web console (`garage-webui`) is served at
-**https://garage.catfish-mountain.com** for browsing buckets, keys and usage -
-the replacement for the old MinIO console. catfish-mountain.com is
+**https://garage.catfish-mountain.com** for browsing buckets, keys and usage.
+catfish-mountain.com is
 `wildcard_public = false`, so it resolves only through Tailscale Split DNS, the
 same trust boundary as the Longhorn dashboard. Chart-level basic auth
 (`webui.auth`) is therefore left off; enabling it requires an
@@ -190,15 +189,3 @@ kubectl exec -n longhorn $(kubectl get pods -n longhorn -l app=longhorn-manager 
 
 Longhorn signs requests with the region in `backupTarget`; it must match
 `s3_region` in the generated `garage.toml` (`us-east-1`).
-
-## MinIO Migration
-
-MinIO was archived upstream in April 2026 and its images were removed from every
-public registry, so it could not be restarted after the rpi5 was re-flashed onto
-official Talos. Garage replaces it.
-
-The old MinIO tree is left in place at `/var/mnt/usb/minio-data` (~601 GiB: 4.6
-GiB of Longhorn backups, 596 GiB of the Jellyfin restic repo). Backups were
-re-baselined onto Garage rather than migrated — the retained history was four
-restic snapshots and five Longhorn backups per volume, all months stale. Remove
-`minio-data` once the new backups verify, which also reclaims the disk.

@@ -846,7 +846,7 @@
         "kind": "Panel",
         "spec": {
           "display": {
-            "description": "Bytes used on /var/mnt/usb per node (beelink=jellyfin-media XFS, rpi5=MinIO data)",
+            "description": "Bytes used on /var/mnt/usb per node (beelink=jellyfin-media XFS, rpi5=Garage object store)",
             "name": "USB Drive Used Space"
           },
           "links": [],

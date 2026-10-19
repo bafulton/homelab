@@ -23,7 +23,7 @@ gateway-route:
         ip: 192.168.1.200
 
 # Local storage - media PVC directly on USB drive (hostPath, not Longhorn)
-# VolSync backs up to MinIO weekly via restic
+# VolSync backs up to Garage weekly via restic
 local-storage:
   pvcs:
     - name: jellyfin-media

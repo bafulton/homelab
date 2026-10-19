@@ -9,7 +9,7 @@ A reusable Helm chart for creating static hostPath PVs/PVCs with optional VolSyn
 | **Replication** | Yes (across nodes) | No (single node) |
 | **Volume mobility** | Yes | No (pinned to node) |
 | **Best for** | Config volumes, small data | TB+ media, node-pinned drives |
-| **Backups** | Longhorn RecurringJobs → MinIO | VolSync restic → MinIO |
+| **Backups** | Longhorn RecurringJobs → Garage | VolSync restic → Garage |
 
 If your volume is already pinned to a node via `nodeSelector` and is too large for Longhorn to rebuild (>~100GB on slow drives), use `local-storage`.
 

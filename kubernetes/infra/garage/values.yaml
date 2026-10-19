@@ -1,7 +1,6 @@
 # Garage - S3-compatible object storage
 #
-# Replaces MinIO, whose images were pulled from every public registry when the
-# project was archived (Apr 2026). Serves two consumers:
+# Serves two consumers:
 #   - Longhorn volume backups  (backupTarget s3://longhorn-backups@us-east-1/)
 #   - VolSync restic backups   (jellyfin-media, which is hostPath, not Longhorn)
 #
@@ -11,7 +10,7 @@
 # be a chart-of-charts dependency. The container image is upstream's
 # dxflrs/garage either way - the fork ships templates only, no binaries.
 #
-# See README.md for the credential layout and the MinIO migration history.
+# See README.md for the credential layout.
 
 namespace: garage
 
@@ -131,8 +130,8 @@ garage:
     layout:
       enabled: true
       zone: rpi5
-      # Leaves headroom beside the cold minio-data tree (~601 GiB) on the 2 TB
-      # disk. Raise with `garage layout assign -c` after minio-data is removed.
+      # Conservative share of the 2 TB disk. Raise at runtime with
+      # `garage layout assign -z rpi5 -c <size>` followed by `layout apply`.
       capacity: 1200G
     buckets:
       - name: longhorn-backups
@@ -146,7 +145,7 @@ garage:
           - longhorn-backups
           - volsync-backups
 
-  # Bucket/key/usage browser, replacing the old MinIO console. Exposed only on
+  # Bucket/key/usage browser. Exposed only on
   # catfish-mountain.com, which is wildcard_public = false, so it resolves
   # solely through Tailscale Split DNS - the same trust boundary as the
   # Longhorn dashboard. Chart-level basic auth is therefore left off.

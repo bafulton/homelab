@@ -1,6 +1,6 @@
 # VolSync
 
-Kubernetes operator for asynchronous volume replication. Used in this cluster to back up PVCs to MinIO via restic.
+Kubernetes operator for asynchronous volume replication. Used in this cluster to back up PVCs to Garage via restic.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ ReplicationSource (jellyfin-media, weekly)
 VolSync reads PVC directly (copyMethod: Direct)
         │
         ▼
-restic backs up to MinIO (volsync-backups bucket)
+restic backs up to Garage (volsync-backups bucket)
         │
         ▼
 Deduplicated, encrypted backup at rest
