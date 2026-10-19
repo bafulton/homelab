@@ -93,6 +93,12 @@ identifiers like a username, and must match the format `GK` + 24 hex characters.
 emits a fresh random `rpcSecret`/`adminToken` on every render, which ArgoCD would
 re-apply and churn the pod on each sync.
 
+Rotating `rpcSecret` or `adminToken` does not restart the pods on its own. The
+pod-template `checksum/secret` annotation that would normally detect that is
+suppressed via `ignoreDifferences` (see `values.yaml`), because the upstream
+chart re-randomizes it on every render. Restart `garage-0` by hand after
+rotating either value.
+
 To rotate the S3 key:
 
 1. Generate a new 32-byte hex value: `openssl rand -hex 32`

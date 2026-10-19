@@ -23,6 +23,19 @@ namespace: garage
 # checksum/config is computed the same way but over garage.toml, which is
 # deterministic, so it is left alone and still triggers a roll on real config
 # changes.
+#
+# REMOVE THIS BLOCK once the chart is bumped past 0.8.0.
+# Fixed upstream in datahub-local/garage-helm#51 (merged 2026-10-19), which
+# omits checksum/secret entirely when the secret content is not derived from
+# values - exactly our case. It covers both workload.yaml and
+# webui-deployment.yaml. No release has been cut yet: 0.8.0 is still the latest
+# published chart and does not contain the fix.
+#
+# Note for whoever removes it: with the fix in place there is no checksum/secret
+# annotation at all here, so rotating rpcSecret/adminToken in Bitwarden will no
+# longer roll the pods by itself - that needs a manual restart. Upstream issue
+# #50 stays open for its second case (garage.secret.create: true), which we do
+# not use.
 ignoreDifferences:
   - group: apps
     kind: StatefulSet
