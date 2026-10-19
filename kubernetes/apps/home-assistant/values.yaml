@@ -143,7 +143,10 @@ aircast:
 # Home Assistant connects via WebSocket at ws://matter-server:5580/ws
 # https://github.com/home-assistant-libs/python-matter-server
 matterServer:
-  enabled: true
+  # TEMPORARY: off so ArgoCD prunes the PVC, letting its PV be relabelled from
+  # longhorn-emmc onto the config class. The PV is reclaimPolicy: Retain, so
+  # the Longhorn volume and its Matter pairings survive. REVERT TO true.
+  enabled: false
   image:
     # Image moved from home-assistant-libs to matter-js org
     repository: ghcr.io/matter-js/python-matter-server
