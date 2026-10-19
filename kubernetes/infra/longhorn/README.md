@@ -37,11 +37,10 @@ Classes are named for what the data **is**, not which drive it sits on.
 | `state` | Operational state - rebuildable, or too large to back up | No |
 | `scratch` | Disposable; losing it costs a slower next run | No |
 
-Naming by drive (the previous `longhorn-emmc` / `longhorn-nvme` scheme) couples
-a PVC to a hardware detail. Because `storageClassName` is immutable, the name
-becomes a lie the moment data moves and cannot be corrected without recreating
-the PVC - which is what happened when the eMMC tier was vacated: four PVCs went
-on naming `longhorn-emmc` while their data sat on nvme.
+Naming by drive couples a PVC to a hardware detail. Because `storageClassName`
+is immutable, such a name becomes a lie the moment the data moves, and cannot
+be corrected without recreating the PVC. A purpose name stays true no matter
+which drive the replica lands on.
 
 All three classes are `reclaimPolicy: Retain`, so a deleted PVC leaves its PV
 and Longhorn volume behind instead of destroying the data. That is what makes a
@@ -111,23 +110,13 @@ No data is read or written, so volume size is irrelevant - `time-machine-data`
 moved 1.1TB this way in seconds. Verify afterwards that the PVC's `VOLUME`
 column still shows the original `pvc-...` name.
 
-| PVC | Class | State |
-|-----|-------|-------|
-| `mosquitto/mosquitto-data` | `config` | done (recreated, not relabelled) |
-| `home-assistant/home-assistant-config` | `config` | done |
-| `home-assistant/matter-server-data` | `config` | done |
-| `jellyfin/jellyfin-config` | `config` | done |
-| `time-machine/time-machine-data` | `state` | done |
-| `jellyfin/volsync-src-...-cache` | `scratch` | done (recreated on demand) |
-| `signoz/signoz-db-signoz-0` | `longhorn-nvme` | **outstanding** |
-| `signoz/data-signoz-zookeeper-0` | `longhorn-nvme` | **outstanding** |
-| `signoz/data-volumeclaim-template-chi-...` | `longhorn-nvme` | **outstanding** |
-
-The signoz three are harder: their `volumeClaimTemplates` are immutable too, so
-each needs `kubectl delete sts --cascade=orphan` plus deleting the PVC and pod
-so the claim is recreated from the new template. The ClickHouse StatefulSet is
-owned by `ClickHouseInstallation/signoz-clickhouse`, so the operator reconciles
-it rather than ArgoCD. `longhorn-nvme` stays until they are done.
+A StatefulSet needs one more step, because `volumeClaimTemplates` is immutable
+as well: delete the StatefulSet (at zero replicas there is nothing to orphan)
+so it is recreated from the new template, then relabel the PVs as above. Where
+an operator owns the StatefulSet - ClickHouse's belongs to
+`ClickHouseInstallation/signoz-clickhouse`, not ArgoCD - quiesce through the
+operator's own switch instead: the CHI honours `spec.stop: "yes"`, which
+ArgoCD leaves alone because the chart renders no `stop` field.
 
 ### Verifying a recurring-job group actually applies
 

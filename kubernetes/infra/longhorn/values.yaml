@@ -50,12 +50,10 @@ nodeConfig:
 storageClasses:
 # Classes are named for what the data IS, not which drive it sits on.
 #
-# Naming by drive (the old longhorn-emmc / longhorn-nvme scheme) couples the
-# PVC to a hardware detail, and storageClassName is immutable - so when data
-# moves between disks the class name becomes a lie that cannot be corrected
-# without recreating the PVC. That is exactly what happened when the emmc tier
-# was vacated: four PVCs still name longhorn-emmc while their data lives on
-# nvme.
+# Naming by drive couples the PVC to a hardware detail, and storageClassName is
+# immutable - so when data moves between disks the class name becomes a lie
+# that cannot be corrected without recreating the PVC. Naming by purpose keeps
+# the class true no matter where the replica lands.
 #
 # diskSelector is the single join between intent and hardware: it matches the
 # `tags` set on each disk in nodeConfig above. Changing which drive a purpose
@@ -96,15 +94,6 @@ storageClasses:
     replicas: 1
     dataLocality: disabled
     reclaimPolicy: Retain
-
-  # DEPRECATED - retained only because the three signoz StatefulSet
-  # volumeClaimTemplates still name it, and storageClassName is immutable
-  # there too. Removed once signoz is rebuilt onto `state`; see README.md.
-  # longhorn-emmc and longhorn-static are already gone.
-  - name: longhorn-nvme
-    diskSelector: nvme
-    replicas: 1
-    dataLocality: disabled
 
 
 longhorn:

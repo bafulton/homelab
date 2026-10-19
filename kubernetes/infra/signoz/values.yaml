@@ -57,13 +57,13 @@ signoz:
   telemetryStoreMigrator:
     upgradeHelmHooks: false
 
-  # Use longhorn-nvme for all SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB)
-  # Moved from emmc to free space for smaller apps
+  # All three SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB) are rebuildable
+  # observability data, so they sit on `state` rather than `config`.
   global:
     storageClass: state
 
   clickhouse:
-    # Placement: local only — 50Gi ClickHouse on longhorn-nvme with constant
+    # Placement: local only — 50Gi ClickHouse on `state` with constant
     # ingest; data gravity keeps it home. See charts/README.md "Placement".
     nodeSelector:
       homelab.io/location: local
@@ -96,7 +96,7 @@ signoz:
         </clickhouse>
     zookeeper:
       heapSize: 256
-      # Placement: local only — ClickHouse coordination, PVC on longhorn-nvme.
+      # Placement: local only — ClickHouse coordination, PVC on `state`.
       nodeSelector:
         homelab.io/location: local
       podAnnotations:
@@ -137,7 +137,7 @@ signoz:
         memory: 1536Mi
 
   signoz:
-    # Placement: local only — signoz app has a longhorn-nvme PVC (signoz-db).
+    # Placement: local only — signoz app has a `state` PVC (signoz-db).
     nodeSelector:
       homelab.io/location: local
     persistence:
