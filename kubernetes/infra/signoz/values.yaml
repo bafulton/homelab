@@ -55,6 +55,10 @@ signoz:
     storageClass: longhorn-nvme
 
   clickhouse:
+    # TEMPORARY: 0 to quiesce ClickHouse and Zookeeper while their PVs are
+    # relabelled onto the state class. REVERT to 1.
+    layout:
+      replicasCount: 0
     # Placement: local only — 50Gi ClickHouse on longhorn-nvme with constant
     # ingest; data gravity keeps it home. See charts/README.md "Placement".
     nodeSelector:
@@ -87,6 +91,8 @@ signoz:
           <crash_log remove="1"/>
         </clickhouse>
     zookeeper:
+      # TEMPORARY: 0 for the storage-class migration. REVERT to 1.
+      replicaCount: 0
       heapSize: 256
       # Placement: local only — ClickHouse coordination, PVC on longhorn-nvme.
       nodeSelector:
@@ -129,6 +135,8 @@ signoz:
         memory: 1536Mi
 
   signoz:
+    # TEMPORARY: 0 for the storage-class migration. REVERT to 1.
+    replicaCount: 0
     # Placement: local only — signoz app has a longhorn-nvme PVC (signoz-db).
     nodeSelector:
       homelab.io/location: local
