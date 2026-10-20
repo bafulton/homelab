@@ -48,6 +48,56 @@ write_files:
       [Install]
       WantedBy=multi-user.target
 
+  # Dead man's switch. Every 2 minutes, request the public hostname - which
+  # hairpins out through this VM's own public IP, so it exercises public DNS,
+  # the security list, Traefik, the tailnet hop, home Traefik and Jellyfin -
+  # and ping Healthchecks.io only if that succeeded. A failure sends nothing
+  # and lets the 5-minute grace period decide, the same tolerance as the node
+  # checks in kubernetes/infra/node-health.
+  #
+  # The ping URL is this one check's UUID URL, not a project ping-key URL: a
+  # ping key can ping every check, so leaking it from the internet-facing host
+  # would let someone fake "up" for beelink and rpi5 too.
+  - path: /etc/edge-healthcheck.env
+    permissions: "0600"
+    content: |
+      PING_URL=${healthcheck_ping}
+
+  - path: /usr/local/bin/edge-healthcheck
+    permissions: "0755"
+    content: |
+      #!/bin/sh
+      curl -fsS -m 15 -o /dev/null https://${public_hostname}/health || exit 0
+      curl -fsS -m 10 --retry 3 -o /dev/null "$PING_URL"
+
+  - path: /etc/systemd/system/edge-healthcheck.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Probe the public Jellyfin path and ping the dead man's switch
+      After=network-online.target traefik.service
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      EnvironmentFile=/etc/edge-healthcheck.env
+      ExecStart=/usr/local/bin/edge-healthcheck
+      DynamicUser=true
+
+  - path: /etc/systemd/system/edge-healthcheck.timer
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Run edge-healthcheck every 2 minutes
+
+      [Timer]
+      OnBootSec=2min
+      OnUnitActiveSec=2min
+      AccuracySec=10s
+
+      [Install]
+      WantedBy=timers.target
+
 runcmd:
   # OCI's Ubuntu images carry host iptables rules that DROP everything except
   # SSH, independently of the VCN security list. Both layers must be opened or
@@ -70,3 +120,4 @@ runcmd:
   - rm -f /tmp/traefik.tar.gz
   - systemctl daemon-reload
   - systemctl enable --now traefik
+  - systemctl enable --now edge-healthcheck.timer

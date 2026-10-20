@@ -35,6 +35,13 @@ security add-generic-password -a "$USER" -s tailscale-oauth-client-id -w
 security add-generic-password -a "$USER" -s tailscale-oauth-client-secret -w
 ```
 
+and the Healthchecks.io Management API key - the project's single read-write
+key, shared with `node-health` (BSM: `healthchecks-api-key`):
+
+```sh
+security add-generic-password -a "$USER" -s healthchecks-api-key -w
+```
+
 The OAuth client needs the `auth_keys` scope **and `tag:edge` in its tag list**.
 The Kubernetes operator's client cannot be reused: OAuth clients are
 tag-scoped, and that one carries `tag:k8s-operator`.
@@ -66,6 +73,46 @@ curl --resolve argocd.catfish-mountain.com:443:<public_ip> \
 
 Then play an actual video, not just a health check. Sustained bytes are the
 point, and transcoding exercises different timing than direct play.
+
+## Monitoring
+
+A dead man's switch. A systemd timer on the edge requests
+`https://media.fultonhuffman.com/health` every 2 minutes and pings the
+`edge-forwarder` check on Healthchecks.io only if that succeeded. The request
+hairpins out through the VM's own public IP, so one probe covers public DNS,
+the security list, Traefik, the tailnet hop, home Traefik and Jellyfin.
+Healthchecks emails if pings stop for longer than the 5-minute grace period,
+whatever the cause - including the whole house being offline, which an
+in-cluster probe could never report.
+
+The check lives in `healthchecks.tf`, in the same project as the `beelink` and
+`rpi5` checks. Those two belong to `kubernetes/infra/node-health` and must
+never be imported here: node-health creates them on first ping and resets
+their settings on every pod start, so a second owner would fight it.
+
+The edge pings with its check's UUID URL, never the project ping key - a ping
+key can ping every check, so leaking it from this host would let someone fake
+"up" for the nodes too.
+
+## Rebuilding
+
+cloud-init only runs on first boot, and the instance ignores `user_data`
+changes, so **editing a template changes nothing on the running VM** - a plain
+`tofu plan` reports "No changes". Push template changes with a rebuild:
+
+```sh
+tofu apply -replace=oci_core_instance.fwd
+cd ../cloudflare && tofu apply      # the ephemeral public IP changes
+```
+
+The edge joins the tailnet as an **ephemeral** node, deliberately: it holds no
+state and its recovery is always a rebuild. Tailscale reaps an offline
+ephemeral node after roughly 30-60 minutes. If you rebuild before that, remove
+the old `edge-forwarder` device in the Tailscale console first, or the new VM
+registers as `edge-forwarder-1`. A reaped node cannot rejoin on its own, which
+is fine - the dead man's switch reports it, and the fix is a rebuild.
+
+After a rebuild, clear the old host key: `ssh-keygen -R edge-forwarder`.
 
 ## Things that cost time to learn
 

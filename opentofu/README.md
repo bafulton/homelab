@@ -23,8 +23,8 @@ in the repo:
 
 - **`cloudflare/`** needs `CLOUDFLARE_API_TOKEN`, from Bitwarden.
 - **`oci-forwarder/`** reads OCI credentials from `~/.oci/config` directly, and
-  gets its Tailscale credentials plus two non-secret locals from
-  `source ./env.sh` - that script holds only lookups and is safe to read.
+  gets its Tailscale and Healthchecks.io credentials plus two non-secret locals
+  from `source ./env.sh` - that script holds only lookups and is safe to read.
 
 No OCIDs, tokens, or keys belong in a committed `.tf` or `.tfvars` file.
 

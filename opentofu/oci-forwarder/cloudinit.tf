@@ -24,6 +24,8 @@ data "cloudinit_config" "fwd" {
       traefik_version     = var.traefik_version
       traefik_static_b64  = base64encode(local.traefik_static)
       traefik_dynamic_b64 = base64encode(local.traefik_dynamic)
+      public_hostname     = var.public_hostname
+      healthcheck_ping    = healthchecksio_check.edge_forwarder.ping_url
     })
   }
 }

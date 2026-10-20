@@ -5,6 +5,10 @@ terraform {
     oci       = { source = "oracle/oci" }
     tailscale = { source = "tailscale/tailscale" }
     cloudinit = { source = "hashicorp/cloudinit" }
+    healthchecksio = {
+      source  = "kristofferahl/healthchecksio"
+      version = "~> 2.3"
+    }
   }
 }
 
@@ -15,3 +19,7 @@ provider "oci" {}
 # Reads TAILSCALE_OAUTH_CLIENT_ID / _SECRET / TAILSCALE_TAILNET.
 # Load them from the macOS keychain first: source ./env.sh
 provider "tailscale" {}
+
+# Reads HEALTHCHECKSIO_API_KEY (see env.sh). Same project, and the same
+# read-write key, as node-health: Healthchecks.io allows one per project.
+provider "healthchecksio" {}

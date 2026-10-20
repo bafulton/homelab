@@ -54,3 +54,15 @@ else
 fi
 
 unset _tenancy
+
+# Healthchecks.io Management API key - the project's single read-write key,
+# shared with node-health (BSM: healthchecks-api-key). Workstation only; the
+# edge VM receives just its own check's ping URL, never this.
+_hc=$(security find-generic-password -a "$USER" -s healthchecks-api-key -w 2>/dev/null)
+if [ -n "$_hc" ]; then
+  export HEALTHCHECKSIO_API_KEY="$_hc"
+else
+  echo "env.sh: missing keychain entry 'healthchecks-api-key'. Add it with:" >&2
+  echo '  security add-generic-password -a "$USER" -s healthchecks-api-key -w' >&2
+fi
+unset _hc
