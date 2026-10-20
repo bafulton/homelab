@@ -166,8 +166,20 @@ data:
         -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
       _code=$(echo "$_resp" | tail -n1)
       if [ "$_code" = "200" ]; then
-        RULES_LIST_OK=true
         echo "$_resp" | sed '$d' > /tmp/rules.json
+        # A 200 whose envelope we cannot parse is the dangerous case: every
+        # lookup would miss and the create path would POST a duplicate of each
+        # rule. Treat "payload mentions rules but none parsed" as a failure.
+        # Zero parsed with no rules in the payload is a legitimately empty
+        # instance (first bootstrap), so creates stay allowed there.
+        _n=$(jq '[.. | objects | select(((.alert? // "") != "") and ((.id? // "") != ""))] | unique_by(.id) | length' /tmp/rules.json 2>/dev/null || echo 0)
+        if [ "${_n:-0}" -eq 0 ] && grep -q '"alert"' /tmp/rules.json 2>/dev/null; then
+          RULES_LIST_OK=false
+          echo "  ERROR: /api/v3/rules returned rules but none could be parsed - alert creates will be skipped"
+        else
+          RULES_LIST_OK=true
+          echo "  Rule list: $_n existing rule(s)"
+        fi
       else
         RULES_LIST_OK=false
         echo "{}" > /tmp/rules.json
