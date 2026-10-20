@@ -65,6 +65,14 @@ traefik:
           from: All
         certificateRefs:
           - name: wildcard-catfish-mountain-com-tls
+          # Jellyfin's public hostname, reached via the OCI edge forwarder.
+          # Traefik selects between these by SNI.
+          #
+          # Only add a ref whose Certificate is already READY=True: an
+          # unresolvable certificateRef invalidates the whole listener, not
+          # just that SNI, and Traefik then serves its default self-signed
+          # cert for every name on :443.
+          - name: media-fultonhuffman-com-tls
         mode: Terminate
 
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
