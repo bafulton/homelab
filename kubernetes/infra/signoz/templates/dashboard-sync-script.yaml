@@ -60,8 +60,8 @@ data:
     # NOTE: SigNoz removed the v1 dashboard API (v0.142.1) — this section uses
     # /api/v2/dashboards. Dashboard JSON files are the "postable" v2/Perses
     # shape: {tags, spec: {display, layouts, panels, variables, ...}[, image]}.
-    # Alerts below are unaffected and remain on /api/v1/rules.
-    #
+    # Alerts use /api/v3/rules (list) and /api/v2/rules (write) with the
+    # v2alpha1 rule schema; the /api/v1/rules endpoints are being removed.
     # Track all IaC dashboard titles so we can reconcile at the end.
     # Dashboards with tag "gitops" that are NOT in this list will be deleted.
     : > /tmp/synced_dashboard_titles
@@ -153,13 +153,34 @@ data:
     # Track all IaC alert names so we can reconcile at the end.
     # Rules with labels.source=gitops that are NOT in this list will be deleted.
     : > /tmp/synced_alert_names
+    # Fetch the rule list once per phase. The v2alpha1 migration moves the list
+    # to /api/v3/rules, whose response envelope is not documented, so the id
+    # lookups below search it recursively instead of assuming .data.rules.
+    #
+    # On any non-200 the file is left as {} and RULES_LIST_OK stays false, so
+    # every lookup misses and the create paths refuse to run: a blind upsert
+    # against an empty list would POST a duplicate of all 19 rules.
+    RULES_LIST_OK=false
+    fetch_rules() {
+      _resp=$(curl -s -w "\n%{http_code}" "$SIGNOZ_URL/api/v3/rules" \
+        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+      _code=$(echo "$_resp" | tail -n1)
+      if [ "$_code" = "200" ]; then
+        RULES_LIST_OK=true
+        echo "$_resp" | sed '$d' > /tmp/rules.json
+      else
+        RULES_LIST_OK=false
+        echo "{}" > /tmp/rules.json
+        echo "  ERROR: GET /api/v3/rules returned HTTP $_code - alert creates will be skipped"
+      fi
+    }
 
     # Load alerts from ConfigMaps (label: signoz.homelab.io/alert=true)
     echo "Loading alerts from ConfigMaps..."
 
     # Get existing alerts
-    existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
-      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+    fetch_rules
+    existing_alerts=$(cat /tmp/rules.json)
 
     # List all ConfigMaps with the alert label
     kubectl get configmaps -A -l signoz.homelab.io/alert=true -o json | \
@@ -190,18 +211,18 @@ data:
       existing_id=""
       if [ -n "$alert_name" ]; then
         existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
-          '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null | head -1)
+          '[.. | objects | select((.alert? == $n) and ((.id? // "") != "")) | .id] | first // empty' 2>/dev/null)
       fi
 
       if [ -n "$existing_id" ]; then
         echo "    Updating existing alert: $existing_id"
-        response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+        response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v2/rules/$existing_id" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
           -H "Content-Type: application/json" \
           -d "$alert_json")
       else
-        echo "    Creating new alert"
-        response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
+        if [ "$RULES_LIST_OK" != "true" ]; then echo "    Skipping create: rule list unavailable, refusing to risk a duplicate"; continue; fi; echo "    Creating new alert"
+        response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v2/rules" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
           -H "Content-Type: application/json" \
           -d "$alert_json")
@@ -224,8 +245,8 @@ data:
       echo "Loading alerts from git..."
 
       # Refresh existing alerts list
-      existing_alerts=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
-        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+      fetch_rules
+      existing_alerts=$(cat /tmp/rules.json)
 
       for f in "$ALERT_DIR"/*.json; do
         [ -f "$f" ] || continue
@@ -246,18 +267,18 @@ data:
         existing_id=""
         if [ -n "$alert_name" ]; then
           existing_id=$(echo "$existing_alerts" | jq -r --arg n "$alert_name" \
-            '.data.rules[]? | select(.alert == $n) | .id // empty' 2>/dev/null | head -1)
+            '[.. | objects | select((.alert? == $n) and ((.id? // "") != "")) | .id] | first // empty' 2>/dev/null)
         fi
 
         if [ -n "$existing_id" ]; then
           echo "    Updating existing alert: $existing_id"
-          response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/rules/$existing_id" \
+          response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v2/rules/$existing_id" \
             -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d @"$f")
         else
-          echo "    Creating new alert"
-          response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v1/rules" \
+          if [ "$RULES_LIST_OK" != "true" ]; then echo "    Skipping create: rule list unavailable, refusing to risk a duplicate"; continue; fi; echo "    Creating new alert"
+          response=$(curl -s -w "\n%{http_code}" -X POST "$SIGNOZ_URL/api/v2/rules" \
             -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
             -H "Content-Type: application/json" \
             -d @"$f")
@@ -281,17 +302,17 @@ data:
     # Only touches rules with labels.source == "gitops" — manually
     # created rules are never deleted.
     echo "Reconciling alerts..."
-    all_rules=$(curl -s "$SIGNOZ_URL/api/v1/rules" \
-      -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+    fetch_rules
+    all_rules=$(cat /tmp/rules.json)
 
-    echo "$all_rules" | jq -c '.data.rules[]? | select(.labels.source == "gitops")' 2>/dev/null | \
+    echo "$all_rules" | jq -c '[.. | objects | select((.labels? | objects | .source) == "gitops") | select((.id? // "") != "") | select((.alert? // "") != "") | {id, alert}] | unique_by(.id) | .[]' 2>/dev/null | \
     while read -r rule; do
       rule_id=$(echo "$rule" | jq -r '.id')
       rule_name=$(echo "$rule" | jq -r '.alert')
 
       if ! grep -qxF "$rule_name" /tmp/synced_alert_names 2>/dev/null; then
         echo "  Deleting removed gitops alert: $rule_name ($rule_id)"
-        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v1/rules/$rule_id" \
+        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v2/rules/$rule_id" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
         http_code=$(echo "$response" | tail -n1)
         if [ "$http_code" = "200" ]; then
