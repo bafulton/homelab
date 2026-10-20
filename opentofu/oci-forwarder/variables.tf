@@ -22,9 +22,15 @@ variable "boot_volume_gb" {
 }
 
 variable "availability_domain" {
-  description = "Override the AD. Leave null to use the first. E2.1.Micro capacity is per-AD, so a capacity error means trying another."
+  description = "Pin the AD. Leave null to auto-select one whose shape_limit_name quota is above zero."
   type        = string
   default     = null
+}
+
+variable "shape_limit_name" {
+  description = "OCI limit backing instance_shape, used to find an AD with quota. Must match the shape."
+  type        = string
+  default     = "standard-e2-micro-core-count"
 }
 
 variable "vcn_cidr" {
