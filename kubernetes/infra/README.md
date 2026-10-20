@@ -172,7 +172,7 @@ gateway-route:
   routes:
     - name: media
       hostnames:
-        - media.fultonhuffman.com      # Public via Cloudflare Tunnel
+        - media.fultonhuffman.com      # Public (this one via the OCI edge forwarder)
         - media.catfish-mountain.com   # Private via Tailscale
         - media.local                  # LAN via mDNS
       service:

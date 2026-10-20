@@ -92,6 +92,7 @@ spec:
 
 ## Notes
 
-- **Public domains** (*.fultonhuffman.com, etc.) use **Cloudflare Universal SSL** - no Kubernetes certificates needed
+- **Public domains** (*.fultonhuffman.com, etc.) use **Cloudflare Universal SSL** - no Kubernetes certificates needed, because Cloudflare terminates TLS at its edge
+- **Except `media.fultonhuffman.com`**, which reaches the cluster through the OCI edge forwarder (`opentofu/oci-forwarder/`). That host passes TLS through without terminating, so this cluster terminates it and holds a real certificate (`media-fultonhuffman-com`). The `letsencrypt-production` solver therefore lists `fultonhuffman.com` alongside `catfish-mountain.com` - a Certificate for a zone the solver does not list matches no solver at all, creates no Challenge, and sits at `Ready=False` with nothing in its conditions explaining why
 - **Private domain** (*.catfish-mountain.com) uses **Let's Encrypt** - accessible only via Tailscale Split DNS
 - All Let's Encrypt certificates require the `cloudflare-api-token` secret (managed by bitwarden-secret chart)

@@ -179,6 +179,13 @@ metadata:
 **Public domains** (*.fultonhuffman.com, *.yak-shave.com, *.benfulton.me):
 - Managed by **Cloudflare Universal SSL** (automatic, Cloudflare terminates TLS)
 - No configuration needed in Kubernetes
+- **Exception - `media.fultonhuffman.com`**: served via the OCI edge forwarder
+  (`opentofu/oci-forwarder/`), which passes TLS through without terminating, so
+  the cluster terminates it and needs a real certificate for that name. That is
+  why `letsencrypt-production`'s dns01 solver covers `fultonhuffman.com` as
+  well, and why the `websecure` listener carries two `certificateRefs`. Jellyfin
+  bypasses the tunnel because video through Cloudflare's CDN is outside their
+  Service-Specific Terms.
 
 **Private domain** (*.catfish-mountain.com):
 - Managed by **Let's Encrypt** via cert-manager
