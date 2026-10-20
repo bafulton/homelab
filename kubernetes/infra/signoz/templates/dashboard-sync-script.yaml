@@ -243,7 +243,7 @@ data:
       http_code=$(echo "$response" | tail -n1)
       body=$(echo "$response" | sed '$d')
 
-      if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+      if echo "$http_code" | grep -qE "^2[0-9][0-9]$"; then
         echo "    Success"
         record_hash "$hash_key" "$content_hash"
       else
@@ -299,7 +299,7 @@ data:
         http_code=$(echo "$response" | tail -n1)
         body=$(echo "$response" | sed '$d')
 
-        if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then
+        if echo "$http_code" | grep -qE "^2[0-9][0-9]$"; then
           echo "    Success"
           record_hash "alert-$name" "$file_hash"
         else
@@ -327,7 +327,7 @@ data:
         response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v2/rules/$rule_id" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
         http_code=$(echo "$response" | tail -n1)
-        if [ "$http_code" = "200" ]; then
+        if echo "$http_code" | grep -qE "^2[0-9][0-9]$"; then
           echo "    Deleted"
         else
           echo "    Warning: HTTP $http_code"
