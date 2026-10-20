@@ -1,21 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "Disk SMART Health Failing",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "warning",
   "ruleType": "threshold_rule",
-  "evalWindow": "15m0s",
-  "frequency": "1m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "Disk SMART self-assessment test is failing - disk may be dying",
   "summary": "Disk SMART health check failed",
   "labels": {
     "source": "gitops",
     "severity": "warning"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "15m0s",
+      "frequency": "1m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -64,9 +74,20 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "2",
-    "target": 1,
-    "matchType": "2",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "warning",
+          "target": 1,
+          "op": "below",
+          "matchType": "all_the_times",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }

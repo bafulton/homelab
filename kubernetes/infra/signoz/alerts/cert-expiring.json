@@ -1,20 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "Certificate Expiring Soon",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
   "ruleType": "promql_rule",
-  "evalWindow": "5m0s",
-  "frequency": "1h0m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "TLS certificate will expire within 7 days",
   "summary": "Certificate expiring soon",
   "labels": {
     "source": "gitops",
     "severity": "warning"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "5m0s",
+      "frequency": "1h0m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -34,11 +45,20 @@
       "panelType": "graph",
       "queryType": "promql"
     },
-    "op": "2",
-    "target": 7,
-    "matchType": "1",
-    "algorithm": "standard",
-    "seasonality": "hourly",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "warning",
+          "target": 7,
+          "op": "below",
+          "matchType": "at_least_once",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }

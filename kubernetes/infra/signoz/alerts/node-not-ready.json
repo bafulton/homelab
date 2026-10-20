@@ -1,21 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "Node Not Ready",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "critical",
   "ruleType": "threshold_rule",
-  "evalWindow": "5m0s",
-  "frequency": "1m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "Kubernetes node is not in Ready state",
   "summary": "Node not ready",
   "labels": {
     "source": "gitops",
     "severity": "critical"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "5m0s",
+      "frequency": "1m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -58,9 +68,20 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "1",
-    "target": 0,
-    "matchType": "2",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "critical",
+          "target": 0,
+          "op": "above",
+          "matchType": "all_the_times",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }

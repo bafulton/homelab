@@ -1,21 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "High Memory Usage",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "warning",
   "ruleType": "threshold_rule",
-  "evalWindow": "10m0s",
-  "frequency": "1m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "Node memory usage is above 95%",
   "summary": "High memory usage detected",
   "labels": {
     "source": "gitops",
     "severity": "critical"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "10m0s",
+      "frequency": "1m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -98,9 +108,20 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "1",
-    "target": 95,
-    "matchType": "3",
-    "selectedQueryName": "F1"
+    "selectedQueryName": "F1",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "critical",
+          "target": 95,
+          "op": "above",
+          "matchType": "on_average",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }

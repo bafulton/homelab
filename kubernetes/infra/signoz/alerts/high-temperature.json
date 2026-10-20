@@ -1,21 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "High Node Temperature",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "warning",
   "ruleType": "threshold_rule",
-  "evalWindow": "5m0s",
-  "frequency": "1m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
-  "description": "Node temperature is above 85\u00b0C",
+  "description": "Node temperature is above 85°C",
   "summary": "High temperature detected on node",
   "labels": {
     "source": "gitops",
     "severity": "warning"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "5m0s",
+      "frequency": "1m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -57,9 +67,20 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "1",
-    "target": 85,
-    "matchType": "1",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "warning",
+          "target": 85,
+          "op": "above",
+          "matchType": "at_least_once",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }

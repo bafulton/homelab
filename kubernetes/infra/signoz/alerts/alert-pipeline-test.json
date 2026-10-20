@@ -1,21 +1,27 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "SigNoz Alerting Pipeline Down",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "critical",
   "ruleType": "threshold_rule",
-  "evalWindow": "15m0s",
-  "frequency": "1m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "No k8s.node.cpu.usage data for 10+ minutes. SigNoz metrics ingestion or the alerting pipeline is broken.",
   "summary": "SigNoz alerting pipeline is DOWN",
   "labels": {
     "source": "gitops",
     "severity": "critical"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "15m0s",
+      "frequency": "1m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": false
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -51,16 +57,22 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "1",
-    "target": 1000000,
-    "matchType": "1",
     "selectedQueryName": "A",
     "alertOnAbsent": true,
-    "absentFor": 10
-  },
-  "notificationSettings": {
-    "renotify": {
-      "enabled": false
+    "absentFor": 10,
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "critical",
+          "target": 1000000,
+          "op": "above",
+          "matchType": "at_least_once",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
     }
   }
 }

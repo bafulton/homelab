@@ -1,21 +1,31 @@
 {
+  "schemaVersion": "v2alpha1",
   "alert": "NVMe Spare Below Threshold",
   "alertType": "METRIC_BASED_ALERT",
-  "version": "v5",
-  "severity": "critical",
   "ruleType": "threshold_rule",
-  "evalWindow": "15m0s",
-  "frequency": "5m0s",
-  "broadcastToAll": true,
-  "preferredChannels": [
-    "Email"
-  ],
   "disabled": false,
   "description": "NVMe available spare capacity is below 10% — drive has exhausted most spare blocks and may fail soon",
   "summary": "NVMe spare capacity critical on {{k8s.node.name}} ({{device}})",
   "labels": {
     "source": "gitops",
     "severity": "critical"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "15m0s",
+      "frequency": "5m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": true,
+      "interval": "4h",
+      "alertStates": [
+        "firing"
+      ]
+    },
+    "usePolicy": false
   },
   "condition": {
     "compositeQuery": {
@@ -64,9 +74,20 @@
       "panelType": "graph",
       "queryType": "builder"
     },
-    "op": "2",
-    "target": 10,
-    "matchType": "2",
-    "selectedQueryName": "A"
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "critical",
+          "target": 10,
+          "op": "below",
+          "matchType": "all_the_times",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
   }
 }
