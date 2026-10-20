@@ -28,3 +28,7 @@ spec:
         selector:
           dnsZones:
             - catfish-mountain.com
+            # Jellyfin's public hostname terminates TLS in-cluster (it arrives
+            # via an OCI forwarder that passes TLS through), so this zone needs
+            # dns01 too. The Cloudflare token already covers all four zones.
+            - fultonhuffman.com
