@@ -8,7 +8,7 @@
   "summary": "High memory usage detected",
   "labels": {
     "source": "gitops",
-    "severity": "critical"
+    "severity": "warning"
   },
   "evaluation": {
     "kind": "rolling",
@@ -19,11 +19,7 @@
   },
   "notificationSettings": {
     "renotify": {
-      "enabled": true,
-      "interval": "4h",
-      "alertStates": [
-        "firing"
-      ]
+      "enabled": false
     },
     "usePolicy": false
   },
@@ -113,7 +109,7 @@
       "kind": "basic",
       "spec": [
         {
-          "name": "critical",
+          "name": "warning",
           "target": 95,
           "op": "above",
           "matchType": "on_average",

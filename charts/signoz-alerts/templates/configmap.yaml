@@ -8,9 +8,9 @@ Notes on the conversion:
   - `severity` becomes the threshold tier name (condition.thresholds.spec[].name).
     labels.severity is kept because each rule has exactly one threshold and the
     email Subject template reads .CommonLabels.severity.
-  - `renotify` was implicit in v1: every v1 rule re-notified every 4h while
-    firing. It is required and explicit in v2alpha1, so it is spelled out here
-    to preserve the existing behaviour rather than go quiet after one notice.
+  - `renotify` is off by design. v1 re-notified every 4h while firing, which
+    is noise here: the first email is the to-do item. v2alpha1 requires the
+    block, so it is spelled out as disabled.
   - `broadcastToAll` is dropped; v2alpha1 requires an explicit non-empty
     channel list per threshold, which the thresholds block now carries.
 */}}
@@ -45,9 +45,7 @@ data:
       },
       "notificationSettings": {
         "renotify": {
-          "enabled": true,
-          "interval": "4h",
-          "alertStates": ["firing"]
+          "enabled": false
         },
         "usePolicy": false
       },

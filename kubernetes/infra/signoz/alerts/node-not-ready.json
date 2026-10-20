@@ -19,11 +19,7 @@
   },
   "notificationSettings": {
     "renotify": {
-      "enabled": true,
-      "interval": "4h",
-      "alertStates": [
-        "firing"
-      ]
+      "enabled": false
     },
     "usePolicy": false
   },

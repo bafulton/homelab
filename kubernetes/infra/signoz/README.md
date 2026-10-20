@@ -129,13 +129,25 @@ Infrastructure alerts are defined in `alerts/*.json`:
 
 | Alert | Severity | Threshold | Metric |
 |-------|----------|-----------|--------|
-| High Memory Usage | critical | >85% | k8s.node.memory.working_set / allocatable |
-| High CPU Usage | critical | >90% | k8s.node.cpu.usage / allocatable |
-| High Disk Usage | critical | >85% | longhorn_disk_usage_bytes / capacity |
+| High Memory Usage | warning | >95% | k8s.node.memory.working_set / allocatable |
+| High CPU Usage | warning | >90% | k8s.node.cpu.usage / allocatable |
+| High Disk Usage | warning | >85% | longhorn_disk_usage_bytes / capacity |
 | Node Not Ready | critical | != Ready | k8s.node.condition |
 | Certificate Expiring Soon | warning | <7 days | certmanager_certificate_expiration_timestamp_seconds |
 
 GitOps-managed alerts have the label `source: gitops`.
+
+**Severity convention.** With one notification channel and no routing policy,
+severity only sets the email subject prefix (`[CRITICAL]` / `[WARNING]`), so it
+is an inbox triage signal:
+
+- `critical` — something is broken *now*: a node not Ready, a service with no
+  replicas, hardware failing (SMART, NVMe wear/spare).
+- `warning` — heading toward broken: resource pressure, wear trending up, a
+  certificate expiring, a peripheral offline. Resource thresholds are warnings
+  because `Node Not Ready` is the critical backstop if one actually tips over.
+
+Re-notification is off on every rule — the first email is the to-do item.
 
 ## Dashboards & Alerts as Code
 
@@ -189,10 +201,10 @@ rejected by `/api/v2/rules`.
    Drop it only if the rule grows a second threshold.
 5. Add `"evaluation": {"kind": "rolling", "spec": {"evalWindow": "5m0s", "frequency": "1m0s"}}`.
    Both are required — v1's implicit 5m/1m defaults are gone.
-6. Add `"notificationSettings": {"renotify": {"enabled": true, "interval": "4h",
-   "alertStates": ["firing"]}, "usePolicy": false}`. Required. v1 re-notified
-   every 4h implicitly; spell it out or the alert notifies once and goes quiet.
-   For an `alertOnAbsent` rule, include `"nodata"` in `alertStates` too.
+6. Add `"notificationSettings": {"renotify": {"enabled": false}, "usePolicy": false}`.
+   Required by the schema. Re-notification is deliberately off everywhere here:
+   the first email is the to-do item and a 4h reminder is just noise. (v1
+   re-notified every 4h implicitly, so this is a change from the old behaviour.)
 7. Save to `alerts/<name>.json`
 8. Commit and push - the PostSync Job will load it
 
