@@ -19,6 +19,8 @@ talos/.env
 # OpenTofu state files
 opentofu/**/*.tfstate*
 opentofu/**/.terraform/
+opentofu/**/tfplan
+opentofu/**/*.tfplan
 memory/
 
 # Static site build artefacts (sites/yak-shave)

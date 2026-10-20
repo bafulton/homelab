@@ -1,0 +1,72 @@
+#cloud-config
+# Rendered by opentofu/oci-forwarder. The whole host build lives here so a
+# rebuild reproduces it exactly, rather than depending on anything typed in
+# over SSH.
+
+package_update: true
+packages:
+  - iptables-persistent
+  - curl
+
+write_files:
+  - path: /etc/traefik/traefik.yml
+    permissions: "0644"
+    encoding: b64
+    content: ${traefik_static_b64}
+
+  - path: /etc/traefik/dynamic.yml
+    permissions: "0644"
+    encoding: b64
+    content: ${traefik_dynamic_b64}
+
+  - path: /etc/systemd/system/traefik.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Traefik TLS-passthrough forwarder
+      Documentation=https://doc.traefik.io/traefik/
+      After=network-online.target tailscaled.service
+      Wants=network-online.target
+      # The upstream is a MagicDNS name, so tailscaled must be up to resolve it.
+      Requires=tailscaled.service
+
+      [Service]
+      Type=notify
+      User=traefik
+      Group=traefik
+      ExecStart=/usr/local/bin/traefik --configFile=/etc/traefik/traefik.yml
+      Restart=always
+      RestartSec=5
+      # Needed to bind 80/443 as a non-root user.
+      AmbientCapabilities=CAP_NET_BIND_SERVICE
+      NoNewPrivileges=true
+      ProtectSystem=strict
+      ProtectHome=true
+      PrivateTmp=true
+      ReadOnlyPaths=/etc/traefik
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  # OCI's Ubuntu images carry host iptables rules that DROP everything except
+  # SSH, independently of the VCN security list. Both layers must be opened or
+  # the port appears open in the console while nothing can reach it.
+  - iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT
+  - iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
+  - iptables -I INPUT 1 -p udp --dport 41641 -j ACCEPT
+  - netfilter-persistent save
+
+  # Tailscale. --accept-dns is what makes the MagicDNS upstream resolvable;
+  # without it Traefik cannot find the gateway by name.
+  - curl -fsSL https://tailscale.com/install.sh | sh
+  - tailscale up --authkey='${tailscale_authkey}' --accept-dns=true --advertise-tags=${tailnet_tag} --hostname=${hostname} --ssh
+
+  # Traefik, pinned. Runs as its own unprivileged user.
+  - useradd --system --no-create-home --shell /usr/sbin/nologin traefik
+  - curl -fsSL -o /tmp/traefik.tar.gz https://github.com/traefik/traefik/releases/download/v${traefik_version}/traefik_v${traefik_version}_linux_amd64.tar.gz
+  - tar -xzf /tmp/traefik.tar.gz -C /usr/local/bin traefik
+  - chmod 0755 /usr/local/bin/traefik
+  - rm -f /tmp/traefik.tar.gz
+  - systemctl daemon-reload
+  - systemctl enable --now traefik

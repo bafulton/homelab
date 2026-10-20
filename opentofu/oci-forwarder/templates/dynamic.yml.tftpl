@@ -1,0 +1,39 @@
+# Dynamic configuration. Rendered by opentofu/oci-forwarder - do not edit here.
+tcp:
+  routers:
+    passthrough:
+      entryPoints:
+        - websecure
+      # Only this SNI is forwarded; every other name is refused, so this host
+      # is not a general-purpose door into the tailnet.
+      rule: "HostSNI(`${public_hostname}`)"
+      tls:
+        passthrough: true
+      service: home-gateway
+
+  services:
+    home-gateway:
+      loadBalancer:
+        servers:
+          - address: "${upstream}"
+
+http:
+  routers:
+    redirect-to-https:
+      entryPoints:
+        - web
+      rule: "Host(`${public_hostname}`)"
+      middlewares:
+        - to-https
+      service: noop
+
+  middlewares:
+    to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    noop:
+      loadBalancer:
+        servers: []

@@ -14,7 +14,9 @@
 #   security add-generic-password -a "$USER" -s tailscale-oauth-client-secret -w
 #
 # OCI credentials are not handled here - the oci provider reads ~/.oci/config
-# on its own.
+# on its own. Two non-secret-but-local values are derived from that config and
+# from ~/.ssh so they stay out of git: the compartment (root compartment, i.e.
+# the tenancy itself) and the break-glass SSH public key.
 
 _kc() { security find-generic-password -a "$USER" -s "$1" -w 2>/dev/null; }
 
@@ -34,3 +36,21 @@ fi
 
 unset _id _secret
 unset -f _kc
+
+# Root compartment = the tenancy. Read from ~/.oci/config rather than committed.
+_tenancy=$(awk -F= '/^tenancy=/{print $2}' ~/.oci/config 2>/dev/null)
+if [ -n "$_tenancy" ]; then
+  export TF_VAR_compartment_ocid="$_tenancy"
+else
+  echo "env.sh: no tenancy= line in ~/.oci/config" >&2
+fi
+
+# Break-glass SSH key. Routine access is Tailscale SSH; this is for when that
+# is not working.
+if [ -r ~/.ssh/id_ed25519.pub ]; then
+  export TF_VAR_ssh_authorized_key="$(cat ~/.ssh/id_ed25519.pub)"
+else
+  echo "env.sh: ~/.ssh/id_ed25519.pub not readable" >&2
+fi
+
+unset _tenancy
