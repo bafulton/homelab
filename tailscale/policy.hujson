@@ -2,8 +2,6 @@
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
-    // Everything that existed before tag:edge, unchanged.
-    //
     // Deliberately an explicit list rather than autogroup:member. Every device
     // in this cluster is tagged, and tagged devices are not members, so a
     // member-to-member grant would cut kubectl (beelink:6443), talosctl,
