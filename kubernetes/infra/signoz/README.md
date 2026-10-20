@@ -149,12 +149,52 @@ Dashboards and alerts are managed as JSON files and automatically synced via the
 
 ### Adding an Alert
 
-1. Create the alert in SigNoz UI first to get the JSON structure
-2. Add `"preferredChannels": ["Email"]` — use the channel **name**, not its UUID
-3. Add `"labels": {"source": "gitops"}` to identify GitOps-managed alerts
-4. Add `"version": "v5"` (required by the SigNoz rules API)
-5. Save to `alerts/<name>.json`
-6. Commit and push - the PostSync Job will load it
+Prefer the `signoz-alerts` chart (`charts/signoz-alerts`) — it emits all of the
+below from a handful of values. Hand-written JSON in `alerts/` is for rules the
+chart cannot express.
+
+Rules use the **v2alpha1** schema. The v1 shape (top-level `evalWindow`,
+`frequency`, `preferredChannels`, and `condition.op`/`target`/`matchType`) is
+rejected by `/api/v2/rules`.
+
+1. Create the alert in SigNoz UI first to get the query structure
+2. Add `"schemaVersion": "v2alpha1"`
+3. Put the threshold and channel inside `condition.thresholds` — the threshold
+   `name` is the severity tier (`critical`, `error`, `warning`, `info`) and
+   doubles as the routing label, and `channels` takes the channel **name**, not
+   its UUID:
+
+   ```json
+   "condition": {
+     "compositeQuery": { "...": "..." },
+     "selectedQueryName": "A",
+     "thresholds": {
+       "kind": "basic",
+       "spec": [{
+         "name": "warning", "target": 85,
+         "op": "above", "matchType": "at_least_once",
+         "channels": ["Email"]
+       }]
+     }
+   }
+   ```
+
+   `op` is `above`/`below`/`equal`/`not_equal`/`above_or_equal`/`below_or_equal`/
+   `outside_bounds`; `matchType` is `at_least_once`/`all_the_times`/`on_average`/
+   `in_total`/`last`.
+4. Add `"labels": {"source": "gitops", "severity": "warning"}`. `source`
+   identifies GitOps-managed alerts (the reconciler only deletes those). Keep
+   `severity` equal to the threshold `name` — the email Subject template reads
+   `.CommonLabels.severity`, so dropping it degrades subjects to `[FIRING]`.
+   Drop it only if the rule grows a second threshold.
+5. Add `"evaluation": {"kind": "rolling", "spec": {"evalWindow": "5m0s", "frequency": "1m0s"}}`.
+   Both are required — v1's implicit 5m/1m defaults are gone.
+6. Add `"notificationSettings": {"renotify": {"enabled": true, "interval": "4h",
+   "alertStates": ["firing"]}, "usePolicy": false}`. Required. v1 re-notified
+   every 4h implicitly; spell it out or the alert notifies once and goes quiet.
+   For an `alertOnAbsent` rule, include `"nodata"` in `alertStates` too.
+7. Save to `alerts/<name>.json`
+8. Commit and push - the PostSync Job will load it
 
 ### Removing an Alert
 

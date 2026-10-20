@@ -4,27 +4,35 @@ Resolve matchType - how the condition must hold across the evaluation window.
 SigNoz has no separate Prometheus-style `for` field: a hold-down is expressed
 as matchType "All the Time" (every sample in evalWindow must breach) over an
 evalWindow equal to the duration you want held. So `for: 5m0s` compiles to
-evalWindow 5m0s + matchType 2, which is what `for` means everywhere else.
+evalWindow 5m0s + matchType all_the_times, which is what `for` means
+everywhere else.
 
 Both spellings are accepted so existing alerts keep rendering, but setting
 `for` alongside `evalWindow` or `matchType` is a contradiction rather than a
 precedence puzzle, and fails the render.
+
+Emits the v2alpha1 canonical name. Numeric 1-5 is still accepted as input for
+back-compatibility with older values files and is translated here.
 */}}
-{{- define "signoz-alerts.matchTypeCode" -}}
+{{- define "signoz-alerts.matchTypeName" -}}
 {{- $alert := . -}}
 {{- $hold := $alert.for -}}
 {{- if $hold -}}
   {{- if $alert.evalWindow }}{{ fail (printf "Alert '%s' sets both `for` and `evalWindow`. `for` is the hold-down and already sets the window; drop `evalWindow`." $alert.name) }}{{ end -}}
   {{- if $alert.matchType }}{{ fail (printf "Alert '%s' sets both `for` and `matchType`. `for` implies matchType all_the_times; use one or the other." $alert.name) }}{{ end -}}
-2
+all_the_times
 {{- else -}}
 {{- $m := $alert.matchType | default "at_least_once" | toString -}}
-{{- if eq $m "at_least_once" }}1
-{{- else if eq $m "all_the_times" }}2
-{{- else if eq $m "on_average" }}3
-{{- else if eq $m "in_total" }}4
-{{- else if eq $m "last" }}5
-{{- else if regexMatch "^[1-5]$" $m }}{{ $m }}
+{{- if eq $m "at_least_once" }}at_least_once
+{{- else if eq $m "all_the_times" }}all_the_times
+{{- else if eq $m "on_average" }}on_average
+{{- else if eq $m "in_total" }}in_total
+{{- else if eq $m "last" }}last
+{{- else if eq $m "1" }}at_least_once
+{{- else if eq $m "2" }}all_the_times
+{{- else if eq $m "3" }}on_average
+{{- else if eq $m "4" }}in_total
+{{- else if eq $m "5" }}last
 {{- else }}{{ fail (printf "Alert '%s' has matchType '%s'. Use at_least_once, all_the_times, on_average, in_total, last (or 1-5)." $alert.name $m) }}
 {{- end -}}
 {{- end -}}
@@ -40,15 +48,41 @@ The evaluation window. `for` sets it, because a hold-down of N is expressed as
 {{- end -}}
 
 {{/*
-Map operator string to SigNoz op code
+Map operator string to the v2alpha1 operator name.
 Only > and < are officially verified. For other operators, use type: promql
 */}}
-{{- define "signoz-alerts.opCode" -}}
+{{- define "signoz-alerts.opName" -}}
 {{- $op := . -}}
-{{- if eq $op ">" }}1
-{{- else if eq $op "<" }}2
+{{- if eq $op ">" }}above
+{{- else if eq $op "<" }}below
 {{- else }}{{ fail (printf "Unsupported operator '%s'. Only '>' and '<' are supported. Use type: promql for custom operators." $op) }}
 {{- end -}}
+{{- end -}}
+
+{{/*
+The v2alpha1 thresholds block.
+
+The threshold `name` is the routing tier AND the severity: alerts carry
+threshold_name equal to it. Each rule here has exactly one threshold, so
+labels.severity is kept alongside it (see configmap.yaml) - that is what the
+email Subject template reads. If a rule ever grows a second threshold, drop
+labels.severity so alerts stop carrying a single static value.
+*/}}
+{{- define "signoz-alerts.thresholds" -}}
+{{- $alert := .alert -}}
+{{- $defaults := .root.Values.defaults -}}
+{
+  "kind": "basic",
+  "spec": [
+    {
+      "name": {{ $alert.severity | default $defaults.severity | quote }},
+      "target": {{ $alert.threshold }},
+      "op": {{ include "signoz-alerts.opName" $alert.op | quote }},
+      "matchType": {{ include "signoz-alerts.matchTypeName" $alert | quote }},
+      "channels": [{{ $defaults.notificationChannel | quote }}]
+    }
+  ]
+}
 {{- end -}}
 
 {{/*
@@ -126,10 +160,8 @@ Build threshold condition (single metric)
     "panelType": "graph",
     "queryType": "builder"
   },
-  "op": "{{ include "signoz-alerts.opCode" $alert.op }}",
-  "target": {{ $alert.threshold }},
-  "matchType": {{ include "signoz-alerts.matchTypeCode" $alert | quote }},
-  "selectedQueryName": "A"
+  "selectedQueryName": "A",
+  "thresholds": {{ include "signoz-alerts.thresholds" . | nindent 2 }}
 }
 {{- end -}}
 
@@ -178,10 +210,8 @@ Build ratio condition (A/B formula)
     "panelType": "graph",
     "queryType": "builder"
   },
-  "op": "{{ include "signoz-alerts.opCode" $alert.op }}",
-  "target": {{ $alert.threshold }},
-  "matchType": {{ include "signoz-alerts.matchTypeCode" $alert | quote }},
-  "selectedQueryName": "F1"
+  "selectedQueryName": "F1",
+  "thresholds": {{ include "signoz-alerts.thresholds" . | nindent 2 }}
 }
 {{- end -}}
 
@@ -208,11 +238,7 @@ Build PromQL condition
     "panelType": "graph",
     "queryType": "promql"
   },
-  "op": "{{ include "signoz-alerts.opCode" $alert.op }}",
-  "target": {{ $alert.threshold }},
-  "matchType": {{ include "signoz-alerts.matchTypeCode" $alert | quote }},
-  "algorithm": "standard",
-  "seasonality": "hourly",
-  "selectedQueryName": "A"
+  "selectedQueryName": "A",
+  "thresholds": {{ include "signoz-alerts.thresholds" . | nindent 2 }}
 }
 {{- end -}}

@@ -2,7 +2,15 @@
 
 Shared Helm chart for declarative SigNoz alert configuration.
 
-> **Note:** This chart is currently unused. Infrastructure-wide alerts are managed directly as JSON files in `kubernetes/infra/signoz/alerts/`. This chart exists for app-specific alerts that should live alongside the app (e.g., "Jellyfin disk full"). See the signoz README for the preferred approach.
+> **Note:** This chart carries app-specific alerts that live alongside the app.
+> Current consumers: `kubernetes/apps/home-assistant`, `kubernetes/apps/jellyfin`,
+> `kubernetes/apps/yak-shave`, `kubernetes/infra/time-machine`. Infrastructure-wide
+> alerts are managed directly as JSON files in `kubernetes/infra/signoz/alerts/`.
+>
+> The values interface below is unchanged, but the chart now renders the
+> **v2alpha1** rule schema (thresholds/evaluation/notificationSettings) rather
+> than the deprecated v1 shape. Operators are still written `>` / `<` here and
+> compiled to `above` / `below`.
 
 ## Overview
 
