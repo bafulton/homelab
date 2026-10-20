@@ -2,11 +2,30 @@
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
-    // Allow all connections.
+    // Everything that existed before tag:edge, unchanged.
+    //
+    // Deliberately an explicit list rather than autogroup:member. Every device
+    // in this cluster is tagged, and tagged devices are not members, so a
+    // member-to-member grant would cut kubectl (beelink:6443), talosctl,
+    // private services via cluster-gateway:443, Split DNS via cluster-dns:53,
+    // and node-to-node traffic. Losing that last one is what crash-looped the
+    // MetalLB speaker on rpi5 and took every .local record down in Feb 2026.
+    //
+    // A new tagged, non-member device has to be added here deliberately.
     {
-      "src": ["*"],
-      "dst": ["*"],
+      "src": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
+      "dst": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
       "ip": ["*"],
+    },
+    // OCI edge forwarder: the Traefik gateway proxy, and nothing else.
+    //
+    // This is the only internet-facing host on the tailnet, so it gets one
+    // destination tag and one port. tag:k8s also covers the CoreDNS proxy,
+    // which is harmless restricted to :443 given that one serves :53.
+    {
+      "src": ["tag:edge"],
+      "dst": ["tag:k8s"],
+      "ip": ["443"],
     },
   ],
 
@@ -35,6 +54,9 @@
     "tag:k8s": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
+    // OCI edge forwarder for Jellyfin's public hostname.
+    // Plan: ~/Desktop/jellyfin-public-ingress-plan.md
+    "tag:edge": [],
   },
 
   // Define special attributes for tagged devices.
