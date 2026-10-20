@@ -148,7 +148,10 @@ signoz:
       # SigNoz chart defaults it to http://localhost:8080, which makes the
       # "Source" link in every alert email dead and leaks localhost into the
       # ruleSource label (and therefore into the email subject).
-      SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL: "https://signoz.catfish-mountain.com"
+      # Must use the chart's lowercase key, not the uppercase env-var name: the
+      # chart renders its own known keys first, so an uppercase duplicate here
+      # is silently dropped.
+      signoz_alertmanager_signoz_external__url: "https://signoz.catfish-mountain.com"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST: "smtp.gmail.com:587"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM: "fulton.benjamin@gmail.com"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__USERNAME: "fulton.benjamin@gmail.com"
