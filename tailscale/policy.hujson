@@ -55,7 +55,6 @@
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
     // OCI edge forwarder for Jellyfin's public hostname.
-    // Plan: ~/Desktop/jellyfin-public-ingress-plan.md
     "tag:edge": [],
   },
 
