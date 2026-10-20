@@ -2,14 +2,11 @@
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
-    // Deliberately an explicit list rather than autogroup:member. Every device
-    // in this cluster is tagged, and tagged devices are not members, so a
-    // member-to-member grant would cut kubectl (beelink:6443), talosctl,
-    // private services via cluster-gateway:443, Split DNS via cluster-dns:53,
-    // and node-to-node traffic. Losing that last one is what crash-looped the
-    // MetalLB speaker on rpi5 and took every .local record down in Feb 2026.
-    //
-    // A new tagged, non-member device has to be added here deliberately.
+    // Users and the cluster's own devices, with full access to each other.
+    // Spelled out rather than autogroup:member because every cluster device is
+    // tagged, and tagged devices are not members - an autogroup:member grant
+    // would exclude the nodes and the operator's proxies. tag:edge is absent
+    // on purpose; it gets the narrow grant below.
     {
       "src": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
       "dst": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
@@ -19,11 +16,15 @@
     //
     // This is the only internet-facing host on the tailnet, so it gets one
     // destination tag and one port. tag:k8s also covers the CoreDNS proxy,
-    // which is harmless restricted to :443 given that one serves :53.
+    // which is harmless restricted to tcp:443 given that one serves udp:53.
+    //
+    // "ip" is Tailscale's name for network-layer capability, i.e. protocol and
+    // port - not an address. A bare "443" would also grant UDP and ICMP, so
+    // tcp:443 is both tighter and clearer.
     {
       "src": ["tag:edge"],
       "dst": ["tag:k8s"],
-      "ip": ["443"],
+      "ip": ["tcp:443"],
     },
   ],
 
