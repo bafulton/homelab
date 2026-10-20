@@ -88,6 +88,41 @@ Environment variables are set on the SigNoz pod:
 
 To add notification channels, go to Settings → Alert Channels in the SigNoz UI.
 
+### Email Subject Lines
+
+Alertmanager's default email subject template prints bare label *values* with no
+names, so alert mail arrives titled:
+
+```
+019e1d57-60c4-754a-a356-d22b2f0eba4b (Smart Home Device Offline http://localhost:8080/alerts/overview?ruleId=019e1d57-... warning gitops warning)
+```
+
+That is `<groupLabels> (<remaining commonLabels>)` — ruleId, then alertname,
+ruleSource, severity, source and threshold.name. The two `warning`s are
+`severity` and `threshold.name` saying the same thing.
+
+The channels API accepts `email_configs[].headers`, and Alertmanager uses a
+supplied `Subject` in place of its default template. `channels/email.json` sets
+one, giving instead:
+
+```
+[WARNING] Smart Home Device Offline
+[WARNING] Smart Home Device Offline x3     (3 entities in one group)
+[RESOLVED] Smart Home Device Offline
+```
+
+**The SigNoz UI has no field for `headers`, so editing the Email channel in the
+UI silently drops the Subject.** The sync job re-asserts it on every run, so a
+UI save self-heals within 5 minutes.
+
+Each `channels/<name>.json` is `{"name": <channel name>, "headers": {...}}`,
+merged onto the channel's live receiver config so the HTML body template is
+preserved. SigNoz fires a test notification on every channel PUT, so the sync
+only PUTs when the live headers differ; if SigNoz ever stops retaining the
+header, the job records that and stops retrying rather than emailing every
+5 minutes.
+
+
 ## Alerts
 
 Infrastructure alerts are defined in `alerts/*.json`:
@@ -136,6 +171,8 @@ are never touched.
 4. If found, updates in place via PUT (preserves IDs and alert history)
 5. If not found, creates via POST
 6. After all upserts, reconciles: deletes any `source: gitops` rules not in git
+7. Finally, merges any `channels/*.json` header overrides onto the matching
+   notification channels (see [Email Subject Lines](#email-subject-lines))
 
 ### Forcing a PostSync Run
 

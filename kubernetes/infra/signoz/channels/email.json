@@ -1,0 +1,6 @@
+{
+  "name": "Email",
+  "headers": {
+    "Subject": "{{ if eq .Status \"firing\" }}[{{ if .CommonLabels.severity }}{{ .CommonLabels.severity | toUpper }}{{ else }}FIRING{{ end }}]{{ else }}[RESOLVED]{{ end }} {{ .CommonLabels.alertname }}{{ if gt (len .Alerts) 1 }} x{{ len .Alerts }}{{ end }}"
+  }
+}

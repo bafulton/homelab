@@ -302,6 +302,100 @@ data:
       fi
     done
 
+    # ── Channels ──────────────────────────────────────────────────────────────
+    # Reconcile notification-channel settings the SigNoz UI cannot express.
+    #
+    # Today that means the email Subject header. Alertmanager's default subject
+    # template prints bare label values, so alert mail arrives titled
+    # "<ruleId> (<alertname> <ruleSource> warning gitops warning)". The channels
+    # API accepts email_configs[].headers, which overrides that - but the UI has
+    # no field for headers, so saving the channel there silently drops it.
+    # Re-asserting it on every run keeps it in place.
+    #
+    # Each channels/<name>.json is {"name": <channel name>, "headers": {...}}
+    # and is merged onto the channel's live receiver config, so the large HTML
+    # body template is preserved. SigNoz sends a test notification on every
+    # channel PUT, so only PUT when the live headers actually differ.
+    CHANNEL_DIR="/repo/$REPO_PATH/channels"
+    if [ -d "$CHANNEL_DIR" ] && ls "$CHANNEL_DIR"/*.json 1> /dev/null 2>&1; then
+      echo "Reconciling notification channels..."
+
+      all_channels=$(curl -s "$SIGNOZ_URL/api/v1/channels" \
+        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+
+      for f in "$CHANNEL_DIR"/*.json; do
+        [ -f "$f" ] || continue
+        name=$(basename "$f" .json)
+        channel_name=$(jq -r '.name // empty' "$f")
+
+        channel_id=$(echo "$all_channels" | jq -r --arg n "$channel_name" \
+          '.data[]? | select(.name == $n) | .id // empty' 2>/dev/null | head -1)
+        if [ -z "$channel_id" ]; then
+          echo "  Warning: no SigNoz channel named '$channel_name' - skipping $name"
+          continue
+        fi
+
+        current=$(curl -s "$SIGNOZ_URL/api/v1/channels/$channel_id" \
+          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" | jq -r '.data.data')
+        if [ -z "$current" ] || [ "$current" = "null" ]; then
+          echo "  Warning: could not read channel $channel_name ($channel_id)"
+          continue
+        fi
+
+        if [ "$(printf '%s' "$current" | jq -r 'has("email_configs")')" != "true" ]; then
+          echo "  Warning: channel $channel_name is not an email channel - skipping"
+          continue
+        fi
+
+        desired=$(printf '%s' "$current" | jq --slurpfile o "$f" \
+          '.email_configs[0].headers = ((.email_configs[0].headers // {}) + $o[0].headers)')
+
+        live_headers=$(printf '%s' "$current" | jq -cS '.email_configs[0].headers // {}')
+        want_headers=$(printf '%s' "$desired" | jq -cS '.email_configs[0].headers')
+
+        if [ "$live_headers" = "$want_headers" ]; then
+          echo "  Skipping unchanged channel: $channel_name"
+          continue
+        fi
+
+        # Guard against a notification loop: if a previous run pushed this exact
+        # override and SigNoz did not retain it, stop retrying - each attempt
+        # sends another test email. Clears itself when the JSON file changes.
+        want_hash=$(printf '%s' "$want_headers" | sha256sum | cut -d' ' -f1)
+        if [ "$(get_hash "channel-$name-unsupported")" = "$want_hash" ]; then
+          echo "  Skipping channel $channel_name: headers not retained by SigNoz on an earlier run"
+          continue
+        fi
+
+        echo "  Updating channel: $channel_name ($channel_id) - sends a test notification"
+        response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/channels/$channel_id" \
+          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "$desired")
+        http_code=$(echo "$response" | tail -n1)
+        body=$(echo "$response" | sed '$d')
+
+        if [ "$http_code" != "200" ] && [ "$http_code" != "201" ]; then
+          echo "    Warning: HTTP $http_code - $body"
+          continue
+        fi
+
+        # Confirm the override actually survived the round trip.
+        after=$(curl -s "$SIGNOZ_URL/api/v1/channels/$channel_id" \
+          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" | jq -r '.data.data' | \
+          jq -cS '.email_configs[0].headers // {}')
+        if [ "$after" = "$want_headers" ]; then
+          echo "    Success"
+        else
+          echo "    Warning: PUT accepted but headers were not retained (got: $after)"
+          echo "             Recording as unsupported; will not retry until channels/$name.json changes."
+          record_hash "channel-$name-unsupported" "$want_hash"
+        fi
+      done
+    else
+      echo "No channels found in git"
+    fi
+
     # ── Save hash cache ───────────────────────────────────────────────────────
     # Persist updated hashes to ConfigMap for next run.
     hashes_json='{'
