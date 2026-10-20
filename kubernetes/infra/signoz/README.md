@@ -142,10 +142,13 @@ severity only sets the email subject prefix (`[CRITICAL]` / `[WARNING]`), so it
 is an inbox triage signal:
 
 - `critical` — something is broken *now*: a node not Ready, a service with no
-  replicas, hardware failing (SMART, NVMe wear/spare).
+  replicas, a drive out of spare blocks or past its rated endurance.
 - `warning` — heading toward broken: resource pressure, wear trending up, a
   certificate expiring, a peripheral offline. Resource thresholds are warnings
   because `Node Not Ready` is the critical backstop if one actually tips over.
+
+`Disk SMART Health Failing` is currently a `warning` even though "disk may be
+dying" arguably reads as critical. Left as-is rather than changed in passing.
 
 Re-notification is off on every rule — the first email is the to-do item.
 
