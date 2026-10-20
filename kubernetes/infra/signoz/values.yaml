@@ -144,6 +144,11 @@ signoz:
       enabled: true
       size: 1Gi
     env:
+      # Alertmanager builds the links in alert notifications from this. The
+      # SigNoz chart defaults it to http://localhost:8080, which makes the
+      # "Source" link in every alert email dead and leaks localhost into the
+      # ruleSource label (and therefore into the email subject).
+      SIGNOZ_ALERTMANAGER_SIGNOZ_EXTERNAL__URL: "https://signoz.catfish-mountain.com"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__SMARTHOST: "smtp.gmail.com:587"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__FROM: "fulton.benjamin@gmail.com"
       SIGNOZ_ALERTMANAGER_SIGNOZ_GLOBAL_SMTP__AUTH__USERNAME: "fulton.benjamin@gmail.com"

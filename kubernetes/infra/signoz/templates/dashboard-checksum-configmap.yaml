@@ -17,5 +17,8 @@ data:
   {{- range $path, $_ := .Files.Glob "alerts/*.json" }}
   {{- $allContent = printf "%s%s" $allContent ($.Files.Get $path) }}
   {{- end }}
+  {{- range $path, $_ := .Files.Glob "channels/*.json" }}
+  {{- $allContent = printf "%s%s" $allContent ($.Files.Get $path) }}
+  {{- end }}
   checksum: {{ $allContent | sha256sum | quote }}
   sync-script-version: "9"
