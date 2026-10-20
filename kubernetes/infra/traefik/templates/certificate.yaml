@@ -17,3 +17,30 @@ spec:
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer
+
+---
+# Let's Encrypt certificate for the Jellyfin public hostname.
+#
+# media.fultonhuffman.com is served to the public internet via an OCI edge
+# forwarder that passes TLS straight through (HostSNI match, no termination), so
+# this cluster is the only place the connection is decrypted. The other public
+# domains don't need a cert here because the Cloudflare Tunnel delivers them to
+# Traefik on plain :80 and Cloudflare terminates.
+#
+# Single-name rather than a wildcard: nothing else on this zone terminates TLS
+# in-cluster today.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: media-fultonhuffman-com
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: media-fultonhuffman-com-tls
+  duration: 2160h  # 90 days (Let's Encrypt default)
+  renewBefore: 720h  # 30 days before expiration
+  commonName: "media.fultonhuffman.com"
+  dnsNames:
+    - "media.fultonhuffman.com"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
