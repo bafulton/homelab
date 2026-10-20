@@ -38,7 +38,7 @@ check_generated_configs() {
 
 discover_configs() {
   # Talhelper generates configs named: <cluster>-<hostname>.yaml
-  # e.g., homelab-beelink.yaml, homelab-rpi3.yaml
+  # e.g., homelab-beelink.yaml, homelab-rpi5.yaml
   CONFIG_NAMES=()
   CONFIG_FILES=()
 

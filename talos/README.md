@@ -14,7 +14,6 @@ Example configuration:
 | Node | Role | Architecture | Hostname |
 |------|------|--------------|----------|
 | Mini PC | Control Plane + Worker | amd64 | beelink |
-| Raspberry Pi | Worker | arm64 | rpi3 |
 | Raspberry Pi | Worker | arm64 | rpi5 |
 
 ## Prerequisites
@@ -268,10 +267,9 @@ Run the apply script - it will scan for Talos nodes and show their MAC addresses
 
 Example output:
 ```
-==> Found configs for: beelink rpi3 rpi5
+==> Found configs for: beelink rpi5
 
 ==> Scanning for Talos nodes on 192.168.1.0/24
-  Found: 192.168.1.51 | MAC: e4:5f:01:xx:xx:xx | Disks: mmcblk0 (32GB)
   Found: 192.168.1.52 | MAC: 2c:cf:67:xx:xx:xx | Disks: mmcblk0 (64GB)
   Found: 192.168.1.50 | MAC: dc:a6:32:xx:xx:xx | Disks: mmcblk0 (62 GB) nvme0n1 (2 TB)
 
