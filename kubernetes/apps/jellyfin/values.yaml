@@ -2,7 +2,9 @@
 # Self-hosted media streaming with Intel QuickSync hardware transcoding
 #
 # Access:
-#   - Public: https://media.fultonhuffman.com (via Cloudflare Tunnel)
+#   - Public: https://media.fultonhuffman.com (via the OCI edge forwarder)
+#     DNS points at that host, not the tunnel: video through Cloudflare's CDN
+#     is outside their terms. See opentofu/oci-forwarder/README.md.
 #   - LAN: http://media.local (via mDNS)
 
 namespace: jellyfin
@@ -13,7 +15,9 @@ gateway-route:
   routes:
     - name: public-lan
       hostnames:
-        - media.fultonhuffman.com  # Public access via Cloudflare Tunnel
+        # Still required: the edge forwarder passes TLS through with this
+        # SNI, and this route is what matches it here.
+        - media.fultonhuffman.com  # Public, via the OCI edge forwarder
         - media.local              # LAN access via mDNS
       service:
         name: jellyfin
