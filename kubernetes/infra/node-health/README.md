@@ -17,6 +17,15 @@ Solves the "who watches the watchmen" problem: in-cluster monitoring (like SigNo
 - Then continues pinging every 2 minutes
 - Each pod manages its own check independently
 
+### Other checks in the same project
+
+The project also holds an `edge-forwarder` check that is **not** this app's: it
+is the dead man's switch for the OCI edge forwarder that serves Jellyfin
+publicly, declared in `opentofu/oci-forwarder/healthchecks.tf` and pinged from
+that VM. It shares this project and its single read-write API key, and uses the
+same 2-minute period and 5-minute grace. Leave it alone from here - and if this
+app ever grows a reconcile that removes checks it does not recognise, exclude it.
+
 ## Setup
 
 ### 1. Create healthchecks.io Account
