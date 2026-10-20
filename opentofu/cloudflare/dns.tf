@@ -38,3 +38,31 @@ resource "cloudflare_dns_record" "public_subdomains" {
   proxied = true
   ttl     = 1
 }
+
+# Jellyfin bypasses the tunnel entirely: serving video through Cloudflare's CDN
+# is outside their Service-Specific Terms, and all four domains ride one tunnel,
+# so an enforcement action against it would take the rest of them down too.
+#
+# A specific record beats the "*" CNAME above, so the wildcard and the tunnel
+# ingress rule both stay exactly as they are - which is also the rollback:
+# remove this resource and traffic returns to the tunnel on its own. Flipping
+# proxied to true is NOT a rollback; that would point the CDN at the forwarder.
+#
+# proxied = false is the load-bearing field. The IP is read from the forwarder
+# module's state rather than retyped, so the two configs cannot drift.
+resource "cloudflare_dns_record" "media_direct" {
+  zone_id = data.cloudflare_zone.zones["fultonhuffman-com"].id
+  name    = "media"
+  type    = "A"
+  content = data.terraform_remote_state.oci_forwarder.outputs.public_ip
+  proxied = false
+  ttl     = 300 # low and explicit, so a rollback propagates fast
+}
+
+data "terraform_remote_state" "oci_forwarder" {
+  backend = "local"
+
+  config = {
+    path = "../oci-forwarder/terraform.tfstate"
+  }
+}
