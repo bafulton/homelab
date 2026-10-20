@@ -2,11 +2,29 @@
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
-    // Allow all connections.
+    // Users and the cluster's own devices, with full access to each other.
+    // Spelled out rather than autogroup:member because every cluster device is
+    // tagged, and tagged devices are not members - an autogroup:member grant
+    // would exclude the nodes and the operator's proxies. tag:edge is absent
+    // on purpose; it gets the narrow grant below.
     {
-      "src": ["*"],
-      "dst": ["*"],
+      "src": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
+      "dst": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
       "ip": ["*"],
+    },
+    // OCI edge forwarder: the Traefik gateway proxy, and nothing else.
+    //
+    // This is the only internet-facing host on the tailnet, so it gets one
+    // destination tag and one port. tag:k8s also covers the CoreDNS proxy,
+    // which is harmless restricted to tcp:443 given that one serves udp:53.
+    //
+    // "ip" is Tailscale's name for network-layer capability, i.e. protocol and
+    // port - not an address. A bare "443" would also grant UDP and ICMP, so
+    // tcp:443 is both tighter and clearer.
+    {
+      "src": ["tag:edge"],
+      "dst": ["tag:k8s"],
+      "ip": ["tcp:443"],
     },
   ],
 
@@ -35,6 +53,8 @@
     "tag:k8s": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
+    // OCI edge forwarder for public hostnames outside cloudflare (eg, jellyfin)
+    "tag:edge": [],
   },
 
   // Define special attributes for tagged devices.
