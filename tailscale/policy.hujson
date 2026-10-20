@@ -54,7 +54,7 @@
     "tag:k8s": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
-    // OCI edge forwarder for Jellyfin's public hostname.
+    // OCI edge forwarder for public hostnames outside cloudflare (eg, jellyfin)
     "tag:edge": [],
   },
 
