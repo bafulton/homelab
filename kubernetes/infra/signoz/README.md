@@ -117,10 +117,10 @@ UI save self-heals within 5 minutes.
 
 Each `channels/<name>.json` is `{"name": <channel name>, "headers": {...}}`,
 merged onto the channel's live receiver config so the HTML body template is
-preserved. SigNoz fires a test notification on every channel PUT, so the sync
-only PUTs when the live headers differ; if SigNoz ever stops retaining the
-header, the job records that and stops retrying rather than emailing every
-5 minutes.
+preserved. The sync only PUTs when the live headers differ, so a steady state
+is a no-op; and if SigNoz ever stops retaining the header, the job records that
+and stops retrying instead of rewriting it every 5 minutes. (A raw API PUT to
+/api/v1/channels sends no test notification - that is the UI/MCP path only.)
 
 
 ## Alerts

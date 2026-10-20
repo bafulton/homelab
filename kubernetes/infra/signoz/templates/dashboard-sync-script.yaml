@@ -314,8 +314,8 @@ data:
     #
     # Each channels/<name>.json is {"name": <channel name>, "headers": {...}}
     # and is merged onto the channel's live receiver config, so the large HTML
-    # body template is preserved. SigNoz sends a test notification on every
-    # channel PUT, so only PUT when the live headers actually differ.
+    # body template is preserved. A raw API PUT sends no test notification, but
+    # only PUT when the live headers actually differ so a steady state is a no-op.
     CHANNEL_DIR="/repo/$REPO_PATH/channels"
     if [ -d "$CHANNEL_DIR" ] && ls "$CHANNEL_DIR"/*.json 1> /dev/null 2>&1; then
       echo "Reconciling notification channels..."
@@ -358,16 +358,16 @@ data:
           continue
         fi
 
-        # Guard against a notification loop: if a previous run pushed this exact
-        # override and SigNoz did not retain it, stop retrying - each attempt
-        # sends another test email. Clears itself when the JSON file changes.
+        # Guard against an endless re-PUT loop: if a previous run pushed this
+        # exact override and SigNoz did not retain it, stop retrying instead of
+        # rewriting every 5 minutes. Clears itself when the JSON file changes.
         want_hash=$(printf '%s' "$want_headers" | sha256sum | cut -d' ' -f1)
         if [ "$(get_hash "channel-$name-unsupported")" = "$want_hash" ]; then
           echo "  Skipping channel $channel_name: headers not retained by SigNoz on an earlier run"
           continue
         fi
 
-        echo "  Updating channel: $channel_name ($channel_id) - sends a test notification"
+        echo "  Updating channel: $channel_name ($channel_id)"
         response=$(curl -s -w "\n%{http_code}" -X PUT "$SIGNOZ_URL/api/v1/channels/$channel_id" \
           -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" \
           -H "Content-Type: application/json" \
