@@ -26,6 +26,18 @@
       "dst": ["tag:k8s"],
       "ip": ["tcp:443"],
     },
+    // Reaching the edge forwarder to operate it. Without this the host is
+    // unreachable over the tailnet once it registers, since tag:edge appears
+    // nowhere as a destination above - leaving only the OCI serial console.
+    //
+    // Inbound only, so it does not widen what the edge itself can reach: that
+    // stays the grant above. All ports because this is an ops path - SSH plus
+    // whatever needs poking at during a problem.
+    {
+      "src": ["autogroup:member"],
+      "dst": ["tag:edge"],
+      "ip": ["*"],
+    },
   ],
 
   // Define users and devices that can use Tailscale SSH.
@@ -42,6 +54,14 @@
       "action": "accept",
       "src": ["autogroup:member"],
       "dst": ["tag:k8s-node"],
+      "users": ["autogroup:nonroot", "root"],
+    },
+    // Same for the edge forwarder, so break-glass access does not depend on
+    // the OCI serial console.
+    {
+      "action": "accept",
+      "src": ["autogroup:member"],
+      "dst": ["tag:edge"],
       "users": ["autogroup:nonroot", "root"],
     },
   ],
