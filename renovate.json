@@ -93,19 +93,21 @@
       "automerge": false
     },
     {
-      "description": "Talos in its own PR, never automerge. Merging it makes tuppr roll the new version onto every node, so it must land before the matching Kubernetes bump",
+      "description": "Talos in its own PR, never automerge. Merging it makes tuppr roll the new version onto every node, so it must land before the matching Kubernetes bump. One PR per minor: Talos only supports upgrading one minor at a time and tuppr does not check",
       "matchPackageNames": [
         "siderolabs/talos"
       ],
       "groupName": "talos",
+      "separateMultipleMinor": true,
       "automerge": false
     },
     {
-      "description": "Kubernetes (cluster and the toolbox image's kubectl) in its own PR, never automerge. The talos-k8s-compatibility check fails it until the Talos bump it needs is on main",
+      "description": "Kubernetes (cluster and the toolbox image's kubectl) in its own PR, never automerge. The talos-k8s-compatibility check fails it until the Talos bump it needs is on main. One PR per minor, as upgrade-k8s requires",
       "matchPackageNames": [
         "kubernetes/kubernetes"
       ],
       "groupName": "kubernetes",
+      "separateMultipleMinor": true,
       "automerge": false
     },
     {
