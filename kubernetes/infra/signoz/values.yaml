@@ -95,6 +95,7 @@ signoz:
           <crash_log remove="1"/>
         </clickhouse>
     zookeeper:
+      replicaCount: 0
       heapSize: 256
       # Placement: local only — ClickHouse coordination, PVC on `state`.
       nodeSelector:
@@ -137,6 +138,7 @@ signoz:
         memory: 1536Mi
 
   signoz:
+    replicaCount: 0
     # Placement: local only — signoz app has a `state` PVC (signoz-db).
     nodeSelector:
       homelab.io/location: local
