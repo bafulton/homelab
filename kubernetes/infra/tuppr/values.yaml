@@ -1,7 +1,7 @@
 namespace: tuppr
 
 # Talos/Kubernetes versions for upgrades - Renovate updates these alongside talconfig.yaml
-talosVersion: v1.13.4
+talosVersion: v1.14.4
 kubernetesVersion: v1.36.2
 
 # Each gate renders one upgrade resource (templates/) at the version above.
@@ -16,11 +16,11 @@ kubernetesVersion: v1.36.2
 # Use it to stop a run that is underway; turning the gate off instead deletes
 # the resource mid-run.
 talos:
-  upgradeEnabled: false
+  upgradeEnabled: true
   suspend: false
 
 kubernetes:
-  upgradeEnabled: false
+  upgradeEnabled: true
   suspend: false
 
 tuppr:
