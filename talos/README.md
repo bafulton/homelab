@@ -326,9 +326,25 @@ talosctl logs ext-tailscale  # Tailscale extension service
 ```
 
 ### Upgrade Talos
+
+Upgrade the local `talosctl` first (`brew upgrade siderolabs/tap/talosctl`).
+Then drain the node exactly as for a reboot - steps 1-4 of
+`scripts/safe-reboot-node.sh` (cordon, drain, wait for Longhorn volumes to
+detach) - and upgrade it over its LAN IP, so the Tailscale extension restarting
+mid-upgrade can't cut the connection:
+
 ```bash
-talosctl upgrade --image factory.talos.dev/installer/[your-image-id]:vX.Y.Z
+talosctl -n <lan-ip> -e <lan-ip> upgrade --drain=false \
+  --image factory.talos.dev/installer/<schematic-id>:vX.Y.Z
+kubectl wait --for=condition=Ready node/<node> --timeout=900s
+kubectl uncordon <node>
 ```
+
+`--drain=false` hands the drain to the `kubectl` step above. `talosctl` v1.14+
+otherwise drains client-side using a kubeconfig fetched from the target node,
+which only control-plane nodes serve - on a worker it installs the new version
+and then stops before the reboot. The `tuppr` pod tolerates cordoned nodes and
+may stay on the node through the drain; it is stateless, so leave it.
 
 ### Reset a node (wipe and rejoin)
 ```bash

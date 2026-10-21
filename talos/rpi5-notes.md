@@ -56,10 +56,10 @@ broke CM5 ethernet, fixed in overlay v0.2.2), and
 [issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82)
 (intermittent ethernet dropouts) is still open.
 
-`talosctl upgrade` should work now that the node is on an official image — the
-efivarfs limitation belonged to the community build — but it has not been
-exercised here yet, which is why `kubernetes/infra/tuppr/values.yaml` still has
-`talos.supportsRpi5: false`.
+`talosctl upgrade` works: rpi5 went v1.13.4 -> v1.14.4 with it (GRUB A/B slots
+plus the `rpi_5` overlay installer), rebooting in under 90 seconds with
+Tailscale, the USB disk and the end0 ethernet settings intact. Follow
+"Upgrade Talos" in `README.md` - rpi5 is a worker, so it needs `--drain=false`.
 
 ## Still unsupported
 
