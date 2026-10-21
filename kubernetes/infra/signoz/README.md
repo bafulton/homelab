@@ -122,6 +122,32 @@ is a no-op; and if SigNoz ever stops retaining the header, the job records that
 and stops retrying instead of rewriting it every 5 minutes. (A raw API PUT to
 /api/v1/channels sends no test notification - that is the UI/MCP path only.)
 
+#### Why the sync service account holds signoz-admin
+
+Deliberate, not an oversight. Reviewed 2026-10-20.
+
+Exactly one call in the sync needs it: the channel `PUT`. Dashboards (full
+CRUD), alert rules (full CRUD including the reconcile deletes) and channel
+*reads* all work under `signoz-editor`, which is what the account held until
+the Subject override was added. `signoz-editor` gets `403 only admins can
+access this resource` on `PUT /api/v1/channels`, and v2 is the same -
+`PUT /api/v2/notification_channels/{id}` is also admin-only.
+
+The clean fix would be a custom role granted `notification-channel:update`
+alone. That permission exists, but custom roles require an active SigNoz
+license and this is the community build, so it is not available here. SigNoz
+also documents fine-grained access control as beta, and its IAM overview does
+not list notification channels among the resources it covers yet - so even
+with a license it is not certain the permission is grantable today.
+
+Accepted trade-off: the token can delete dashboards, alert rules and channels,
+not just upsert them, and the 5-minute CronJob mounts it. Revisit if this ever
+gets an Enterprise license, or if SigNoz makes channel permissions grantable
+without one. The alternatives considered and rejected were dropping channel
+reconciliation from automation (loses the self-heal when a UI save wipes the
+Subject) and splitting it into a second CronJob with its own admin key (keeps
+an admin key anyway, for less code).
+
 
 ## Alerts
 
