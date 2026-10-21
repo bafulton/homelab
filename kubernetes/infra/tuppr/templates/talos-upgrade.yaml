@@ -13,11 +13,13 @@ spec:
   talos:
     version: {{ .Values.talosVersion }}
   policy:
-    # tuppr drains the node and waits for its volumes to detach, then runs
-    # `talosctl upgrade --drain=false`. talosctl's own drain cannot work on a
-    # worker: it fetches a kubeconfig from the target node, which only
-    # control-plane nodes serve.
-    waitForVolumeDetach: true
+    # talosctl drains the node itself (tuppr runs it with the control plane as
+    # its endpoint, which is where it fetches the kubeconfig). Its drain retries
+    # PDB-refused evictions, which Longhorn needs: the instance-manager PDB only
+    # lifts once the pods using the node's volumes are gone. tuppr's own drain
+    # (waitForVolumeDetach) gives up at the first refusal, so it is not used.
+    # A drain that overruns this fails the upgrade without rebooting.
+    drainTimeout: 10m
   # Evaluated before each node, so the next node waits until the previous one
   # is back and Longhorn has reattached its volumes.
   healthChecks:

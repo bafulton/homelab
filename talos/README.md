@@ -336,17 +336,17 @@ detach) - and upgrade it over its LAN IP, so the Tailscale extension restarting
 mid-upgrade can't cut the connection:
 
 ```bash
-talosctl -n <lan-ip> -e <lan-ip> upgrade --drain=false \
+talosctl -n <node-lan-ip> -e 192.168.1.86 upgrade --drain=false \
   --image factory.talos.dev/installer/<schematic-id>:vX.Y.Z
 kubectl wait --for=condition=Ready node/<node> --timeout=900s
 kubectl uncordon <node>
 ```
 
-`--drain=false` hands the drain to the `kubectl` step above. `talosctl` v1.14+
-otherwise drains client-side using a kubeconfig fetched from the target node,
-which only control-plane nodes serve - on a worker it installs the new version
-and then stops before the reboot. The `tuppr` pod tolerates cordoned nodes and
-may stay on the node through the drain; it is stateless, so leave it.
+Keep the endpoint (`-e`) on beelink, the control-plane node: `talosctl`
+fetches its kubeconfig from the endpoint, and a worker serves none.
+`--drain=false` hands the drain to the `kubectl` step above. The `tuppr` pod
+tolerates cordoned nodes and may stay on the node through the drain; it is
+stateless, so leave it.
 
 ### Reset a node (wipe and rejoin)
 ```bash

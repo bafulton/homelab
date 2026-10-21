@@ -9,7 +9,7 @@ chart renders from `values.yaml`:
 
 | Resource | Name | Does |
 |----------|------|------|
-| `TalosUpgrade` | `talos` | Moves every node to `talosVersion`, one at a time, control plane first: health checks, drain, wait for volumes to detach, `talosctl upgrade --drain=false` (run from the other node), wait for Ready, uncordon |
+| `TalosUpgrade` | `talos` | Moves every node to `talosVersion`, one at a time, control plane first: health checks, then `talosctl upgrade` (run from the other node), which drains, reboots, waits for Ready and uncordons |
 | `KubernetesUpgrade` | `kubernetes` | Runs `talosctl upgrade-k8s` against the control plane: control-plane components, kube-proxy, then each kubelet. No drain, no reboot |
 
 A version bump edits the resource in place and tuppr re-runs it. The two never
@@ -58,15 +58,23 @@ resource mid-run.
 
 ## Draining
 
-`policy.waitForVolumeDetach` makes tuppr drain the node itself. Its drain gives
-up after 10 minutes, uncordons the node and retries a minute later, so a drain
-that cannot finish repeats rather than failing. Two settings keep the drain
-finishable:
+`talosctl upgrade` does the drain: tuppr runs it with the control plane as
+its endpoint, which is where it fetches the kubeconfig. It evicts in parallel
+and retries PDB-refused evictions until `policy.drainTimeout` (10m), then fails
+the upgrade without rebooting.
+
+Leave tuppr's own drain (`policy.waitForVolumeDetach`, `spec.drain`) off. In
+tuppr 0.5.9 it gives up at the first PDB-refused eviction, uncordons and
+retries a minute later - and Longhorn's instance-manager PDB always refuses
+until the pods using the node's volumes are gone, so it loops, evicting pods
+each round.
+
+The drain finishes because:
 
 - Longhorn's `nodeDrainPolicy: allow-if-replica-is-stopped`
   (`kubernetes/infra/longhorn/values.yaml`) releases beelink's instance-manager
   PDB once its replicas stop.
-- PDB-protected workloads need room on the other node for their replacement.
+- PDB-protected workloads have room on the other node for their replacement.
 
 ## Resources
 

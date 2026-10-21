@@ -59,7 +59,7 @@ broke CM5 ethernet, fixed in overlay v0.2.2), and
 `talosctl upgrade` works: rpi5 went v1.13.4 -> v1.14.4 with it (GRUB A/B slots
 plus the `rpi_5` overlay installer), rebooting in under 90 seconds with
 Tailscale, the USB disk and the end0 ethernet settings intact. Follow
-"Upgrade Talos" in `README.md` - rpi5 is a worker, so it needs `--drain=false`.
+"Upgrade Talos" in `README.md`, with beelink as the endpoint.
 
 ## Still unsupported
 
