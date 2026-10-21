@@ -42,7 +42,9 @@ nodeConfig:
         nvme-disk:
           path: /var/mnt/nvme
           storageReserved: 0
-          tags: ["nvme", "durable"]
+          # Alphabetical: Longhorn stores tags sorted, so any other order is a
+          # permanent ArgoCD diff.
+          tags: ["durable", "nvme"]
 
     - name: rpi5
       allowScheduling: true
