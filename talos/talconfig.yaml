@@ -155,15 +155,17 @@ patches:
           - 100.100.100.100
           - 8.8.8.8
 
-  # Disable forwarding kube-dns to host DNS proxy
-  # The host DNS proxy (169.254.116.108) is unreachable from pods
-  # This makes CoreDNS resolve external domains directly
+  # Forward kube-dns to the Talos host resolver (169.254.116.108). It tries the
+  # nameservers above in order and falls back only on an error, so tailnet
+  # names reliably reach MagicDNS. CoreDNS's own forwarding picks an upstream at
+  # random, so 8.8.8.8 answered NXDOMAIN for *.ts.net and CoreDNS cached it.
+  # After changing this on a running cluster, restart the coredns pods.
   - |-
     machine:
       features:
         hostDNS:
           enabled: true
-          forwardKubeDNSToHost: false
+          forwardKubeDNSToHost: true
 
   # Kubelet: Use LAN IPs for node addresses (enables MetalLB L2 mode)
   # Tailscale is still used for API access via the endpoint
