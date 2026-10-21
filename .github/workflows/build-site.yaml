@@ -55,7 +55,7 @@ jobs:
           echo "Built $(find dist -name '*.html' | wc -l) pages, $posts posts."
           [ "$posts" -gt 0 ] || { echo "::error::no posts were published"; exit 1; }
 
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
