@@ -33,4 +33,13 @@ spec:
       # Detached volumes report "unknown", which is fine.
       expr: '!(status.robustness in ["degraded", "faulted"])'
       timeout: 15m
+    # The storage rule (kubernetes/infra/longhorn/values.yaml): a volume either
+    # has a second replica or is strict-local. A single-replica volume that
+    # could run on another node would hold beelink's instance-manager PDB and
+    # hang the drain; this makes the upgrade wait visibly instead.
+    - apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      namespace: longhorn
+      expr: object.spec.numberOfReplicas >= 2 || object.spec.dataLocality == "strict-local"
+      timeout: 15m
 {{- end }}

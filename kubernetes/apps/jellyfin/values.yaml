@@ -76,22 +76,17 @@ bitwarden-secret:
 
 # Jellyfin chart configuration
 jellyfin:
-  # Jellyfin must run on beelink, for three independent reasons:
+  # Jellyfin must run on beelink, for two independent reasons:
   # - Hardware: transcoding needs the Intel GPU (the gpu.intel.com/i915
   #   resource request below enforces this).
   # - Media: jellyfin-media is a hostPath on beelink's USB disk, and its PV's
   #   nodeAffinity binds it there.
-  # - Upgrades: jellyfin-config is a single Longhorn replica on beelink. If the
-  #   pod ran on another node, that replica would stay in use through a beelink
-  #   drain, and Longhorn's instance-manager PDB would block the drain - and
-  #   with it every tuppr/talosctl Talos upgrade and safe-reboot-node.sh run.
-  #   Pinned, the drain evicts Jellyfin, the volume detaches, and the drain
-  #   completes.
-  # This selector alone also matches rpi5, which carries storage.homelab.io/usb
-  # for Garage's disk; the GPU request and the media PV are what hold Jellyfin
-  # on beelink.
+  # Its config volume is a replicated Longhorn volume (`config` class), so it
+  # places no constraint of its own. A beelink drain evicts Jellyfin, which
+  # waits Pending until beelink is back; it holds no Longhorn replica in use
+  # and so never blocks the drain.
   nodeSelector:
-    storage.homelab.io/usb: "true"
+    kubernetes.io/hostname: beelink
 
   # Use existing PVCs (config managed by longhorn-storage, media is static hostPath PV)
   persistence:

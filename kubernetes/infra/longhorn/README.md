@@ -31,11 +31,11 @@ The `preUpgradeChecker.jobEnabled` is disabled because ArgoCD runs Helm pre-upgr
 
 Classes are named for what the data **is**, not which drive it sits on.
 
-| StorageClass | Meaning | Backed up |
-|--------------|---------|-----------|
-| `config` | Small, precious application config | Yes, via per-app RecurringJobs |
-| `state` | Operational state - rebuildable, or too large to back up | No |
-| `scratch` | Disposable; losing it costs a slower next run | No |
+| StorageClass | Meaning | Replicas | Workload runs on | Backed up |
+|--------------|---------|----------|------------------|-----------|
+| `config` | Small, precious application config | 2 (beelink NVMe + rpi5 USB) | Any node | Yes, via per-app RecurringJobs |
+| `state` | Operational state - rebuildable, or too large to back up | 1, `strict-local` | beelink only | No |
+| `scratch` | Disposable; losing it costs a slower next run | 1, `strict-local` | beelink only | No |
 
 Naming by drive couples a PVC to a hardware detail. Because `storageClassName`
 is immutable, such a name becomes a lie the moment the data moves, and cannot
@@ -48,6 +48,38 @@ class migration a relabel rather than a copy (below), and it means a mistaken
 PVC deletion is recoverable. The cost is orphaned PVs to clean up by hand.
 `reclaimPolicy` is immutable on a StorageClass, so changing it means deleting
 and recreating the class.
+
+### The rule: replicated, or pinned
+
+> A volume with a second replica may run anywhere. A single-replica volume runs
+> only on the node holding its replica.
+
+Every class follows this, because of how a node drain works with Longhorn. A
+drain must evict the node's `instance-manager` pod, and Longhorn holds a PDB on
+it while any replica there is the last healthy copy of a volume that is in use.
+If a single-replica volume's pod runs on *another* node, its replica on the
+drained node is still live, the PDB never lifts, and the drain hangs - and with
+it every tuppr Talos upgrade (`kubernetes/infra/tuppr`) and every
+`safe-reboot-node.sh` run. (`nodeDrainPolicy: allow-if-replica-is-stopped`
+releases the PDB once the node's replicas are *stopped*; it cannot help while
+one is in use elsewhere.)
+
+The rule is enforced three ways:
+
+- **`config`** keeps two replicas on different nodes (`durable` disks, hard
+  replica anti-affinity), so draining either node leaves a live copy and the
+  app keeps running.
+- **`state` and `scratch`** are `dataLocality: strict-local`, so Longhorn
+  refuses to attach the volume on any node but its replica's. Workloads using
+  them also carry `nodeSelector: kubernetes.io/hostname: beelink`, with a
+  comment saying why (ClickHouse, ZooKeeper, the SigNoz app, Time Machine).
+- **tuppr's health checks** refuse to start an upgrade while any Longhorn
+  volume is neither replicated nor strict-local, so a violation shows up as a
+  waiting upgrade with a `HealthChecksFailed` event rather than a hung drain.
+
+Choosing a class for a new volume: `config` if the app must survive a beelink
+reboot and its data is small and lightly written; `state` if it is large,
+write-heavy or rebuildable - and then pin its workload to beelink.
 
 ### Classes Longhorn creates for itself
 
@@ -73,24 +105,35 @@ being deleted. Nothing in this repo references it; leave it alone.
 ```
 talconfig.yaml      device: /dev/disk/by-id/nvme-...  →  mountpoint: /var/mnt/nvme
        ↓
-nodeConfig          nvme-disk: path=/var/mnt/nvme  tags=["nvme"]     ← tags are born here
+nodeConfig          nvme-disk: path=/var/mnt/nvme  tags=["durable","nvme"]   ← tags are born here
+                    usb-disk (rpi5): path=/var/mnt/usb  tags=["durable"]
        ↓
-StorageClass        parameters.diskSelector = "nvme"                 ← the only join
+StorageClass        parameters.diskSelector = "durable"                     ← the only join
        ↓
-PVC                 storageClassName: config                         (immutable)
+PVC                 storageClassName: config                                (immutable)
        ↓
-Volume              spec.diskSelector: ["nvme"]   ← copied at provision, then independent
+Volume              spec.diskSelector: ["durable"]   ← copied at provision, then independent
 ```
 
 `diskSelector` matches the `tags` on each disk in `nodeConfig`. That one line is
 where intent meets hardware: moving a purpose to a different drive is an edit
-here plus a replica migration, never PVC surgery. All three classes point at
-`nvme` today, deliberately - an explicit selector keeps the divergence point
-visible rather than letting an added disk silently collect volumes.
+here plus a replica migration, never PVC surgery. No class selects every disk:
+an added disk collects volumes only once it carries a tag a class asks for.
+`durable` is beelink's NVMe plus a 50 GiB share of rpi5's USB SSD, which it
+shares with Garage (`storageReserved` sets the share - lower it to grow
+Longhorn's).
 
-Note the last step: a volume copies `diskSelector` once, at provision time, and
-ignores its class afterwards. That is why the PVC's class name is only a
-provisioning-time label, and why stale ones are harmless.
+Note the last step: a volume copies `diskSelector`, `numberOfReplicas` and
+`dataLocality` once, at provision time, and ignores its class afterwards. That
+is why the PVC's class name is only a provisioning-time label, and why changing
+a class needs the existing volumes converted by hand:
+
+- **To replicated:** patch the Volume's `spec.diskSelector` and
+  `spec.numberOfReplicas` together. Longhorn builds the new replica while the
+  volume stays attached.
+- **To strict-local:** Longhorn only allows it on a **detached** single-replica
+  volume. Quiesce the app (through Git, or the CHI's `spec.stop` for
+  ClickHouse), patch `spec.dataLocality`, then bring the app back.
 
 ### Migration state
 
