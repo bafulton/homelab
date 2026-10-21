@@ -89,7 +89,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       # arm64 (rpi5, ocifree) is cross-built under emulation.
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
