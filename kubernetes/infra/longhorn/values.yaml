@@ -75,9 +75,21 @@ storageClasses:
 # diskSelector is the single join between intent and hardware: it matches the
 # `tags` set on each disk in nodeConfig above. Changing which drive a purpose
 # lives on is a one-line edit here plus a replica migration - never PVC
-# surgery. All three point at nvme today, which is deliberate: it keeps the
-# divergence point explicit rather than letting an added disk silently collect
-# volumes.
+# surgery. No class selects every disk: an added disk collects volumes only
+# once it carries a tag a class asks for.
+#
+# Every class follows one rule, because a beelink drain cannot finish while a
+# single-replica volume is in use on another node (its replica is still live,
+# so Longhorn's instance-manager PDB holds - and tuppr's Talos upgrades and
+# safe-reboot-node.sh hang behind it):
+#
+#   A volume with a second replica may run anywhere. A single-replica volume
+#   runs only on the node holding its replica.
+#
+# So a class either keeps two replicas on different nodes (`durable`), or is
+# single-replica with dataLocality: strict-local, which makes Longhorn refuse
+# to attach the volume anywhere but its replica's node. Workloads on strict-local
+# volumes carry a nodeSelector for that node, explaining why.
 #
 # Moving EXISTING replicas is a separate operation - see "Migrating replicas
 # between disks" in README.md.
@@ -86,30 +98,42 @@ storageClasses:
 # Longhorn volume behind rather than destroying the data, which is what makes a
 # class migration a relabel instead of a copy, and what stops a mistaken PVC
 # deletion being unrecoverable. The cost is orphaned volumes to clean up by
-# hand. reclaimPolicy is immutable on a StorageClass, so changing this later
-# means deleting and recreating the class.
+# hand.
+#
+# StorageClass parameters (and reclaimPolicy) are immutable, so ArgoCD cannot
+# apply a change to them: the sync fails until the class is deleted by hand,
+# then ArgoCD recreates it. Deleting a class leaves its volumes untouched, and
+# the change only reaches volumes created afterwards - existing volumes are
+# converted separately.
 
   # Small, precious application config. Snapshotted and backed up via
   # RecurringJobs (see the per-app backupGroup in each app's values.yaml).
+  # Two replicas, one per node, so these apps keep running while either node
+  # is down.
   - name: config
-    diskSelector: nvme
-    replicas: 1
+    diskSelector: durable
+    replicas: 2
     dataLocality: disabled
     reclaimPolicy: Retain
 
   # Operational state that is either rebuildable or too large to back up
-  # (observability stores, Time Machine's own backup target).
+  # (observability stores, Time Machine's own backup target). Single replica on
+  # beelink's NVMe, pinned there by strict-local; these apps stop while beelink
+  # is down. SigNoz's ClickHouse is ~98% of all Longhorn writes - too much to
+  # mirror through rpi5's USB bridge.
   - name: state
     diskSelector: nvme
     replicas: 1
-    dataLocality: disabled
+    dataLocality: strict-local
     reclaimPolicy: Retain
 
   # Disposable scratch space. Losing it costs a slower next run, nothing more.
+  # strict-local: its only user, VolSync's media-cache mover, runs on beelink
+  # beside the media it backs up.
   - name: scratch
     diskSelector: nvme
     replicas: 1
-    dataLocality: disabled
+    dataLocality: strict-local
     reclaimPolicy: Retain
 
   # Two classes exist live that are deliberately NOT declared here:
