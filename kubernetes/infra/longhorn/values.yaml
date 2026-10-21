@@ -36,16 +36,31 @@ nodeConfig:
           storageReserved: 16106127360  # 15GB reserved for OS
           tags: ["emmc"]
           allowScheduling: false
-        # NVMe SSD - backs all three storage classes, and therefore every
-        # Longhorn volume in the cluster.
+        # NVMe SSD - holds a replica of every Longhorn volume. `nvme` selects it
+        # alone; `durable` also selects rpi5's usb-disk, for classes that keep
+        # a second replica on another node.
         nvme-disk:
           path: /var/mnt/nvme
           storageReserved: 0
-          tags: ["nvme"]
+          tags: ["nvme", "durable"]
 
     - name: rpi5
-      allowScheduling: false  # USB drive is owned by Garage (see infra/garage)
-      disks: {}
+      allowScheduling: true
+      disks:
+        # USB SSD, shared with Garage (see infra/garage): Garage keeps its data
+        # under garage/, Longhorn its replicas/ and longhorn-disk.cfg at the
+        # mount root. The mount root is the path because Longhorn will not
+        # create a missing disk directory, and Talos gives no way to make one.
+        #
+        # storageReserved is what Longhorn must leave alone, so Longhorn's
+        # share is the filesystem size minus this: 50 GiB. Raise the share by
+        # lowering this number - nothing moves. The one sign the share is too
+        # small is a `durable` volume that cannot place its second replica and
+        # stays degraded.
+        usb-disk:
+          path: /var/mnt/usb
+          storageReserved: 1945700409344  # filesystem size - 50 GiB
+          tags: ["durable"]
 
 storageClasses:
 # Classes are named for what the data IS, not which drive it sits on.
