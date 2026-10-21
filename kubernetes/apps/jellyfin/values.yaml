@@ -101,16 +101,6 @@ jellyfin:
       # needs write access.
       readOnly: false
 
-  # TEMPORARY, for the 10.11 -> 12.x migration: Jellyfin's first start on 12.x
-  # migrates the database and path-checks every library item, and /health may
-  # not answer while it does. The chart default (3 failures x 10s) would
-  # restart it mid-migration. Revert to the chart defaults once 12.x is up.
-  startupProbe:
-    failureThreshold: 360
-  livenessProbe:
-    periodSeconds: 30
-    failureThreshold: 120
-
   # Service configuration
   service:
     type: ClusterIP
