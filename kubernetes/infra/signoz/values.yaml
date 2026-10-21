@@ -63,10 +63,13 @@ signoz:
     storageClass: state
 
   clickhouse:
-    # Placement: local only — 50Gi ClickHouse on `state` with constant
-    # ingest; data gravity keeps it home. See charts/README.md "Placement".
+    # Placement: beelink only. Its volume is a single strict-local replica on beelink's
+    # NVMe (the `state` class), so Longhorn will attach it nowhere else - and
+    # if it could run elsewhere, its replica would stay in use through a beelink
+    # drain and Longhorn's instance-manager PDB would hang every Talos upgrade
+    # and safe-reboot-node.sh run behind it.
     nodeSelector:
-      homelab.io/location: local
+      kubernetes.io/hostname: beelink
     persistence:
       enabled: true
       size: 50Gi
@@ -95,11 +98,14 @@ signoz:
           <crash_log remove="1"/>
         </clickhouse>
     zookeeper:
-      replicaCount: 0
       heapSize: 256
-      # Placement: local only — ClickHouse coordination, PVC on `state`.
+      # Placement: beelink only. Its volume is a single strict-local replica on beelink's
+      # NVMe (the `state` class), so Longhorn will attach it nowhere else - and
+      # if it could run elsewhere, its replica would stay in use through a beelink
+      # drain and Longhorn's instance-manager PDB would hang every Talos upgrade
+      # and safe-reboot-node.sh run behind it.
       nodeSelector:
-        homelab.io/location: local
+        kubernetes.io/hostname: beelink
       podAnnotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "9141"
@@ -138,10 +144,13 @@ signoz:
         memory: 1536Mi
 
   signoz:
-    replicaCount: 0
-    # Placement: local only — signoz app has a `state` PVC (signoz-db).
+    # Placement: beelink only. Its volume is a single strict-local replica on beelink's
+    # NVMe (the `state` class), so Longhorn will attach it nowhere else - and
+    # if it could run elsewhere, its replica would stay in use through a beelink
+    # drain and Longhorn's instance-manager PDB would hang every Talos upgrade
+    # and safe-reboot-node.sh run behind it.
     nodeSelector:
-      homelab.io/location: local
+      kubernetes.io/hostname: beelink
     persistence:
       enabled: true
       size: 1Gi
