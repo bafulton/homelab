@@ -4,37 +4,20 @@ namespace: tuppr
 talosVersion: v1.13.4
 kubernetesVersion: v1.36.2
 
+# Each gate renders one upgrade CR (templates/) at the version above. With a
+# gate off, Renovate still bumps the version but tuppr is never asked to act.
 talos:
-  # Disable automated Talos upgrades until rpi5 is officially supported
-  # When false, Renovate still updates talosVersion but tuppr won't auto-upgrade
+  # Off until `talosctl upgrade` has been run by hand on rpi5 once - it reached
+  # its current version by re-flash, so the upgrade path is unexercised there.
   supportsRpi5: false
 
 kubernetes:
-  # Disable K8s upgrade CRD until rpi5 is on Talos v1.13.0+
-  # Talos v1.11.5 (rpi5) caps at K8s v1.34.x - incompatible with v1.35+
-  # Re-enable once rpi5 is migrated to official Talos image
+  # Keep this in step with talos.supportsRpi5. Renovate bumps talosVersion and
+  # kubernetesVersion in the same PR, and the compatibility check validates the
+  # pair against each other - not against the Talos the nodes actually run. With
+  # only this gate on, a new Kubernetes minor would land on nodes still on the
+  # old Talos (Talos v1.13 supports Kubernetes up to v1.36).
   upgradeEnabled: false
-
-# Tuppr manages Talos and Kubernetes upgrades via CRDs
-# After deployment, create TalosUpgrade or KubernetesUpgrade resources to trigger upgrades
-#
-# Example TalosUpgrade:
-#   apiVersion: upgrade.tuppr.io/v1alpha1
-#   kind: TalosUpgrade
-#   metadata:
-#     name: talos-upgrade
-#   spec:
-#     talos:
-#       version: v1.13.0
-#
-# Example KubernetesUpgrade:
-#   apiVersion: upgrade.tuppr.io/v1alpha1
-#   kind: KubernetesUpgrade
-#   metadata:
-#     name: kubernetes-upgrade
-#   spec:
-#     kubernetes:
-#       version: v1.35.0
 
 tuppr:
   # A complete list of values can be found here:
