@@ -184,6 +184,13 @@ patches:
   # ?ephemeral=false makes the node durable, so a power loss / extended outage
   # doesn't cause the node to be reaped and re-registered as an ephemeral node
   # on reconnect.
+  #
+  # No --accept-dns: Talos owns the node's DNS, with 100.100.100.100 as its
+  # first nameserver. MagicDNS still answers tailnet names without the flag and
+  # returns SERVFAIL for the rest, so the host resolver moves on to 8.8.8.8.
+  # With the flag, Tailscale forwarded every non-tailnet name to the system
+  # resolver (127.0.0.53), which forwarded it straight back to MagicDNS: a loop
+  # that ran at ~600 queries/s and made MagicDNS drop queries.
   - |-
     apiVersion: v1alpha1
     kind: ExtensionServiceConfig
@@ -191,7 +198,7 @@ patches:
     environment:
       - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
       - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
-      - TS_EXTRA_ARGS=--accept-dns=true --accept-routes --ssh --advertise-tags=tag:k8s-node
+      - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node
 
   # Kernel modules for Longhorn storage
   - |-
