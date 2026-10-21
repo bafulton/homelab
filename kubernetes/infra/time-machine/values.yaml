@@ -6,7 +6,7 @@ service:
 
 # Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
 # SMB share backed by a single RWO volume.
-replicaCount: 0
+replicaCount: 1
 
 # Storage configuration
 # NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
