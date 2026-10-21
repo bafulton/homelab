@@ -138,6 +138,12 @@ longhorn:
     freezeFilesystemForSnapshot: true
     engineReplicaTimeout: 30
     backupExecutionTimeout: 20
+    # Every volume is single-replica on beelink, so under the default
+    # (block-if-contains-last-replica) beelink's instance-manager PDB never
+    # releases and no drain of beelink can finish. This releases it once the
+    # node's replicas are stopped - i.e. once the drain has evicted the pods
+    # using them. The data stays on beelink's disk through the reboot.
+    nodeDrainPolicy: allow-if-replica-is-stopped
 
   defaultBackupStore:
     backupTarget: "s3://longhorn-backups@us-east-1/"

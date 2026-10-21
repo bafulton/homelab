@@ -327,7 +327,9 @@ talosctl logs ext-tailscale  # Tailscale extension service
 
 ### Upgrade Talos
 
-Upgrade the local `talosctl` first (`brew upgrade siderolabs/tap/talosctl`).
+Routine upgrades run through tuppr - see `kubernetes/infra/tuppr/README.md`.
+To upgrade a node by hand (with tuppr's Talos gate off), upgrade the local
+`talosctl` first (`brew upgrade siderolabs/tap/talosctl`).
 Then drain the node exactly as for a reboot - steps 1-4 of
 `scripts/safe-reboot-node.sh` (cordon, drain, wait for Longhorn volumes to
 detach) - and upgrade it over its LAN IP, so the Tailscale extension restarting

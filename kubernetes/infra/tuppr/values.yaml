@@ -4,20 +4,24 @@ namespace: tuppr
 talosVersion: v1.13.4
 kubernetesVersion: v1.36.2
 
-# Each gate renders one upgrade CR (templates/) at the version above. With a
-# gate off, Renovate still bumps the version but tuppr is never asked to act.
+# Each gate renders one upgrade resource (templates/) at the version above.
+# With a gate on, merging a version bump makes tuppr roll it out; with it off,
+# Renovate's bumps only change files and nodes are upgraded by hand.
+#
+# With the Talos gate on, tuppr moves every node to talosVersion in either
+# direction - a node ahead of it is downgraded. Bump talosVersion to match the
+# newest node before turning the gate on.
+#
+# `suspend` pauses a gate's upgrade in place (tuppr's suspend annotation).
+# Use it to stop a run that is underway; turning the gate off instead deletes
+# the resource mid-run.
 talos:
-  # Off until `talosctl upgrade` has been run by hand on rpi5 once - it reached
-  # its current version by re-flash, so the upgrade path is unexercised there.
-  supportsRpi5: false
+  upgradeEnabled: false
+  suspend: false
 
 kubernetes:
-  # Keep this in step with talos.supportsRpi5. Renovate bumps talosVersion and
-  # kubernetesVersion in the same PR, and the compatibility check validates the
-  # pair against each other - not against the Talos the nodes actually run. With
-  # only this gate on, a new Kubernetes minor would land on nodes still on the
-  # old Talos (Talos v1.13 supports Kubernetes up to v1.36).
   upgradeEnabled: false
+  suspend: false
 
 tuppr:
   # A complete list of values can be found here:

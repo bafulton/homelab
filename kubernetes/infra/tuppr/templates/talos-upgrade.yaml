@@ -1,11 +1,34 @@
-{{- if .Values.talos.supportsRpi5 }}
-{{- $version := .Values.talosVersion }}
-{{- $versionSlug := $version | replace "." "-" }}
+{{- if .Values.talos.upgradeEnabled }}
 apiVersion: tuppr.home-operations.com/v1alpha1
 kind: TalosUpgrade
 metadata:
-  name: talos-upgrade-{{ $versionSlug }}
+  # Fixed name: a version bump edits this resource rather than creating a new
+  # one, so tuppr re-runs it and there is never a stale plan left queued.
+  name: talos
+  {{- if .Values.talos.suspend }}
+  annotations:
+    tuppr.home-operations.com/suspend: "true"
+  {{- end }}
 spec:
   talos:
-    version: {{ $version }}
+    version: {{ .Values.talosVersion }}
+  policy:
+    # tuppr drains the node and waits for its volumes to detach, then runs
+    # `talosctl upgrade --drain=false`. talosctl's own drain cannot work on a
+    # worker: it fetches a kubeconfig from the target node, which only
+    # control-plane nodes serve.
+    waitForVolumeDetach: true
+  # Evaluated before each node, so the next node waits until the previous one
+  # is back and Longhorn has reattached its volumes.
+  healthChecks:
+    - apiVersion: v1
+      kind: Node
+      expr: status.conditions.exists(c, c.type == "Ready" && c.status == "True")
+      timeout: 15m
+    - apiVersion: longhorn.io/v1beta2
+      kind: Volume
+      namespace: longhorn
+      # Detached volumes report "unknown", which is fine.
+      expr: '!(status.robustness in ["degraded", "faulted"])'
+      timeout: 15m
 {{- end }}

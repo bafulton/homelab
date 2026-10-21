@@ -4,34 +4,71 @@ Automated Talos and Kubernetes upgrade orchestration.
 
 ## How It Works
 
-Tuppr watches for `TalosUpgrade` and `KubernetesUpgrade` resources
-(`tuppr.home-operations.com/v1alpha1`) and upgrades nodes one at a time, with
-health checks between each.
+Tuppr acts on two resources (`tuppr.home-operations.com/v1alpha1`), which this
+chart renders from `values.yaml`:
 
-This chart renders one of each from `values.yaml`, named after the target
-version (e.g. `kubernetes-upgrade-v1-36-2`), so a version bump creates a new
-resource and tuppr acts on it.
+| Resource | Name | Does |
+|----------|------|------|
+| `TalosUpgrade` | `talos` | Moves every node to `talosVersion`, one at a time, control plane first: health checks, drain, wait for volumes to detach, `talosctl upgrade --drain=false` (run from the other node), wait for Ready, uncordon |
+| `KubernetesUpgrade` | `kubernetes` | Runs `talosctl upgrade-k8s` against the control plane: control-plane components, kube-proxy, then each kubelet. No drain, no reboot |
 
-## Usage
+A version bump edits the resource in place and tuppr re-runs it. The two never
+run at the same time, and a `KubernetesUpgrade` waits while a `TalosUpgrade` is
+pending or running.
 
-1. Renovate opens a PR bumping `talosVersion`/`kubernetesVersion` in both
-   `talos/talconfig.yaml` and `values.yaml`.
-2. The `talos-k8s-compatibility` workflow checks that the new Kubernetes
-   version is supported by the new Talos version.
-3. After merge, tuppr upgrades the nodes - for each gate that is enabled.
+## Upgrade Cycle
+
+1. **Talos PR.** Renovate bumps `talosVersion` in `talos/talconfig.yaml` and
+   here. Skim the Talos release notes and
+   [sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) for Pi 5
+   regressions, `brew upgrade siderolabs/tap/talosctl`, then merge.
+2. **Talos rollout.** tuppr upgrades beelink, then rpi5.
+3. **Kubernetes PR.** Renovate bumps `kubernetesVersion` in both files and
+   `KUBECTL_VERSION` in `images/homelab-toolbox/Dockerfile`. Bump
+   `images/homelab-toolbox/VERSION` on the PR so the image build passes. The
+   `talos-k8s-compatibility` check passes once the Talos version it needs is on
+   `main`. Merge.
+4. **Kubernetes rollout.** tuppr runs `upgrade-k8s`.
+
+Be around for step 2. Every Longhorn volume has its only replica on beelink,
+and beelink is the only control-plane node, so its turn takes the API server
+and every Longhorn-backed app down for the few minutes of drain and reboot.
+rpi5's turn moves its pods to beelink and is barely noticeable.
 
 ## Gates
 
-| Value | Renders | Enable when |
-|-------|---------|-------------|
-| `talos.supportsRpi5` | `TalosUpgrade` | `talosctl upgrade` has been run by hand on rpi5 once |
-| `kubernetes.upgradeEnabled` | `KubernetesUpgrade` | Together with `talos.supportsRpi5` |
+| Value | Renders |
+|-------|---------|
+| `talos.upgradeEnabled` | `TalosUpgrade` |
+| `kubernetes.upgradeEnabled` | `KubernetesUpgrade` |
 
-The two gates move together because Renovate bumps both versions in one PR,
-and the compatibility check compares the two *target* versions. With only the
-Kubernetes gate on, tuppr would apply the new Kubernetes minor to nodes still
-running the old Talos, which may not support it.
+With a gate off, version bumps only change files, and nodes are upgraded by
+hand (see "Upgrade Talos" in `talos/README.md`).
+
+The Talos gate moves every node to `talosVersion` in either direction, so a
+node running a newer version is downgraded. Set `talosVersion` to the newest
+node's version before turning the gate on.
+
+## Pausing
+
+Set `talos.suspend` or `kubernetes.suspend` to `true` to pause an upgrade where
+it stands (tuppr's `tuppr.home-operations.com/suspend` annotation), and back to
+`false` to resume. Use this rather than turning a gate off, which deletes the
+resource mid-run.
+
+## Draining
+
+`policy.waitForVolumeDetach` makes tuppr drain the node itself. Its drain gives
+up after 10 minutes, uncordons the node and retries a minute later, so a drain
+that cannot finish repeats rather than failing. Two settings keep the drain
+finishable:
+
+- Longhorn's `nodeDrainPolicy: allow-if-replica-is-stopped`
+  (`kubernetes/infra/longhorn/values.yaml`) releases beelink's instance-manager
+  PDB once its replicas stop.
+- PDB-protected workloads need room on the other node for their replacement.
 
 ## Resources
 
+- [Tuppr docs](https://tuppr.home-operations.com/)
 - [Tuppr GitHub](https://github.com/home-operations/tuppr)
