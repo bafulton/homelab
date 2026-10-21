@@ -14,38 +14,9 @@
 
 namespace: garage
 
-# The upstream chart stamps checksum/secret on the pod template by hashing
-# garage.secret.content, which falls back to randHex(64) for any value not set
-# in values.yaml. Because rpcSecret and adminToken come from an external Secret
-# (garage.secret.create: false), that hash is different on every render, so
-# ArgoCD saw a changed pod template and rolled garage-0 on every single sync.
-# checksum/config is computed the same way but over garage.toml, which is
-# deterministic, so it is left alone and still triggers a roll on real config
-# changes.
-#
-# REMOVE THIS BLOCK once the chart is bumped past 0.8.0.
-# Fixed upstream in datahub-local/garage-helm#51 (merged 2026-10-19), which
-# omits checksum/secret entirely when the secret content is not derived from
-# values - exactly our case. It covers both workload.yaml and
-# webui-deployment.yaml. No release has been cut yet: 0.8.0 is still the latest
-# published chart and does not contain the fix.
-#
-# Note for whoever removes it: with the fix in place there is no checksum/secret
-# annotation at all here, so rotating rpcSecret/adminToken in Bitwarden will no
-# longer roll the pods by itself - that needs a manual restart. Upstream issue
-# #50 stays open for its second case (garage.secret.create: true), which we do
-# not use.
-ignoreDifferences:
-  - group: apps
-    kind: StatefulSet
-    name: garage
-    jsonPointers: ["/spec/template/metadata/annotations/checksum~1secret"]
-  # The webui Deployment stamps the same annotation from the same helper, so it
-  # rolled on every sync too (6 ReplicaSets in 11 hours before this was caught).
-  - group: apps
-    kind: Deployment
-    name: garage-webui
-    jsonPointers: ["/spec/template/metadata/annotations/checksum~1secret"]
+# Rotating rpcSecret/adminToken in Bitwarden does not roll the pods: the chart
+# stamps no checksum/secret annotation when the secret comes from an external
+# Secret (garage.secret.create: false), so restart garage-0 by hand afterwards.
 
 # Both secrets are consumed by the garage subchart:
 #   garage-secret         -> garage.secret.name (rpcSecret + adminToken)
