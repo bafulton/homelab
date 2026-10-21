@@ -93,13 +93,19 @@
       "automerge": false
     },
     {
-      "description": "Group Talos, Kubernetes, and kubectl together, never automerge",
+      "description": "Talos in its own PR, never automerge. Merging it makes tuppr roll the new version onto every node, so it must land before the matching Kubernetes bump",
       "matchPackageNames": [
-        "siderolabs/talos",
-        "kubernetes/kubernetes",
-        "registry.k8s.io/kubectl"
+        "siderolabs/talos"
       ],
-      "groupName": "talos-kubernetes",
+      "groupName": "talos",
+      "automerge": false
+    },
+    {
+      "description": "Kubernetes (cluster and the toolbox image's kubectl) in its own PR, never automerge. The talos-k8s-compatibility check fails it until the Talos bump it needs is on main",
+      "matchPackageNames": [
+        "kubernetes/kubernetes"
+      ],
+      "groupName": "kubernetes",
       "automerge": false
     },
     {
