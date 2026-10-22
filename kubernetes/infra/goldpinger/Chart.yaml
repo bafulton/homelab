@@ -1,0 +1,14 @@
+apiVersion: v2
+name: goldpinger
+description: Goldpinger - node-to-node connectivity + latency graph for the flannel/Kilo mesh
+type: application
+version: 1.0.0
+appVersion: "3.11.5"
+dependencies:
+  - name: goldpinger
+    # renovate: datasource=helm registryUrl=https://bloomberg.github.io/goldpinger
+    version: 1.2.0
+    repository: https://bloomberg.github.io/goldpinger
+  - name: gateway-route
+    version: 1.0.0
+    repository: file://../../../charts/gateway-route

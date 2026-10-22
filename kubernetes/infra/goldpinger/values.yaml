@@ -1,0 +1,52 @@
+namespace: goldpinger
+
+# Bloomberg's Goldpinger: a DaemonSet where every instance pings every other over
+# the pod network and serves a live node-to-node connectivity + latency graph. The
+# pod-network path rides the flannel (home) / Kilo (cross-location) mesh, so a
+# broken or blackholed tunnel shows up immediately as a red / high-RTT edge.
+goldpinger:
+  # fullnameOverride so the Service name is deterministic (the gateway-route below
+  # targets it by name).
+  fullnameOverride: goldpinger
+
+  # List pods cluster-wide to discover peers.
+  rbac:
+    create: true
+    clusterscoped: true
+
+  goldpinger:
+    port: 8080
+    # UDP probe adds packet-loss % and UDP RTT between peers on top of HTTP latency
+    # - the extra signal that catches a lossy/degraded mesh link, not just a dead one.
+    udp:
+      enabled: true
+      port: 6969
+
+  service:
+    type: ClusterIP
+    port: 8081
+
+  # Run on every node - including the control-plane (soft PreferNoSchedule taint on
+  # beelink) and a remote node still carrying its boot-cordon taint - so no node is
+  # invisible on the graph. Matches node-health's tolerate-everything posture.
+  tolerations:
+    - operator: Exists
+
+  # Tiny. No CPU limit (house rule): cpu request + memory request/limit only.
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+# UI on the tailnet only: goldpinger.catfish-mountain.com resolves via Tailscale
+# Split DNS and is not routed through the public Cloudflare Tunnel.
+gateway-route:
+  routes:
+    - name: private
+      hostnames:
+        - goldpinger.catfish-mountain.com
+      service:
+        name: goldpinger
+        port: 8081
