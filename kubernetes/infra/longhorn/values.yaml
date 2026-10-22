@@ -70,8 +70,10 @@ nodeConfig:
       # cross-location WireGuard mesh (asymmetric, ~86 Mbit/s back home) is slow
       # and would hold up drains. longhorn-manager + iscsi-tools still run here
       # (baked into ocifree's image) so pods scheduled on ocifree can still mount
-      # RWO PVCs whose replicas live on the home nodes. No disks declared -
-      # nothing to schedule replicas onto. Standard remote-node setting.
+      # RWO PVCs whose replicas live on the home nodes. No disks declared: the
+      # node-level allowScheduling:false is what keeps replicas off, and omitting
+      # disks leaves Longhorn's own auto-created default disk alone rather than
+      # trying (and failing) to delete it. Standard remote-node setting.
       allowScheduling: false
 
 storageClasses:

@@ -16,8 +16,16 @@ spec:
   allowScheduling: {{ if hasKey . "allowScheduling" }}{{ .allowScheduling }}{{ else }}true{{ end }}
   evictionRequested: false
   tags: {{ .tags | default list | toJson }}
+  # Only manage disks for a node that declares them. A node with no `disks` omits
+  # the field entirely (rather than rendering an empty map), so Longhorn's own
+  # auto-created default disk is left untouched instead of being deleted - deleting
+  # an enabled disk is rejected by the validator webhook ("disable the disk and
+  # remove all replicas first"). For such a node, node-level allowScheduling:false
+  # keeps replicas off it regardless of that disk. This also stays correct across a
+  # re-provision, where the default disk's generated name changes.
+  {{- with .disks }}
   disks:
-    {{- range $diskName, $disk := .disks }}
+    {{- range $diskName, $disk := . }}
     {{ $diskName }}:
       allowScheduling: {{ if hasKey $disk "allowScheduling" }}{{ $disk.allowScheduling }}{{ else }}true{{ end }}
       evictionRequested: false
@@ -26,5 +34,6 @@ spec:
       tags: {{ $disk.tags | default list | toJson }}
       diskType: filesystem
     {{- end }}
+  {{- end }}
 {{- end }}
 {{- end }}
