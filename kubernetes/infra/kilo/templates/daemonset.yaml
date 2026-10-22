@@ -44,6 +44,13 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.hostIP
+            # Point kg's in-cluster client at the Tailscale API endpoint instead
+            # of the ClusterIP (10.96.0.1 -> beelink LAN IP), which remote nodes
+            # can't reach before the mesh exists. See apiServer in values.yaml.
+            - name: KUBERNETES_SERVICE_HOST
+              value: {{ .Values.apiServer.host | quote }}
+            - name: KUBERNETES_SERVICE_PORT
+              value: {{ .Values.apiServer.port | quote }}
           ports:
             - containerPort: 1107
               name: metrics
