@@ -64,6 +64,16 @@ nodeConfig:
           storageReserved: 1945700409344  # filesystem size - 50 GiB
           tags: ["durable"]
 
+    - name: ocifree
+      # Ephemeral cloud node: keep every Longhorn replica off it. It can be
+      # reaped / re-provisioned at any time, and replica sync over the
+      # cross-location WireGuard mesh (asymmetric, ~86 Mbit/s back home) is slow
+      # and would hold up drains. longhorn-manager + iscsi-tools still run here
+      # (baked into ocifree's image) so pods scheduled on ocifree can still mount
+      # RWO PVCs whose replicas live on the home nodes. No disks declared -
+      # nothing to schedule replicas onto. Standard remote-node setting.
+      allowScheduling: false
+
 storageClasses:
 # Classes are named for what the data IS, not which drive it sits on.
 #
