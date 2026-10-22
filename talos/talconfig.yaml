@@ -137,6 +137,66 @@ nodes:
                   - rshared
                   - rw
 
+  - hostname: ocifree
+    controlPlane: false
+    # Cloud node (OCI Ampere A1, arm64). No LAN presence; reached over Tailscale
+    # for talosctl/apply, and joins the cluster via the beelink endpoint.
+    ipAddress: ocifree.catfish-mountain.ts.net
+    # OCI A1 paravirtualized boot volume. The node boots from the imported Talos
+    # image; install.disk matters for in-place upgrades (tuppr).
+    installDisk: /dev/sda
+    # Oracle arm64 schematic (iscsi-tools + tailscale + util-linux-tools), built
+    # by opentofu/oci-node/build-oci-image.sh. talhelper appends :talosVersion.
+    talosImageURL: factory.talos.dev/installer/708747e350d604ae9e57227d8dcf274091453ddb1097b765d4ea8884f1992c1f
+    nodeLabels:
+      homelab.io/location: "remote"
+    # Declarative Kilo location so kg sees it the instant the node registers
+    # (no post-bootstrap annotate race). force-endpoint is set after join, once
+    # the public IP is known (see opentofu/oci-node).
+    nodeAnnotations:
+      kilo.squat.ai/location: "cloud"
+    patches:
+      # certSAN so talosctl can reach ocifree by its tailnet name.
+      - |-
+        machine:
+          certSANs:
+            - ocifree.catfish-mountain.ts.net
+      # Cloud node: kubelet node IP is the Tailscale address only. Replaces the
+      # all-nodes validSubnets (which also lists the LAN /24 ocifree lacks) so
+      # kubelet never picks the OCI private 10.21.x address.
+      - |-
+        machine:
+          kubelet:
+            nodeIP:
+              validSubnets:
+                - 100.64.0.0/10
+            # Boot cordoned: register with a NoSchedule taint so no regular
+            # workloads schedule before the post-provision steps (Kilo
+            # force-endpoint + networking verification) complete. The networking
+            # DaemonSets (kilo/flannel/kube-proxy) tolerate it and still come up.
+            # registerWithTaints applies only at initial node registration, not on
+            # reboots (the node object persists), and it's a kubelet-config taint,
+            # not machine.nodeTaints, so the post-init `kubectl taint ... -` sticks.
+            # See talos/README.md "Local vs remote node profile".
+            extraConfig:
+              registerWithTaints:
+                - key: node.homelab.io/uninitialized
+                  value: "true"
+                  effect: NoSchedule
+      # Remote-node profile: ephemeral Tailscale registration (see talos/README.md
+      # "Local vs remote node profile"). Overrides the all-nodes tailscale
+      # ExtensionServiceConfig to drop ?ephemeral=false, so a terminated cloud node
+      # is reaped by Tailscale and a reprovisioned one reclaims the ocifree name
+      # instead of colliding into ocifree-1. Takes effect on next (re)registration.
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
+          - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node
+
 # ------------------------------------------------------------------------------
 # Patches - Applied to ALL nodes
 # ------------------------------------------------------------------------------

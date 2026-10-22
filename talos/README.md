@@ -57,6 +57,65 @@ address the discovery service propagates). So cross-site connectivity for a
 remote node is handled at the reach plane rather than by flattening both planes
 into one mesh. Full analysis in `~/Desktop/oci-node-plan.md`.
 
+## Local vs remote node profile
+
+Nodes fall into two profiles. The split is deliberate — a remote cloud node has a
+different failure and recovery model than a machine on the home LAN, so a few
+settings flip by role. Everything in this table is **provider-agnostic** (it is
+Talos-layer config); the provider-specific pieces — instance, network, custom-image
+import — live in a per-provider OpenTofu module such as `opentofu/oci-node/`.
+
+| Setting | Local node (home LAN) | Remote node (cloud) |
+|---|---|---|
+| `homelab.io/location` label | `local` | `remote` |
+| Tailscale registration | **non-ephemeral** (`?ephemeral=false`) | **ephemeral** (default — drop the suffix) |
+| kubelet `nodeIP.validSubnets` | LAN `192.168.1.0/24` + Tailscale `100.64.0.0/10` | Tailscale `100.64.0.0/10` only |
+| Kilo | (home location) | `kilo.squat.ai/location: cloud`, a public `51820/udp` WireGuard endpoint, and `force-endpoint` set after join |
+| `iscsi-tools` extension | yes (Longhorn storage node) | only if the node must mount Longhorn PVCs (open-iscsi is needed on any node that attaches a volume) |
+| Longhorn node `allowScheduling` | `true` (holds replicas) | `false` — no replicas on an ephemeral node, set in `infra/longhorn` `nodeConfig`; `longhorn-manager` + `iscsi-tools` still run so pods here can mount PVCs whose replicas live at home |
+| Provider DNS search domain | keep (home router's domain NXDOMAINs cleanly) | **strip it** at the provider — a cloud VCN search domain can SERVFAIL and break libc resolution (see below) |
+
+**Why remote nodes are ephemeral.** A home node's disconnect is almost always a
+reboot or power blip — the same machine returns, so its tailnet identity should
+survive (non-ephemeral). A remote node offline for more than ~30–60 min has almost
+certainly been terminated or reclaimed by the provider, and the fix is to
+**provision a new one**. A non-ephemeral dead node lingers as a stale device, so
+the replacement registers as `ocifree-1` and breaks the `ocifree.catfish-mountain.ts.net`
+name the cluster depends on (the node IP *is* the Tailscale IP). Ephemeral means
+Tailscale reaps the dead node (~30–60 min after last activity — far longer than any
+routine reboot, so upgrades don't trigger it) and the replacement reclaims the name
+cleanly. Set per remote node by overriding the all-nodes tailscale
+`ExtensionServiceConfig` to drop the `?ephemeral=false` suffix (OAuth clients default
+to ephemeral). Home nodes keep the suffix. Note: ephemeral vs non-ephemeral is fixed
+at **registration**, so flipping it only takes effect on the node's next (re)join.
+
+**Why remote nodes strip the provider DNS search domain.** A cloud provider's DHCP
+hands the node a VCN search domain (OCI: `<vcn-dns-label>.oraclevcn.com`). Its internal
+resolver returns **SERVFAIL** (not NXDOMAIN) for bogus names under that suffix — and
+because the pod resolver uses `ndots:5`, every libc `getaddrinfo` tries
+`<name>.<vcn-domain>` first, hits SERVFAIL, and aborts the whole lookup. Pods on that
+node then can't resolve external names at all (git clones, healthchecks.io pings, …),
+while small direct queries that skip the search list (e.g. `dig`) still work, which
+makes it look intermittent. A home router's search domain NXDOMAINs instead, so libc
+falls through to the bare name — which is why only remote nodes hit this. Fix it at the
+source in the provider module: give the subnet a DHCP options set with the Internet+VCN
+resolver but **no SearchDomain** (see `opentofu/oci-node/network.tf`), then re-lease
+(reboot) once. The node leases a clean `resolv.conf` (cluster.local searches only) and
+resolves like any home node. Note: Talos's `machine.network.disableSearchDomain` does
+**not** fix this — it only suppresses the hostname-derived search domain, not the
+explicit DHCP domain-search option the provider sends.
+
+**Adding a remote node on a new provider (AWS, GCP, …).** The profile above is
+unchanged; only two things are provider-specific: a new OpenTofu module modeled on
+`opentofu/oci-node/` (instance + network + custom-image import, with that provider's
+quirks — e.g. OCI needs a streamOptimized-VMDK import forced to UEFI firmware, and a
+DHCP options set with no SearchDomain so pods can resolve external names), and
+the platform image from Image Factory (`aws`, `gcp`, … instead of `oracle`). The
+Talos profile — ephemeral, location label, Kilo cloud annotation, Tailscale-only
+node IP — carries over as-is. (When the cluster migrates off the EOL talhelper to
+`talosctl`-native patch files, this profile becomes a single shared remote-node
+patch file rather than a per-node override.)
+
 ## Prerequisites
 
 ### Local Tools
