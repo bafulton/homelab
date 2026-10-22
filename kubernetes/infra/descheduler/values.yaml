@@ -21,15 +21,17 @@ descheduler:
 
   # Full policy override. The chart's default profile enables ~7 plugins; we run
   # ONLY LowNodeUtilization — the single plugin that addresses our actual problem
-  # (workloads concentrating on beelink). Everything else would be a no-op on a
-  # 2-node cluster of single-replica deployments, so we leave it off to keep the
-  # blast radius tiny and the intent obvious.
+  # (workloads concentrating on the local nodes, especially beelink). Everything
+  # else would be a no-op for single-replica deployments, so we leave it off to
+  # keep the blast radius tiny and the intent obvious.
   #
   # LowNodeUtilization scores nodes by resource *requests* (not live usage) and
-  # evicts pods from over-utilized nodes so the scheduler can re-home them onto
-  # under-utilized ones. Current request allocation (2026-07-21):
-  #   beelink  cpu 66%  mem 75%   <- over target -> evict from here
-  #   rpi5     cpu 31%  mem 45%   <- under threshold -> receives pods
+  # evicts pods from over-utilized nodes (a *source*, over targetThresholds) so
+  # the scheduler can re-home them onto under-utilized ones (a *target*, under
+  # thresholds). With no source node, nothing is evicted — so load spreads onto a
+  # remote node only once a local node is genuinely over the source threshold.
+  # nodeFit plus the PVC/local-storage protections below mean only stateless,
+  # unpinned, arch-compatible pods ever actually move.
   deschedulerPolicy:
     # Evict at most a few pods per node per run: gentle, observable convergence.
     maxNoOfPodsToEvictPerNode: 3
