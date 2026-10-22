@@ -20,6 +20,11 @@ node-feature-discovery:
         memory: 128Mi
 
   worker:
+    # Intel QuickSync hardware only exists on the local (home) nodes, so run the
+    # feature detector there only. On a remote cloud node it has nothing to find
+    # and, being a DMI-less VM, logs "failed to get DMI entry" every minute.
+    nodeSelector:
+      homelab.io/location: local
     resources:
       requests:
         memory: 32Mi
