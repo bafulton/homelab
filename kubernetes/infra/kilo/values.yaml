@@ -8,12 +8,10 @@ image:
   repository: squat/kilo
   tag: "0.7.0"
 
-# STAGING KNOB — first coexistence test runs kg on rpi5 only, so the
-# control-plane node (beelink) is untouched while we confirm Kilo coexists with
-# flannel on Talos. Once rpi5 is verified healthy and the home LAN is still
-# ~910 Mbit/s, widen to every node by setting this to `{}`.
-nodeSelector:
-  kubernetes.io/hostname: rpi5
+# Runs on every node. (Staged rollout 2026-10-22: validated on rpi5 first with
+# `{kubernetes.io/hostname: rpi5}` — home LAN stayed ~907 Mbit/s, flannel path
+# intact, kg inert at single location — then widened to all nodes.)
+nodeSelector: {}
 
 # Repo convention: cpu + memory requests, memory limit only (never a cpu limit).
 resources:
