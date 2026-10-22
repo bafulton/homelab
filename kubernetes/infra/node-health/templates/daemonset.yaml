@@ -135,17 +135,27 @@ spec:
                 fi
               }
 
-              # Initial ping on startup
+              # Initial ping on startup (also auto-creates the check via ?create=1).
               echo "Sending initial ping..."
               ping_with_retry || true
-
-              # Wait a moment for check to appear in API, then configure it
               echo "Waiting 5 seconds for check to propagate..."
               sleep 5
-              configure_check || echo "Check configuration failed, will retry on next startup"
 
-              # Main loop
+              # Main loop. configure_check sets the check's period+grace to match
+              # values.yaml. It retries every iteration until it first succeeds, so
+              # a node whose first attempt races DNS/mesh warmup still self-corrects
+              # within one interval instead of being stuck on healthchecks.io's
+              # 1-day/1-hour auto-create defaults forever. That is what a newly added
+              # node needs: correct settings with no manual UI fix. After it succeeds
+              # it stops re-asserting, so a deliberate UI change isn't fought until
+              # the next pod restart.
+              check_configured=0
               while true; do
+                if [ "$check_configured" = "0" ]; then
+                  if configure_check; then
+                    check_configured=1
+                  fi
+                fi
                 sleep "${PING_INTERVAL}"
                 ping_with_retry || true
               done
