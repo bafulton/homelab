@@ -22,3 +22,25 @@ replicasetCleanup:
   enabled: true
   schedule: "0 */6 * * *"            # every 6 hours
   keepPerDeployment: 3               # keep newest 3 old ReplicaSets per Deployment
+
+# Weekly TRIM of the SSD-backed data filesystems. Talos schedules no periodic
+# trim and these xfs mounts carry no `discard` option, so without this the
+# drives never learn which blocks are free: every deleted block still looks
+# live, which raises write amplification and wear. Longhorn's own trim-daily
+# job only trims the filesystems *inside* its volumes (punching holes in the
+# replica files); that space reaches the SSD only when the host filesystem is
+# trimmed too. Both USB enclosures pass TRIM through (discard_max_bytes > 0).
+#
+# Sundays 06:30 UTC: after Longhorn's nightly backups (last at 05:30) and before
+# the VolSync media backup (08:00). A trim briefly stalls I/O on its drive.
+fstrim:
+  enabled: true
+  schedule: "30 6 * * 0"
+  nodes:
+    - name: beelink
+      paths:
+        - /var/mnt/nvme   # Longhorn nvme-disk
+        - /var/mnt/usb    # Jellyfin media
+    - name: rpi5
+      paths:
+        - /var/mnt/usb    # Garage + Longhorn usb-disk

@@ -1,0 +1,53 @@
+{{- if .Values.fstrim.enabled }}
+{{- range .Values.fstrim.nodes }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: fstrim-{{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  schedule: {{ $.Values.fstrim.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          nodeSelector:
+            kubernetes.io/hostname: {{ .name }}
+          containers:
+            - name: fstrim
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  {{- range $i, $path := .paths }}
+                  echo "fstrim {{ $path }}"
+                  fstrim -v /trim/{{ $i }}
+                  {{- end }}
+              # FITRIM needs CAP_SYS_ADMIN on the mounted filesystem.
+              securityContext:
+                privileged: true
+              volumeMounts:
+                {{- range $i, $path := .paths }}
+                - name: trim-{{ $i }}
+                  mountPath: /trim/{{ $i }}
+                {{- end }}
+          volumes:
+            {{- range $i, $path := .paths }}
+            - name: trim-{{ $i }}
+              hostPath:
+                path: {{ $path }}
+                type: Directory
+            {{- end }}
+{{- end }}
+{{- end }}

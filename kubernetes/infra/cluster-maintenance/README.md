@@ -41,6 +41,27 @@ When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (def
 - Groups by owner Deployment and keeps the newest N
 - Does not affect the current active ReplicaSet
 
+## fstrim CronJobs
+
+One CronJob per node (`fstrim-<node>`), Sundays 06:30 UTC, trims the SSD-backed
+data filesystems listed under `fstrim.nodes` in `values.yaml`:
+
+| Node | Paths |
+|------|-------|
+| beelink | `/var/mnt/nvme` (Longhorn), `/var/mnt/usb` (Jellyfin media) |
+| rpi5 | `/var/mnt/usb` (Garage + Longhorn) |
+
+Talos runs no periodic trim and these xfs mounts have no `discard` option, so
+without this the drives never learn which blocks are free. The pods are
+privileged (FITRIM needs `CAP_SYS_ADMIN`) and use the toolbox image's BusyBox
+`fstrim`. Add a node or drive by extending the list.
+
+Run one by hand:
+
+```bash
+kubectl create job -n kube-system --from=cronjob/fstrim-beelink fstrim-beelink-manual
+```
+
 ## kubectl Image Version
 
 The CronJobs use `bitnami/kubectl:latest` with `imagePullPolicy: IfNotPresent`. Pinning to a specific version was considered but rejected for this reason: Bitnami doesn't publish semantic version tags that map reliably to k8s versions, making Renovate automation require complex custom logic to track the cluster's k8s version. The operations performed (`kubectl delete pods`, `kubectl delete replicasets`) have been API-stable across all k8s versions, and the k8s skew policy allows kubectl to be ±1 minor version from the server, so `latest` with `IfNotPresent` is safe in practice.
@@ -56,4 +77,7 @@ kubectl logs -n kube-system -l job-name=cleanup-failed-pods --tail=20
 
 # ReplicaSet cleanup
 kubectl logs -n kube-system -l job-name=cleanup-old-replicasets --tail=50
+
+# fstrim (one job per node)
+kubectl logs -n kube-system -l job-name --tail=20 | grep -A2 fstrim
 ```
