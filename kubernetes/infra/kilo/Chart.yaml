@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kilo
+description: >-
+  Kilo WireGuard overlay in flannel-compatibility (add-on) mode. Meshes nodes
+  across locations (e.g. a cloud node) over WireGuard while flannel keeps
+  intra-location (LAN) pod networking untouched. Talos-adapted: kg uses the
+  in-cluster ServiceAccount (no host kubeconfig).
+type: application
+version: 1.0.0
+appVersion: "0.7.0"

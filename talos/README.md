@@ -6,7 +6,8 @@ with Tailscale for secure node-to-node communication.
 ## Architecture Overview
 
 This setup creates a Kubernetes cluster where:
-- All nodes communicate over Tailscale (your private mesh network)
+- Networking runs on **two planes** — a LAN data plane and a Tailscale
+  control/reach plane (see [Networking model](#networking-model-two-planes))
 - The control plane node also runs workloads (no taint)
 - GitOps-driven via ArgoCD
 
@@ -15,6 +16,46 @@ Example configuration:
 |------|------|--------------|----------|
 | Mini PC | Control Plane + Worker | amd64 | beelink |
 | Raspberry Pi | Worker | arm64 | rpi5 |
+
+## Networking model (two planes)
+
+The cluster deliberately runs on two network planes. Keeping them separate is
+what lets LAN services stay fast while the cluster stays reachable — and
+joinable — from anywhere.
+
+**LAN data plane — `192.168.1.0/24`.** Carries pod-to-pod traffic (flannel,
+direct over the LAN) and the LAN-facing load balancers. Each node's Kubernetes
+`InternalIP` is its LAN address, because **MetalLB runs in L2 mode** and
+ARP-announces its service VIPs (Traefik gateway `192.168.1.200`, time-machine
+`.201`, mosquitto `.202`) on this subnet — L2/ARP only works when the speakers
+hold LAN-adjacent node addresses. Set in `talconfig.yaml` via
+`kubelet.nodeIP.validSubnets`, LAN subnet listed first.
+
+**Tailscale control / reach plane — `catfish-mountain.ts.net` (`100.64.0.0/10`).**
+Carries the Kubernetes API endpoint (`https://beelink.catfish-mountain.ts.net:6443`),
+MagicDNS (`100.100.100.100`), and `talosctl` / `kubectl` management. Every node
+runs the Tailscale system extension and also holds a `100.x` address. This plane
+is what lets you:
+- manage the cluster from anywhere on the tailnet with no public `6443` exposure
+  and no router port-forwarding, and
+- join a node that is **not** on the home LAN — how rpi5 joined while remote, and
+  the foundation for adding a cloud node (see `~/Desktop/oci-node-plan.md`).
+
+**Why both.** The two planes carry the two jobs a flat setup would conflate:
+MetalLB pins the data plane to the LAN, while Tailscale provides secure
+cross-network reach for management and off-LAN nodes. Neither plane can do the
+other's job — a LAN-only API endpoint can't serve a remote node, and a
+Tailscale-only node address breaks MetalLB L2.
+
+**Consequence for node-mesh overlays.** Because Tailscale is a real interface on
+every node, its `100.x` address is part of each node's address set. Any overlay
+that tries to *be* the node mesh (e.g. Talos KubeSpan) discovers that Tailscale
+address and prefers it, routing even LAN-adjacent nodes over Tailscale
+(WireGuard-in-WireGuard) — measured ~130 Mbit/s vs ~910 direct on the LAN.
+`filters.endpoints` doesn't prevent it (peers rebuild the endpoint from the raw
+address the discovery service propagates). So cross-site connectivity for a
+remote node is handled at the reach plane rather than by flattening both planes
+into one mesh. Full analysis in `~/Desktop/oci-node-plan.md`.
 
 ## Prerequisites
 

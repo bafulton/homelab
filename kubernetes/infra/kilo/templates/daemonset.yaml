@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kilo
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: kilo
+    app.kubernetes.io/part-of: kilo
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kilo
+      app.kubernetes.io/part-of: kilo
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kilo
+        app.kubernetes.io/part-of: kilo
+    spec:
+      serviceAccountName: kilo
+      hostNetwork: true
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: kilo
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          args:
+            # No --kubeconfig: Talos has no host kubeconfig, so kg falls back to
+            # the in-cluster ServiceAccount (clientcmd.BuildConfigFromFlags with
+            # an empty path). This is the one Talos-specific adaptation.
+            - --hostname=$(NODE_NAME)
+            - --cni=false                 # flannel owns pod CNI/IPAM, not Kilo
+            - --compatibility=flannel
+            - --local=false               # intra-location stays on flannel/LAN; Kilo meshes only across locations
+            - --internal-cidr=$(NODE_IP)/32
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+          ports:
+            - containerPort: 1107
+              name: metrics
+          securityContext:
+            privileged: true
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: kilo-dir
+              mountPath: /var/lib/kilo
+            - name: lib-modules
+              mountPath: /lib/modules
+              readOnly: true
+            - name: xtables-lock
+              mountPath: /run/xtables.lock
+              readOnly: false
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      volumes:
+        - name: kilo-dir
+          hostPath:
+            path: /var/lib/kilo
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: xtables-lock
+          hostPath:
+            path: /run/xtables.lock
+            type: FileOrCreate
