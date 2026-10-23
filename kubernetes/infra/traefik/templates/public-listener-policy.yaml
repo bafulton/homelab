@@ -1,0 +1,53 @@
+# Every Gateway listener except the private ones (web, websecure) must name a
+# public hostname.
+#
+# A passthrough entrance like the OCI edge forwarder can only check SNI; after
+# TLS terminates here, routing follows the Host header, which the client
+# chooses. A listener without a hostname admits every HTTPRoute in the cluster,
+# so the internet could reach any private route by naming it - which is how
+# Longhorn, ArgoCD and the rest were exposed until the edge listener got its
+# hostname. See the edge listener in values.yaml.
+#
+# An allowlist of public domains rather than a ban on catfish-mountain.com, so
+# that a too-broad hostname like "*.com" is refused too.
+#
+# A violation fails the ArgoCD sync with the message below; the API server
+# refuses the update, so the running Gateway stays as it was.
+#
+# The outside-in counterpart is the edge health check, which alerts if a
+# private route ever answers from the public side
+# (opentofu/oci-forwarder, exposure_canary_host).
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: gateway-public-listeners-need-public-hostname
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["gateway.networking.k8s.io"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["gateways"]
+  variables:
+    - name: offending
+      expression: >-
+        object.spec.listeners.filter(l,
+          !(l.name in ['web', 'websecure']) &&
+          !(has(l.hostname) &&
+            ['.fultonhuffman.com', '.yak-shave.com', '.benfulton.me']
+              .exists(d, l.hostname.endsWith(d))))
+  validations:
+    - expression: size(variables.offending) == 0
+      messageExpression: >-
+        'listener(s) ' + variables.offending.map(l, l.name).join(', ') +
+        ' need a hostname under a public domain: only web/websecure may serve' +
+        ' private routes. See the edge listener in kubernetes/infra/traefik/values.yaml.'
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: gateway-public-listeners-need-public-hostname
+spec:
+  policyName: gateway-public-listeners-need-public-hostname
+  validationActions: ["Deny"]
