@@ -43,25 +43,7 @@
       "dst": ["tag:edge"],
       "ip": ["*"],
     },
-    // TEMPORARY probe (subnet-route gate, 2026-10-23): let nodes reach the
-    // throwaway TEST-NET subnet so the accepted route actually installs.
-    // Reverted immediately after the test.
-    {
-      "src": ["tag:k8s-node"],
-      "dst": ["192.0.2.0/24"],
-      "ip": ["*"],
-    },
   ],
-
-  // TEMPORARY probe (subnet-route gate, 2026-10-23): auto-approve a throwaway
-  // TEST-NET route (RFC 5737, routes nowhere) so we can confirm that an
-  // accepted subnet route lands in Tailscale's table 52, not the main table.
-  // Reverted immediately after the test.
-  "autoApprovers": {
-    "routes": {
-      "192.0.2.0/24": ["tag:k8s-node"],
-    },
-  },
 
   // Define users and devices that can use Tailscale SSH.
   "ssh": [
