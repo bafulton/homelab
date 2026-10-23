@@ -25,31 +25,27 @@ extension connects, and the node joins via the beelink API endpoint and goes
 ## Networking (two planes + Kilo "Fix B")
 - **Management / join:** Tailscale (the node IP is the Tailscale address; the
   API endpoint is `beelink.catfish-mountain.ts.net`).
-- **Pod mesh:** Kilo runs its **own** WireGuard directly over the internet
-  (`51820/udp`, opened by `kilo_wireguard_ingress=true`) — the way Kilo is
-  designed to attach a cloud node. It is **not** tunneled inside Tailscale
-  (that would be double-WireGuard with a 1280-MTU trap). `kilo.squat.ai/location=cloud`
-  is baked into the Talos config so kg is located the instant the node registers.
+- **Pod mesh:** Kilo runs its own WireGuard for cross-location traffic, nested
+  inside Tailscale. Each node's `kilo.squat.ai/force-endpoint` is its tailnet name
+  (`<node>.catfish-mountain.ts.net:51820`), so Kilo's wg rides Tailscale — which
+  handles NAT traversal, the home's dynamic IP, and dual-stack, and egresses on
+  `41641/udp` (already open). No public Kilo port is needed, so
+  `kilo_wireguard_ingress` is `false`. Kilo's MTU is 1200 to fit inside Tailscale's
+  1280 tunnel (see `infra/kilo`). Both `kilo.squat.ai/location=cloud` and the
+  force-endpoint are baked into the Talos config (`nodeAnnotations`), so kg is
+  located *and* reachable the instant the node registers.
 
-## Post-join steps (step 6: wire up the cross-location mesh)
-The one thing that can't be baked is Kilo's `force-endpoint`, because the public
-IP isn't known until the instance exists (and OCI reserved-IP-in-user_data forms
-a tofu dependency cycle). After the node is `Ready`:
-```sh
-IP=$(tofu output -raw public_ip)
-kubectl annotate node ocifree \
-  kilo.squat.ai/force-endpoint="$IP:51820" \
-  kilo.squat.ai/persistent-keepalive="25" --overwrite
-```
-The ephemeral public IP is stable across reboots; re-run this only if the
-instance is terminated/recreated. Then validate: a pod on ocifree resolves
-CoreDNS and reaches an off-node ClusterIP.
+## Post-join: nothing to wire up
+The cross-location mesh used to need a manual `force-endpoint` annotation here
+(the public IP wasn't known until the instance existed). It's now declarative:
+talconfig `nodeAnnotations` pins it to `ocifree.catfish-mountain.ts.net:51820`,
+and because ocifree reclaims the name `ocifree` on reprovision, that value stays
+correct across rebuilds with no manual step — Kilo re-resolves the name every
+reconcile. The mesh comes up on its own once the node registers.
 
-(Until `force-endpoint` is set, kg will mesh ocifree over its Tailscale address
-at the wrong MTU — harmless, since no workloads consume cross-location pod
-traffic yet, and kg reconciles the moment the annotation lands. For a strictly
-zero-window bring-up, gate the kg DaemonSet with nodeAffinity on a label added
-only after the annotation.)
+Validate: the goldpinger graph (`goldpinger.catfish-mountain.com`) shows ocifree
+healthy to both home nodes, and a pod on ocifree resolves CoreDNS and reaches an
+off-node ClusterIP.
 
 ## Upgrades
 Routine Talos/k8s upgrades are in-place via tuppr (the `metal`/installer image),

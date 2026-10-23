@@ -58,7 +58,7 @@ variable "worker_config_path" {
 }
 
 variable "kilo_wireguard_ingress" {
-  description = "Open 51820/udp publicly for Kilo's cross-location WireGuard (the chosen 'Fix B': Kilo's own single-hop wg at full MTU, the way Kilo is designed to attach a cloud node - not tunneled inside Tailscale). WireGuard is cryptographically authenticated and silently drops unsolicited packets, so a public wg port is low risk. Pair with the force-endpoint annotation set after join (see README)."
+  description = "Open 51820/udp publicly for Kilo's own single-hop WireGuard ('Fix B': Kilo wg directly over the internet). OFF by default: the mesh now rides Tailscale ('Fix A') - each node's kilo.squat.ai/force-endpoint is its tailnet name, so Kilo's WireGuard is encapsulated inside Tailscale (which handles NAT + dynamic IPs + dual-stack and egresses on 41641/udp, already open). No public Kilo port is needed. Set true only to switch back to the direct-public model."
   type        = bool
-  default     = true
+  default     = false
 }

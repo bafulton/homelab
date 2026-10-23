@@ -37,6 +37,12 @@ nodes:
       storage.homelab.io/nvme: "true"
       storage.homelab.io/usb: "true"
       homelab.io/location: "local"
+    nodeAnnotations:
+      # Kilo WireGuard endpoint = this node's tailnet name, so the cross-location
+      # mesh rides Tailscale (stable address, NAT + dual-stack handled) instead of
+      # Kilo auto-picking an unreachable public IPv6. Kilo re-resolves it each
+      # reconcile, so a rebuild that changes the IP needs no edit here.
+      kilo.squat.ai/force-endpoint: "beelink.catfish-mountain.ts.net:51820"
     # Soft anti-affinity: bias movable workloads OFF this node toward rpi5.
     # PreferNoSchedule is a preference, not a ban — pods that can only run here
     # (Longhorn-PVC via node affinity, amd64-only images, static control-plane)
@@ -93,6 +99,10 @@ nodes:
     nodeLabels:
       storage.homelab.io/usb: "true"
       homelab.io/location: "local"
+    nodeAnnotations:
+      # Kilo WireGuard endpoint = this node's tailnet name (rides Tailscale, not a
+      # guessed public IP). Re-resolved each reconcile, so a rebuild needs no edit.
+      kilo.squat.ai/force-endpoint: "rpi5.catfish-mountain.ts.net:51820"
     patches:
       # RPi5-specific cert SANs for Tailscale access
       - |-
@@ -150,11 +160,14 @@ nodes:
     talosImageURL: factory.talos.dev/installer/708747e350d604ae9e57227d8dcf274091453ddb1097b765d4ea8884f1992c1f
     nodeLabels:
       homelab.io/location: "remote"
-    # Declarative Kilo location so kg sees it the instant the node registers
-    # (no post-bootstrap annotate race). force-endpoint is set after join, once
-    # the public IP is known (see opentofu/oci-node).
+    # Declarative Kilo config so kg sees it the instant the node registers.
+    # force-endpoint = the node's tailnet name: the cross-location mesh rides
+    # Tailscale (stable address, NAT + dual-stack handled), not a guessed public
+    # endpoint. Because ocifree reclaims the name "ocifree" on reprovision, this
+    # stays correct with no post-join step.
     nodeAnnotations:
       kilo.squat.ai/location: "cloud"
+      kilo.squat.ai/force-endpoint: "ocifree.catfish-mountain.ts.net:51820"
     patches:
       # certSAN so talosctl can reach ocifree by its tailnet name.
       - |-

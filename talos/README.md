@@ -70,7 +70,7 @@ import — live in a per-provider OpenTofu module such as `opentofu/oci-node/`.
 | `homelab.io/location` label | `local` | `remote` |
 | Tailscale registration | **non-ephemeral** (`?ephemeral=false`) | **ephemeral** (default — drop the suffix) |
 | kubelet `nodeIP.validSubnets` | LAN `192.168.1.0/24` + Tailscale `100.64.0.0/10` | Tailscale `100.64.0.0/10` only |
-| Kilo | (home location) | `kilo.squat.ai/location: cloud`, a public `51820/udp` WireGuard endpoint, and `force-endpoint` set after join |
+| Kilo | `kilo.squat.ai/force-endpoint: <node>.ts.net:51820` (all nodes) so the cross-location mesh rides Tailscale | same, plus `kilo.squat.ai/location: cloud`; all declarative in `nodeAnnotations` |
 | `iscsi-tools` extension | yes (Longhorn storage node) | only if the node must mount Longhorn PVCs (open-iscsi is needed on any node that attaches a volume) |
 | Longhorn node `allowScheduling` | `true` (holds replicas) | `false` — no replicas on an ephemeral node, set in `infra/longhorn` `nodeConfig`; `longhorn-manager` + `iscsi-tools` still run so pods here can mount PVCs whose replicas live at home |
 | Provider DNS search domain | keep (home router's domain NXDOMAINs cleanly) | **strip it** at the provider — a cloud VCN search domain can SERVFAIL and break libc resolution (see below) |
