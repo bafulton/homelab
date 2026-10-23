@@ -34,9 +34,9 @@ spec:
             - -c
             - |
               set -u
-              echo "subnet-route-steering: iface=$IFACE table=$TABLE priority=$PRIORITY selector='$SELECTOR' interval=${INTERVAL}s"
+              echo "subnet-route-steering: enabled=$ENABLED iface=$IFACE table=$TABLE priority=$PRIORITY selector='$SELECTOR' interval=${INTERVAL}s"
               while true; do
-                if ip link show "$IFACE" >/dev/null 2>&1; then
+                if [ "$ENABLED" = "true" ] && ip link show "$IFACE" >/dev/null 2>&1; then
                   # Discover remote nodes' pod CIDRs - never hardcoded. A new
                   # remote node is picked up on the next tick with no values edit.
                   cidrs=$(kubectl get nodes -l "$SELECTOR" \
@@ -53,11 +53,16 @@ spec:
                       || ip rule add to "$cidr" table "$TABLE" priority "$PRIORITY"
                   done
                 else
-                  echo "subnet-route-steering: $IFACE not present yet, skipping tick"
+                  # Disabled (or iface absent): remove anything we added so the
+                  # node falls back to its main-table route (Kilo), then idle.
+                  while ip rule del priority "$PRIORITY" 2>/dev/null; do :; done
+                  ip route flush table "$TABLE" 2>/dev/null || true
                 fi
                 sleep "$INTERVAL"
               done
           env:
+            - name: ENABLED
+              value: {{ .Values.enabled | quote }}
             - name: IFACE
               value: {{ .Values.tailscaleIface | quote }}
             - name: TABLE

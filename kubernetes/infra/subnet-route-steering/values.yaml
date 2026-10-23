@@ -23,6 +23,14 @@ image:
 nodeSelector:
   homelab.io/location: local
 
+# DISABLED: routing a packet into tailscale0 does not work when the home node
+# runs --accept-routes=false - tailscaled never adds the remote pod CIDR to the
+# WireGuard peer's AllowedIPs, so the manual route black-holes (verified: a real
+# beelink-pod -> ocifree-pod request timed out, while the 5260 rule shadowed
+# Kilo's working route). With enabled=false the loop instead REMOVES the rule
+# and table it previously added, restoring Kilo, then idles. Redesign pending.
+enabled: false
+
 # Remote pod CIDRs are discovered, not hardcoded: every tick the pod lists nodes
 # matching `remoteNodeSelector` and reads each one's `.spec.podCIDR`. Add a
 # remote node later and it is picked up automatically - no values edit, no
