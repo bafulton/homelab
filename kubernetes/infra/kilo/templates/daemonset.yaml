@@ -19,6 +19,17 @@ spec:
     spec:
       serviceAccountName: kilo
       hostNetwork: true
+      # Resolve tailnet names straight at MagicDNS, with no 8.8.8.8 fallback. kg
+      # re-resolves the force-endpoint .ts.net names (and the API endpoint) every
+      # reconcile; via the host resolver those lookups intermittently fell through
+      # to 8.8.8.8, which NXDOMAINs .ts.net ("no such host"), making kg think the
+      # WireGuard config drifted and re-apply it - blipping the cross-location
+      # tunnel (periodic goldpinger loss). MagicDNS is authoritative for .ts.net
+      # and node-local (no CoreDNS circularity at bring-up); kg needs no other DNS.
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - 100.100.100.100
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
