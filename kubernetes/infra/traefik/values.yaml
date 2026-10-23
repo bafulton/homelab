@@ -81,10 +81,6 @@ traefik:
           # just that SNI, and Traefik then serves its default self-signed
           # cert for every name on the port.
           - name: wildcard-catfish-mountain-com-tls
-          # TEMPORARY: the forwarder still targets :443 until it is re-applied
-          # with upstream :8443. Remove once it has moved - nothing else
-          # presents this name on :443.
-          - name: media-fultonhuffman-com-tls
         mode: Terminate
       # Jellyfin's public hostname, reached via the OCI edge forwarder.
       #

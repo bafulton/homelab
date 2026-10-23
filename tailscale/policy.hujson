@@ -29,9 +29,7 @@
     {
       "src": ["tag:edge"],
       "dst": ["tag:k8s"],
-      // TEMPORARY tcp:443: kept only until the forwarder is re-applied with
-      // upstream :8443, then removed.
-      "ip": ["tcp:8443", "tcp:443"],
+      "ip": ["tcp:8443"],
     },
     // Reaching the edge forwarder to operate it. Without this the host is
     // unreachable over the tailnet once it registers, since tag:edge appears
