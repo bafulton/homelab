@@ -91,6 +91,12 @@ Healthchecks emails if pings stop for longer than the 5-minute grace period,
 whatever the cause - including the whole house being offline, which an
 in-cluster probe could never report.
 
+The same run also checks that the edge is not a door into the cluster. It sends
+`exposure_canary_host` (Longhorn by default) as the Host header behind the
+public SNI and expects a 404. Any other answer pings `/fail` straight away, with
+the status code as the ping body, so the email says "exposed" rather than
+"down" and doesn't wait out the grace period.
+
 The check lives in `healthchecks.tf`, in the same project as the `beelink` and
 `rpi5` checks. Those two belong to `kubernetes/infra/node-health` and must
 never be imported here: node-health creates them on first ping and resets

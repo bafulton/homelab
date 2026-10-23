@@ -45,6 +45,12 @@ variable "public_hostname" {
   default     = "media.fultonhuffman.com"
 }
 
+variable "exposure_canary_host" {
+  description = "A private hostname the health check sends as the Host header behind the public SNI. It must get a 404; anything else fails the check, because private routes would then be reachable from the internet. Longhorn, as the most damaging if exposed (no auth)."
+  type        = string
+  default     = "longhorn.catfish-mountain.com"
+}
+
 variable "upstream" {
   description = "Where passed-through TLS goes: the Traefik gateway published on the tailnet by the Tailscale operator."
   type        = string

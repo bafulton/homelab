@@ -18,14 +18,15 @@ data "cloudinit_config" "fwd" {
     content_type = "text/cloud-config"
 
     content = templatefile("${path.module}/templates/cloud-init.yaml.tftpl", {
-      tailscale_authkey   = tailscale_tailnet_key.edge.key
-      tailnet_tag         = var.tailnet_tag
-      hostname            = var.name
-      traefik_version     = var.traefik_version
-      traefik_static_b64  = base64encode(local.traefik_static)
-      traefik_dynamic_b64 = base64encode(local.traefik_dynamic)
-      public_hostname     = var.public_hostname
-      healthcheck_ping    = healthchecksio_check.edge_forwarder.ping_url
+      tailscale_authkey    = tailscale_tailnet_key.edge.key
+      tailnet_tag          = var.tailnet_tag
+      hostname             = var.name
+      traefik_version      = var.traefik_version
+      traefik_static_b64   = base64encode(local.traefik_static)
+      traefik_dynamic_b64  = base64encode(local.traefik_dynamic)
+      public_hostname      = var.public_hostname
+      exposure_canary_host = var.exposure_canary_host
+      healthcheck_ping     = healthchecksio_check.edge_forwarder.ping_url
     })
   }
 }
