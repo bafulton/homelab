@@ -12,3 +12,6 @@ dependencies:
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route
+  - name: signoz-alerts
+    version: 1.0.0
+    repository: file://../../../charts/signoz-alerts

@@ -63,3 +63,23 @@ gateway-route:
       service:
         name: goldpinger
         port: 8081
+
+# Alert when any node-to-node mesh connection is unhealthy. goldpinger_cluster_health_total
+# is "1 if all of this instance's peer checks pass, 0 otherwise" - a single 0/1 gauge per
+# node, so it scales regardless of how many nodes/connections exist. spaceAggregation min
+# fires if ANY instance sees a failure; `for: 5m` rides out transient reconciles (a kilo
+# roll or an ocifree reboot flaps for ~30-60s) and only fires on a sustained break.
+signoz-alerts:
+  alerts:
+    - name: Mesh Connection Unhealthy
+      description: >-
+        A goldpinger node-to-node connection is failing on the flannel/Kilo mesh
+        (cluster health < 1). Check the graph at goldpinger.catfish-mountain.com.
+      severity: warning
+      type: threshold
+      metric: goldpinger_cluster_health_total
+      timeAggregation: min
+      spaceAggregation: min
+      op: "<"
+      threshold: 1
+      for: 5m0s
