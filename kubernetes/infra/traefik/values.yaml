@@ -47,6 +47,18 @@ traefik:
       expose:
         default: true
         tailscale: true
+    # Public ingress from the OCI edge forwarder, and nothing else. Published
+    # only on the tailnet, where the ACL limits tag:edge to this port. See the
+    # edge listener below for why it can't share websecure.
+    edge:
+      port: 8443
+      exposedPort: 8443
+      expose:
+        default: false
+        tailscale: true
+      http:
+        tls:
+          enabled: true
 
   # Configure Gateway with listeners for both remote and LAN access
   gateway:
@@ -64,14 +76,36 @@ traefik:
         namespacePolicy:
           from: All
         certificateRefs:
-          - name: wildcard-catfish-mountain-com-tls
-          # Jellyfin's public hostname, reached via the OCI edge forwarder.
-          # Traefik selects between these by SNI.
-          #
           # Only add a ref whose Certificate is already READY=True: an
           # unresolvable certificateRef invalidates the whole listener, not
           # just that SNI, and Traefik then serves its default self-signed
-          # cert for every name on :443.
+          # cert for every name on the port.
+          - name: wildcard-catfish-mountain-com-tls
+          # TEMPORARY: the forwarder still targets :443 until it is re-applied
+          # with upstream :8443. Remove once it has moved - nothing else
+          # presents this name on :443.
+          - name: media-fultonhuffman-com-tls
+        mode: Terminate
+      # Jellyfin's public hostname, reached via the OCI edge forwarder.
+      #
+      # The forwarder passes TLS through and can only check SNI; once TLS
+      # terminates here, routing follows the Host header, which the client
+      # chooses freely. On a listener with no hostname, every HTTPRoute in the
+      # cluster attaches, so SNI media.fultonhuffman.com plus
+      # Host: longhorn.catfish-mountain.com reached Longhorn from the internet.
+      #
+      # The hostname below closes that: a route attaches to a listener only
+      # for the hostnames they share, so no other app's route can ever bind
+      # here, whatever Host header arrives. Another public passthrough name
+      # needs its own listener (one hostname each) and a new SNI rule on the
+      # forwarder.
+      edge:
+        port: 8443
+        protocol: HTTPS
+        hostname: media.fultonhuffman.com
+        namespacePolicy:
+          from: All
+        certificateRefs:
           - name: media-fultonhuffman-com-tls
         mode: Terminate
 
