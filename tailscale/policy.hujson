@@ -81,13 +81,4 @@
     // OCI edge forwarder for public hostnames outside cloudflare (eg, jellyfin)
     "tag:edge": [],
   },
-
-  // Define special attributes for tagged devices.
-  "nodeAttrs": [
-    // Allow k8s-operator to expose services via Funnel (public internet)
-    {
-      "target": ["tag:k8s"],
-      "attr": ["funnel"],
-    },
-  ],
 }
