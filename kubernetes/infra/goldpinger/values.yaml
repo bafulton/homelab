@@ -39,6 +39,12 @@ goldpinger:
   tolerations:
     - operator: Exists
 
+  # Expose goldpinger_* metrics to SigNoz: the signoz-k8s-infra otel agent scrapes
+  # pods annotated prometheus.io/scrape. Metrics are on the HTTP port (8080), /metrics.
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+
   # Tiny. No CPU limit (house rule): cpu request + memory request/limit only.
   resources:
     requests:
