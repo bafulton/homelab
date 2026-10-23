@@ -35,13 +35,14 @@ spec:
             - --compatibility=flannel
             - --local=false               # intra-location stays on flannel/LAN; Kilo meshes only across locations
             - --internal-cidr=$(NODE_IP)/32
-            # Pin the WireGuard MTU. kg auto-detects from the local underlay, but
-            # a cloud node's NIC is jumbo (OCI eth0 = 9000 -> kg would pick 8920)
-            # while the cross-location tunnel actually traverses the public
-            # internet (path MTU ~1500). An oversized MTU blackholes large packets
-            # (WireGuard sets DF). 1420 = 1500 - 80 (WireGuard overhead) is the
-            # safe single-hop value for the force-endpoint path.
-            - --mtu=1420
+            # Pin the WireGuard MTU. kg auto-detects from the local underlay
+            # (a cloud node's jumbo NIC would make it pick ~8920), which is wrong.
+            # The cross-location tunnel rides *inside* Tailscale (force-endpoint is
+            # each node's tailnet name, see talos nodeAnnotations), whose tailscale0
+            # MTU is 1280. Kilo's WireGuard adds 80 bytes of overhead, so Kilo's MTU
+            # must be 1280 - 80 = 1200 to fit; anything larger blackholes big packets
+            # (WireGuard sets DF).
+            - --mtu=1200
           env:
             - name: NODE_NAME
               valueFrom:
