@@ -15,6 +15,13 @@ goldpinger:
   extraEnv:
     - name: DISPLAY_NODENAME
       value: "true"
+    # Raise the per-peer ping timeout from the 300ms LAN default. The cross-location
+    # leg is ~20-40ms normally, but a single lost packet triggers a TCP retransmit
+    # (hundreds of ms) that blows past 300ms and gets scored "unhealthy" even though
+    # the link is fine. 1s lets a retransmit complete, so transient WAN loss reads as
+    # healthy-but-slow; a genuine outage still never responds and fires the alert.
+    - name: PING_TIMEOUT
+      value: "1s"
 
   # List pods cluster-wide to discover peers.
   rbac:
