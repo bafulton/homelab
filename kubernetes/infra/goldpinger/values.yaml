@@ -9,6 +9,13 @@ goldpinger:
   # targets it by name).
   fullnameOverride: goldpinger
 
+  # Label the graph by Kubernetes node name (beelink/rpi5/ocifree) instead of the
+  # random pod name (goldpinger-bbmgb). Goldpinger reads each peer's node from the
+  # pod list, so setting this on every instance relabels the whole UI.
+  extraEnv:
+    - name: DISPLAY_NODENAME
+      value: "true"
+
   # List pods cluster-wide to discover peers.
   rbac:
     create: true
