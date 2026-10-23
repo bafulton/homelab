@@ -18,6 +18,7 @@ RUN apk add --no-cache \
       ca-certificates \
       curl \
       git \
+      iproute2 \
       jq
 
 RUN curl -fsSLo /usr/local/bin/kubectl \

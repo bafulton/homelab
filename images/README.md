@@ -5,7 +5,7 @@ Images built from this repo and published to GHCR by
 
 | Image | Contents | Used by |
 |-------|----------|---------|
-| `homelab-toolbox` | alpine + `curl`, `jq`, `git`, `kubectl` | node-health, signoz dashboard-sync, cluster-maintenance |
+| `homelab-toolbox` | alpine + `curl`, `jq`, `git`, `kubectl`, `iproute2` | node-health, signoz dashboard-sync, cluster-maintenance, subnet-route-steering |
 | `mdns-advertiser` | python + `zeroconf`, `kubernetes` + `advertiser.py` | mdns-advertiser |
 
 ## Why These Exist
