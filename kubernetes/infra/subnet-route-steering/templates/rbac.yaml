@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: subnet-route-steering
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: subnet-route-steering
+---
+# The pod only needs to discover which nodes are remote and read their pod
+# CIDRs. list is what `kubectl get nodes -l ... -o jsonpath=...podCIDR` uses;
+# get/watch round it out cheaply. No write verbs: this app never mutates nodes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: subnet-route-steering
+  labels:
+    app.kubernetes.io/name: subnet-route-steering
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: subnet-route-steering
+  labels:
+    app.kubernetes.io/name: subnet-route-steering
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: subnet-route-steering
+subjects:
+  - kind: ServiceAccount
+    name: subnet-route-steering
+    namespace: {{ .Release.Namespace }}

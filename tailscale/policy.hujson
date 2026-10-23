@@ -17,9 +17,13 @@
     // CIDRs appear as both src and dst because --snat-subnet-routes=false keeps
     // the real pod source IP across the subnet router, so Tailscale sees pod
     // IPs - not node identities - on both ends of cross-node pod traffic.
+    //
+    // The whole cluster pod space (10.244.0.0/16, from cluster.network.podSubnets)
+    // stands in for the per-node /24s, so adding a node needs no ACL edit - only
+    // its own Talos config (advertise its /24). All these CIDRs are internal.
     {
-      "src": ["tag:k8s-node", "10.244.0.0/24", "10.244.1.0/24", "10.244.4.0/24"],
-      "dst": ["tag:k8s-node", "10.244.0.0/24", "10.244.1.0/24", "10.244.4.0/24"],
+      "src": ["tag:k8s-node", "10.244.0.0/16"],
+      "dst": ["tag:k8s-node", "10.244.0.0/16"],
       "ip": ["*"],
     },
     // OCI edge forwarder: the Traefik gateway proxy, and nothing else.
@@ -56,12 +60,13 @@
   ],
 
   // Auto-approve each node's advertised pod-CIDR subnet route, so routes
-  // self-approve on (re)provision with no console click. tag:k8s-node owns them.
+  // self-approve on (re)provision with no console click. tag:k8s-node owns the
+  // whole pod space; a node advertising any sub-/24 of it auto-approves, so a
+  // new node needs no entry here (autoApprovers approve routes equal to or more
+  // specific than a listed prefix).
   "autoApprovers": {
     "routes": {
-      "10.244.0.0/24": ["tag:k8s-node"],
-      "10.244.1.0/24": ["tag:k8s-node"],
-      "10.244.4.0/24": ["tag:k8s-node"],
+      "10.244.0.0/16": ["tag:k8s-node"],
     },
   },
 

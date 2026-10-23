@@ -1,0 +1,45 @@
+# Home-node companion to the per-node Tailscale subnet-route pod mesh that
+# replaced Kilo. The home nodes run `--accept-routes=false` (so they never pull
+# each other's pod CIDR onto Tailscale and break the bare-LAN invariant), which
+# means Tailscale won't install a route to the remote node's pod CIDR for them.
+# This DaemonSet installs that one route by hand - in a dedicated table reached
+# by an ip rule that sits AFTER Tailscale's fwmark 'lookup main/default' rules,
+# so Tailscale's marked disco packets exit via the LAN default route (and get
+# dropped upstream) instead of looping through tailscale0 and flapping.
+#
+# Talos cannot express this declaratively: a LinkConfig naming tailscale0 makes
+# Talos try to own the tailscaled-managed interface and knocks it offline
+# (verified - it took the remote node down). A DaemonSet only runs `ip` against
+# the live interface, so it adds a route without ever reconfiguring the link.
+namespace: kube-system
+
+image:
+  repository: ghcr.io/bafulton/homelab-toolbox
+  # renovate: datasource=docker depName=ghcr.io/bafulton/homelab-toolbox
+  tag: "1.0.3"
+  pullPolicy: IfNotPresent
+
+# Home nodes only. ocifree (remote) uses --accept-routes and needs none of this.
+nodeSelector:
+  homelab.io/location: local
+
+# Remote pod CIDRs are discovered, not hardcoded: every tick the pod lists nodes
+# matching `remoteNodeSelector` and reads each one's `.spec.podCIDR`. Add a
+# remote node later and it is picked up automatically - no values edit, no
+# per-node route tables. Local nodes are never selected (they reach each other
+# over flannel/LAN, which must never ride Tailscale).
+remoteNodeSelector: "homelab.io/location=remote"
+
+# Steered routes live in `routeTable` (not main); `rulePriority` must sit after
+# Tailscale's 5250 fwmark rule and before its 5270 (lookup 52).
+tailscaleIface: tailscale0
+routeTable: "200"
+rulePriority: "5260"
+reconcileInterval: "30"
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 16Mi
+  limits:
+    memory: 32Mi

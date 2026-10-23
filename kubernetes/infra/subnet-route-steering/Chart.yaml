@@ -1,0 +1,11 @@
+apiVersion: v2
+name: subnet-route-steering
+description: >-
+  Home-node companion to the Tailscale subnet-route pod mesh (the Kilo
+  replacement). A tiny privileged DaemonSet that keeps a route to the remote
+  node's pod CIDR in a dedicated table on tailscale0, plus an ip rule steering
+  only that CIDR into it - so cross-node pod traffic rides Tailscale while
+  Tailscale's own (fwmark'd) probe packets never traverse tailscale0 to a pod
+  IP and so cannot cause a path flap.
+type: application
+version: 1.0.0
