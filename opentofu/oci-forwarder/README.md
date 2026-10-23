@@ -13,9 +13,9 @@ viewer ──TLS──> this VM (public IP)
                   ▼  (terminates nothing, reads nothing)
                 Tailscale, outbound-dialed
                   ▼
-                cluster-gateway.catfish-mountain.ts.net:443
+                cluster-gateway.catfish-mountain.ts.net:8443
                   ▼
-                home Traefik ──> HTTPRoute ──> jellyfin:8096
+                home Traefik, edge listener ──> HTTPRoute ──> jellyfin:8096
 ```
 
 Viewers need no Tailscale account or client. The tailnet hop is strictly
@@ -69,6 +69,12 @@ curl -sv --resolve media.fultonhuffman.com:443:<public_ip> \
 # and the forwarder is not a general-purpose door: a different SNI is refused
 curl --resolve argocd.catfish-mountain.com:443:<public_ip> \
   https://argocd.catfish-mountain.com      # must fail
+
+# nor is the right SNI with a private Host header: the cluster's edge listener
+# accepts only media.fultonhuffman.com
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: longhorn.catfish-mountain.com' \
+  --resolve media.fultonhuffman.com:443:<public_ip> \
+  https://media.fultonhuffman.com/         # must be 404
 ```
 
 Then play an actual video, not just a health check. Sustained bytes are the
@@ -146,6 +152,13 @@ That is the restriction in `tailscale/policy.hujson` working.
 
 **Traefik requires tailscaled**, because the upstream is a MagicDNS name it
 cannot resolve before the tunnel is up.
+
+**SNI is the only thing this host can check, so the cluster checks the rest.**
+After the cluster terminates TLS, routing follows the Host header, which a
+client may set to any name. The upstream is therefore Traefik's dedicated
+`edge` listener on `:8443`, whose `hostname` admits only the public name, and
+the tailnet grant allows tag:edge nothing but `tcp:8443`. Pointing this host at
+`:443` would expose every private route in the cluster.
 
 **`websecure` must have no `tls` block.** Passthrough and termination are
 mutually exclusive; this host must never terminate.

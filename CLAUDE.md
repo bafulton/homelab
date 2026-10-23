@@ -183,8 +183,10 @@ metadata:
   (`opentofu/oci-forwarder/`), which passes TLS through without terminating, so
   the cluster terminates it and needs a real certificate for that name. That is
   why `letsencrypt-production`'s dns01 solver covers `fultonhuffman.com` as
-  well, and why the `websecure` listener carries two `certificateRefs`. Jellyfin
-  bypasses the tunnel because video through Cloudflare's CDN is outside their
+  well. It terminates on Traefik's dedicated `edge` listener (`:8443`), never
+  `websecure`: the forwarder can only check SNI, and `edge`'s `hostname` is what
+  stops a client reaching private routes by choosing a different Host header.
+  Jellyfin bypasses the tunnel because video through Cloudflare's CDN is outside their
   Service-Specific Terms.
 
 **Private domain** (*.catfish-mountain.com):

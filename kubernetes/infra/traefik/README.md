@@ -91,7 +91,7 @@ kubectl get svc -n traefik traefik -o jsonpath='{.status.loadBalancer.ingress[0]
 ## TLS/HTTPS
 
 - **Cloudflare Tunnel**: TLS terminated by Cloudflare (Cloudflare Universal SSL); arrives here as plain HTTP on `:80`
-- **OCI edge forwarder** (`media.fultonhuffman.com`): TLS passed through untouched and terminated *here*, on the `websecure` listener, which is why that listener carries a second `certificateRef`. Traefik selects between certificates by SNI
+- **OCI edge forwarder** (`media.fultonhuffman.com`): TLS passed through untouched and terminated *here*, on the dedicated `edge` listener (`:8443`, tailnet-only). That listener's `hostname` admits only `media.fultonhuffman.com`, so no other route can attach to it, whatever Host header a client sends after TLS
 - **Tailscale Split DNS**: TLS provided by Let's Encrypt wildcard cert (`*.catfish-mountain.com`) - see [cert-manager](../cert-manager/README.md)
 - **LAN (*.local)**: HTTP only (no TLS)
 

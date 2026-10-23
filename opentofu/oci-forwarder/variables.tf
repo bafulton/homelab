@@ -48,11 +48,11 @@ variable "public_hostname" {
 variable "upstream" {
   description = "Where passed-through TLS goes: the Traefik gateway published on the tailnet by the Tailscale operator."
   type        = string
-  default     = "cluster-gateway.catfish-mountain.ts.net:443"
+  default     = "cluster-gateway.catfish-mountain.ts.net:8443"
 }
 
 variable "tailnet_tag" {
-  description = "Tag this host registers with. The grant in tailscale/policy.hujson limits it to tag:k8s on tcp:443."
+  description = "Tag this host registers with. The grant in tailscale/policy.hujson limits it to tag:k8s on tcp:8443."
   type        = string
   default     = "tag:edge"
 }

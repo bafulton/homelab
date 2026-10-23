@@ -16,15 +16,22 @@
     //
     // This is the only internet-facing host on the tailnet, so it gets one
     // destination tag and one port. tag:k8s also covers the CoreDNS proxy,
-    // which is harmless restricted to tcp:443 given that one serves udp:53.
+    // which is harmless restricted to tcp:8443 given that one serves udp:53.
+    //
+    // 8443 is Traefik's edge listener, which accepts only the forwarder's
+    // public hostname. It must not be 443: that listener serves every private
+    // route, and the forwarder can't stop a client from choosing the Host
+    // header after TLS. See kubernetes/infra/traefik/values.yaml.
     //
     // "ip" is Tailscale's name for network-layer capability, i.e. protocol and
-    // port - not an address. A bare "443" would also grant UDP and ICMP, so
-    // tcp:443 is both tighter and clearer.
+    // port - not an address. A bare "8443" would also grant UDP and ICMP, so
+    // tcp:8443 is both tighter and clearer.
     {
       "src": ["tag:edge"],
       "dst": ["tag:k8s"],
-      "ip": ["tcp:443"],
+      // TEMPORARY tcp:443: kept only until the forwarder is re-applied with
+      // upstream :8443, then removed.
+      "ip": ["tcp:8443", "tcp:443"],
     },
     // Reaching the edge forwarder to operate it. Without this the host is
     // unreachable over the tailnet once it registers, since tag:edge appears
