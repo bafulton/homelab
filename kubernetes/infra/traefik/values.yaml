@@ -105,6 +105,42 @@ traefik:
           - name: media-fultonhuffman-com-tls
         mode: Terminate
 
+  # One replica per node, so losing a node never takes down every entrance.
+  # matchLabelKeys scopes the count to the current ReplicaSet, so a rollout's
+  # surge pod isn't blocked by the pods it is replacing.
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+          app.kubernetes.io/instance: traefik-traefik
+      matchLabelKeys:
+        - pod-template-hash
+
+  # Free to float, but preferring home nodes: the LAN VIP and the tailnet proxy
+  # spread requests across every replica, so a replica on a remote node would
+  # carry LAN traffic out over the WAN and back (LAN Jellyfin streams included).
+  # A remote node still takes a replica when a home node is down.
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: homelab.io/location
+                operator: In
+                values: ["local"]
+
+  # beelink's soft taint outscores the affinity above, which would push the
+  # second replica to the remote node instead; ingress is exactly what should
+  # run there.
+  tolerations:
+    - key: homelab.io/prefer-off
+      operator: Exists
+      effect: PreferNoSchedule
+
   # Prometheus annotations for auto-discovery by signoz-k8s-infra
   deployment:
     # High availability - 2 replicas for zero downtime
