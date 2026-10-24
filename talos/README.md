@@ -77,9 +77,6 @@ the `main` table, where flannel's LAN route wins. Remote `/24`s have no such rul
 so they ride Tailscale. During an outage Tailscale drops its routes and table 52
 empties, so local↔local falls back to flannel on its own.
 
-(This replaced a Kilo WireGuard overlay that flapped because it nested WireGuard
-inside Tailscale — overlay history is in the project memory.)
-
 ## Local vs remote node profile
 
 Nodes fall into two profiles. The split is deliberate — a remote cloud node has a

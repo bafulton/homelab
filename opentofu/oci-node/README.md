@@ -22,26 +22,21 @@ This launches the A1 instance; Talos boots from the image, the tailscale
 extension connects, and the node joins via the beelink API endpoint and goes
 `Ready` as a `homelab.io/location=remote` worker.
 
-## Networking (two planes + Kilo "Fix B")
+## Networking (two planes)
 - **Management / join:** Tailscale (the node IP is the Tailscale address; the
   API endpoint is `beelink.catfish-mountain.ts.net`).
-- **Pod mesh:** Kilo runs its own WireGuard for cross-location traffic, nested
-  inside Tailscale. Each node's `kilo.squat.ai/force-endpoint` is its tailnet name
-  (`<node>.catfish-mountain.ts.net:51820`), so Kilo's wg rides Tailscale — which
-  handles NAT traversal, the home's dynamic IP, and dual-stack, and egresses on
-  `41641/udp` (already open). No public Kilo port is needed, so
-  `kilo_wireguard_ingress` is `false`. Kilo's MTU is 1200 to fit inside Tailscale's
-  1280 tunnel (see `infra/kilo`). Both `kilo.squat.ai/location=cloud` and the
-  force-endpoint are baked into the Talos config (`nodeAnnotations`), so kg is
-  located *and* reachable the instant the node registers.
+- **Pod mesh:** Tailscale subnet routes. The node runs `--accept-routes
+  --snat-subnet-routes=false` and advertises its own pod `/24`, so cross-location
+  pod traffic rides Tailscale directly — which handles NAT traversal, the home's
+  dynamic IP, and dual-stack, and egresses on `41641/udp` (already open). No
+  extra inbound port is needed. The home nodes additionally advertise their node
+  `/32` so this node can reach the apiserver ClusterIP. See `talos/README.md`
+  "Cross-node pod networking" and `infra/subnet-route-steering`.
 
 ## Post-join: nothing to wire up
-The cross-location mesh used to need a manual `force-endpoint` annotation here
-(the public IP wasn't known until the instance existed). It's now declarative:
-talconfig `nodeAnnotations` pins it to `ocifree.catfish-mountain.ts.net:51820`,
-and because ocifree reclaims the name `ocifree` on reprovision, that value stays
-correct across rebuilds with no manual step — Kilo re-resolves the name every
-reconcile. The mesh comes up on its own once the node registers.
+Everything is declarative in the Talos config, so the node is reachable and its
+pod routes are advertised the instant it registers — no manual step after
+`tofu apply`.
 
 Validate: the goldpinger graph (`goldpinger.catfish-mountain.com`) shows ocifree
 healthy to both home nodes, and a pod on ocifree resolves CoreDNS and reaches an

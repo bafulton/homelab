@@ -1,7 +1,7 @@
 # subnet-route-steering
 
-Home-node companion to the per-node Tailscale **subnet-route** pod mesh that
-replaced Kilo. A tiny NET_ADMIN DaemonSet (one pod per `local` node) that keeps
+Home-node companion to the per-node Tailscale **subnet-route** pod mesh. A tiny
+NET_ADMIN DaemonSet (one pod per `local` node) that keeps
 **local↔local** pod traffic on the bare LAN (flannel), while **remote** pod
 traffic rides Tailscale.
 
@@ -12,7 +12,7 @@ advertises its own pod `/24` as a Tailscale subnet route (autoApproved for
 `tag:k8s-node`, see `tailscale/policy.hujson`). So each node installs every
 other node's pod `/24` into Tailscale's own routing table (table 52, selected by
 `ip rule` priority 5270), and cross-node pod traffic rides Tailscale natively -
-no second WireGuard layer, no Kilo reconcile loop, no path flap. `snat=false`
+no second WireGuard layer, no reconcile loop, no path flap. `snat=false`
 preserves the real pod source IP, which is why replies route back and why the
 ACL lists the pod space as both src and dst.
 
@@ -42,8 +42,8 @@ ride Tailscale.
 The home nodes also advertise their own **node `/32`** (e.g. `192.168.1.86/32`)
 as a subnet route, so the remote node can reach the apiserver — the `kubernetes`
 ClusterIP (`10.96.0.1`) DNATs to a control-plane node's LAN IP — and any other
-node-IP-backed service. (This is the reachability Kilo's `--internal-cidr` used
-to provide; without it, every pod on the remote node fails to reach the API.)
+node-IP-backed service. Without it, every pod on the remote node fails to reach
+the API.
 
 That means each home node accepts the other's node `/32` into table 52, which
 would send home↔home node traffic over Tailscale — and because flannel's VXLAN

@@ -4,7 +4,7 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  description = "Public IP (Tailscale direct path; Kilo public endpoint if enabled)."
+  description = "Public IP (Tailscale direct path)."
   value       = oci_core_instance.node.public_ip
 }
 

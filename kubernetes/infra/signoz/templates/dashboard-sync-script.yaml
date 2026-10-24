@@ -194,9 +194,20 @@ data:
     fetch_rules
     existing_alerts=$(cat /tmp/rules.json)
 
-    # List all ConfigMaps with the alert label
-    kubectl get configmaps -A -l signoz.homelab.io/alert=true -o json | \
-    jq -c '.items[]' | while read -r cm; do
+    # List all ConfigMaps with the alert label.
+    #
+    # Capture into a file with an explicit success flag instead of piping
+    # kubectl straight into jq: a `kubectl ... | jq | while` pipeline hides a
+    # kubectl failure (only the final `while` exit counts, and there is no
+    # pipefail), so a kube-API outage on this node would silently yield zero
+    # desired alerts - and the reconcile below would then delete every gitops
+    # alert. CONFIGMAPS_OK gates that prune so a load failure can't wipe alerts.
+    CONFIGMAPS_OK=true
+    if ! kubectl get configmaps -A -l signoz.homelab.io/alert=true -o json > /tmp/alert_cms.json 2>/tmp/cm_err; then
+      CONFIGMAPS_OK=false
+      echo "  ERROR: failed to list alert ConfigMaps ($(cat /tmp/cm_err)) - alert pruning will be skipped"
+    fi
+    jq -c '.items[]?' /tmp/alert_cms.json 2>/dev/null | while read -r cm; do
       cm_name=$(echo "$cm" | jq -r '.metadata.name')
       cm_namespace=$(echo "$cm" | jq -r '.metadata.namespace')
       alert_json=$(echo "$cm" | jq -r '.data["alert.json"]')
@@ -313,27 +324,39 @@ data:
     # Reconcile: delete gitops-managed alerts removed from IaC.
     # Only touches rules with labels.source == "gitops" — manually
     # created rules are never deleted.
-    echo "Reconciling alerts..."
-    fetch_rules
-    all_rules=$(cat /tmp/rules.json)
+    #
+    # Fail-safe: never prune when the desired set is untrustworthy. If the alert
+    # ConfigMap load failed (a kube-API outage on this node) or produced zero
+    # names, deleting every gitops alert is far worse than leaving a stale one,
+    # so skip the reconcile entirely. (This is exactly how a run on an isolated
+    # node once wiped all alerts.)
+    if [ "$CONFIGMAPS_OK" != "true" ]; then
+      echo "Skipping alert reconcile: ConfigMap load failed - refusing to prune gitops alerts"
+    elif [ ! -s /tmp/synced_alert_names ]; then
+      echo "Skipping alert reconcile: zero desired alerts loaded - refusing to delete all gitops alerts"
+    else
+      echo "Reconciling alerts..."
+      fetch_rules
+      all_rules=$(cat /tmp/rules.json)
 
-    echo "$all_rules" | jq -c '[.. | objects | select((.labels? | objects | .source) == "gitops") | select((.id? // "") != "") | select((.alert? // "") != "") | {id, alert}] | unique_by(.id) | .[]' 2>/dev/null | \
-    while read -r rule; do
-      rule_id=$(echo "$rule" | jq -r '.id')
-      rule_name=$(echo "$rule" | jq -r '.alert')
+      echo "$all_rules" | jq -c '[.. | objects | select((.labels? | objects | .source) == "gitops") | select((.id? // "") != "") | select((.alert? // "") != "") | {id, alert}] | unique_by(.id) | .[]' 2>/dev/null | \
+      while read -r rule; do
+        rule_id=$(echo "$rule" | jq -r '.id')
+        rule_name=$(echo "$rule" | jq -r '.alert')
 
-      if ! grep -qxF "$rule_name" /tmp/synced_alert_names 2>/dev/null; then
-        echo "  Deleting removed gitops alert: $rule_name ($rule_id)"
-        response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v2/rules/$rule_id" \
-          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
-        http_code=$(echo "$response" | tail -n1)
-        if echo "$http_code" | grep -qE "^2[0-9][0-9]$"; then
-          echo "    Deleted"
-        else
-          echo "    Warning: HTTP $http_code"
+        if ! grep -qxF "$rule_name" /tmp/synced_alert_names 2>/dev/null; then
+          echo "  Deleting removed gitops alert: $rule_name ($rule_id)"
+          response=$(curl -s -w "\n%{http_code}" -X DELETE "$SIGNOZ_URL/api/v2/rules/$rule_id" \
+            -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN")
+          http_code=$(echo "$response" | tail -n1)
+          if echo "$http_code" | grep -qE "^2[0-9][0-9]$"; then
+            echo "    Deleted"
+          else
+            echo "    Warning: HTTP $http_code"
+          fi
         fi
-      fi
-    done
+      done
+    fi
 
     # ── Channels ──────────────────────────────────────────────────────────────
     # Reconcile notification-channel settings the SigNoz UI cannot express.

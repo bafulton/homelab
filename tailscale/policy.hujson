@@ -12,8 +12,8 @@
       "dst": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
       "ip": ["*"],
     },
-    // Cross-node pod networking over Tailscale subnet routes (the Kilo
-    // replacement). Each node is the subnet router for its own pod /24. The pod
+    // Cross-node pod networking over Tailscale subnet routes. Each node is the
+    // subnet router for its own pod /24. The pod
     // CIDRs appear as both src and dst because --snat-subnet-routes=false keeps
     // the real pod source IP across the subnet router, so Tailscale sees pod
     // IPs - not node identities - on both ends of cross-node pod traffic.

@@ -56,9 +56,3 @@ variable "worker_config_path" {
   type        = string
   default     = "../../talos/clusterconfig/homelab-ocifree.yaml"
 }
-
-variable "kilo_wireguard_ingress" {
-  description = "Open 51820/udp publicly for Kilo's own single-hop WireGuard ('Fix B': Kilo wg directly over the internet). OFF by default: the mesh now rides Tailscale ('Fix A') - each node's kilo.squat.ai/force-endpoint is its tailnet name, so Kilo's WireGuard is encapsulated inside Tailscale (which handles NAT + dynamic IPs + dual-stack and egresses on 41641/udp, already open). No public Kilo port is needed. Set true only to switch back to the direct-public model."
-  type        = bool
-  default     = false
-}

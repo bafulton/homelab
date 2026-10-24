@@ -49,7 +49,7 @@ resource "oci_core_instance" "node" {
   create_vnic_details {
     subnet_id        = oci_core_subnet.node.id
     hostname_label   = var.name
-    assign_public_ip = true # enables direct Tailscale paths and the optional Kilo public endpoint
+    assign_public_ip = true # enables direct Tailscale paths
   }
 
   # Talos has no SSH user and no cloud-init; the 'oracle' platform reads the

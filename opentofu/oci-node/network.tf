@@ -30,8 +30,8 @@ resource "oci_core_security_list" "node" {
   display_name   = "${var.name}-sl"
 
   # Unrestricted egress: Tailscale must reach its coordination server (and DERP
-  # relays as fallback), the node pulls images and joins the API over Tailscale,
-  # and Kilo (if riding Tailscale) also egresses here.
+  # relays as fallback), and the node pulls images and joins the API over
+  # Tailscale.
   egress_security_rules {
     destination      = "0.0.0.0/0"
     destination_type = "CIDR_BLOCK"
@@ -39,8 +39,8 @@ resource "oci_core_security_list" "node" {
   }
 
   # Tailscale's direct-path UDP. Without inbound UDP here the peer connection is
-  # likelier to fall back to a DERP relay (slower, shared infra) - and a direct
-  # Tailscale path matters if Kilo rides Tailscale (Fix A).
+  # likelier to fall back to a DERP relay (slower, shared infra); the cross-node
+  # pod subnet routes ride this same direct Tailscale path.
   ingress_security_rules {
     source   = "0.0.0.0/0"
     protocol = "17"
@@ -51,28 +51,14 @@ resource "oci_core_security_list" "node" {
   }
 
   # ICMP path-MTU discovery (frag-needed). Dropping this turns the cross-node
-  # MTU mismatch into random mid-stream stalls instead of clean PMTUD - exactly
-  # the WireGuard-in-WireGuard hazard we care about here.
+  # MTU mismatch into random mid-stream stalls instead of clean PMTUD - a real
+  # hazard across Tailscale's 1280-byte tunnel.
   ingress_security_rules {
     source   = "0.0.0.0/0"
     protocol = "1"
     icmp_options {
       type = 3
       code = 4
-    }
-  }
-
-  # Kilo cross-location WireGuard, only when using the public-endpoint strategy
-  # (Fix B). Off by default - Tailscale needs no inbound here. WireGuard auth'd.
-  dynamic "ingress_security_rules" {
-    for_each = var.kilo_wireguard_ingress ? [1] : []
-    content {
-      source   = "0.0.0.0/0"
-      protocol = "17"
-      udp_options {
-        min = 51820
-        max = 51820
-      }
     }
   }
 }
