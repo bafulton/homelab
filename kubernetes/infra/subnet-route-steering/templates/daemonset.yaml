@@ -35,6 +35,11 @@ spec:
               echo "subnet-route-steering: enabled=$ENABLED node=$NODE_NAME selector='$SELECTOR' priority=$PRIORITY interval=${INTERVAL}s"
               while true; do
                 if [ "$ENABLED" = "true" ]; then
+                  # Pin the home LAN to main so home<->home node traffic (and
+                  # flannel's VXLAN underlay, keyed on node IPs) stays on the LAN
+                  # even though each node accepts the others' advertised node /32.
+                  ip rule list | grep -q "to $LANCIDR lookup main" \
+                    || ip rule add to "$LANCIDR" table main priority "$PRIORITY"
                   # Discover the OTHER local nodes' pod CIDRs (never hardcoded;
                   # a new local node is picked up on the next tick) and pin each
                   # to the main table, where flannel's LAN route wins over the
@@ -63,6 +68,8 @@ spec:
                   fieldPath: spec.nodeName
             - name: SELECTOR
               value: {{ .Values.localNodeSelector | quote }}
+            - name: LANCIDR
+              value: {{ .Values.localLanCIDR | quote }}
             - name: PRIORITY
               value: {{ .Values.rulePriority | quote }}
             - name: INTERVAL

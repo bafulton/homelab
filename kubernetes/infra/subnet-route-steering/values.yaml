@@ -35,6 +35,15 @@ nodeSelector:
 # LAN. Dynamic, so a new local node is picked up with no values edit.
 localNodeSelector: "homelab.io/location=local"
 
+# The home LAN - node IPs live here. The home nodes also advertise their own
+# node /32 as a subnet route so the remote node can reach the apiserver (the
+# kubernetes ClusterIP DNATs to a control-plane node's LAN IP) and other
+# node-IP-backed services. That means each home node accepts the other's /32
+# into table 52, which would send home<->home node traffic - and flannel's VXLAN
+# underlay, which uses node IPs as endpoints - over Tailscale. Pinning the whole
+# LAN to main keeps all of it on flannel. Static (one subnet), so no discovery.
+localLanCIDR: "192.168.1.0/24"
+
 # Must sit after Tailscale's fwmark rules (<=5250) and before its table-52 rule
 # (5270), so only these local CIDRs are pulled back to the LAN.
 rulePriority: "5260"

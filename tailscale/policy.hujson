@@ -21,9 +21,16 @@
     // The whole cluster pod space (10.244.0.0/16, from cluster.network.podSubnets)
     // stands in for the per-node /24s, so adding a node needs no ACL edit - only
     // its own Talos config (advertise its /24). All these CIDRs are internal.
+    //
+    // 192.168.1.0/24 is the home LAN: the home nodes also advertise their own
+    // node /32 so the remote node can reach the apiserver (the kubernetes
+    // ClusterIP DNATs to a control-plane node's LAN IP) and any node-IP-backed
+    // service. The home nodes pin this /24 to the LAN locally (see
+    // subnet-route-steering), so advertising it never pulls home<->home traffic
+    // onto Tailscale.
     {
-      "src": ["tag:k8s-node", "10.244.0.0/16"],
-      "dst": ["tag:k8s-node", "10.244.0.0/16"],
+      "src": ["tag:k8s-node", "10.244.0.0/16", "192.168.1.0/24"],
+      "dst": ["tag:k8s-node", "10.244.0.0/16", "192.168.1.0/24"],
       "ip": ["*"],
     },
     // OCI edge forwarder: the Traefik gateway proxy, and nothing else.
@@ -67,6 +74,9 @@
   "autoApprovers": {
     "routes": {
       "10.244.0.0/16": ["tag:k8s-node"],
+      // Home nodes advertise their own node /32 (within this LAN) so the remote
+      // node can reach the apiserver / node-IP-backed services over Tailscale.
+      "192.168.1.0/24": ["tag:k8s-node"],
     },
   },
 
