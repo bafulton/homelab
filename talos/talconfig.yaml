@@ -37,12 +37,6 @@ nodes:
       storage.homelab.io/nvme: "true"
       storage.homelab.io/usb: "true"
       homelab.io/location: "local"
-    nodeAnnotations:
-      # Kilo WireGuard endpoint = this node's tailnet name, so the cross-location
-      # mesh rides Tailscale (stable address, NAT + dual-stack handled) instead of
-      # Kilo auto-picking an unreachable public IPv6. Kilo re-resolves it each
-      # reconcile, so a rebuild that changes the IP needs no edit here.
-      kilo.squat.ai/force-endpoint: "beelink.catfish-mountain.ts.net:51820"
     # Soft anti-affinity: bias movable workloads OFF this node toward rpi5.
     # PreferNoSchedule is a preference, not a ban — pods that can only run here
     # (Longhorn-PVC via node affinity, amd64-only images, static control-plane)
@@ -85,6 +79,23 @@ nodes:
                   - rshared
                   - rw
 
+      # Subnet-route mesh: advertise this node's pod /24 so the remote node can
+      # route to its pods, with --snat-subnet-routes=false to preserve pod source
+      # IPs. Per-node --advertise-routes can't live in the all-nodes tailscale
+      # patch, so each node overrides the full TS_EXTRA_ARGS here. accept-routes
+      # stays ON (home nodes reach the remote node's pods via table 52); the
+      # subnet-route-steering DaemonSet pins local<->local back to the LAN so it
+      # never rides Tailscale. See kubernetes/infra/subnet-route-steering +
+      # talos/README.md "Cross-node pod networking".
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
+          - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.0.0/24 --snat-subnet-routes=false
+
   - hostname: rpi5
     controlPlane: false
     ipAddress: rpi5.catfish-mountain.ts.net
@@ -99,10 +110,6 @@ nodes:
     nodeLabels:
       storage.homelab.io/usb: "true"
       homelab.io/location: "local"
-    nodeAnnotations:
-      # Kilo WireGuard endpoint = this node's tailnet name (rides Tailscale, not a
-      # guessed public IP). Re-resolved each reconcile, so a rebuild needs no edit.
-      kilo.squat.ai/force-endpoint: "rpi5.catfish-mountain.ts.net:51820"
     patches:
       # RPi5-specific cert SANs for Tailscale access
       - |-
@@ -147,6 +154,17 @@ nodes:
                   - rshared
                   - rw
 
+      # Subnet-route mesh: advertise this node's pod /24 (see the matching patch
+      # on beelink + talos/README.md "Cross-node pod networking").
+      - |-
+        apiVersion: v1alpha1
+        kind: ExtensionServiceConfig
+        name: tailscale
+        environment:
+          - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
+          - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.1.0/24 --snat-subnet-routes=false
+
   - hostname: ocifree
     controlPlane: false
     # Cloud node (OCI Ampere A1, arm64). No LAN presence; reached over Tailscale
@@ -160,14 +178,6 @@ nodes:
     talosImageURL: factory.talos.dev/installer/708747e350d604ae9e57227d8dcf274091453ddb1097b765d4ea8884f1992c1f
     nodeLabels:
       homelab.io/location: "remote"
-    # Declarative Kilo config so kg sees it the instant the node registers.
-    # force-endpoint = the node's tailnet name: the cross-location mesh rides
-    # Tailscale (stable address, NAT + dual-stack handled), not a guessed public
-    # endpoint. Because ocifree reclaims the name "ocifree" on reprovision, this
-    # stays correct with no post-join step.
-    nodeAnnotations:
-      kilo.squat.ai/location: "cloud"
-      kilo.squat.ai/force-endpoint: "ocifree.catfish-mountain.ts.net:51820"
     patches:
       # certSAN so talosctl can reach ocifree by its tailnet name.
       - |-
@@ -184,9 +194,9 @@ nodes:
               validSubnets:
                 - 100.64.0.0/10
             # Boot cordoned: register with a NoSchedule taint so no regular
-            # workloads schedule before the post-provision steps (Kilo
-            # force-endpoint + networking verification) complete. The networking
-            # DaemonSets (kilo/flannel/kube-proxy) tolerate it and still come up.
+            # workloads schedule before the post-provision networking
+            # verification completes. The networking DaemonSets (flannel,
+            # kube-proxy, subnet-route-steering) tolerate it and still come up.
             # registerWithTaints applies only at initial node registration, not on
             # reboots (the node object persists), and it's a kubelet-config taint,
             # not machine.nodeTaints, so the post-init `kubectl taint ... -` sticks.
@@ -208,7 +218,7 @@ nodes:
         environment:
           - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
           - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}
-          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.4.0/24 --snat-subnet-routes=false
 
 # ------------------------------------------------------------------------------
 # Patches - Applied to ALL nodes

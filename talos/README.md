@@ -57,6 +57,29 @@ address the discovery service propagates). So cross-site connectivity for a
 remote node is handled at the reach plane rather than by flattening both planes
 into one mesh. Full analysis in `~/Desktop/oci-node-plan.md`.
 
+## Cross-node pod networking
+
+Pod-to-pod traffic *between locations* (home ↔ the cloud node) rides Tailscale
+**subnet routes**, not a separate overlay. Every node runs `--accept-routes
+--snat-subnet-routes=false` and advertises its own pod `/24` via
+`--advertise-routes` (set per-node in `talconfig.yaml`; auto-approved for
+`tag:k8s-node` by `tailscale/policy.hujson`). Each node then installs the
+others' pod `/24`s into Tailscale's routing table 52 and cross-node pod traffic
+flows natively — `--snat-subnet-routes=false` preserves the real pod source IP.
+
+The home pair must stay on the **bare LAN** (flannel) and keep working through an
+internet outage, but `--accept-routes` is all-or-nothing, so each home node would
+otherwise pull the other's advertised `/24` onto Tailscale. The
+`subnet-route-steering` DaemonSet (`kubernetes/infra/subnet-route-steering/`,
+local nodes only) closes that gap: it adds an `ip rule` at priority 5260 — before
+Tailscale's table-52 rule (5270) — pinning each *other* local node's pod `/24` to
+the `main` table, where flannel's LAN route wins. Remote `/24`s have no such rule,
+so they ride Tailscale. During an outage Tailscale drops its routes and table 52
+empties, so local↔local falls back to flannel on its own.
+
+(This replaced a Kilo WireGuard overlay that flapped because it nested WireGuard
+inside Tailscale — overlay history is in the project memory.)
+
 ## Local vs remote node profile
 
 Nodes fall into two profiles. The split is deliberate — a remote cloud node has a
@@ -70,7 +93,7 @@ import — live in a per-provider OpenTofu module such as `opentofu/oci-node/`.
 | `homelab.io/location` label | `local` | `remote` |
 | Tailscale registration | **non-ephemeral** (`?ephemeral=false`) | **ephemeral** (default — drop the suffix) |
 | kubelet `nodeIP.validSubnets` | LAN `192.168.1.0/24` + Tailscale `100.64.0.0/10` | Tailscale `100.64.0.0/10` only |
-| Kilo | `kilo.squat.ai/force-endpoint: <node>.ts.net:51820` (all nodes) so the cross-location mesh rides Tailscale | same, plus `kilo.squat.ai/location: cloud`; all declarative in `nodeAnnotations` |
+| Cross-node pod overlay | advertises its pod `/24` as a Tailscale subnet route (`--advertise-routes`, `--snat-subnet-routes=false`, `--accept-routes`), plus the `subnet-route-steering` DaemonSet to keep local↔local on the LAN (see [Cross-node pod networking](#cross-node-pod-networking)) | same TS args, but no steering DaemonSet (no local peer to protect) |
 | `iscsi-tools` extension | yes (Longhorn storage node) | only if the node must mount Longhorn PVCs (open-iscsi is needed on any node that attaches a volume) |
 | Longhorn node `allowScheduling` | `true` (holds replicas) | `false` — no replicas on an ephemeral node, set in `infra/longhorn` `nodeConfig`; `longhorn-manager` + `iscsi-tools` still run so pods here can mount PVCs whose replicas live at home |
 | Provider DNS search domain | keep (home router's domain NXDOMAINs cleanly) | **strip it** at the provider — a cloud VCN search domain can SERVFAIL and break libc resolution (see below) |
@@ -111,8 +134,8 @@ unchanged; only two things are provider-specific: a new OpenTofu module modeled 
 quirks — e.g. OCI needs a streamOptimized-VMDK import forced to UEFI firmware, and a
 DHCP options set with no SearchDomain so pods can resolve external names), and
 the platform image from Image Factory (`aws`, `gcp`, … instead of `oracle`). The
-Talos profile — ephemeral, location label, Kilo cloud annotation, Tailscale-only
-node IP — carries over as-is. (When the cluster migrates off the EOL talhelper to
+Talos profile — ephemeral, location label, pod-CIDR subnet-route advertisement,
+Tailscale-only node IP — carries over as-is. (When the cluster migrates off the EOL talhelper to
 `talosctl`-native patch files, this profile becomes a single shared remote-node
 patch file rather than a per-node override.)
 
