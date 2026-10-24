@@ -15,11 +15,9 @@ spec:
         app.kubernetes.io/name: subnet-route-steering
     spec:
       serviceAccountName: subnet-route-steering
-      # hostNetwork so `ip route`/`ip rule` act on the node's routing tables, not
-      # a pod netns. Home nodes reach the API ClusterIP (10.96.0.1) over the LAN
-      # via kube-proxy, so kubectl's in-cluster config works with default DNS -
-      # no apiServer override and no dnsConfig (unlike kilo, which ran on the
-      # remote node too).
+      # hostNetwork so `ip rule` acts on the node's routing policy, not a pod
+      # netns. Home nodes reach the API ClusterIP (10.96.0.1) over the LAN via
+      # kube-proxy, so kubectl's in-cluster config works with default DNS.
       hostNetwork: true
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -34,43 +32,39 @@ spec:
             - -c
             - |
               set -u
-              echo "subnet-route-steering: enabled=$ENABLED iface=$IFACE table=$TABLE priority=$PRIORITY selector='$SELECTOR' interval=${INTERVAL}s"
+              echo "subnet-route-steering: enabled=$ENABLED node=$NODE_NAME selector='$SELECTOR' priority=$PRIORITY interval=${INTERVAL}s"
               while true; do
-                if [ "$ENABLED" = "true" ] && ip link show "$IFACE" >/dev/null 2>&1; then
-                  # Discover remote nodes' pod CIDRs - never hardcoded. A new
-                  # remote node is picked up on the next tick with no values edit.
-                  cidrs=$(kubectl get nodes -l "$SELECTOR" \
-                    -o jsonpath='{range .items[*]}{.spec.podCIDR}{"\n"}{end}' 2>/dev/null)
-                  for cidr in $cidrs; do
-                    [ -n "$cidr" ] || continue
-                    # Route the remote CIDR onto tailscale0, in a side table so it
-                    # never touches main. The ip rule (priority after Tailscale's
-                    # 5250 fwmark rule) steers only this CIDR into that table, so
-                    # Tailscale's own marked disco packets fall through to the LAN
-                    # default route instead of looping through tailscale0.
-                    ip route replace "$cidr" dev "$IFACE" table "$TABLE"
-                    ip rule list | grep -q "to $cidr lookup $TABLE" \
-                      || ip rule add to "$cidr" table "$TABLE" priority "$PRIORITY"
-                  done
+                if [ "$ENABLED" = "true" ]; then
+                  # Discover the OTHER local nodes' pod CIDRs (never hardcoded;
+                  # a new local node is picked up on the next tick) and pin each
+                  # to the main table, where flannel's LAN route wins over the
+                  # Tailscale-accepted route in table 52. Our own node is skipped
+                  # - its pods are local (cni0), never routed off-box.
+                  kubectl get nodes -l "$SELECTOR" \
+                    -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.podCIDR}{"\n"}{end}' 2>/dev/null \
+                    | while read -r name cidr; do
+                        [ -n "$cidr" ] || continue
+                        if [ "$name" = "$NODE_NAME" ]; then continue; fi
+                        ip rule list | grep -q "to $cidr lookup main" \
+                          || ip rule add to "$cidr" table main priority "$PRIORITY"
+                      done
                 else
-                  # Disabled (or iface absent): remove anything we added so the
-                  # node falls back to its main-table route (Kilo), then idle.
+                  # Disabled: remove anything we added, then idle (clean rollback).
                   while ip rule del priority "$PRIORITY" 2>/dev/null; do :; done
-                  ip route flush table "$TABLE" 2>/dev/null || true
                 fi
                 sleep "$INTERVAL"
               done
           env:
             - name: ENABLED
               value: {{ .Values.enabled | quote }}
-            - name: IFACE
-              value: {{ .Values.tailscaleIface | quote }}
-            - name: TABLE
-              value: {{ .Values.routeTable | quote }}
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: SELECTOR
+              value: {{ .Values.localNodeSelector | quote }}
             - name: PRIORITY
               value: {{ .Values.rulePriority | quote }}
-            - name: SELECTOR
-              value: {{ .Values.remoteNodeSelector | quote }}
             - name: INTERVAL
               value: {{ .Values.reconcileInterval | quote }}
           securityContext:

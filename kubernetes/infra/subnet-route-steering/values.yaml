@@ -1,17 +1,25 @@
-# Home-node companion to the per-node Tailscale subnet-route pod mesh that
-# replaced Kilo. The home nodes run `--accept-routes=false` (so they never pull
-# each other's pod CIDR onto Tailscale and break the bare-LAN invariant), which
-# means Tailscale won't install a route to the remote node's pod CIDR for them.
-# This DaemonSet installs that one route by hand - in a dedicated table reached
-# by an ip rule that sits AFTER Tailscale's fwmark 'lookup main/default' rules,
-# so Tailscale's marked disco packets exit via the LAN default route (and get
-# dropped upstream) instead of looping through tailscale0 and flapping.
+# Keeps LOCAL (home) node pod traffic on the bare LAN (flannel), even though the
+# home nodes run --accept-routes.
 #
-# Talos cannot express this declaratively: a LinkConfig naming tailscale0 makes
-# Talos try to own the tailscaled-managed interface and knocks it offline
-# (verified - it took the remote node down). A DaemonSet only runs `ip` against
-# the live interface, so it adds a route without ever reconfiguring the link.
+# The home nodes MUST accept routes: that is how they reach the remote node's
+# pods natively, via Tailscale's own table 52 (ip rule 5270) - fast and
+# flap-free, verified. But once the home nodes also advertise their own pod
+# /24s, each one accepts the OTHER home node's /24 into table 52 as well, which
+# would send local<->local pod traffic over Tailscale and break the hard
+# invariant that it rides the bare LAN and survives a full home-internet outage.
+#
+# This DaemonSet closes that gap: on each local node it adds a higher-priority
+# ip rule (5260, before table 52's 5270) that sends every OTHER local node's pod
+# CIDR to the main table, where flannel's LAN route wins. Remote pod traffic has
+# no such override, so it falls through to table 52 and rides Tailscale.
+#
+# (Under a real internet outage the point is moot anyway: Tailscale drops its
+# routes, table 52 empties, and local<->local falls back to flannel on its own.
+# The override matters only while Tailscale is up.)
 namespace: kube-system
+
+# false => the loop instead REMOVES the rules it added, then idles (clean rollback).
+enabled: true
 
 image:
   repository: ghcr.io/bafulton/homelab-toolbox
@@ -19,29 +27,16 @@ image:
   tag: "1.0.3"
   pullPolicy: IfNotPresent
 
-# Home nodes only. ocifree (remote) uses --accept-routes and needs none of this.
+# Runs on local nodes only. The remote node needs none of this.
 nodeSelector:
   homelab.io/location: local
 
-# DISABLED: routing a packet into tailscale0 does not work when the home node
-# runs --accept-routes=false - tailscaled never adds the remote pod CIDR to the
-# WireGuard peer's AllowedIPs, so the manual route black-holes (verified: a real
-# beelink-pod -> ocifree-pod request timed out, while the 5260 rule shadowed
-# Kilo's working route). With enabled=false the loop instead REMOVES the rule
-# and table it previously added, restoring Kilo, then idles. Redesign pending.
-enabled: false
+# Discover the local nodes (this one excluded) whose pod CIDRs must stay on the
+# LAN. Dynamic, so a new local node is picked up with no values edit.
+localNodeSelector: "homelab.io/location=local"
 
-# Remote pod CIDRs are discovered, not hardcoded: every tick the pod lists nodes
-# matching `remoteNodeSelector` and reads each one's `.spec.podCIDR`. Add a
-# remote node later and it is picked up automatically - no values edit, no
-# per-node route tables. Local nodes are never selected (they reach each other
-# over flannel/LAN, which must never ride Tailscale).
-remoteNodeSelector: "homelab.io/location=remote"
-
-# Steered routes live in `routeTable` (not main); `rulePriority` must sit after
-# Tailscale's 5250 fwmark rule and before its 5270 (lookup 52).
-tailscaleIface: tailscale0
-routeTable: "200"
+# Must sit after Tailscale's fwmark rules (<=5250) and before its table-52 rule
+# (5270), so only these local CIDRs are pulled back to the LAN.
 rulePriority: "5260"
 reconcileInterval: "30"
 
