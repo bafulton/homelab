@@ -1,9 +1,25 @@
 # subnet-route-steering
 
 Home-node companion to the per-node Tailscale **subnet-route** pod mesh. A tiny
-NET_ADMIN DaemonSet (one pod per `local` node) that keeps
-**local↔local** pod traffic on the bare LAN (flannel), while **remote** pod
-traffic rides Tailscale.
+NET_ADMIN DaemonSet (one pod per `local` node) that keeps **local↔local** pod
+traffic on the bare LAN (flannel), while **remote** pod traffic rides Tailscale.
+
+## The point
+
+The two home nodes (beelink, rpi5) must be able to talk to each other over
+**nothing but the LAN** — no Tailscale, no internet, no reachable Tailscale
+coordination server. The home cluster (Home Assistant, mosquitto, MetalLB, DNS,
+storage) has to keep working through an ISP outage, a Tailscale outage, or a WAN
+blip; coupling that traffic to Tailscale would mean a cloud dependency can take
+the house offline. So home↔home pod traffic must **never** ride Tailscale — even
+though every node runs `--accept-routes` so it *can* reach the remote cloud node.
+
+That tension is the whole reason this app exists. Tailscale's `--accept-routes`
+is all-or-nothing: a home node that accepts the remote node's routes also
+accepts the *other* home node's, which would quietly pull local↔local traffic
+onto Tailscale and break the guarantee above. This DaemonSet supplies the
+missing selectivity — pinning the local routes back to the LAN — so the cluster
+can span the internet without making the home half depend on it.
 
 ## The mesh it belongs to
 
@@ -16,20 +32,17 @@ no second WireGuard layer, no reconcile loop, no path flap. `snat=false`
 preserves the real pod source IP, which is why replies route back and why the
 ACL lists the pod space as both src and dst.
 
-## Why this DaemonSet exists
+## How it supplies the missing selectivity
 
-That native behaviour is correct for the **remote** node but wrong for the two
-**home** nodes: the hard invariant is that beelink↔rpi5 pod traffic rides the
-bare LAN and keeps working through a total home-internet outage. Left alone,
-each home node would accept the other's advertised `/24` into table 52 and send
-local↔local pod traffic over Tailscale.
+The native behaviour above is right for the **remote** node but wrong for the
+two **home** nodes (see [The point](#the-point)): left alone, each home node
+accepts the other's advertised `/24` into table 52 and sends local↔local pod
+traffic over Tailscale.
 
-`--accept-routes` is all-or-nothing, so the home nodes can't accept the remote
-route while refusing each other's. This DaemonSet supplies the missing
-selectivity: on each local node it adds an `ip rule` at priority **5260** - after
-Tailscale's fwmark rules (≤5250) and *before* its table-52 rule (5270) - that
-sends each **other** local node's pod CIDR to the `main` table, where flannel's
-LAN route wins:
+So on each local node this DaemonSet adds an `ip rule` at priority **5260** -
+after Tailscale's fwmark rules (≤5250) and *before* its table-52 rule (5270) -
+that sends each **other** local node's pod CIDR to the `main` table, where
+flannel's LAN route wins:
 
     5260:  to 10.244.1.0/24  lookup main   # on beelink, for rpi5's pods -> LAN
     5270:  from all          lookup 52      # everything else (incl. remote) -> Tailscale
