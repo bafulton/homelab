@@ -38,7 +38,12 @@ localNodeSelector: "homelab.io/location=local"
 # Must sit after Tailscale's fwmark rules (<=5250) and before its table-52 rule
 # (5270), so only these local CIDRs are pulled back to the LAN.
 rulePriority: "5260"
-reconcileInterval: "30"
+# The rules persist in the kernel once added (a Tailscale restart deletes only
+# its own 5210-5270 rules, not our 5260; a pod restart re-adds on the first tick
+# before sleeping). So this loop is not load-bearing moment to moment - it only
+# picks up a newly-added local node or re-asserts a deleted rule. 5 min is fine;
+# worst case a brand-new local node's pods ride Tailscale briefly before pinning.
+reconcileInterval: "300"
 
 resources:
   requests:
