@@ -36,6 +36,7 @@ gateway-route:
               kind: Service
               name: argocd-server
               port: 80
+              weight: 1  # the API server's default; omitting it shows as drift
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
