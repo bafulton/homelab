@@ -37,11 +37,26 @@ LAN route wins:
 Remote pod CIDRs get no such override, so they fall through to 5270/table 52 and
 ride Tailscale.
 
-### Each tick (default 30s)
+### Node IPs, not just pod CIDRs
 
-1. `kubectl get nodes -l homelab.io/location=local` → each node's name + `.spec.podCIDR`.
-2. Skip our own node (its pods are local, on `cni0`).
-3. For every other local node: add `ip rule to <cidr> table main priority 5260` if absent.
+The home nodes also advertise their own **node `/32`** (e.g. `192.168.1.86/32`)
+as a subnet route, so the remote node can reach the apiserver — the `kubernetes`
+ClusterIP (`10.96.0.1`) DNATs to a control-plane node's LAN IP — and any other
+node-IP-backed service. (This is the reachability Kilo's `--internal-cidr` used
+to provide; without it, every pod on the remote node fails to reach the API.)
+
+That means each home node accepts the other's node `/32` into table 52, which
+would send home↔home node traffic over Tailscale — and because flannel's VXLAN
+underlay is keyed on node IPs, that would drag pod traffic onto Tailscale too.
+So this DaemonSet also pins the whole home LAN (`localLanCIDR`, `192.168.1.0/24`)
+to `main` at priority 5260, keeping all home↔home node/LAN traffic on flannel.
+
+### Each tick (default 5m)
+
+1. Pin `localLanCIDR` (`192.168.1.0/24`) to `main` at priority 5260.
+2. `kubectl get nodes -l homelab.io/location=local` → each node's name + `.spec.podCIDR`.
+3. Skip our own node (its pods are local, on `cni0`).
+4. For every other local node: add `ip rule to <cidr> table main priority 5260` if absent.
 
 It is a reconcile loop, not a one-shot, so the rules survive a Tailscale restart
 (which recreates `tailscale0` and can reset policy) and new local nodes are

@@ -80,8 +80,9 @@ signoz-alerts:
   alerts:
     - name: Mesh Connection Unhealthy
       description: >-
-        A goldpinger node-to-node connection is failing on the flannel/Kilo mesh
-        (cluster health < 1). Check the graph at goldpinger.catfish-mountain.com.
+        A goldpinger node-to-node connection is failing (cluster health < 1) -
+        local pods over flannel/LAN, or cross-node pods over the Tailscale
+        subnet-route mesh. Check the graph at goldpinger.catfish-mountain.com.
       severity: warning
       type: threshold
       metric: goldpinger_cluster_health_total

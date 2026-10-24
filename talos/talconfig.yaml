@@ -94,7 +94,7 @@ nodes:
         environment:
           - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
           - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
-          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.0.0/24 --snat-subnet-routes=false
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.0.0/24,192.168.1.86/32 --snat-subnet-routes=false
 
   - hostname: rpi5
     controlPlane: false
@@ -163,7 +163,7 @@ nodes:
         environment:
           - TS_CLIENT_ID={{ env "TS_CLIENT_ID" }}
           - TS_CLIENT_SECRET={{ env "TS_CLIENT_SECRET" }}?ephemeral=false
-          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.1.0/24 --snat-subnet-routes=false
+          - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.1.0/24,192.168.1.84/32 --snat-subnet-routes=false
 
   - hostname: ocifree
     controlPlane: false
