@@ -22,9 +22,20 @@ gateway-route:
     - name: webhook
       hostnames:
         - argocd-webhook.catfish-mountain.com  # Public GitHub webhook
-      service:
-        name: argocd-server
-        port: 80
+      # Only GitHub's webhook POST. This hostname is a public Cloudflare Tunnel
+      # exception, so the default catch-all rule exposed the whole ArgoCD UI
+      # and API to the internet; any other path or method here is a 404.
+      rules:
+        - matches:
+            - path:
+                type: Exact
+                value: /api/webhook
+              method: POST
+          backendRefs:
+            - group: ""
+              kind: Service
+              name: argocd-server
+              port: 80
 
 # Bitwarden secrets pulled via ExternalSecret
 bitwarden-secret:
