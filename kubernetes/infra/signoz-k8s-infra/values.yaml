@@ -1,5 +1,14 @@
 namespace: signoz
 
+# Home Assistant's /api/prometheus requires auth (HA listens on beelink's LAN
+# IP via hostNetwork, so only auth protects it), using a long-lived access
+# token of HA's non-admin "metrics" user. Read by prometheus/home-assistant.
+bitwarden-secret:
+  secrets:
+    - name: home-assistant-metrics-token
+      data:
+        token: "5b3fcf6c-b799-4c33-a9a0-b4ee001696c5"
+
 k8s-infra:
   clusterName: homelab
 
@@ -131,7 +140,32 @@ k8s-infra:
         cpu: 25m
       limits:
         memory: 768Mi
+    extraVolumes:
+      - name: ha-metrics-token
+        secret:
+          secretName: home-assistant-metrics-token
+    extraVolumeMounts:
+      - name: ha-metrics-token
+        mountPath: /secrets/home-assistant
+        readOnly: true
     config:
+      receivers:
+        # Annotation discovery (prometheus/scraper) can't send credentials, so
+        # Home Assistant gets its own job. A separate receiver rather than a
+        # second scrape_configs entry: Helm replaces lists, so adding to
+        # prometheus/scraper's would drop the annotation job.
+        prometheus/home-assistant:
+          config:
+            scrape_configs:
+              - job_name: home-assistant
+                scrape_interval: 60s
+                metrics_path: /api/prometheus
+                authorization:
+                  type: Bearer
+                  # Re-read on every scrape, so a rotated token needs no restart.
+                  credentials_file: /secrets/home-assistant/token
+                static_configs:
+                  - targets: ["home-assistant.home-assistant.svc.cluster.local:80"]
       processors:
         transform/normalize_severity:
           log_statements:
@@ -157,3 +191,8 @@ k8s-infra:
             processors:
               - transform/normalize_severity
               - batch
+          # Restated in full because Helm replaces lists.
+          metrics/scraper:
+            receivers:
+              - prometheus/scraper
+              - prometheus/home-assistant

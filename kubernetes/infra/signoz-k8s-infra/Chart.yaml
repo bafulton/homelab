@@ -9,3 +9,6 @@ dependencies:
   - name: k8s-infra
     version: 0.17.1
     repository: https://charts.signoz.io
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
