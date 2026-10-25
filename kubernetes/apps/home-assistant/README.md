@@ -45,7 +45,7 @@ Home Assistant automations, scripts, and sensors are managed via GitOps using HA
 
 | Package | Purpose |
 |---------|---------|
-| `gitops_config.yaml` | GitOps-managed config: HTTP trusted proxies, frontend themes, Prometheus metrics endpoint |
+| `gitops_config.yaml` | GitOps-managed config: frontend themes, Prometheus metrics endpoint |
 | `light_effects.yaml` | Color cycling effects for smart bulbs |
 | `network_sensors.yaml` | Network sensors |
 | `sensor_fixes.yaml` | Temporary workarounds for upstream bugs |

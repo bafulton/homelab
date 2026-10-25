@@ -3,12 +3,9 @@
 # This package is auto-applied via the home-assistant-packages ConfigMap.
 # Changes here take effect on the next HA restart (triggered by the reloader).
 
-# HTTP configuration for reverse proxy (Tailscale + Traefik)
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 10.244.0.0/16   # Kubernetes pod CIDR
-    - 192.168.1.0/24  # LAN subnet (cross-node traffic with hostNetwork)
+# HTTP reverse-proxy settings (use_x_forwarded_for, trusted_proxies for
+# 10.244.0.0/16 pod CIDR + 192.168.1.0/24 LAN) are UI-managed (YAML is ignored):
+# Settings > System > Network, stored in /config/.storage/http on the PVC.
 
 # Frontend themes
 frontend:

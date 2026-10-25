@@ -39,7 +39,7 @@ home-assistant:
   # Configuration management
   # forceInit: false — only writes configuration.yaml on first boot (when it doesn't exist).
   # After initial setup, configuration.yaml on the PVC is never overwritten by GitOps.
-  # All GitOps-owned settings (http, homeassistant, prometheus, etc.) live in the
+  # All GitOps-owned settings (homeassistant, prometheus, etc.) live in the
   # packages ConfigMap (files/packages/gitops_config.yaml) and are applied automatically
   # via the reloader without touching configuration.yaml.
   configuration:
