@@ -1,6 +1,6 @@
 namespace: signoz
 
-# Home Assistant's /api/prometheus requires auth (HA listens on beelink's LAN
+# Home Assistant's /api/prometheus requires auth (HA listens on its node's LAN
 # IP via hostNetwork, so only auth protects it), using a long-lived access
 # token of HA's non-admin "metrics" user. Read by prometheus/home-assistant.
 bitwarden-secret:
