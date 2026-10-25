@@ -2,7 +2,8 @@ namespace: signoz
 
 # Home Assistant's /api/prometheus requires auth (HA listens on its node's LAN
 # IP via hostNetwork, so only auth protects it), using a long-lived access
-# token of HA's non-admin "metrics" user. Read by prometheus/home-assistant.
+# token of HA's non-admin "metrics" user. Read by the home-assistant job in
+# presets.prometheus.scrapeConfigs.
 bitwarden-secret:
   secrets:
     - name: home-assistant-metrics-token
@@ -98,6 +99,19 @@ k8s-infra:
     prometheus:
       enabled: true
       annotationsPrefix: prometheus.io
+      # Appended to the annotation job in the same receiver, for targets that
+      # annotations can't describe (here: one that needs credentials).
+      scrapeConfigs:
+        - job_name: home-assistant
+          scrape_interval: 60s
+          metrics_path: /api/prometheus
+          authorization:
+            type: Bearer
+            # Mounted by otelDeployment.extraVolumes below. Re-read on every
+            # scrape, so a rotated token needs no restart.
+            credentials_file: /secrets/home-assistant/token
+          static_configs:
+            - targets: ["home-assistant.home-assistant.svc.cluster.local:80"]
 
   otelAgent:
     resources:
@@ -149,23 +163,6 @@ k8s-infra:
         mountPath: /secrets/home-assistant
         readOnly: true
     config:
-      receivers:
-        # Annotation discovery (prometheus/scraper) can't send credentials, so
-        # Home Assistant gets its own job. A separate receiver rather than a
-        # second scrape_configs entry: Helm replaces lists, so adding to
-        # prometheus/scraper's would drop the annotation job.
-        prometheus/home-assistant:
-          config:
-            scrape_configs:
-              - job_name: home-assistant
-                scrape_interval: 60s
-                metrics_path: /api/prometheus
-                authorization:
-                  type: Bearer
-                  # Re-read on every scrape, so a rotated token needs no restart.
-                  credentials_file: /secrets/home-assistant/token
-                static_configs:
-                  - targets: ["home-assistant.home-assistant.svc.cluster.local:80"]
       processors:
         transform/normalize_severity:
           log_statements:
@@ -191,8 +188,3 @@ k8s-infra:
             processors:
               - transform/normalize_severity
               - batch
-          # Restated in full because Helm replaces lists.
-          metrics/scraper:
-            receivers:
-              - prometheus/scraper
-              - prometheus/home-assistant

@@ -72,7 +72,7 @@ home-assistant:
 
   # No prometheus.io scrape annotations: /api/prometheus requires a token,
   # which annotation discovery can't send. SigNoz scrapes it with a dedicated
-  # job instead (prometheus/home-assistant in signoz-k8s-infra).
+  # job instead (the home-assistant job in signoz-k8s-infra).
   deploymentAnnotations:
     # Reloader watches home-assistant-packages ConfigMap (match: "true") and restarts on changes
     reloader.stakater.com/search: "true"

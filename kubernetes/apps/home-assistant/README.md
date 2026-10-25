@@ -35,7 +35,7 @@ The Matter Server also uses hostNetwork and communicates with Home Assistant via
 
 ## Metrics
 
-Exposes Prometheus metrics at `/api/prometheus`, which requires authentication. SigNoz scrapes it with a long-lived access token belonging to the non-admin `metrics` HA user, stored in Bitwarden and mounted into the collector by `kubernetes/infra/signoz-k8s-infra` (receiver `prometheus/home-assistant`).
+Exposes Prometheus metrics at `/api/prometheus`, which requires authentication. SigNoz scrapes it with a long-lived access token belonging to the non-admin `metrics` HA user, stored in Bitwarden and mounted into the collector by `kubernetes/infra/signoz-k8s-infra` (the `home-assistant` job in `presets.prometheus.scrapeConfigs`).
 
 Keep "Can only log in from the local network" **off** for the `metrics` user. The collector may run on the remote node, whose requests reach HA from a Tailscale address (`100.64.0.0/10`); HA counts only private ranges as local and rejects the token from there.
 

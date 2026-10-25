@@ -14,6 +14,6 @@ frontend:
 # Prometheus metrics endpoint for SigNoz. Requires auth (the default): HA
 # listens on its node's LAN IP via hostNetwork, and the public route serves every
 # path, so an open endpoint is readable from the LAN and the internet. SigNoz
-# scrapes it with the "metrics" user's token (prometheus/home-assistant in
+# scrapes it with the "metrics" user's token (the home-assistant job in
 # kubernetes/infra/signoz-k8s-infra/values.yaml).
 prometheus:
