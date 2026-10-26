@@ -174,9 +174,10 @@ Pin `location: local` when a workload:
 - is **hostNetwork** and needs the LAN (Home Assistant, mDNS advertiser,
   Matter/Chromecast bridges),
 - does **L2/ARP** for the LAN (MetalLB speaker/controller/frr-k8s),
-- is backed by **Longhorn** storage (mosquitto, SigNoz ClickHouse/Zookeeper) —
-  Longhorn's CSI plugin runs only on local nodes, so the volume can't attach on
-  a remote node, and block I/O over the WAN would be unusable anyway, or
+- is backed by **Longhorn** storage and **latency-sensitive** — a `config`
+  volume can attach on a remote node (the replicas stay on the local nodes and
+  the node reaches them over Tailscale), but every read and write then crosses
+  the WAN, or
 - has strong **data gravity** to a local store (SigNoz OTel collector → local
   ClickHouse).
 
@@ -190,7 +191,9 @@ Node agents (`node-health`, `smartctl-exporter`, node-feature-discovery, OTel
 node collectors) stay unpinned: they *should* run on every node, remote
 included, so the cloud node is monitored like any other.
 
-Longhorn itself is kept off remote nodes not with a chart `nodeSelector`
+Longhorn *storage* is kept off remote nodes not with a chart `nodeSelector`
 (changing Longhorn's `systemManagedComponentsNodeSelector` on a running cluster
 forces a volume detach), but by marking the remote Longhorn node
-`allowScheduling: false` with no disk at join time.
+`allowScheduling: false` with no disk at join time. Longhorn's components still
+run there, so pods on a remote node can use `config` PVCs. The strict-local
+classes (`state`, `scratch`) are already pinned to beelink by hostname.

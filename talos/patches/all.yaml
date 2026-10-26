@@ -27,7 +27,9 @@ machine:
 
   kubelet:
     # Kubelet mount for Longhorn data path (required for Talos v1.10+). Every
-    # node runs longhorn-manager and the CSI plugin, ocifree included.
+    # node gets it, ocifree included: ocifree stores no replicas, but its pods
+    # can use Longhorn PVCs, which attach to the pod's node over iSCSI while the
+    # data stays on the home nodes.
     extraMounts:
       - destination: /var/lib/longhorn
         type: bind

@@ -8,6 +8,12 @@ machine:
   nodeLabels:
     homelab.io/location: "remote"
 
+  # talosctl sets this by default; ocifree was provisioned without it, and it
+  # boots via UEFI, where the GRUB-only setting has no effect.
+  install:
+    grubUseUKICmdline:
+      $patch: delete
+
   kubelet:
     # Cloud node: kubelet node IP is the Tailscale address only, so kubelet
     # never picks the OCI private 10.21.x address (it has no LAN /24).
