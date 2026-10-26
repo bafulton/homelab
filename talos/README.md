@@ -296,7 +296,34 @@ Each node's install disk is its `installDisk` in `cluster.yaml` (e.g. `/dev/nvme
 - `patches/` - the machine config: `all.yaml` (every node), `controlplane.yaml` (control plane only) and `nodes/<node>.yaml`, applied in that order
 - `.env` - Tailscale credentials and disk paths, substituted into the patches as `${VAR}`
 
-The configs use the v1.13 document layout (`configLayout` in `cluster.yaml`), which the nodes run; see the comment there before changing it.
+The configs use the v1.13 document layout (`configLayout` in `cluster.yaml`), which the nodes run.
+
+### Config layout: staying on v1.13
+
+Decided 2026-10-25, while the cluster runs Talos v1.14.4. Talos v1.14 introduced
+a new config layout: most `machine.*` and `cluster.*` settings move into ~30
+dedicated documents (`KubeletConfig`, `KubeNodeConfig`, `ResolverConfig`,
+`UserVolumeConfig`, ...). We stay on the v1.13 layout because:
+
+- **It is supported.** Talos marks the old fields deprecated but honoured, and an
+  existing config keeps working across upgrades. No removal version is announced.
+- **A full move isn't possible yet.** `machine.kubelet.extraMounts`, which
+  Longhorn needs on every node, has no equivalent in the new documents. A
+  deprecated field and its replacement document are rejected together, so a
+  partial move needs care.
+- **Generating v1.14 changes behavior, not just layout.** A v1.14 `gen config`
+  also turns on defaults the nodes don't have today: `SecurityProfileConfig`
+  workload isolation (which disables the in-tree iSCSI volume plugin), weekly
+  `FilesystemTrimConfig` (already covered by the `fstrim-*` CronJobs), a
+  stricter `KubeAuthenticationConfig`, an explicit control-plane `NoSchedule`
+  taint, and flannel on VXLAN port 4789. Each would need pinning back to current
+  behavior.
+
+Revisit when Talos announces a removal date for the old fields, or when the new
+documents cover kubelet extra mounts. The migration then means translating every
+patch, pinning each new default, and comparing what the nodes actually run
+(kubelet spec, static pod flags, flannel config) before and after, one node at
+a time.
 
 ### Configure your environment
 

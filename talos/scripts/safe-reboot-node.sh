@@ -37,11 +37,16 @@ echo ""
 # Step 2: Drain the node
 echo "Step 2/6: Draining node (evicting pods gracefully)..."
 echo "This may take a few minutes..."
-kubectl drain "$NODE_NAME" \
+if ! kubectl drain "$NODE_NAME" \
   --ignore-daemonsets \
   --delete-emptydir-data \
   --timeout=300s \
-  --grace-period=120
+  --grace-period=120; then
+  echo "✗ Drain failed; the node is still cordoned. A pod that won't evict is"
+  echo "  usually a PDB (kubectl get pdb -A). Fix it and re-run, or undo with:"
+  echo "  kubectl uncordon $NODE_NAME"
+  exit 1
+fi
 echo "✓ Node drained"
 echo ""
 
@@ -93,19 +98,41 @@ fi
 echo ""
 
 # Step 5: Reboot the node
+# Over the LAN IP from cluster.yaml where the node has one, so Tailscale
+# restarting mid-reboot can't cut the connection; remote nodes go via Tailscale.
 echo "Step 5/6: Rebooting node via talosctl..."
-talosctl -n "${NODE_NAME}.catfish-mountain.ts.net" reboot
+CLUSTER_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/cluster.yaml"
+LAN_IP=$(yq -r ".nodes[] | select(.name == \"$NODE_NAME\") | .lanIP // \"\"" "$CLUSTER_FILE")
+if [ -n "$LAN_IP" ]; then
+  TALOS_TARGET=(-n "$LAN_IP" -e "$LAN_IP")
+else
+  TALOS_TARGET=(-n "${NODE_NAME}.catfish-mountain.ts.net")
+fi
+BOOT_ID=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}')
+talosctl "${TALOS_TARGET[@]}" reboot --wait=false
 echo "✓ Reboot command sent"
 echo ""
 
 # Step 6: Wait for node to come back
-echo "Step 6/6: Waiting for node to become Ready..."
+# The node still reports Ready until its kubelet stops, so wait for a new boot
+# ID first; waiting on Ready alone would return before the reboot happened.
+echo "Step 6/6: Waiting for node to reboot and become Ready..."
 echo "This typically takes 2-3 minutes..."
-if kubectl wait --for=condition=Ready "node/$NODE_NAME" --timeout=600s; then
-  echo "✓ Node is Ready"
+DEADLINE=$((SECONDS + 600))
+until [ "$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null)" != "$BOOT_ID" ]; do
+  if [ $SECONDS -ge $DEADLINE ]; then
+    echo "⚠ Warning: Node did not reboot within 10 minutes; leaving it cordoned"
+    echo "Check node status manually: kubectl get node $NODE_NAME"
+    exit 1
+  fi
+  sleep 10
+done
+if kubectl wait --for=condition=Ready "node/$NODE_NAME" --timeout=$((DEADLINE - SECONDS))s; then
+  echo "✓ Node rebooted and is Ready"
 else
-  echo "⚠ Warning: Node did not become Ready within timeout"
+  echo "⚠ Warning: Node rebooted but did not become Ready; leaving it cordoned"
   echo "Check node status manually: kubectl get node $NODE_NAME"
+  exit 1
 fi
 echo ""
 

@@ -11,9 +11,8 @@ kubernetesVersion: v1.37.1
 
 # Machine config document layout (talosctl gen config --talos-version). The
 # nodes run the v1.13 layout: one v1alpha1 document plus a few named ones.
-# The v1.14 layout splits the config into ~30 documents (KubeletConfig,
-# ResolverConfig, ...), which every patch in patches/ would need rewriting for.
-# Moving to it is a deliberate migration of its own, not a version bump.
+# Deliberately not v1.14 yet; see "Config layout: staying on v1.13" in
+# README.md for why and what would change that.
 configLayout: v1.13
 
 # The install image is factory.talos.dev/installer/<schematic>:<talosVersion>.
