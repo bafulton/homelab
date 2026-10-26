@@ -305,7 +305,7 @@ a new config layout: most `machine.*` and `cluster.*` settings move into ~30
 dedicated documents (`KubeletConfig`, `KubeNodeConfig`, `ResolverConfig`,
 `UserVolumeConfig`, ...). We stay on the v1.13 layout because:
 
-- **It is supported.** Talos marks the old fields deprecated but honoured, and an
+- **It is supported.** Talos marks the old fields deprecated but honored, and an
   existing config keeps working across upgrades. No removal version is announced.
 - **A full move isn't possible yet.** `machine.kubelet.extraMounts`, which
   Longhorn needs on every node, has no equivalent in the new documents. A
