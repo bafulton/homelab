@@ -79,7 +79,7 @@ signoz-alerts:
       description: Time Machine SMB server has no ready replicas
       severity: critical
       type: promql
-      query: 'kube_statefulset_status_replicas_ready{namespace="time-machine",statefulset="time-machine"}'
+      query: 'max by (namespace, statefulset) (kube_statefulset_status_replicas_ready{namespace="time-machine",statefulset="time-machine"})'
       op: "<"
       threshold: 1
       for: 5m0s

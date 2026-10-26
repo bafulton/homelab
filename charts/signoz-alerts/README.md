@@ -101,6 +101,23 @@ Complex queries:
   legend: "{{namespace}}/{{name}}"
 ```
 
+Wrap kube-state-metrics queries in `max by (<workload labels>)`. The scraper
+stamps each series with the kube-state-metrics pod's own labels (`k8s.pod.name`,
+`k8s.node.name`, `server.address`), so the raw series changes identity whenever
+that pod reschedules - and each new identity is a new alert instance that fires
+and resolves on its own. Aggregating down to the workload keeps one stable
+series; `max` rather than `sum` because two kube-state-metrics pods briefly
+overlap during a reschedule:
+
+```yaml
+- name: Jellyfin Down
+  description: Jellyfin media server has no available replicas
+  type: promql
+  query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="jellyfin",deployment="jellyfin"})'
+  op: "<"
+  threshold: 1
+```
+
 ## Configuration
 
 | Parameter | Description | Default |

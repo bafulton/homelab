@@ -73,7 +73,7 @@ signoz-alerts:
       description: yak-shave.com has served nothing for five minutes
       severity: critical
       type: promql
-      query: 'kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"}'
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"})'
       op: "<"
       threshold: 1
       for: 5m0s
@@ -87,7 +87,7 @@ signoz-alerts:
       description: yak-shave.com has been down to a single replica for an hour
       severity: warning
       type: promql
-      query: 'kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"}'
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="yak-shave",deployment="yak-shave"})'
       op: "<"
       threshold: 2
       for: 1h0m0s

@@ -131,7 +131,7 @@ signoz-alerts:
       description: Jellyfin media server has no available replicas
       severity: critical
       type: promql
-      query: 'kube_deployment_status_replicas_available{namespace="jellyfin",deployment="jellyfin"}'
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="jellyfin",deployment="jellyfin"})'
       op: "<"
       threshold: 1
       for: 5m0s

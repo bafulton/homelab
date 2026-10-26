@@ -194,7 +194,7 @@ signoz-alerts:
       description: Home Assistant has no available replicas
       severity: critical
       type: promql
-      query: 'kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"}'
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="home-assistant",deployment="home-assistant"})'
       op: "<"
       threshold: 1
       # Ten minutes, not five: a routine HA image upgrade is a slow boot on a
