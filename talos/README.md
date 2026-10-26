@@ -445,6 +445,15 @@ talosctl logs kubelet
 talosctl logs ext-tailscale  # Tailscale extension service
 ```
 
+### Apply a config change
+
+Apply over the node's LAN IP rather than its Tailscale hostname, so the
+Tailscale extension restarting mid-apply can't cut the connection:
+
+```bash
+talosctl -n <node-lan-ip> -e 192.168.1.86 apply-config -f clusterconfig/homelab-<node>.yaml
+```
+
 ### Upgrade Talos
 
 Routine upgrades run through tuppr - see `kubernetes/infra/tuppr/README.md`.

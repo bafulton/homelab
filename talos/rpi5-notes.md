@@ -42,24 +42,17 @@ This presents misleadingly: `EPHEMERAL` provisions fine and `/var` mounts
 read-write, so the storage looks healthy. Reattaching the disk clears it
 immediately, and the existing XFS is mounted rather than reformatted.
 
-## Reach rpi5 by LAN IP for config operations
+## Read the upgrade guidance before every Talos bump
 
-Use `192.168.1.84`, not the Tailscale hostname — applying config over Tailscale
-can cut the connection mid-apply when the extension restarts.
-
-## Version bumps need a look upstream
-
-Pi 5 is community-tested, not officially tested. Skim
-[sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) before bumping
-`talosVersion`: support has broken across point releases before (Talos 1.14.0
-broke CM5 ethernet, fixed in overlay v0.2.2), and
-[issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82)
+Maintenance is otherwise the same as beelink's. The one extra step: Pi 5 is
+community-tested, not officially tested, and Talos releases have a history of
+changes that can break it. Before merging Renovate's `talos` PR (tuppr rolls it
+out from there), read the Talos release notes and
+[sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi)'s releases
+and open issues for anything touching the Pi 5, the `rpi_5` overlay, U-Boot or
+its ethernet. Past examples: Talos 1.14.0 broke CM5 ethernet (fixed in overlay
+v0.2.2), and [issue #82](https://github.com/siderolabs/sbc-raspberrypi/issues/82)
 (intermittent ethernet dropouts) is still open.
-
-`talosctl upgrade` works: rpi5 went v1.13.4 -> v1.14.4 with it (GRUB A/B slots
-plus the `rpi_5` overlay installer), rebooting in under 90 seconds with
-Tailscale, the USB disk and the end0 ethernet settings intact. Follow
-"Upgrade Talos" in `README.md`, with beelink as the endpoint.
 
 ## Still unsupported
 
