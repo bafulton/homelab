@@ -93,6 +93,15 @@ generate_configs() {
   kubernetes_version=$(yq -r '.kubernetesVersion' "${CLUSTER_FILE}")
   layout=$(yq -r '.configLayout' "${CLUSTER_FILE}")
 
+  # gen config fills defaults from the client's own Talos version, so a client
+  # behind the nodes can emit a config that differs from what they run.
+  local client_version
+  client_version=$(talosctl version --client --short | awk '/Talos/ {print $2}')
+  if [[ "${client_version}" != "${talos_version}" ]]; then
+    printf "  [warn] talosctl is %s but cluster.yaml says %s; download the matching\n" "${client_version}" "${talos_version}"
+    printf "         release from github.com/siderolabs/talos/releases if Homebrew lags.\n"
+  fi
+
   # Clean output directory to remove stale configs from previous runs
   rm -rf "${OUTPUT_DIR}"
   mkdir -p "${OUTPUT_DIR}"
