@@ -16,7 +16,7 @@ Enables Intel GPU hardware acceleration for Kubernetes workloads. Used primarily
    - `siderolabs/i915` - Intel GPU firmware (i915 driver)
    - `siderolabs/intel-ucode` - Intel CPU microcode (recommended)
 
-2. **Generate new Talos image** at https://factory.talos.dev/ with these extensions, then update `talosImageURL` in `talconfig.yaml`
+2. **Generate new Talos image** at https://factory.talos.dev/ with these extensions, then update beelink's `schematic` in `talos/cluster.yaml`
 
 ## How It Works
 

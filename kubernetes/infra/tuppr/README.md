@@ -18,7 +18,7 @@ pending or running.
 
 ## Upgrade Cycle
 
-1. **Talos PR.** Renovate bumps `talosVersion` in `talos/talconfig.yaml` and
+1. **Talos PR.** Renovate bumps `talosVersion` in `talos/cluster.yaml` and
    here. Skim the Talos release notes and
    [sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) for Pi 5
    regressions, `brew upgrade siderolabs/tap/talosctl`, then merge.

@@ -66,7 +66,7 @@ resource "oci_core_instance" "node" {
 
     precondition {
       condition     = length(data.oci_core_images.talos.images) > 0
-      error_message = "No AVAILABLE OCI image named '${local.talos_image_name}'. Run opentofu/oci-node/build-oci-image.sh first (it imports the current talconfig Talos version)."
+      error_message = "No AVAILABLE OCI image named '${local.talos_image_name}'. Run opentofu/oci-node/build-oci-image.sh first (it imports the Talos version in talos/cluster.yaml)."
     }
 
     precondition {

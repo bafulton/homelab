@@ -10,8 +10,8 @@ permalink: homelab/project-homelab-cluster-access
 
 The work machine is **not** the bootstrap machine for the homelab cluster. The cluster PKI (the Talos machine config and talosconfig) lives only on whichever machine bootstrapped homelab, so a kubeconfig cannot be regenerated from the work machine.
 
-- The API endpoint per `talos/talconfig.yaml` is `https://beelink.catfish-mountain.ts.net:6443` (Tailscale hostname; the beelink's Tailscale IP changes and should not be hardcoded).
-- The work machine has no `~/.talos/config`, no `talos/clusterconfig/` (gitignored), no `talos/.env`, no `talsecret.yaml`. Without talosconfig auth to the Talos API, `talosctl kubeconfig` cannot run here.
+- The API endpoint per `talos/cluster.yaml` is `https://beelink.catfish-mountain.ts.net:6443` (Tailscale hostname; the beelink's Tailscale IP changes and should not be hardcoded).
+- The work machine has no `~/.talos/config`, no `talos/clusterconfig/` (gitignored), no `talos/.env`, no `talos/secrets.yaml`. Without talosconfig auth to the Talos API, `talosctl kubeconfig` cannot run here.
 - Any `homelab` context already in `~/.kube/config` may be stale (rebuilt cluster or rotated PKI), so verify it works before trusting it.
 
 **Why:** Investigating homelab cluster state from the work machine requires copying `~/.talos/config` and running `talosctl kubeconfig`, or copying a freshly-issued kubeconfig context, from the bootstrap machine. Neither is present here.

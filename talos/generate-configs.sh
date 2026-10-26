@@ -2,23 +2,32 @@
 set -euo pipefail
 
 # ============================================================================
-# Talos Config Generator (Talhelper Wrapper)
+# Talos Config Generator
 # ============================================================================
 #
-# Generates Talos machine configs using Talhelper.
-# Configuration is defined in talconfig.yaml, secrets in .env file.
+# Generates one machine config per node with `talosctl gen config`.
+# Nodes and versions are defined in cluster.yaml, machine config in patches/,
+# secrets in .env. Each node's config is the generated base for its role plus,
+# in order: patches/all.yaml, patches/controlplane.yaml (control plane only)
+# and patches/nodes/<node>.yaml.
 #
 # Usage: ./generate-configs.sh
 #
 # Prerequisites:
-#   - talhelper: brew install budimanjojo/tap/talhelper
-#   - talosctl:  brew install siderolabs/tap/talosctl
-#   - .env file with TS_CLIENT_ID and TS_CLIENT_SECRET
+#   - talosctl: brew install siderolabs/tap/talosctl
+#   - yq:       brew install yq
+#   - envsubst: brew install gettext
+#   - .env file with TS_CLIENT_ID, TS_CLIENT_SECRET and the *_DISK paths
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
-SECRETS_FILE="${SCRIPT_DIR}/talsecret.yaml"
+CLUSTER_FILE="${SCRIPT_DIR}/cluster.yaml"
+PATCH_DIR="${SCRIPT_DIR}/patches"
+SECRETS_FILE="${SCRIPT_DIR}/secrets.yaml"
 OUTPUT_DIR="${SCRIPT_DIR}/clusterconfig"
+
+# Only these are substituted into patches; any other ${...} is left alone.
+ENV_VARS=(TS_CLIENT_ID TS_CLIENT_SECRET BEELINK_NVME_DISK BEELINK_USB_DISK RPI5_USB_DISK)
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
@@ -34,23 +43,26 @@ load_env() {
   source "${ENV_FILE}"
   set +a
 
-  # Validate required variables
-  if [[ -z "${TS_CLIENT_ID:-}" ]] || [[ -z "${TS_CLIENT_SECRET:-}" ]]; then
-    err "TS_CLIENT_ID and TS_CLIENT_SECRET are required in .env file"
-  fi
+  local var
+  for var in "${ENV_VARS[@]}"; do
+    if [[ -z "${!var:-}" ]]; then
+      err "${var} is required in .env file"
+    fi
+  done
 }
 
 check_dependencies() {
   local missing=()
-  command -v talhelper >/dev/null 2>&1 || missing+=("talhelper (brew install budimanjojo/tap/talhelper)")
   command -v talosctl >/dev/null 2>&1 || missing+=("talosctl (brew install siderolabs/tap/talosctl)")
+  command -v yq >/dev/null 2>&1 || missing+=("yq (brew install yq)")
+  command -v envsubst >/dev/null 2>&1 || missing+=("envsubst (brew install gettext)")
 
   if (( ${#missing[@]} > 0 )); then
     err "Missing required tools:\n  ${missing[*]}"
   fi
 
-  if [[ ! -f "${SCRIPT_DIR}/talconfig.yaml" ]]; then
-    err "talconfig.yaml not found in ${SCRIPT_DIR}"
+  if [[ ! -f "${CLUSTER_FILE}" ]]; then
+    err "cluster.yaml not found in ${SCRIPT_DIR}"
   fi
 }
 
@@ -59,22 +71,79 @@ generate_secrets() {
     log "Using existing secrets from ${SECRETS_FILE}"
   else
     log "Generating new cluster secrets"
-    talhelper gensecret > "${SECRETS_FILE}"
+    talosctl gen secrets -o "${SECRETS_FILE}"
+    chmod 600 "${SECRETS_FILE}"
     printf "  Created: %s\n" "${SECRETS_FILE}"
     printf "  IMPORTANT: Back up this file securely - it contains cluster CA & keys!\n"
   fi
 }
 
+# Writes patch $1 with the .env values filled in to $2.
+render_patch() {
+  envsubst "$(printf '${%s} ' "${ENV_VARS[@]}")" < "$1" > "$2"
+}
+
 generate_configs() {
-  log "Generating Talos configs with Talhelper"
+  log "Generating Talos configs with talosctl"
+
+  local cluster_name endpoint talos_version kubernetes_version layout
+  cluster_name=$(yq -r '.clusterName' "${CLUSTER_FILE}")
+  endpoint=$(yq -r '.endpoint' "${CLUSTER_FILE}")
+  talos_version=$(yq -r '.talosVersion' "${CLUSTER_FILE}")
+  kubernetes_version=$(yq -r '.kubernetesVersion' "${CLUSTER_FILE}")
+  layout=$(yq -r '.configLayout' "${CLUSTER_FILE}")
 
   # Clean output directory to remove stale configs from previous runs
-  if [[ -d "${OUTPUT_DIR}" ]]; then
-    rm -rf "${OUTPUT_DIR}"
-  fi
+  rm -rf "${OUTPUT_DIR}"
+  mkdir -p "${OUTPUT_DIR}"
+  chmod 700 "${OUTPUT_DIR}"
 
-  cd "${SCRIPT_DIR}"
-  talhelper genconfig
+  # Rendered patches hold the Tailscale credentials; keep them out of the repo.
+  local rendered
+  rendered=$(mktemp -d)
+  # shellcheck disable=SC2064  # expand now: rendered is local, the trap runs at exit
+  trap "rm -rf '${rendered}'" EXIT
+
+  render_patch "${PATCH_DIR}/all.yaml" "${rendered}/all.yaml"
+  render_patch "${PATCH_DIR}/controlplane.yaml" "${rendered}/controlplane.yaml"
+
+  local common=(
+    "${cluster_name}" "${endpoint}"
+    --with-secrets "${SECRETS_FILE}"
+    --talos-version "${layout}"
+    --kubernetes-version "${kubernetes_version}"
+    --with-docs=false
+    --with-examples=false
+    --force
+  )
+
+  local count i name role disk schematic args
+  count=$(yq -r '.nodes | length' "${CLUSTER_FILE}")
+  for (( i = 0; i < count; i++ )); do
+    name=$(yq -r ".nodes[${i}].name" "${CLUSTER_FILE}")
+    role=$(yq -r ".nodes[${i}].role" "${CLUSTER_FILE}")
+    disk=$(yq -r ".nodes[${i}].installDisk" "${CLUSTER_FILE}")
+    schematic=$(yq -r ".nodes[${i}].schematic" "${CLUSTER_FILE}")
+
+    [[ -f "${PATCH_DIR}/nodes/${name}.yaml" ]] || err "Missing patches/nodes/${name}.yaml"
+    render_patch "${PATCH_DIR}/nodes/${name}.yaml" "${rendered}/${name}.yaml"
+
+    args=(--config-patch "@${rendered}/all.yaml")
+    if [[ "${role}" == "controlplane" ]]; then
+      args+=(--config-patch "@${rendered}/controlplane.yaml")
+    fi
+    args+=(--config-patch "@${rendered}/${name}.yaml")
+
+    talosctl gen config "${common[@]}" \
+      --output-types "${role}" \
+      --install-disk "${disk}" \
+      --install-image "factory.talos.dev/installer/${schematic}:${talos_version}" \
+      "${args[@]}" \
+      -o "${OUTPUT_DIR}/${cluster_name}-${name}.yaml"
+  done
+
+  talosctl gen config "${common[@]}" --output-types talosconfig -o "${OUTPUT_DIR}/talosconfig"
+  chmod 600 "${OUTPUT_DIR}"/*
 
   printf "\nGenerated configs in %s/\n" "${OUTPUT_DIR}"
 }
@@ -108,13 +177,10 @@ install_talosconfig() {
   # Copy the generated talosconfig
   cp "${generated_config}" "${config_file}"
 
-  # Extract endpoint from talconfig.yaml (e.g., https://beelink.catfish-mountain.ts.net:6443)
-  local full_endpoint
-  full_endpoint=$(awk '/^endpoint:/{print $2}' "${SCRIPT_DIR}/talconfig.yaml")
-
-  # Strip https:// prefix and :port suffix to get just the hostname
+  # Strip https:// prefix and :port suffix from the cluster endpoint
+  # (e.g., https://beelink.catfish-mountain.ts.net:6443) to get just the hostname
   local endpoint
-  endpoint=$(echo "${full_endpoint}" | sed -e 's|https://||' -e 's|:[0-9]*$||')
+  endpoint=$(yq -r '.endpoint' "${CLUSTER_FILE}" | sed -e 's|https://||' -e 's|:[0-9]*$||')
 
   talosctl config endpoint "${endpoint}"
   talosctl config node "${endpoint}"

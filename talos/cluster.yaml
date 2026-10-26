@@ -1,0 +1,44 @@
+# Talos cluster definition, read by generate-configs.sh.
+#
+# This file holds what varies per node at install time (role, disk, image);
+# the machine config itself lives in patches/. Renovate bumps the two versions
+# below, and opentofu/oci-node and the compatibility CI job read talosVersion.
+
+clusterName: homelab
+endpoint: https://beelink.catfish-mountain.ts.net:6443
+talosVersion: v1.14.4
+kubernetesVersion: v1.37.1
+
+# Machine config document layout (talosctl gen config --talos-version). The
+# nodes run the v1.13 layout: one v1alpha1 document plus a few named ones.
+# The v1.14 layout splits the config into ~30 documents (KubeletConfig,
+# ResolverConfig, ...), which every patch in patches/ would need rewriting for.
+# Moving to it is a deliberate migration of its own, not a version bump.
+configLayout: v1.13
+
+# The install image is factory.talos.dev/installer/<schematic>:<talosVersion>.
+nodes:
+  - name: beelink
+    role: controlplane
+    lanIP: 192.168.1.86
+    installDisk: /dev/mmcblk0  # eMMC, not the NVMe SSD
+    # intel-ucode, iscsi-tools, tailscale, util-linux-tools, i915
+    schematic: 445a99db4002e6127e7f6e2a96377ac2c06d0de52f7a186b5536c0ac2f2a2ece
+
+  - name: rpi5
+    role: worker
+    lanIP: 192.168.1.84
+    installDisk: /dev/mmcblk0  # SD card
+    # Official Talos via the sbc-raspberrypi rpi_5 overlay: the rpi_5 overlay +
+    # configTxtAppend "dtparam=eee=off" (disables the BCM54213PE AutogrEEEn
+    # LPI-wake race) + iscsi-tools, tailscale, util-linux-tools.
+    # Read the upgrade guidance in talos/rpi5-notes.md before bumping talosVersion.
+    schematic: 3ec14befcbf3baad2a84ae0dd95bdfaaed37364451e02b8f3c4b79c52a948d37
+
+  - name: ocifree
+    role: worker
+    # Cloud node (OCI Ampere A1, arm64): no LAN presence, reached over Tailscale.
+    installDisk: /dev/sda  # OCI A1 paravirtualized boot volume
+    # Oracle arm64 schematic (iscsi-tools, tailscale, util-linux-tools), built
+    # by opentofu/oci-node/build-oci-image.sh.
+    schematic: 708747e350d604ae9e57227d8dcf274091453ddb1097b765d4ea8884f1992c1f

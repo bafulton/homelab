@@ -24,6 +24,6 @@ output "tailnet_hostname" {
 }
 
 output "talos_image" {
-  description = "The boot image used (keyed on the talconfig Talos version)."
+  description = "The boot image used (keyed on the talos/cluster.yaml Talos version)."
   value       = local.talos_image_name
 }

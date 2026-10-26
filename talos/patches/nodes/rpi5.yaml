@@ -1,0 +1,61 @@
+# rpi5: Raspberry Pi 5 worker. ${VARS} are filled from .env.
+machine:
+  # certSAN so talosctl can reach rpi5 by its tailnet name
+  certSANs:
+    - rpi5.catfish-mountain.ts.net
+
+  nodeLabels:
+    storage.homelab.io/usb: "true"
+    homelab.io/location: "local"
+
+  # Mount USB drive for Longhorn storage
+  disks:
+    - device: ${RPI5_USB_DISK}
+      partitions:
+        - mountpoint: /var/mnt/usb
+
+  kubelet:
+    # Kubelet extraMount for USB drive (Longhorn access)
+    extraMounts:
+      - destination: /var/mnt/usb
+        type: bind
+        source: /var/mnt/usb
+        options:
+          - bind
+          - rshared
+          - rw
+    # LAN IPs for node addresses (MetalLB L2), as on beelink
+    nodeIP:
+      validSubnets:
+        - 192.168.1.0/24
+        - 100.64.0.0/10
+---
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: off
+hostname: rpi5
+---
+# macb TX-stall mitigation (sbc-raspberrypi#91). The in-kernel watchdog
+# (Talos >= v1.13.3) re-kicks a stalled TX ring, but disabling TSO/GSO and
+# enlarging the rings cuts how often it has to. Pairs with the
+# "dtparam=eee=off" baked into the image schematic (cluster.yaml).
+apiVersion: v1alpha1
+kind: EthernetConfig
+name: end0
+features:
+  tx-tcp-segmentation: false
+  tx-tcp6-segmentation: false
+  tx-generic-segmentation: false
+rings:
+  rx: 4096
+  tx: 4096
+---
+# Tailscale extension: durable registration + subnet-route mesh. See the
+# matching document in beelink.yaml for why each flag is set.
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - TS_CLIENT_ID=${TS_CLIENT_ID}
+  - TS_CLIENT_SECRET=${TS_CLIENT_SECRET}?ephemeral=false
+  - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.1.0/24,192.168.1.84/32 --snat-subnet-routes=false

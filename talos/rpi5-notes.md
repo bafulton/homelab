@@ -1,13 +1,13 @@
 # Raspberry Pi 5 Notes
 
 Quirks specific to the rpi5 node. Setup, config generation, upgrades and safe
-reboots are all in [README.md](./README.md) — rpi5 uses the standard talhelper
-workflow like every other node.
+reboots are all in [README.md](./README.md) — rpi5 uses the same workflow as every
+other node.
 
 The node runs official Talos through the `siderolabs/sbc-raspberrypi` `rpi_5`
-overlay, built via Image Factory. The schematic ID, its `dtparam=eee=off`
-append, and the `EthernetConfig` document all live in `talconfig.yaml` with
-comments explaining why.
+overlay, built via Image Factory. The schematic ID and its `dtparam=eee=off`
+append live in `cluster.yaml`, and the `EthernetConfig` document in
+`patches/nodes/rpi5.yaml`, with comments explaining why.
 
 ## TX stalls under load are expected
 
@@ -33,7 +33,7 @@ talosctl -n 192.168.1.84 dmesg | grep -iE "tx stall|link (up|down)"
 
 ## Keep the USB disk attached
 
-`talconfig.yaml` declares `/dev/sda` as a user disk, so when it is missing
+`patches/nodes/rpi5.yaml` declares the USB disk as a user disk, so when it is missing
 `UserDiskConfigController` retries indefinitely and the overlay mounts for
 `/etc/kubernetes`, `/etc/cni`, `/opt` and `/usr/libexec/kubernetes` never
 complete. The kubelet then never starts.

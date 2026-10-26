@@ -7,9 +7,9 @@ Tailscale. Same manual-apply pattern as `opentofu/oci-forwarder`.
 ## Prerequisites
 1. `~/.oci/config` `[DEFAULT]` (the tenancy's API signing key).
 2. The boot image exists: run `./build-oci-image.sh` (idempotent; imports
-   `talos-<talconfig version>-arm64` if missing).
+   `talos-<talos/cluster.yaml version>-arm64` if missing).
 3. The worker config exists at `talos/clusterconfig/homelab-ocifree.yaml`
-   (gitignored; derived from rpi5's live config — see `~/Desktop/oci-node-plan.md`).
+   (gitignored; run `talos/generate-configs.sh`).
 
 ## Apply
 ```sh

@@ -3,7 +3,7 @@
 #
 # Idempotent: the image is named for the Talos version (talos-<version>-arm64)
 # and tagged with the extension schematic, so it rebuilds when EITHER the Talos
-# version (talconfig) OR the extension set below changes. Safe to run any time.
+# version (talos/cluster.yaml) OR the extension set below changes. Safe to run any time.
 #
 # WHEN TO RUN
 #   - Before the first `tofu apply` of opentofu/oci-node/.
@@ -12,21 +12,21 @@
 #   Routine in-place upgrades (tuppr via the installer image) do NOT need this -
 #   the OCI custom image is only used at first boot / reprovision.
 #
-# The extension set below MUST match ocifree's install image schematic in
-# talos/talconfig.yaml (factory.talos.dev/installer/<schematic>:<version>).
+# The extension set below MUST match ocifree's `schematic` in talos/cluster.yaml
+# (installed as factory.talos.dev/installer/<schematic>:<version>).
 #
 # Requires: oci CLI (reads ~/.oci/config), yq, curl, python3, qemu-img
 # (brew install qemu - for the qcow2 -> VMDK conversion). No OCIDs in git.
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TALCONFIG="$REPO_ROOT/talos/talconfig.yaml"
+CLUSTER_FILE="$REPO_ROOT/talos/cluster.yaml"
 BUCKET="talos-images"       # reused object-storage bucket
 PLATFORM="oracle"
 ARCH="arm64"
 SHAPE="VM.Standard.A1.Flex" # must match opentofu instance_shape
 
-# Image contents. Keep in sync with the install image in talconfig.yaml.
+# Image contents. Keep in sync with ocifree's schematic in talos/cluster.yaml.
 # iscsi-tools is included so pods on ocifree can mount Longhorn PVCs: open-iscsi
 # is required on ANY node that attaches a Longhorn volume (RWO volumes attach
 # over iSCSI from the workload's node), not just storage nodes.
@@ -41,7 +41,7 @@ YAML
 
 command -v yq >/dev/null || { echo "yq not found" >&2; exit 1; }
 command -v qemu-img >/dev/null || { echo "qemu-img not found (brew install qemu)" >&2; exit 1; }
-VERSION="$(yq -r '.talosVersion' "$TALCONFIG")"            # e.g. v1.14.4
+VERSION="$(yq -r '.talosVersion' "$CLUSTER_FILE")"            # e.g. v1.14.4
 IMG_NAME="talos-${VERSION}-${ARCH}"                          # talos-v1.14.4-arm64
 COMPARTMENT="$(awk -F= '/^tenancy=/{print $2}' "$HOME/.oci/config")"  # root compartment
 REGION="$(awk -F= '/^region=/{print $2}' "$HOME/.oci/config")"
@@ -49,7 +49,7 @@ REGION="$(awk -F= '/^region=/{print $2}' "$HOME/.oci/config")"
 [ -n "$REGION" ]      || { echo "no region= in ~/.oci/config" >&2; exit 1; }
 IAAS="https://iaas.${REGION}.oraclecloud.com"
 
-echo "Talos version (talconfig): $VERSION"
+echo "Talos version (cluster.yaml): $VERSION"
 echo "Target image:              $IMG_NAME"
 
 # Custom image imports default to a legacy amd64 shape list that omits the
@@ -101,7 +101,7 @@ SCHEMATIC_ID="$(printf '%s' "$SCHEMATIC_YAML" \
   | curl -fsSL -X POST --data-binary @- https://factory.talos.dev/schematics \
   | python3 -c 'import sys,json;print(json.load(sys.stdin)["id"])')"
 echo "Schematic ID:              $SCHEMATIC_ID"
-echo "Install image for talconfig: factory.talos.dev/installer/${SCHEMATIC_ID} (append :${VERSION})"
+echo "ocifree schematic for talos/cluster.yaml: ${SCHEMATIC_ID}"
 
 # 2. Idempotency - skip only if an AVAILABLE image matches BOTH the version (its
 #    display name) AND the current schematic (stored as a freeform tag). A

@@ -1,0 +1,48 @@
+# Applied to every node, before the role and node patches.
+machine:
+  # Talos API certificate SANs for Tailscale access
+  certSANs:
+    - beelink.catfish-mountain.ts.net
+
+  # Networking: Use Tailscale MagicDNS with fallback to Google DNS
+  network:
+    nameservers:
+      - 100.100.100.100
+      - 8.8.8.8
+
+  features:
+    # Forward kube-dns to the Talos host resolver (169.254.116.108). It tries the
+    # nameservers above in order and falls back only on an error, so tailnet
+    # names reliably reach MagicDNS. CoreDNS's own forwarding picks an upstream at
+    # random, so 8.8.8.8 answered NXDOMAIN for *.ts.net and CoreDNS cached it.
+    # After changing this on a running cluster, restart the coredns pods.
+    hostDNS:
+      enabled: true
+      forwardKubeDNSToHost: true
+
+  # Kernel modules for Longhorn storage
+  kernel:
+    modules:
+      - name: iscsi_tcp
+
+  kubelet:
+    # Kubelet mount for Longhorn data path (required for Talos v1.10+). Every
+    # node runs longhorn-manager and the CSI plugin, ocifree included.
+    extraMounts:
+      - destination: /var/lib/longhorn
+        type: bind
+        source: /var/lib/longhorn
+        options:
+          - bind
+          - rshared
+          - rw
+
+  # Sysctls for container networking
+  sysctls:
+    net.core.somaxconn: "65535"
+    net.core.netdev_max_backlog: "4096"
+
+cluster:
+  network:
+    cni:
+      name: flannel

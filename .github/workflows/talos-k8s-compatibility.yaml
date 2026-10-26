@@ -3,7 +3,7 @@ name: Talos-Kubernetes Compatibility Check
 on:
   pull_request:
     paths:
-      - 'talos/talconfig.yaml'
+      - 'talos/cluster.yaml'
       - 'kubernetes/infra/tuppr/templates/talos-upgrade.yaml'
       - 'kubernetes/infra/tuppr/templates/kubernetes-upgrade.yaml'
 
@@ -13,11 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Extract versions from talconfig.yaml
+      - name: Extract versions from cluster.yaml
         id: versions
         run: |
-          TALOS_VERSION=$(grep 'talosVersion:' talos/talconfig.yaml | awk '{print $2}')
-          K8S_VERSION=$(grep 'kubernetesVersion:' talos/talconfig.yaml | awk '{print $2}')
+          TALOS_VERSION=$(grep 'talosVersion:' talos/cluster.yaml | awk '{print $2}')
+          K8S_VERSION=$(grep 'kubernetesVersion:' talos/cluster.yaml | awk '{print $2}')
 
           echo "talos_version=$TALOS_VERSION" >> $GITHUB_OUTPUT
           echo "k8s_version=$K8S_VERSION" >> $GITHUB_OUTPUT

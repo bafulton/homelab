@@ -35,7 +35,7 @@ homelab/
 | Helm charts | Built-in manager | `Chart.yaml` dependencies |
 | GitHub Actions | Built-in manager | `actions/checkout@v6` |
 | Container images | Inline annotations | airconnect, matter-server, python |
-| Talos/Kubernetes | Custom regex manager | `talconfig.yaml`, tuppr values |
+| Talos/Kubernetes | Custom regex manager | `talos/cluster.yaml`, tuppr values |
 | kubectl | Custom regex manager | cluster-maintenance (grouped with K8s) |
 | argocd-diff-preview | Custom regex manager | Docker image in CI workflow |
 
@@ -59,7 +59,7 @@ image:
 
 Talos, Kubernetes, and kubectl versions are grouped together since compatibility depends on the Talos version. When updates are available:
 
-1. Renovate creates a single PR updating `talos/talconfig.yaml`, tuppr upgrade CRs, and kubectl image
+1. Renovate creates a single PR updating `talos/cluster.yaml`, tuppr upgrade CRs, and kubectl image
 2. [CI validates](.github/workflows/talos-k8s-compatibility.yaml) the Kubernetes version is compatible with the Talos version
 3. After merge, [tuppr](https://github.com/home-operations/tuppr) orchestrates the upgrade safely (node-by-node with health checks)
 

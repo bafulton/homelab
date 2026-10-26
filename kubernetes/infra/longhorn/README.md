@@ -10,7 +10,7 @@ Longhorn requires specific Talos configuration:
    - `siderolabs/iscsi-tools` - iSCSI daemon for volume operations
    - `siderolabs/util-linux-tools` - Provides `nsenter` for volume trimming
 
-2. **Kubelet mount** in `talconfig.yaml`:
+2. **Kubelet mount** in `talos/patches/all.yaml`:
    ```yaml
    machine:
      kubelet:
@@ -103,7 +103,7 @@ being deleted. Nothing in this repo references it; leave it alone.
 ### How a class maps to a drive
 
 ```
-talconfig.yaml      device: /dev/disk/by-id/nvme-...  →  mountpoint: /var/mnt/nvme
+talos/patches/      device: /dev/disk/by-id/nvme-...  →  mountpoint: /var/mnt/nvme
        ↓
 nodeConfig          nvme-disk: path=/var/mnt/nvme  tags=["durable","nvme"]   ← tags are born here
                     usb-disk (rpi5): path=/var/mnt/usb  tags=["durable"]

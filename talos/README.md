@@ -28,8 +28,8 @@ direct over the LAN) and the LAN-facing load balancers. Each node's Kubernetes
 `InternalIP` is its LAN address, because **MetalLB runs in L2 mode** and
 ARP-announces its service VIPs (Traefik gateway `192.168.1.200`, time-machine
 `.201`, mosquitto `.202`) on this subnet — L2/ARP only works when the speakers
-hold LAN-adjacent node addresses. Set in `talconfig.yaml` via
-`kubelet.nodeIP.validSubnets`, LAN subnet listed first.
+hold LAN-adjacent node addresses. Set in each home node's patch
+(`patches/nodes/<node>.yaml`) via `kubelet.nodeIP.validSubnets`, LAN subnet listed first.
 
 **Tailscale control / reach plane — `catfish-mountain.ts.net` (`100.64.0.0/10`).**
 Carries the Kubernetes API endpoint (`https://beelink.catfish-mountain.ts.net:6443`),
@@ -62,7 +62,7 @@ into one mesh. Full analysis in `~/Desktop/oci-node-plan.md`.
 Pod-to-pod traffic *between locations* (home ↔ the cloud node) rides Tailscale
 **subnet routes**, not a separate overlay. Every node runs `--accept-routes
 --snat-subnet-routes=false` and advertises its own pod `/24` via
-`--advertise-routes` (set per-node in `talconfig.yaml`; auto-approved for
+`--advertise-routes` (set in each node's patch, `patches/nodes/<node>.yaml`; auto-approved for
 `tag:k8s-node` by `tailscale/policy.hujson`). Each node then installs the
 others' pod `/24`s into Tailscale's routing table 52 and cross-node pod traffic
 flows natively — `--snat-subnet-routes=false` preserves the real pod source IP.
@@ -132,16 +132,16 @@ quirks — e.g. OCI needs a streamOptimized-VMDK import forced to UEFI firmware,
 DHCP options set with no SearchDomain so pods can resolve external names), and
 the platform image from Image Factory (`aws`, `gcp`, … instead of `oracle`). The
 Talos profile — ephemeral, location label, pod-CIDR subnet-route advertisement,
-Tailscale-only node IP — carries over as-is. (When the cluster migrates off the EOL talhelper to
-`talosctl`-native patch files, this profile becomes a single shared remote-node
-patch file rather than a per-node override.)
+Tailscale-only node IP — carries over as-is. It lives in `patches/nodes/ocifree.yaml`
+today; a second remote node is the point to move it into a shared remote-node patch.
 
 ## Prerequisites
 
 ### Local Tools
 
 - [talosctl](https://www.talos.dev/latest/introduction/getting-started/#talosctl) - `brew install siderolabs/tap/talosctl`
-- [talhelper](https://budimanjojo.github.io/talhelper/latest/) - `brew install talhelper`
+- [yq](https://github.com/mikefarah/yq) - `brew install yq`
+- envsubst - `brew install gettext`
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) - `brew install kubectl`
 
 ### Tailscale Setup
@@ -250,13 +250,12 @@ After configuring your image, the Image Factory will display a **schematic ID** 
 Your image schematic ID is: 012427dcde4d2c4eff11f55adf2f20679292fcdffb76b5700dd022c813908b07
 ```
 
-**Copy this ID** - you'll need to add it to `talconfig.yaml` so Talos installs the correct image with your extensions. The schematic goes in the `talosImageURL` field for each node:
+**Copy this ID** - you'll need to add it to `cluster.yaml` so Talos installs the correct image with your extensions. The schematic goes in each node's `schematic` field:
 
 ```yaml
 nodes:
-  - hostname: beelink
-    talosImageURL: factory.talos.dev/installer/<your-schematic-id>
-    # Note: Don't include the version tag - talhelper appends it automatically
+  - name: beelink
+    schematic: <your-schematic-id>  # generate-configs.sh appends :<talosVersion>
 ```
 
 ## Step 2: Flash Images
@@ -287,16 +286,17 @@ For PCs with internal drives (NVMe, SSD), use the ISO to boot and install:
 
 When you boot from the USB in Step 4, Talos will run in maintenance mode. After applying configs, it installs to the internal drive and reboots - then you can remove the USB.
 
-Talos should automatically detect the correct install disk. If for some reason you need to manually specify the install disk, you can add this to your patch:
-```yaml
-machine:
-  install:
-    disk: /dev/nvme0n1  # adjust for your hardware
-```
+Each node's install disk is its `installDisk` in `cluster.yaml` (e.g. `/dev/nvme0n1`); find it with `talosctl get disks --insecure -n <ip>` while the node is in maintenance mode.
 
 ## Step 3: Generate Machine Configs
 
-Configuration uses [Talhelper](https://budimanjojo.github.io/talhelper/latest/), which generates Talos configs from a declarative `talconfig.yaml` file.
+`generate-configs.sh` builds each node's config with `talosctl gen config`, from three inputs:
+
+- `cluster.yaml` - cluster name, endpoint, Talos/Kubernetes versions, and per-node role, install disk and image schematic
+- `patches/` - the machine config: `all.yaml` (every node), `controlplane.yaml` (control plane only) and `nodes/<node>.yaml`, applied in that order
+- `.env` - Tailscale credentials and disk paths, substituted into the patches as `${VAR}`
+
+The configs use the v1.13 document layout (`configLayout` in `cluster.yaml`), which the nodes run; see the comment there before changing it.
 
 ### Configure your environment
 
@@ -307,19 +307,13 @@ cd talos/
 cp .env.example .env
 ```
 
-Edit `.env` to add your Tailscale auth key:
-```bash
-# talos/.env (git-ignored)
-TS_AUTHKEY=tskey-auth-xxxxx
-```
+Edit `.env` to add your Tailscale OAuth client and the nodes' by-id disk paths (see the comments in `.env.example`).
 
-### Customize talconfig.yaml (if needed)
+### Customize cluster.yaml and patches (if needed)
 
-The `talconfig.yaml` file defines your cluster. Review and adjust:
-
-- **Node hostnames** - Update the `nodes:` section if your hostnames differ
-- **Talos/Kubernetes versions** - Update if you want specific versions
-- **Patches** - Add or remove patches as needed
+- **Nodes** - each entry in `cluster.yaml` `nodes:` needs a matching `patches/nodes/<name>.yaml` (hostname, labels, disks, Tailscale)
+- **Talos/Kubernetes versions** - `talosVersion` and `kubernetesVersion` in `cluster.yaml` (Renovate bumps these)
+- **Machine config** - edit the patch that covers the nodes you mean to change
 
 ### Generate configs
 
@@ -333,9 +327,9 @@ Example output:
 ```
 ==> Loading environment from .env file
 
-==> Using existing secrets from talsecret.yaml
+==> Using existing secrets from secrets.yaml
 
-==> Generating Talos configs with Talhelper
+==> Generating Talos configs with talosctl
 
 Generated configs in clusterconfig/
 
@@ -349,23 +343,24 @@ Install talosconfig to /Users/you/.talos/config? [Y/n] y
 This creates:
 - `clusterconfig/homelab-<hostname>.yaml` - Machine config for each node
 - `clusterconfig/talosconfig` - Your talosctl client config
-- `talsecret.yaml` - Cluster secrets (CA certs, keys, tokens)
+- `secrets.yaml` - Cluster secrets (CA certs, keys, tokens), created on the first run only
 
-**Important**: The `clusterconfig/` directory and `talsecret.yaml` contain secrets and should NOT be committed to git. Back up `talsecret.yaml` securely (e.g., password manager) - you'll need it for disaster recovery or regenerating configs.
+**Important**: The `clusterconfig/` directory and `secrets.yaml` contain secrets and should NOT be committed to git. Back up `secrets.yaml` securely (e.g., password manager) - you'll need it for disaster recovery or regenerating configs.
 
 ### Adding a new node later
 
 To add a new worker node:
 
-1. Add the node to `talconfig.yaml`:
+1. Add the node to `cluster.yaml`:
    ```yaml
    nodes:
      # ... existing nodes ...
-     - hostname: new-node
-       controlPlane: false
-       ipAddress: new-node.catfish-mountain.ts.net
+     - name: new-node
+       role: worker
        installDisk: /dev/mmcblk0  # or appropriate disk
+       schematic: <schematic-id>
    ```
+   and create `patches/nodes/new-node.yaml` with its `HostnameConfig`, labels and Tailscale `ExtensionServiceConfig`, modeled on `rpi5.yaml`.
 
 2. Regenerate configs: `./generate-configs.sh`
 3. Flash and boot the new device with Talos

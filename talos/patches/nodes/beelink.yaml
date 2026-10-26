@@ -1,0 +1,85 @@
+# beelink: control plane + main workload node. ${VARS} are filled from .env.
+machine:
+  nodeLabels:
+    storage.homelab.io/emmc: "true"
+    storage.homelab.io/nvme: "true"
+    storage.homelab.io/usb: "true"
+    homelab.io/location: "local"
+  # Soft anti-affinity: bias movable workloads OFF this node toward rpi5.
+  # PreferNoSchedule is a preference, not a ban — pods that can only run here
+  # (Longhorn-PVC via node affinity, amd64-only images, static control-plane)
+  # still schedule because the soft taint yields when there's no alternative.
+  # Custom untolerated key so it applies to all genuinely-movable pods.
+  # Works together with the descheduler: descheduler evicts off beelink, this
+  # taint (TaintToleration weight 3 > ImageLocality weight 1) makes the
+  # scheduler re-home them onto rpi5 instead of straight back here.
+  nodeTaints:
+    homelab.io/prefer-off: "true:PreferNoSchedule"
+
+  # Mount NVME and USB drives for Longhorn storage
+  disks:
+    - device: ${BEELINK_NVME_DISK}
+      partitions:
+        - mountpoint: /var/mnt/nvme
+    - device: ${BEELINK_USB_DISK}
+      partitions:
+        - mountpoint: /var/mnt/usb
+
+  kubelet:
+    # Kubelet extraMounts for Longhorn to access NVME and USB drives
+    extraMounts:
+      - destination: /var/mnt/nvme
+        type: bind
+        source: /var/mnt/nvme
+        options:
+          - bind
+          - rshared
+          - rw
+      - destination: /var/mnt/usb
+        type: bind
+        source: /var/mnt/usb
+        options:
+          - bind
+          - rshared
+          - rw
+    # Kubelet: Use LAN IPs for node addresses (enables MetalLB L2 mode)
+    # Tailscale is still used for API access via the endpoint
+    nodeIP:
+      validSubnets:
+        - 192.168.1.0/24
+        - 100.64.0.0/10
+---
+apiVersion: v1alpha1
+kind: HostnameConfig
+auto: off
+hostname: beelink
+---
+# Tailscale extension. Each node carries its own copy because the args differ
+# per node, and talosctl merges environment lists rather than replacing them.
+#
+# NOTE: containerboot registers OAuth client secrets as ephemeral nodes by
+# default (Tailscale deletes the node soon after it goes offline). Appending
+# ?ephemeral=false makes the node durable, so a power loss / extended outage
+# doesn't cause the node to be reaped and re-registered as an ephemeral node
+# on reconnect.
+#
+# No --accept-dns: Talos owns the node's DNS, with 100.100.100.100 as its
+# first nameserver. MagicDNS still answers tailnet names without the flag and
+# returns SERVFAIL for the rest, so the host resolver moves on to 8.8.8.8.
+# With the flag, Tailscale forwarded every non-tailnet name to the system
+# resolver (127.0.0.53), which forwarded it straight back to MagicDNS: a loop
+# that ran at ~600 queries/s and made MagicDNS drop queries.
+#
+# Subnet-route mesh: advertise this node's pod /24 (and its LAN IP) so the
+# remote node can route to its pods, with --snat-subnet-routes=false to
+# preserve pod source IPs. accept-routes stays ON (home nodes reach the remote
+# node's pods via table 52); the subnet-route-steering DaemonSet pins
+# local<->local back to the LAN so it never rides Tailscale. See
+# kubernetes/infra/subnet-route-steering + talos/README.md "Cross-node pod networking".
+apiVersion: v1alpha1
+kind: ExtensionServiceConfig
+name: tailscale
+environment:
+  - TS_CLIENT_ID=${TS_CLIENT_ID}
+  - TS_CLIENT_SECRET=${TS_CLIENT_SECRET}?ephemeral=false
+  - TS_EXTRA_ARGS=--accept-routes --ssh --advertise-tags=tag:k8s-node --advertise-routes=10.244.0.0/24,192.168.1.86/32 --snat-subnet-routes=false

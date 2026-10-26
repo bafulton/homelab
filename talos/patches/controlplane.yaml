@@ -1,0 +1,45 @@
+# Applied to control-plane nodes, after all.yaml.
+machine:
+  # Enable Talos API access from Kubernetes for tuppr upgrade controller
+  features:
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles:
+        - os:admin
+      allowedKubernetesNamespaces:
+        - tuppr
+
+  # Drops the node.kubernetes.io/exclude-from-external-load-balancers label
+  # talosctl gives control-plane nodes by default: beelink is also a workload
+  # node, and the label would stop MetalLB announcing from it. A delete patch
+  # can't name that one key (it splits on the dots), so this clears the whole
+  # map; the node patch, applied after this one, sets the node's own labels.
+  nodeLabels:
+    $patch: delete
+
+cluster:
+  allowSchedulingOnControlPlanes: true
+
+  apiServer:
+    # API server certificate SANs for Tailscale access
+    certSANs:
+      - beelink.catfish-mountain.ts.net
+      - beelink
+      - 127.0.0.1
+    # kube-apiserver has no memory limit, so nothing bounds Go's GC from
+    # holding onto its high-water mark. GOMEMLIMIT is a soft target — unlike
+    # a hard k8s limit, exceeding it triggers more GC, not an OOMKill, so
+    # it's safe on the cluster's only control-plane node. Set ~12% above
+    # observed steady-state usage (the initial 2765MiB was too generous to
+    # ever engage the GC — usage never got close to it).
+    env:
+      GOMEMLIMIT: 2150MiB
+
+  # Disable in-tree cloud provider
+  controllerManager:
+    extraArgs:
+      cloud-provider: external
+
+  # CoreDNS pod anti-affinity is applied via kubectl patch after upgrade-k8s
+  # (inline manifest approach conflicts with upgrade-k8s manifest reconciliation
+  # because partial Deployment specs fail Kubernetes validation)

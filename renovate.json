@@ -6,9 +6,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Track Talos version in talconfig.yaml",
+      "description": "Track Talos version in talos/cluster.yaml",
       "fileMatch": [
-        "talos/talconfig\\.yaml$"
+        "talos/cluster\\.yaml$"
       ],
       "matchStrings": [
         "talosVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
@@ -18,9 +18,9 @@
     },
     {
       "customType": "regex",
-      "description": "Track Kubernetes version in talconfig.yaml",
+      "description": "Track Kubernetes version in talos/cluster.yaml",
       "fileMatch": [
-        "talos/talconfig\\.yaml$"
+        "talos/cluster\\.yaml$"
       ],
       "matchStrings": [
         "kubernetesVersion: (?<currentValue>v\\d+\\.\\d+\\.\\d+)"
