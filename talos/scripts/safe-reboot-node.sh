@@ -119,7 +119,9 @@ echo ""
 echo "Step 6/6: Waiting for node to reboot and become Ready..."
 echo "This typically takes 2-3 minutes..."
 DEADLINE=$((SECONDS + 600))
-until [ "$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null)" != "$BOOT_ID" ]; do
+# An empty read means the API didn't answer, not that the node rebooted.
+until NEW_BOOT_ID=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null) \
+  && [ -n "$NEW_BOOT_ID" ] && [ "$NEW_BOOT_ID" != "$BOOT_ID" ]; do
   if [ $SECONDS -ge $DEADLINE ]; then
     echo "⚠ Warning: Node did not reboot within 10 minutes; leaving it cordoned"
     echo "Check node status manually: kubectl get node $NODE_NAME"
