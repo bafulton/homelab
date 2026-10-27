@@ -27,7 +27,7 @@ SECRETS_FILE="${SCRIPT_DIR}/secrets.yaml"
 OUTPUT_DIR="${SCRIPT_DIR}/clusterconfig"
 
 # Only these are substituted into patches; any other ${...} is left alone.
-ENV_VARS=(TS_CLIENT_ID TS_CLIENT_SECRET BEELINK_NVME_DISK BEELINK_USB_DISK RPI5_USB_DISK)
+ENV_VARS=(TS_CLIENT_ID TS_CLIENT_SECRET BEELINK_NVME_DISK BEELINK_USB_DISK BEELINK_TM_DISK RPI5_USB_DISK)
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }

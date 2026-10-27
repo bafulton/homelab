@@ -16,7 +16,7 @@ machine:
   nodeTaints:
     homelab.io/prefer-off: "true:PreferNoSchedule"
 
-  # Mount NVME and USB drives for Longhorn storage
+  # NVMe: Longhorn. USB: Jellyfin media. TM: Time Machine's own USB drive.
   disks:
     - device: ${BEELINK_NVME_DISK}
       partitions:
@@ -24,9 +24,12 @@ machine:
     - device: ${BEELINK_USB_DISK}
       partitions:
         - mountpoint: /var/mnt/usb
+    - device: ${BEELINK_TM_DISK}
+      partitions:
+        - mountpoint: /var/mnt/tm
 
   kubelet:
-    # Kubelet extraMounts for Longhorn to access NVME and USB drives
+    # Kubelet extraMounts so pods can reach the data drives
     extraMounts:
       - destination: /var/mnt/nvme
         type: bind
@@ -38,6 +41,13 @@ machine:
       - destination: /var/mnt/usb
         type: bind
         source: /var/mnt/usb
+        options:
+          - bind
+          - rshared
+          - rw
+      - destination: /var/mnt/tm
+        type: bind
+        source: /var/mnt/tm
         options:
           - bind
           - rshared

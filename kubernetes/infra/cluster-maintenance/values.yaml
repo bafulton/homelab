@@ -41,6 +41,7 @@ fstrim:
       paths:
         - /var/mnt/nvme   # Longhorn nvme-disk
         - /var/mnt/usb    # Jellyfin media
+        - /var/mnt/tm     # Time Machine
     - name: rpi5
       paths:
         - /var/mnt/usb    # Garage + Longhorn usb-disk
