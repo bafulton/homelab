@@ -72,7 +72,7 @@ The rule is enforced three ways:
 - **`state` and `scratch`** are `dataLocality: strict-local`, so Longhorn
   refuses to attach the volume on any node but its replica's. Workloads using
   them also carry `nodeSelector: kubernetes.io/hostname: beelink`, with a
-  comment saying why (ClickHouse, ZooKeeper, the SigNoz app, Time Machine).
+  comment saying why (ClickHouse, ZooKeeper, the SigNoz app).
 - **tuppr's health checks** refuse to start an upgrade while any Longhorn
   volume is neither replicated nor strict-local, so a violation shows up as a
   waiting upgrade with a `HealthChecksFailed` event rather than a hung drain.

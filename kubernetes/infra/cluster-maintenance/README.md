@@ -48,7 +48,7 @@ data filesystems listed under `fstrim.nodes` in `values.yaml`:
 
 | Node | Paths |
 |------|-------|
-| beelink | `/var/mnt/nvme` (Longhorn), `/var/mnt/usb` (Jellyfin media) |
+| beelink | `/var/mnt/nvme` (Longhorn), `/var/mnt/usb` (Jellyfin media), `/var/mnt/tm` (Time Machine) |
 | rpi5 | `/var/mnt/usb` (Garage + Longhorn) |
 
 Talos runs no periodic trim and these xfs mounts have no `discard` option, so

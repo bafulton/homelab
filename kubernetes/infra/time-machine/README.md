@@ -6,7 +6,7 @@ Network-accessible Time Machine backup destination for macOS, using Samba with A
 
 | | |
 |---|---|
-| **Storage** | Longhorn NVMe (1.8TB) |
+| **Storage** | Dedicated 2 TB USB SSD on beelink (`/var/mnt/tm/time-machine`, hostPath PV) |
 | **Protocol** | SMB3 with vfs_fruit |
 | **Discovery** | mDNS via mdns-advertiser |
 | **Access** | MetalLB IP: 192.168.1.201 |
@@ -42,10 +42,22 @@ MacBook ──► SMB: Connect to 192.168.1.201
                    │
                    ▼
          ┌─────────────────────┐
-         │  Longhorn NVMe PVC  │
-         │      1.8 TB         │
+         │  hostPath PV        │
+         │  beelink /var/mnt/tm│
+         │  2 TB USB SSD       │
          └─────────────────────┘
 ```
+
+## Storage
+
+The share lives on its own USB SSD, mounted by Talos at `/var/mnt/tm`
+(`talos/patches/nodes/beelink.yaml`, device path `BEELINK_TM_DISK` in
+`talos/.env`), and reaches the pod through a static hostPath PV from the
+`local-storage` chart. It is not on Longhorn: a backup target gains nothing
+from replication or snapshots, and its sustained writes stay off the NVMe that
+Longhorn's apps share. The PV's node affinity and the pod's `nodeSelector`
+keep it on beelink; a beelink drain evicts it and it waits Pending until
+beelink returns. Weekly `fstrim` covers the drive (`cluster-maintenance`).
 
 ## Users
 
@@ -121,5 +133,8 @@ fruit:time machine max size = 900G
 ### Backup fails or is slow
 
 1. Check pod logs: `kubectl logs -n time-machine -l app.kubernetes.io/name=time-machine`
-2. Verify storage: `kubectl get pvc -n time-machine`
-3. Check Longhorn volume health in Longhorn UI
+2. Verify storage: `kubectl get pvc -n time-machine` (bound to the
+   `time-machine-data` PV), and that the drive is mounted:
+   `talosctl -n 192.168.1.86 get mountstatus | grep /var/mnt/tm`. The PV is
+   `hostPath.type: Directory`, so the pod fails to start rather than writing
+   to `/var` if the drive is missing.
