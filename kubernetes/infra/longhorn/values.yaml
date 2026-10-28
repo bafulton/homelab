@@ -130,8 +130,9 @@ storageClasses:
 
   # Operational state that is either rebuildable or too large to back up
   # (observability stores). Single replica on beelink's NVMe, pinned there by
-  # strict-local; these apps stop while beelink is down. SigNoz's ClickHouse is ~98% of all Longhorn writes - too much to
-  # mirror through rpi5's USB bridge.
+  # strict-local; these apps stop while beelink is down. SigNoz's ClickHouse
+  # is ~98% of all Longhorn writes - too much to mirror through rpi5's USB
+  # bridge.
   - name: state
     diskSelector: nvme
     replicas: 1
