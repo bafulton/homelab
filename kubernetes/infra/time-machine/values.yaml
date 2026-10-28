@@ -6,20 +6,18 @@ service:
 
 # Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
 # SMB share backed by a single RWO volume.
-replicaCount: 0
+replicaCount: 1
 
-# Storage configuration
-# NVMe disk is ~1.9TB, so request 1.8Ti to leave headroom
-#
-# `enabled` exists so the claim can be withdrawn without deleting the app,
-# which is what makes a storage-class migration possible: storageClassName is
-# immutable on a PVC, so the claim has to be recreated. Gated with a plain
-# `if` and always set explicitly here - Helm's `default` treats false as empty,
-# so `.enabled | default true` would render true and silently ignore false.
-storage:
-  enabled: true
-  storageClass: state
-  size: 1800Gi
+# Storage: a dedicated 2 TB USB SSD on beelink, mounted at /var/mnt/tm by
+# Talos (talos/patches/nodes/beelink.yaml). A plain hostPath rather than
+# Longhorn: a backup target gets nothing from replication or snapshots, and
+# it keeps 1 TiB of sustained writes off the Longhorn NVMe.
+local-storage:
+  pvcs:
+    - name: time-machine-data
+      path: /var/mnt/tm/time-machine
+      size: 1800Gi
+      node: beelink
 
 # Time Machine configuration
 # Single shared account - per-machine quotas enforced via .quota.plist

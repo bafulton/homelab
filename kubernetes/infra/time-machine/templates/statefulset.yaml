@@ -18,19 +18,11 @@ spec:
       labels:
         app.kubernetes.io/name: time-machine
     spec:
-      # Time Machine must run on beelink, the only node labelled nvme, for two
-      # reasons:
-      # - Upgrades: its volume is a single Longhorn replica on beelink's NVMe
-      #   (over 1 TiB, too large for a second replica elsewhere). On any other
-      #   node the pod would keep that replica in use through a beelink drain,
-      #   and Longhorn's instance-manager PDB would block the drain - and with
-      #   it every tuppr/talosctl Talos upgrade and safe-reboot-node.sh run.
-      #   Pinned, the drain evicts it, the volume detaches, and the drain
-      #   completes.
-      # - Performance: backups write straight to the local disk instead of
-      #   crossing the network twice (Mac -> pod's node -> beelink).
+      # Time Machine runs on beelink, where its USB drive is. The hostPath
+      # PV's node affinity already binds it there; this states it outright.
+      # A beelink drain evicts it, and it waits Pending until beelink is back.
       nodeSelector:
-        storage.homelab.io/nvme: "true"
+        kubernetes.io/hostname: beelink
       containers:
         - name: time-machine
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
