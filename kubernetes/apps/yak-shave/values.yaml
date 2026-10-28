@@ -21,7 +21,7 @@ image:
   # Immutable per commit, so there is no tag to overwrite and no VERSION to
   # remember to bump - the failure mode the images/ guard exists for cannot
   # happen here. Renovate deliberately does not track this.
-  tag: "sha-563c4fd88336f6dfaf302520aea9afc085fd4a58"
+  tag: "sha-ee414f380e0e57d183ecfefd3ab2686f3b475680"
   pullPolicy: IfNotPresent
 
 # Two, one per node. The spread is enforced rather than preferred: beelink
