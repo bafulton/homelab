@@ -200,6 +200,14 @@ k8s-infra:
           metrics:
             metric:
               - type == METRIC_DATA_TYPE_HISTOGRAM and IsMatch(name, "^longhorn_(rest_client|workqueue)_")
+        # ArgoCD's per-RPC-method gRPC server counters (argocd-server and
+        # repo-server) were ~4% of all ingested samples, referenced by no
+        # dashboard or alert. Scoped to the argocd namespace so another app's
+        # gRPC metrics aren't dropped silently.
+        filter/argocd_grpc:
+          metrics:
+            datapoint:
+              - IsMatch(metric.name, "^grpc_server_") and attributes["k8s_namespace_name"] == "argocd"
       service:
         pipelines:
           logs:
@@ -213,4 +221,5 @@ k8s-infra:
               - resourcedetection
               - transform/longhorn_histograms
               - filter/longhorn_histograms
+              - filter/argocd_grpc
               - batch
