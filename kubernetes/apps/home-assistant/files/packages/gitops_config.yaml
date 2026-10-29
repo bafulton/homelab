@@ -3,9 +3,12 @@
 # This package is auto-applied via the home-assistant-packages ConfigMap.
 # Changes here take effect on the next HA restart (triggered by the reloader).
 
-# HTTP reverse-proxy settings (use_x_forwarded_for, trusted_proxies for
-# 10.244.0.0/16 pod CIDR + 192.168.1.0/24 LAN) are UI-managed (YAML is ignored):
-# Settings > System > Network, stored in /config/.storage/http on the PVC.
+# HTTP reverse-proxy settings are UI-managed (YAML is ignored): Settings >
+# System > Network, stored in /config/.storage/http on the PVC. trusted_proxies
+# holds every address Traefik's requests can arrive from at HA's hostNetwork
+# port: 10.244.0.0/16 (pod CIDR), 192.168.1.0/24 (a home node's IP, after
+# flannel masquerades pod traffic to a node address), and 100.64.0.0/10 (a
+# remote node's Tailscale IP, the same masquerade from a Traefik on ocifree).
 
 # Frontend themes
 frontend:

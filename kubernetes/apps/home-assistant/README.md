@@ -153,3 +153,31 @@ The Theengs decoder library supports many BLE devices including:
 - SwitchBot devices
 - Xiaomi/Mijia sensors
 - Many more: https://decoder.theengs.io/devices/devices.html
+
+## Pocket ID Sign-in
+
+Friends sign in with their Pocket ID account (`auth.fultonhuffman.com`) when
+they are in its `home` group. Config: `files/packages/auth_oidc.yaml`.
+
+Setup, once:
+
+1. In HACS, install **OpenID Connect** (`christiaangoossens/hass-oidc-auth`).
+2. In Pocket ID, add an OIDC client: name `Home Assistant`, **Public Client**
+   on, callback URLs `https://home.fultonhuffman.com/auth/oidc/callback` and
+   `http://home.local/auth/oidc/callback`, allowed group `home`.
+3. Add `files/packages/auth_oidc.yaml` with its client ID, then push:
+   ```yaml
+   auth_oidc:
+     client_id: "<client ID>"
+     discovery_url: https://auth.fultonhuffman.com/.well-known/openid-configuration
+     display_name: Pocket ID
+     roles:
+       user: home
+       # A group nobody is in, so no Pocket ID user is ever an admin.
+       admin: home-admins
+   ```
+
+Each friend gets a new, non-admin Home Assistant user on first sign-in. To
+revoke access, remove them from `home` in Pocket ID **and** deactivate their
+user under **Settings → People → Users**: Home Assistant keeps its own
+refresh tokens, so the app stays signed in until the user is deactivated.
