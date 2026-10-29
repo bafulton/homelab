@@ -206,3 +206,39 @@ Once the pod is deleted, safely eject/unplug the external drive.
 4. Add media libraries pointing to `/media`
 5. Configure hardware transcoding (see above)
 6. Connect Infuse: Settings > Add Library > Jellyfin > enter server URL
+
+## Pocket ID Sign-in
+
+Friends in Pocket ID's `media` group sign in with their Pocket ID account
+through the [SSO plugin](https://github.com/9p4/jellyfin-plugin-sso). It works
+in the web UI; apps and TVs sign in with **Quick Connect**, approved from a
+signed-in browser. Local Jellyfin accounts keep working alongside it.
+
+The plugin's settings live in Jellyfin's config volume, set up once in the
+dashboard:
+
+1. **Pocket ID → OIDC Clients → Add**: name `Jellyfin`, **Public Client** off,
+   callback URL `https://media.fultonhuffman.com/sso/OID/redirect/pocket-id`,
+   allowed group `media`. Create a client secret.
+2. **Dashboard → Plugins → Repositories**: add
+   `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`,
+   then install **SSO Authentication** from the catalog and restart Jellyfin.
+3. **Plugins → SSO Authentication**, add an OpenID provider named `pocket-id`:
+   - **OID Endpoint**: `https://auth.fultonhuffman.com`
+   - **Client ID / Secret**: from step 1
+   - **Enabled**, **Enable Authorization**: on
+   - **Roles**: `media`; **Admin Roles**: empty; **Role Claim**: `groups`
+   - **Scopes**: `groups`
+   - **Enable All Folders**: on
+   - **Scheme Override**: `https`. Jellyfin has no known proxies set, so it
+     would otherwise build `http://` callback URLs behind Traefik
+4. **Dashboard → General → Branding → Login disclaimer**, for a sign-in button:
+   ```html
+   <form action="https://media.fultonhuffman.com/sso/OID/start/pocket-id">
+     <button class="raised block emby-button button-submit">Sign in with Pocket ID</button>
+   </form>
+   ```
+
+Each friend gets a Jellyfin user on first sign-in. To revoke access, remove
+them from `media` in Pocket ID **and** disable their Jellyfin user: Jellyfin
+keeps its own sessions, so signed-in devices stay signed in until then.
