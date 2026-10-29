@@ -1,8 +1,9 @@
 # Garage - S3-compatible object storage
 #
-# Serves two consumers:
+# Serves three consumers:
 #   - Longhorn volume backups  (backupTarget s3://longhorn-backups@us-east-1/)
 #   - VolSync restic backups   (jellyfin-media, which is hostPath, not Longhorn)
+#   - etcd snapshots           (cluster-maintenance's etcd-backup CronJob)
 #
 # Upstream chart is datahub-local/garage-helm, a fork of the in-repo Deuxfleurs
 # chart that adds a declarative bootstrap job (layout + buckets + keys). The
@@ -93,7 +94,7 @@ garage:
   nodeSelector:
     kubernetes.io/hostname: rpi5
 
-  # Declarative bootstrap: assigns the cluster layout, creates both buckets, and
+  # Declarative bootstrap: assigns the cluster layout, creates the buckets, and
   # imports the S3 key from garage-s3-credentials. Runs as a post-install/
   # post-upgrade hook and is idempotent (every garage command is `|| true`).
   clusterConfig:
@@ -107,6 +108,7 @@ garage:
     buckets:
       - name: longhorn-backups
       - name: volsync-backups
+      - name: etcd-backups
     keys:
       longhorn-backup:
         secretName: garage-s3-credentials
@@ -115,6 +117,7 @@ garage:
         buckets:
           - longhorn-backups
           - volsync-backups
+          - etcd-backups
 
   # Bucket/key/usage browser. Exposed only on
   # catfish-mountain.com, which is wildcard_public = false, so it resolves

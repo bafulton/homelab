@@ -1,13 +1,17 @@
 # Applied to control-plane nodes, after all.yaml.
 machine:
-  # Enable Talos API access from Kubernetes for tuppr upgrade controller
+  # Talos API access from Kubernetes: tuppr (upgrades) and cluster-maintenance's
+  # etcd-backup CronJob in kube-system (os:etcd:backup only, via its own
+  # talos.dev ServiceAccount).
   features:
     kubernetesTalosAPIAccess:
       enabled: true
       allowedRoles:
         - os:admin
+        - os:etcd:backup
       allowedKubernetesNamespaces:
         - tuppr
+        - kube-system
 
   # Drops the node.kubernetes.io/exclude-from-external-load-balancers label
   # talosctl gives control-plane nodes by default: beelink is also a workload

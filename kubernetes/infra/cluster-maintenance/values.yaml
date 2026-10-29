@@ -45,3 +45,34 @@ fstrim:
     - name: rpi5
       paths:
         - /var/mnt/usb    # Garage + Longhorn usb-disk
+
+# Daily snapshot of etcd, the cluster's only copy of its state (single
+# control-plane node, on beelink's eMMC), to Garage on rpi5. Restoring it
+# brings back everything Git can't recreate: Longhorn's volume records and
+# PV bindings, cert-manager's issued certificates, and the rest of the live
+# objects. Recover with `talosctl bootstrap --recover-from`.
+etcdBackup:
+  enabled: true
+  schedule: "15 4 * * *"   # 04:15 UTC, a quiet hour
+  endpoint: http://garage.garage.svc.cluster.local:3900
+  bucket: etcd-backups
+  retention: 30d
+  # Keep in step with the cluster's Talos version (talos/cluster.yaml).
+  talosctl:
+    repository: ghcr.io/siderolabs/talosctl
+    # renovate: datasource=docker depName=ghcr.io/siderolabs/talosctl
+    tag: v1.14.4
+  rclone:
+    repository: rclone/rclone
+    # renovate: datasource=docker depName=rclone/rclone
+    tag: "1.75.2"
+
+# Garage S3 key for the etcd-backups bucket: the same key Longhorn and VolSync
+# use (see kubernetes/infra/garage/values.yaml). The key ID is a literal; the
+# secret is a Bitwarden UUID.
+bitwarden-secret:
+  secrets:
+    - name: etcd-backup-s3
+      data:
+        AWS_ACCESS_KEY_ID: "GK692f81c1982632383b08d5ff"
+        AWS_SECRET_ACCESS_KEY: "154f9f3f-ec4f-40d8-8ae1-b4e701515074"

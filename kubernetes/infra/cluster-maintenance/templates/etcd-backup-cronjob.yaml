@@ -1,0 +1,90 @@
+{{- if .Values.etcdBackup.enabled }}
+# Talos mints a talosconfig for this into a Secret of the same name, limited to
+# the os:etcd:backup role. The role and this namespace must both be allowed in
+# machine.features.kubernetesTalosAPIAccess (talos/patches/controlplane.yaml).
+apiVersion: talos.dev/v1alpha1
+kind: ServiceAccount
+metadata:
+  name: etcd-backup
+  namespace: {{ .Release.Namespace }}
+spec:
+  roles:
+    - os:etcd:backup
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: etcd-backup
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ .Values.etcdBackup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400
+      backoffLimit: 1
+      template:
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+          initContainers:
+            # The talos service in the default namespace fronts the control
+            # plane's Talos API, so no node address is needed here.
+            - name: snapshot
+              image: "{{ .Values.etcdBackup.talosctl.repository }}:{{ .Values.etcdBackup.talosctl.tag }}"
+              args: ["etcd", "snapshot", "/backup/etcd.snapshot"]
+              env:
+                - name: TALOSCONFIG
+                  value: /var/run/secrets/talos.dev/config
+              volumeMounts:
+                - name: talos-secrets
+                  mountPath: /var/run/secrets/talos.dev
+                  readOnly: true
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: upload
+              image: "{{ .Values.etcdBackup.rclone.repository }}:{{ .Values.etcdBackup.rclone.tag }}"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  test -s /backup/etcd.snapshot
+                  dest="garage:{{ .Values.etcdBackup.bucket }}/etcd-$(date -u +%Y%m%dT%H%M%SZ).snapshot"
+                  rclone copyto /backup/etcd.snapshot "$dest"
+                  echo "uploaded $dest ($(wc -c < /backup/etcd.snapshot) bytes)"
+                  rclone delete --min-age {{ .Values.etcdBackup.retention }} "garage:{{ .Values.etcdBackup.bucket }}"
+                  rclone lsl "garage:{{ .Values.etcdBackup.bucket }}"
+              env:
+                - name: RCLONE_CONFIG_GARAGE_TYPE
+                  value: s3
+                - name: RCLONE_CONFIG_GARAGE_PROVIDER
+                  value: Other
+                - name: RCLONE_CONFIG_GARAGE_ENDPOINT
+                  value: {{ .Values.etcdBackup.endpoint | quote }}
+                - name: RCLONE_CONFIG_GARAGE_REGION
+                  value: us-east-1
+                - name: RCLONE_CONFIG_GARAGE_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: etcd-backup-s3
+                      key: AWS_ACCESS_KEY_ID
+                - name: RCLONE_CONFIG_GARAGE_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: etcd-backup-s3
+                      key: AWS_SECRET_ACCESS_KEY
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                  readOnly: true
+          volumes:
+            - name: talos-secrets
+              secret:
+                secretName: etcd-backup
+            - name: backup
+              emptyDir: {}
+{{- end }}
