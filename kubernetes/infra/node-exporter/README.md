@@ -4,13 +4,17 @@ Prometheus node_exporter for hardware and OS metrics from each node.
 
 ## Metrics Collected
 
-- **Temperature**: CPU/SoC temps via hwmon and thermal_zone
-- **CPU**: Usage, info, frequency
-- **Memory**: Usage, available, cached
-- **Disk**: I/O, space usage
-- **Network**: Interface traffic, errors
+Only what SigNoz's own host metrics don't already cover:
+
+- **Temperature**: CPU/SoC temps via hwmon and thermal_zone (Node Temperature
+  dashboard, High Node Temperature alert)
 - **Pressure**: Linux PSI metrics (CPU/memory/IO pressure)
-- **Processes**: Process count by state
+- **Processes**: process and thread counts by state
+
+Every other collector is off (`--collector.disable-defaults`). CPU, memory,
+disk, filesystem and network come from SigNoz's hostmetrics receiver
+(`signoz-k8s-infra`). Enable a collector here again only for something that
+receiver lacks.
 
 ## Integration
 

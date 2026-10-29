@@ -6,13 +6,21 @@ prometheus-node-exporter:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9100"
 
-  # Enable additional collectors (most are enabled by default)
+  # Only what SigNoz's own host metrics (signoz-k8s-infra) don't collect:
+  # temperatures (hwmon, thermal_zone) for the Node Temperature dashboard and
+  # alert, plus PSI pressure and process counts for bottleneck diagnosis.
+  # CPU, memory, disk, filesystem and network come from SigNoz's hostmetrics
+  # receiver; node-exporter's default copies of them (network alone, counting
+  # every pod's veth interface, was ~8% of all ingested samples) are off.
+  # Replaces the chart's default extraArgs, which only tune the filesystem
+  # collector.
   extraArgs:
+    - --collector.disable-defaults
     - --collector.hwmon
     - --collector.thermal_zone
-    - --collector.cpu.info
     - --collector.pressure
     - --collector.processes
+    - --web.disable-exporter-metrics
 
   # Node exporter needs access to host paths for hardware metrics
   hostRootFsMount:
