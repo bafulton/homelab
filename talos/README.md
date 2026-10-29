@@ -523,6 +523,10 @@ Direct reboots can cause filesystem corruption because:
 ./scripts/safe-reboot-node.sh beelink
 ```
 
+Reboot one node at a time, and let beelink settle (pods Running, eMMC idle)
+before the next disruptive change; see "Pace the disruptive steps" in
+`kubernetes/infra/tuppr/README.md`.
+
 The script performs these steps automatically:
 1. Cordons the node (prevents new pods)
 2. Drains the node (evicts pods gracefully, 5-minute timeout)

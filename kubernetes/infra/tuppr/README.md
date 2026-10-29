@@ -33,7 +33,25 @@ pending or running.
 Be around for step 2. Every Longhorn volume has its only replica on beelink,
 and beelink is the only control-plane node, so its turn takes the API server
 and every Longhorn-backed app down for the few minutes of drain and reboot.
-rpi5's turn moves its pods to beelink and is barely noticeable.
+rpi5's turn moves its pods to beelink, which then pulls their images.
+
+### Pace the disruptive steps
+
+etcd and containerd share beelink's eMMC (`/var`), and the eMMC saturates
+under a burst of image pulls: etcd's writes then take seconds instead of
+milliseconds, kube-scheduler and kube-controller-manager lose their leases,
+and on 2026-10-26 the API server went down. Every saturation so far came from
+several pull-heavy changes landing together. So:
+
+- Run one disruptive change at a time: a Talos rollout, a Kubernetes rollout,
+  a node reboot, or a batch of chart bumps that replace many images.
+- After each, wait until beelink settles before starting the next: every pod
+  Running, and beelink's eMMC busy time back near idle in SigNoz
+  (`system.disk.io_time`, device `mmcblk0`).
+- Merge Renovate's chart bumps in small groups rather than all at once, and
+  not while a node is draining or rebooting.
+- When rpi5 has to go down, expect its pods to land on beelink and pull
+  images there; avoid stacking another change on top until they are Running.
 
 ## Gates
 
