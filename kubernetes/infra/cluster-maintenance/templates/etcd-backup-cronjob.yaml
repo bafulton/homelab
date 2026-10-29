@@ -29,6 +29,10 @@ spec:
         spec:
           restartPolicy: Never
           automountServiceAccountToken: false
+          # On the node holding the plain-file copy, so it can be fetched with
+          # `talosctl cp` even when the API server is down.
+          nodeSelector:
+            kubernetes.io/hostname: {{ .Values.etcdBackup.localCopy.node }}
           initContainers:
             # The talosconfig's endpoint is the talos service in the default
             # namespace; the node to snapshot is still named explicitly.
@@ -53,7 +57,12 @@ spec:
                 - |
                   set -e
                   test -s /backup/etcd.snapshot
-                  dest="garage:{{ .Values.etcdBackup.bucket }}/etcd-$(date -u +%Y%m%dT%H%M%SZ).snapshot"
+                  name="etcd-$(date -u +%Y%m%dT%H%M%SZ).snapshot"
+                  mkdir -p /local/etcd-backups
+                  cp /backup/etcd.snapshot "/local/etcd-backups/$name"
+                  find /local/etcd-backups -name 'etcd-*.snapshot' -mtime +{{ .Values.etcdBackup.localCopy.keepDays }} -delete
+                  ls -l /local/etcd-backups
+                  dest="garage:{{ .Values.etcdBackup.bucket }}/$name"
                   rclone copyto /backup/etcd.snapshot "$dest"
                   echo "uploaded $dest ($(wc -c < /backup/etcd.snapshot) bytes)"
                   rclone delete --min-age {{ .Values.etcdBackup.retention }} "garage:{{ .Values.etcdBackup.bucket }}"
@@ -81,10 +90,18 @@ spec:
                 - name: backup
                   mountPath: /backup
                   readOnly: true
+                - name: local
+                  mountPath: /local
           volumes:
             - name: talos-secrets
               secret:
                 secretName: etcd-backup
             - name: backup
               emptyDir: {}
+            # Directory, not DirectoryOrCreate: if the USB disk is not mounted,
+            # fail rather than write to the node's root filesystem.
+            - name: local
+              hostPath:
+                path: {{ .Values.etcdBackup.localCopy.path }}
+                type: Directory
 {{- end }}

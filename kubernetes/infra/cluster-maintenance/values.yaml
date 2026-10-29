@@ -47,10 +47,15 @@ fstrim:
         - /var/mnt/usb    # Garage + Longhorn usb-disk
 
 # Daily snapshot of etcd, the cluster's only copy of its state (single
-# control-plane node, on beelink's eMMC), to Garage on rpi5. Restoring it
-# brings back everything Git can't recreate: Longhorn's volume records and
-# PV bindings, cert-manager's issued certificates, and the rest of the live
-# objects. Recover with `talosctl bootstrap --recover-from`.
+# control-plane node, on beelink's eMMC). Restoring it brings back everything
+# Git can't recreate: Longhorn's volume records and PV bindings, Tailscale
+# device identities, issued certificates, and the rest of the live objects.
+#
+# Two copies, both on rpi5's USB SSD:
+#   - a plain file under localCopy.path, the recovery copy: with beelink
+#     dead, fetch it with `talosctl -n 192.168.1.84 cp <file> .` and restore
+#     with `talosctl bootstrap --recover-from`.
+#   - an object in Garage's etcd-backups bucket, kept for retention days.
 etcdBackup:
   enabled: true
   schedule: "15 4 * * *"   # 04:15 UTC, a quiet hour
@@ -58,6 +63,10 @@ etcdBackup:
   endpoint: http://garage.garage.svc.cluster.local:3900
   bucket: etcd-backups
   retention: 30d
+  localCopy:
+    node: rpi5
+    path: /var/mnt/usb      # rpi5's USB SSD; files go in etcd-backups/
+    keepDays: 7
   # Keep in step with the cluster's Talos version (talos/cluster.yaml).
   talosctl:
     repository: ghcr.io/siderolabs/talosctl
