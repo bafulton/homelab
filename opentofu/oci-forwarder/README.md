@@ -1,7 +1,7 @@
 # OCI edge forwarder
 
-A free Oracle Cloud micro VM that accepts public HTTPS for one hostname and
-passes the TLS, unterminated, over Tailscale to the cluster's Traefik gateway.
+A free Oracle Cloud micro VM that accepts public HTTPS for a short list of
+hostnames (`public_hostnames`) and passes the TLS, unterminated, over Tailscale to the cluster's Traefik gateway.
 
 It exists so Jellyfin can be publicly reachable without routing video through
 Cloudflare's CDN (outside their Service-Specific Terms), without opening a port
@@ -49,7 +49,7 @@ tag-scoped, and that one carries `tag:k8s-operator`.
 OCI needs no setup here - that provider reads `~/.oci/config` directly.
 
 Apply this module **before** `opentofu/cloudflare`, which reads `public_ip`
-from this state for the `media` A record.
+from this state for the `media` and `games` A records.
 
 ## Verifying
 

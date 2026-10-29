@@ -1,0 +1,10 @@
+# privileged is required only by the permissions-fix Job, which mounts
+# /var/mnt/usb as a direct hostPath to create the bundle directory. Baseline
+# PodSecurity blocks direct hostPath volumes in pod specs but permits PVCs
+# backed by hostPath PVs, which is how BottleShip itself gets its storage.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Release.Namespace }}
+  labels:
+    pod-security.kubernetes.io/enforce: privileged

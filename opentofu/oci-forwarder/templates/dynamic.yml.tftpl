@@ -4,9 +4,9 @@ tcp:
     passthrough:
       entryPoints:
         - websecure
-      # Only this SNI is forwarded; every other name is refused, so this host
-      # is not a general-purpose door into the tailnet.
-      rule: "HostSNI(`${public_hostname}`)"
+      # Only these SNIs are forwarded; every other name is refused, so this
+      # host is not a general-purpose door into the tailnet.
+      rule: "${sni_rule}"
       tls:
         passthrough: true
       service: home-gateway
@@ -22,7 +22,7 @@ http:
     redirect-to-https:
       entryPoints:
         - web
-      rule: "Host(`${public_hostname}`)"
+      rule: "${host_rule}"
       middlewares:
         - to-https
       service: noop

@@ -59,6 +59,17 @@ resource "cloudflare_dns_record" "media_direct" {
   ttl     = 300 # low and explicit, so a rollback propagates fast
 }
 
+# games.fultonhuffman.com (BottleShip) takes the same path as media, for the
+# same reason: multi-GB game bundles through the CDN. Same rollback too.
+resource "cloudflare_dns_record" "games_direct" {
+  zone_id = data.cloudflare_zone.zones["fultonhuffman-com"].id
+  name    = "games"
+  type    = "A"
+  content = data.terraform_remote_state.oci_forwarder.outputs.public_ip
+  proxied = false
+  ttl     = 300
+}
+
 data "terraform_remote_state" "oci_forwarder" {
   backend = "local"
 

@@ -72,21 +72,25 @@ write_files:
       #
       # Up: the public Jellyfin path works end to end. Otherwise ping nothing,
       # and the check goes down once its grace period runs out.
-      curl -fsS -m 15 -o /dev/null https://${public_hostname}/health || exit 0
+      curl -fsS -m 15 -o /dev/null https://${uptime_probe_hostname}/health || exit 0
 
-      # Not exposed: a private Host header behind the public SNI must get a
-      # 404 from the cluster's edge listener. Anything else means private
+      # Not exposed: behind every public SNI, a private Host header must get a
+      # 404 from that name's edge listener. Anything else means private
       # routes are reachable from the internet, so fail the check at once,
       # with the reason as the ping body for the alert email.
-      code=$(curl -s -m 15 -o /dev/null -w '%%{http_code}' \
-        -H 'Host: ${exposure_canary_host}' https://${public_hostname}/)
-      case "$code" in
-        404) curl -fsS -m 10 --retry 3 -o /dev/null "$PING_URL" ;;
-        000) exit 0 ;; # no answer proves nothing either way - treat as down
-        *) curl -fsS -m 10 --retry 3 -o /dev/null --data-raw \
-             "EXPOSED: Host ${exposure_canary_host} via https://${public_hostname}/ returned HTTP $code, not 404 - private routes are reachable from the internet." \
-             "$PING_URL/fail" ;;
-      esac
+      for host in ${join(" ", public_hostnames)}; do
+        code=$(curl -s -m 15 -o /dev/null -w '%%{http_code}' \
+          -H 'Host: ${exposure_canary_host}' "https://$host/")
+        case "$code" in
+          404) ;;
+          000) exit 0 ;; # no answer proves nothing either way - treat as down
+          *) curl -fsS -m 10 --retry 3 -o /dev/null --data-raw \
+               "EXPOSED: Host ${exposure_canary_host} via https://$host/ returned HTTP $code, not 404 - private routes are reachable from the internet." \
+               "$PING_URL/fail"
+             exit 0 ;;
+        esac
+      done
+      curl -fsS -m 10 --retry 3 -o /dev/null "$PING_URL"
 
   - path: /etc/systemd/system/edge-healthcheck.service
     permissions: "0644"

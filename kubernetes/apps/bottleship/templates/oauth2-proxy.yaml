@@ -1,0 +1,107 @@
+# oauth2-proxy turns Pocket ID's OIDC into a yes/no answer Traefik can ask.
+#
+# The pocket-id-auth Middleware sends every request's headers here first. A
+# valid session cookie gets a 202 and the request continues to BottleShip;
+# anything else gets a 302 to Pocket ID, which Traefik passes back to the
+# browser. Pocket ID refuses the sign-in unless the user is in the client's
+# allowed groups, so group membership is the whole access policy.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth2-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: oauth2-proxy
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: oauth2-proxy
+          image: {{ .Values.oauth2Proxy.image.repository }}:{{ .Values.oauth2Proxy.image.tag }}
+          args:
+            - --http-address=0.0.0.0:4180
+            - --provider=oidc
+            - --oidc-issuer-url={{ .Values.oauth2Proxy.issuerUrl }}
+            - --client-id={{ .Values.oauth2Proxy.clientId }}
+            - --code-challenge-method=S256
+            - --scope=openid email profile
+            - --redirect-url=https://games.fultonhuffman.com/oauth2/callback
+            # Answer forward-auth checks instead of proxying: 202 when signed
+            # in, a redirect to Pocket ID when not.
+            - --upstream=static://202
+            - --reverse-proxy=true
+            - --skip-provider-button=true
+            # Who may sign in is decided by Pocket ID's allowed groups, not
+            # by email address.
+            - --email-domain=*
+            # Pocket ID marks emails unverified when it sends no mail, and
+            # nothing here relies on the address being real.
+            - --insecure-oidc-allow-unverified-email=true
+            - --cookie-name=_games_auth
+            - --cookie-secure=true
+            - --cookie-expire={{ .Values.oauth2Proxy.cookieExpire }}
+            - --silence-ping-logging=true
+          envFrom:
+            - secretRef:
+                name: oauth2-proxy
+          ports:
+            - name: http
+              containerPort: 4180
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          {{- with .Values.oauth2Proxy.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oauth2-proxy
+spec:
+  selector:
+    app.kubernetes.io/name: oauth2-proxy
+  ports:
+    - name: http
+      port: 4180
+      targetPort: http
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: pocket-id-auth
+spec:
+  forwardAuth:
+    # The root path, not /oauth2/auth: /oauth2/auth answers a bare 401, while
+    # the root answers with the redirect a browser needs to reach sign-in.
+    address: http://oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:4180/
+    trustForwardHeader: true
+    authResponseHeaders:
+      - X-Auth-Request-User
+      - X-Auth-Request-Email

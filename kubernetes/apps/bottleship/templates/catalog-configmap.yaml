@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bottleship-catalog
+  annotations:
+    reloader.stakater.com/match: "true"
+data:
+  games-catalog.json: |
+    {{- toPrettyJson .Values.games | nindent 4 }}

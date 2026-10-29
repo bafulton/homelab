@@ -27,8 +27,8 @@ spec:
 # domains don't need a cert here because the Cloudflare Tunnel delivers them to
 # Traefik on plain :80 and Cloudflare terminates.
 #
-# Single-name rather than a wildcard: nothing else on this zone terminates TLS
-# in-cluster today.
+# Single-name rather than a wildcard: each public passthrough name has its own
+# edge listener, and each listener references only its own certificate.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -41,6 +41,26 @@ spec:
   commonName: "media.fultonhuffman.com"
   dnsNames:
     - "media.fultonhuffman.com"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+
+---
+# games.fultonhuffman.com (BottleShip) reaches the cluster the same way, for
+# the same reason as Jellyfin: multi-GB game bundles through Cloudflare's CDN
+# are outside their terms.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: games-fultonhuffman-com
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: games-fultonhuffman-com-tls
+  duration: 2160h  # 90 days (Let's Encrypt default)
+  renewBefore: 720h  # 30 days before expiration
+  commonName: "games.fultonhuffman.com"
+  dnsNames:
+    - "games.fultonhuffman.com"
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer

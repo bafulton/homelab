@@ -39,8 +39,14 @@ variable "vcn_cidr" {
   default     = "10.20.0.0/24"
 }
 
-variable "public_hostname" {
-  description = "The only SNI this forwarder will accept and pass through."
+variable "public_hostnames" {
+  description = "The only SNIs this forwarder will accept and pass through. Each needs its own hostname-restricted edge listener and certificate in the cluster (kubernetes/infra/traefik) and its own A record in opentofu/cloudflare."
+  type        = list(string)
+  default     = ["media.fultonhuffman.com", "games.fultonhuffman.com"]
+}
+
+variable "uptime_probe_hostname" {
+  description = "The public hostname whose /health the dead man's switch requests. Jellyfin, because its /health needs no sign-in; games answers every request with a redirect to Pocket ID."
   type        = string
   default     = "media.fultonhuffman.com"
 }

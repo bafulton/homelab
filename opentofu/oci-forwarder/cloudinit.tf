@@ -4,8 +4,9 @@ locals {
   traefik_static = templatefile("${path.module}/templates/traefik.yml.tftpl", {})
 
   traefik_dynamic = templatefile("${path.module}/templates/dynamic.yml.tftpl", {
-    public_hostname = var.public_hostname
-    upstream        = var.upstream
+    sni_rule  = join(" || ", [for h in var.public_hostnames : "HostSNI(`${h}`)"])
+    host_rule = join(" || ", [for h in var.public_hostnames : "Host(`${h}`)"])
+    upstream  = var.upstream
   })
 }
 
@@ -24,8 +25,9 @@ data "cloudinit_config" "fwd" {
       traefik_version      = var.traefik_version
       traefik_static_b64   = base64encode(local.traefik_static)
       traefik_dynamic_b64  = base64encode(local.traefik_dynamic)
-      public_hostname      = var.public_hostname
-      exposure_canary_host = var.exposure_canary_host
+      public_hostnames      = var.public_hostnames
+      uptime_probe_hostname = var.uptime_probe_hostname
+      exposure_canary_host  = var.exposure_canary_host
       healthcheck_ping     = healthchecksio_check.edge_forwarder.ping_url
     })
   }

@@ -1,0 +1,167 @@
+# BottleShip - classic Windows games run in the visitor's browser.
+#
+# The emulator runs entirely client-side. This app only serves the frontend,
+# the game bundles (.wgb) and the WebSocket relay that puts players' browsers
+# on one virtual LAN for multiplayer. See README.md for adding a game.
+#
+# Access:
+#   - Public: https://games.fultonhuffman.com (via the OCI edge forwarder),
+#     signed in through Pocket ID (group `games`)
+#     DNS points at that host, not the tunnel: multi-GB bundle downloads
+#     through Cloudflare's CDN are outside their terms, as video is for
+#     Jellyfin. See opentofu/oci-forwarder/README.md.
+
+namespace: bottleship
+
+image:
+  repository: ghcr.io/bafulton/bottleship
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 10m
+  limits:
+    memory: 256Mi
+
+# Every player arrives from the edge forwarder's one tailnet address (TLS
+# passthrough hides the real client), so the relay's per-address connection
+# cap is shared by everyone. Each player holds one relay connection per room;
+# 64 leaves room for a few friends across a few rooms.
+lanMaxConnPerIp: 64
+
+# The library. Served as /games-catalog.json in place of the image's own,
+# which lists the upstream demos whose bundles are not hosted here.
+# wgbUrl is /apps/<file>, served from the bottleship-apps volume.
+# coverUrl is optional; only Empire Earth's cover ships in the image.
+games:
+  - id: empire-earth-gold
+    name: Empire Earth
+    subtitle: Gold Edition
+    wgbUrl: /apps/empire-earth-gold.wgb
+    coverUrl: /covers/empire-earth-gold-box.jpg
+    description: Lead a civilization from the Stone Age to the Nano Age, with LAN multiplayer over the virtual LAN.
+    year: "2001"
+    genre: RTS
+    enabled: true
+  # Untested in BottleShip. Leave disabled until a bundle is on the volume and
+  # it boots.
+  - id: rise-of-nations
+    name: Rise of Nations
+    subtitle: Thrones and Patriots
+    wgbUrl: /apps/rise-of-nations.wgb
+    description: Real-time strategy spanning eight ages of history.
+    year: "2003"
+    genre: RTS
+    enabled: false
+  - id: generals-zero-hour
+    name: "Command & Conquer: Generals"
+    subtitle: Zero Hour
+    wgbUrl: /apps/generals-zero-hour.wgb
+    description: The Generals expansion with three factions and nine generals.
+    year: "2003"
+    genre: RTS
+    enabled: false
+
+oauth2Proxy:
+  image:
+    repository: quay.io/oauth2-proxy/oauth2-proxy
+    tag: "v7.15.5"
+  # The OIDC client in Pocket ID (README.md, "Pocket ID Client"). Its ID is
+  # not secret; its secret is in Bitwarden below. The client must be
+  # confidential: oauth2-proxy's oidc provider refuses to start without a
+  # client secret.
+  clientId: "f68e152c-9856-4afe-b75b-50fcc90b6f5e"
+  issuerUrl: https://auth.fultonhuffman.com
+  # How long a sign-in lasts before oauth2-proxy sends the browser back to
+  # Pocket ID. Pocket ID keeps its own session, so the bounce is usually
+  # invisible, and it is where group membership is checked again, so this is
+  # also how long removing someone from `games` takes to apply.
+  cookieExpire: 12h
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 10m
+    limits:
+      memory: 96Mi
+
+gateway-route:
+  routes:
+    - name: public
+      hostnames:
+        # The edge forwarder passes TLS through with this SNI, and the edge
+        # listener with this hostname is the only one this route can bind to.
+        - games.fultonhuffman.com
+      rules:
+        # oauth2-proxy's own endpoints (sign-in callback, sign-out) must be
+        # reachable before there is a session, so they skip the auth filter.
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /oauth2/
+          backendRefs:
+            - name: oauth2-proxy
+              port: 4180
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: pocket-id-auth
+          backendRefs:
+            - name: bottleship
+              port: 80
+
+# Game bundles, on beelink's USB disk beside the Jellyfin library: large,
+# read-mostly files that gain nothing from Longhorn and would only crowd the
+# NVMe it uses for latency-sensitive state. VolSync backs them up to Garage
+# weekly, since re-making a bundle means re-installing the game.
+# templates/permissions-fix.yaml creates the directory.
+local-storage:
+  pvcs:
+    - name: bottleship-apps
+      path: /var/mnt/usb/bottleship
+      size: 100Gi
+      node: beelink
+      backup:
+        schedule: "0 9 * * 0"  # Sundays at 4am EST (9am UTC), after jellyfin-media
+        repository: volsync-bottleship-apps-restic
+        # Disposable restic metadata cache.
+        cacheStorageClassName: scratch
+        retain:
+          weekly: 2
+          monthly: 1
+
+bitwarden-secret:
+  secrets:
+    # Same Garage key and restic password as jellyfin-media; a separate
+    # repository path keeps the snapshots apart.
+    - name: volsync-bottleship-apps-restic
+      data:
+        RESTIC_REPOSITORY: "s3:http://garage.garage.svc.cluster.local:3900/volsync-backups/bottleship-apps"
+        AWS_ACCESS_KEY_ID: "GK692f81c1982632383b08d5ff"
+        AWS_SECRET_ACCESS_KEY: "154f9f3f-ec4f-40d8-8ae1-b4e701515074"
+        RESTIC_PASSWORD: "c269bac3-9ea9-4463-b24c-b41e0025330d"
+    - name: oauth2-proxy
+      data:
+        # From the Pocket ID client.
+        OAUTH2_PROXY_CLIENT_SECRET: "19cd82f8-2193-4406-83c4-b4f20163f691"
+        # Encrypts the session cookie. Must be 32 bytes, URL-safe:
+        #   openssl rand -base64 32 | tr -- '+/' '-_'
+        OAUTH2_PROXY_COOKIE_SECRET: "c7f8e22f-d995-4721-a717-b4f2015d9369"
+
+signoz-alerts:
+  alerts:
+    - name: BottleShip Down
+      description: games.fultonhuffman.com has no available server replicas
+      severity: warning
+      type: promql
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="bottleship",deployment="bottleship"})'
+      op: "<"
+      threshold: 1
+      for: 10m0s

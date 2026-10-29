@@ -1,5 +1,5 @@
 output "public_ip" {
-  description = "Ephemeral public IP. opentofu/cloudflare reads this from state for the media A record."
+  description = "Ephemeral public IP. opentofu/cloudflare reads this from state for the media and games A records."
   value       = oci_core_instance.fwd.public_ip
 }
 

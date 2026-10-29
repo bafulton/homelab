@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bottleship
+  annotations:
+    # Restart on catalog edits: the catalog is mounted with subPath, which
+    # never sees ConfigMap updates.
+    reloader.stakater.com/search: "true"
+spec:
+  replicas: 1
+  # One pod: the LAN relay keeps rooms in memory, so two replicas would split
+  # players who joined the same room - and a rolling update would briefly run
+  # two. Recreate drops every room on a rollout instead, which only happens
+  # when the image or catalog changes.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bottleship
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bottleship
+    spec:
+      automountServiceAccountToken: false
+      # bottleship-apps is a hostPath on beelink's USB disk, and its PV's
+      # nodeAffinity binds it there.
+      nodeSelector:
+        kubernetes.io/hostname: beelink
+      securityContext:
+        runAsNonRoot: true
+        # The image's `bun` user, which owns the bundle directory
+        # (templates/permissions-fix.yaml).
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bottleship
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 5173
+          env:
+            - name: LAN_MAX_CONN_PER_IP
+              value: {{ .Values.lanMaxConnPerIp | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            # Writable so bundles can be copied in with `kubectl cp`. The
+            # server itself only reads it.
+            - name: apps
+              mountPath: /apps
+            - name: catalog
+              mountPath: /app/dist/games-catalog.json
+              subPath: games-catalog.json
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: apps
+          persistentVolumeClaim:
+            claimName: bottleship-apps
+        - name: catalog
+          configMap:
+            name: bottleship-catalog
+        - name: tmp
+          emptyDir: {}
