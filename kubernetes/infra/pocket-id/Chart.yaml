@@ -1,0 +1,19 @@
+apiVersion: v2
+name: pocket-id
+description: Pocket ID - passkey OIDC provider holding the shared accounts for public services
+type: application
+version: 1.0.0
+appVersion: "2.19.1"
+dependencies:
+  - name: gateway-route
+    version: 1.0.0
+    repository: file://../../../charts/gateway-route
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
+  - name: longhorn-storage
+    version: 1.0.0
+    repository: file://../../../charts/longhorn-storage
+  - name: signoz-alerts
+    version: 1.0.0
+    repository: file://../../../charts/signoz-alerts

@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+spec:
+  replicas: 1
+  # SQLite on a ReadWriteOnce volume: the old pod must let go of it before the
+  # new one starts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: pocket-id
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: pocket-id
+    spec:
+      # Pocket ID never talks to the Kubernetes API.
+      automountServiceAccountToken: false
+      # Longhorn-backed and written on every sign-in, so keep it next to its
+      # replicas rather than across the WAN. See charts/README.md "Placement".
+      nodeSelector:
+        homelab.io/location: local
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        # Makes the data volume writable without the image's root chown step.
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: pocket-id
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 1411
+          env:
+            - name: APP_URL
+              value: {{ .Values.appUrl | quote }}
+            # Requests arrive from Traefik pods. Trusting the pod network lets
+            # it read X-Forwarded-Proto; the client address comes from the
+            # header below.
+            - name: TRUST_PROXY
+              value: "10.244.0.0/16"
+            # Every request comes through the Cloudflare Tunnel, so the real
+            # client address is in CF-Connecting-IP. Without it, rate limits
+            # and the audit log would see one address for everybody.
+            - name: TRUSTED_PLATFORM
+              value: CF-Connecting-IP
+            - name: ANALYTICS_DISABLED
+              value: "true"
+            # Renovate tracks releases; the in-app banner would only repeat it.
+            - name: VERSION_CHECK_DISABLED
+              value: "true"
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pocket-id
+                  key: ENCRYPTION_KEY
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          # The image's working directory is /app and its data path is the
+          # relative data/, so the volume mounts at /app/data.
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: pocket-id-data
+        - name: tmp
+          emptyDir: {}

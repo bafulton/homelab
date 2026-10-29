@@ -1,0 +1,83 @@
+# Pocket ID - the single set of accounts for friends using the public services.
+#
+# One account per person, signed in with a passkey. Each service is an OIDC
+# client restricted to a user group, so access is granted per service by group
+# membership. See README.md for inviting someone and adding a service.
+#
+# Access:
+#   - Public: https://auth.fultonhuffman.com (via Cloudflare Tunnel)
+#
+# No OpenTofu changes were needed: fultonhuffman.com is wildcard-public on the
+# tunnel, and Cloudflare Universal SSL covers the certificate. Passkeys need a
+# secure origin, which Cloudflare's TLS provides.
+
+namespace: pocket-id
+
+image:
+  repository: ghcr.io/pocket-id/pocket-id
+  # distroless: no shell and no root entrypoint. The default image starts as
+  # root to chown /app/data and drop to PUID via su-exec; here fsGroup does
+  # that job and the pod never runs as root.
+  tag: "v2.19.1-distroless"
+  pullPolicy: IfNotPresent
+
+appUrl: https://auth.fultonhuffman.com
+
+resources:
+  requests:
+    memory: 48Mi
+    cpu: 10m
+  limits:
+    memory: 192Mi
+
+gateway-route:
+  routes:
+    - name: public
+      hostnames:
+        - auth.fultonhuffman.com  # Public via Cloudflare Tunnel
+      service:
+        name: pocket-id
+        port: 80
+
+# SQLite database and uploaded logos. Every account lives here, so it is a
+# replicated `config` volume with nightly snapshots and an off-node backup.
+longhorn-storage:
+  pvcs:
+    - name: pocket-id-data
+      size: 1Gi
+      storageClass: config
+      backupGroup: pocket-id
+  jobs:
+    - name: pocket-id-daily
+      cron: "15 3 * * *"
+      groups:
+        - pocket-id
+      retain: 7
+    - name: pocket-id-backup
+      task: backup
+      cron: "45 3 * * *"
+      groups:
+        - pocket-id
+      retain: 7
+
+bitwarden-secret:
+  secrets:
+    - name: pocket-id
+      data:
+        # Encrypts the signing keys at rest in the database. Losing it means
+        # every OIDC client has to be re-keyed, so it lives in Bitwarden and
+        # not only in the pod. Generate with: openssl rand -base64 32
+        ENCRYPTION_KEY: "5496d19c-2053-472e-9493-b4f2015d1a49"
+
+signoz-alerts:
+  alerts:
+    # Every public service behind Pocket ID refuses new sign-ins while it is
+    # down; existing sessions carry on until their cookies expire.
+    - name: Pocket ID Down
+      description: Pocket ID has no available replicas, so nobody can sign in to the public services
+      severity: critical
+      type: promql
+      query: 'max by (namespace, deployment) (kube_deployment_status_replicas_available{namespace="pocket-id",deployment="pocket-id"})'
+      op: "<"
+      threshold: 1
+      for: 5m0s
