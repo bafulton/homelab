@@ -499,6 +499,26 @@ fetches its kubeconfig from the endpoint, and a worker serves none.
 tolerates cordoned nodes and may stay on the node through the drain; it is
 stateless, so leave it.
 
+### Restore etcd from a snapshot
+
+`etcd-backup` in `kubernetes/infra/cluster-maintenance` snapshots etcd daily
+to rpi5's USB SSD (`/var/mnt/usb/etcd-backups`, 7 days) and to Garage (30
+days). To rebuild the control plane from one, e.g. after losing beelink's
+`/var`:
+
+```bash
+# 1. Fetch the newest snapshot straight from rpi5 (works with the API down)
+talosctl -n 192.168.1.84 -e 192.168.1.84 ls /var/mnt/usb/etcd-backups
+talosctl -n 192.168.1.84 -e 192.168.1.84 cp /var/mnt/usb/etcd-backups/<file> .
+
+# 2. Once beelink is back in maintenance/booting with etcd waiting for
+#    bootstrap, recover from it instead of a plain bootstrap
+talosctl -n 192.168.1.86 -e 192.168.1.86 bootstrap --recover-from=./<file>
+```
+
+Longhorn volumes, PV bindings and every other live object come back as they
+were at the snapshot; ArgoCD then reconciles anything newer from Git.
+
 ### Reset a node (wipe and rejoin)
 ```bash
 talosctl reset --nodes <node>.<tailnet>.ts.net --graceful=false
