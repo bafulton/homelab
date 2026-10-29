@@ -182,9 +182,35 @@ k8s-infra:
               statements:
                 # Derive service.name from namespace — maps cleanly to "application" in this homelab
                 - set(attributes["service.name"], attributes["k8s.namespace.name"]) where attributes["service.name"] == nil
+        # longhorn-manager's internal controller histograms (Kubernetes API
+        # client latency and per-controller work-queue timings) were ~12% of
+        # all ingested samples, almost all of it bucket series nothing reads.
+        # Keep their sum and count as standalone counters (<name>_sum,
+        # <name>_count; average = rate(_sum) / rate(_count)) and drop the
+        # histograms. Longhorn's volume/node/disk metrics are untouched.
+        transform/longhorn_histograms:
+          metric_statements:
+            - context: metric
+              conditions:
+                - type == METRIC_DATA_TYPE_HISTOGRAM and IsMatch(name, "^longhorn_(rest_client|workqueue)_")
+              statements:
+                - extract_sum_metric(true)
+                - extract_count_metric(true)
+        filter/longhorn_histograms:
+          metrics:
+            metric:
+              - type == METRIC_DATA_TYPE_HISTOGRAM and IsMatch(name, "^longhorn_(rest_client|workqueue)_")
       service:
         pipelines:
           logs:
             processors:
               - transform/normalize_severity
+              - batch
+          # Restates the chart's list (resourcedetection, batch): Helm
+          # replaces lists rather than merging them.
+          metrics/scraper:
+            processors:
+              - resourcedetection
+              - transform/longhorn_histograms
+              - filter/longhorn_histograms
               - batch
