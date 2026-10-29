@@ -54,9 +54,13 @@ rulePriority: "5260"
 # worst case a brand-new local node's pods ride Tailscale briefly before pinning.
 reconcileInterval: "300"
 
+# The limit is sized for page cache, not the process (~9Mi between ticks):
+# each tick runs kubectl (~57MB), and page cache counts against the cgroup.
+# At 32Mi the binary was evicted between ticks and re-read from beelink's
+# eMMC every time (~17 GB/day of reads competing with etcd).
 resources:
   requests:
     cpu: 5m
     memory: 16Mi
   limits:
-    memory: 32Mi
+    memory: 128Mi
