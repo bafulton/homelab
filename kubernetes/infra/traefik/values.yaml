@@ -104,6 +104,17 @@ traefik:
         certificateRefs:
           - name: media-fultonhuffman-com-tls
         mode: Terminate
+      # BottleShip's public hostname, the same way as media above. Only a
+      # Certificate already Ready may be referenced here.
+      edge-games:
+        port: 8443
+        protocol: HTTPS
+        hostname: games.fultonhuffman.com
+        namespacePolicy:
+          from: All
+        certificateRefs:
+          - name: games-fultonhuffman-com-tls
+        mode: Terminate
 
   # One replica per node, so losing a node never takes down every entrance.
   # matchLabelKeys scopes the count to the current ReplicaSet, so a rollout's
