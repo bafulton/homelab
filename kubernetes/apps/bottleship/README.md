@@ -34,11 +34,15 @@ referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
 
 ## Adding a Game
 
-1. Make a bundle from an installed copy, on a machine with
-   [Bun](https://bun.sh/) and a BottleShip checkout:
+1. Make a bundle from the game's GOG **offline backup installer**
+   (`setup_<game>_*.exe`, plus any `.bin` files beside it; the small
+   GOG Galaxy downloader has no game in it), in a BottleShip checkout:
    ```sh
-   bun tools/make-wgb.ts <game-dir> <id>.wgb --exe <game>.exe
+   docker run --rm -v "$PWD":/src -v <installer-dir>:/in:ro -v "$PWD/out":/out \
+     -w /src oven/bun:1.2.22 sh -c 'bun install && bun tools/gog-to-wgb.ts /in/<setup>.exe /out/<id>.wgb'
    ```
+   For a game installed from disc, `bun tools/make-wgb.ts <game-dir> <id>.wgb
+   --exe <game>.exe` packs the installed folder instead.
 2. Copy it onto the volume:
    ```sh
    POD=$(kubectl -n bottleship get pod -l app.kubernetes.io/name=bottleship -o name | cut -d/ -f2)
