@@ -38,6 +38,33 @@ cluster:
     # ever engage the GC — usage never got close to it).
     env:
       GOMEMLIMIT: 2150MiB
+    # Record who changed what, not every request. Talos's default logs every
+    # request at Metadata, ~3 GB/day onto beelink's eMMC, mostly reads and
+    # lease renewals. Keep Metadata for every write (create/update/patch/
+    # delete) and drop: reads, leases, events, and auth review calls (creates
+    # that change nothing). RequestReceived is omitted because each request is
+    # logged again at ResponseComplete.
+    auditPolicy:
+      apiVersion: audit.k8s.io/v1
+      kind: Policy
+      omitStages:
+        - RequestReceived
+      rules:
+        - level: None
+          verbs: ["get", "list", "watch"]
+        - level: None
+          resources:
+            - group: coordination.k8s.io
+              resources: ["leases"]
+            - group: ""
+              resources: ["events"]
+            - group: events.k8s.io
+              resources: ["events"]
+            - group: authentication.k8s.io
+              resources: ["tokenreviews"]
+            - group: authorization.k8s.io
+              resources: ["subjectaccessreviews", "selfsubjectaccessreviews", "localsubjectaccessreviews"]
+        - level: Metadata
 
   # Disable in-tree cloud provider
   controllerManager:

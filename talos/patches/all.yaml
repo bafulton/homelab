@@ -26,6 +26,14 @@ machine:
       - name: iscsi_tcp
 
   kubelet:
+    # Delete images no container has used for 14 days. Old versions pile up
+    # after upgrades and fill /var long before the disk-usage thresholds
+    # (85%) trigger cleanup. Lowering those thresholds instead would also
+    # evict images that pods bouncing between nodes still need, and re-pulling
+    # them is the burst that saturates beelink's eMMC. 14 days rather than 7
+    # so weekly jobs (VolSync's mover, fstrim) keep their images between runs.
+    extraConfig:
+      imageMaximumGCAge: 336h
     # Kubelet mount for Longhorn data path (required for Talos v1.10+). Every
     # node gets it, ocifree included: ocifree stores no replicas, but its pods
     # can use Longhorn PVCs, which attach to the pod's node over iSCSI while the
