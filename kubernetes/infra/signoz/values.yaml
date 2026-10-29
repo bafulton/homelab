@@ -142,6 +142,22 @@ signoz:
         cpu: 150m
       limits:
         memory: 1536Mi
+    # Metrics get their own batch processor with a 30s timeout (the chart's
+    # shared `batch` flushes every 1s). Each flush is a ClickHouse insert and a
+    # new data part that background merges later rewrite, so at 1s ClickHouse
+    # took ~760 inserts/min and rewrote every row ~10x - most of the NVMe's
+    # writes. Samples keep their collection timestamps, so stored data is
+    # unchanged; the newest ~30s just shows up later. ~700 samples/s x 30s
+    # stays under send_batch_size. Traces and logs keep the 1s `batch`.
+    config:
+      processors:
+        batch/metrics:
+          send_batch_size: 50000
+          timeout: 30s
+      service:
+        pipelines:
+          metrics:
+            processors: [batch/metrics]
 
   signoz:
     # Placement: beelink only. Its volume is a single strict-local replica on beelink's
