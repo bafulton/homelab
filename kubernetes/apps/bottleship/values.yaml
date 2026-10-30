@@ -45,6 +45,16 @@ games:
     year: "2001"
     genre: RTS
     enabled: true
+  # Needs the base game, so its bundle carries both installed folders.
+  - id: empire-earth-aoc
+    name: "Empire Earth: The Art of Conquest"
+    subtitle: Expansion
+    wgbUrl: /apps/empire-earth-aoc.wgb
+    coverUrl: /covers/empire-earth-gold-box.jpg
+    description: The expansion's Space Age, heroes and campaigns, on top of the full base game.
+    year: "2002"
+    genre: RTS
+    enabled: true
   # Untested in BottleShip. Leave disabled until a bundle is on the volume and
   # it boots.
   - id: rise-of-nations

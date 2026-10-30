@@ -36,13 +36,26 @@ referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
 
 1. Make a bundle from the game's GOG **offline backup installer**
    (`setup_<game>_*.exe`, plus any `.bin` files beside it; the small
-   GOG Galaxy downloader has no game in it), in a BottleShip checkout:
-   ```sh
-   docker run --rm -v "$PWD":/src -v <installer-dir>:/in:ro -v "$PWD/out":/out \
-     -w /src oven/bun:1.2.22 sh -c 'bun install && bun tools/gog-to-wgb.ts /in/<setup>.exe /out/<id>.wgb'
-   ```
-   For a game installed from disc, `bun tools/make-wgb.ts <game-dir> <id>.wgb
-   --exe <game>.exe` packs the installed folder instead.
+   GOG Galaxy downloader has no game in it), in a BottleShip checkout with
+   `bun install` done. Run each step in
+   `docker run --rm -v "$PWD":/src -w /src oven/bun:1.2.22`, mounting the
+   folders it names.
+   - Look up the title in `docs/compatibility.md` first. A tested game lists
+     the settings it was tested with, and `gog-to-wgb`'s defaults (Windows 98,
+     64 MB, 640x480, BottleShip's own DLLs) can crash it: Empire Earth died
+     in its sound setup until it had its own `mss32.dll`.
+   - No tested settings: `bun tools/gog-to-wgb.ts <setup>.exe <id>.wgb`
+     converts and packs in one step.
+   - Tested settings: extract with `bun tools/gog-to-wgb.ts <setup>.exe
+     unused.wgb --extract-only --keep-gog --extract-dir <dir>`, then pack the
+     installed folder with `bun tools/make-wgb.ts`, which takes every option
+     (`--os`, `--ram`, `--width`/`--height`/`--bpp`, `--app-dir-dlls`,
+     `--create-dirs`). The extracted `goggame-<id>.script` lists the registry
+     values the installer writes; turn its `setRegistry` actions into a `.reg`
+     file for `--reg-import`, with `{app}` as `C:`. Keep each game folder
+     under its own name, as the installer does.
+   - A game installed from disc goes straight to `make-wgb` with its
+     installed folder.
 2. Copy it onto the volume:
    ```sh
    POD=$(kubectl -n bottleship get pod -l app.kubernetes.io/name=bottleship -o name | cut -d/ -f2)
@@ -52,8 +65,12 @@ referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
    `wgbUrl: /apps/<id>.wgb`, then commit and push. Reloader restarts the
    server with the new catalog.
 
-Check `docs/compatibility.md` in the BottleShip repo for how far a title is
-known to get. Empire Earth is the only one of these three tested so far.
+Empire Earth and The Art of Conquest are built that way, with the settings
+from BottleShip's compatibility notes: `--os winxp --ram 1536 --width 1024
+--height 768 --bpp 32 --app-dir-dlls "binkw32.dll,mss32.dll"`, the installer's
+registry values, and `--create-dirs` for each game's `Data\Saved Games`. The
+Art of Conquest's bundle carries both game folders, since it refuses to start
+without the base game.
 
 ## Multiplayer
 
