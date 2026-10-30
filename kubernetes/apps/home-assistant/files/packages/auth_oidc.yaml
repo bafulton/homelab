@@ -1,0 +1,18 @@
+# Sign-in through Pocket ID (auth.fultonhuffman.com), for friends granted
+# access to Home Assistant. Needs the hass-oidc-auth integration installed
+# from HACS ("OpenID Connect"); see README.md, "Pocket ID sign-in".
+#
+# The login page offers Pocket ID alongside the normal username/password
+# login, which keeps working for existing users.
+auth_oidc:
+  # Pocket ID public client (PKCE, no secret), allowed group `home`.
+  client_id: "d3c70646-fc9c-44de-97eb-1b36f31a319d"
+  discovery_url: https://auth.fultonhuffman.com/.well-known/openid-configuration
+  display_name: Pocket ID
+  roles:
+    # Pocket ID already refuses anyone outside `home`; requiring it here too
+    # means a misconfigured client still cannot let anyone else in.
+    user: home
+    # The default is `admins`. A group nobody belongs to keeps every Pocket ID
+    # user a plain user; make admins in Home Assistant itself.
+    admin: home-admins

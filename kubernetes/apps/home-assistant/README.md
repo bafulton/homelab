@@ -165,17 +165,8 @@ Setup, once:
 2. In Pocket ID, add an OIDC client: name `Home Assistant`, **Public Client**
    on, callback URLs `https://home.fultonhuffman.com/auth/oidc/callback` and
    `http://home.local/auth/oidc/callback`, allowed group `home`.
-3. Add `files/packages/auth_oidc.yaml` with its client ID, then push:
-   ```yaml
-   auth_oidc:
-     client_id: "<client ID>"
-     discovery_url: https://auth.fultonhuffman.com/.well-known/openid-configuration
-     display_name: Pocket ID
-     roles:
-       user: home
-       # A group nobody is in, so no Pocket ID user is ever an admin.
-       admin: home-admins
-   ```
+3. Put its client ID in `client_id` in `auth_oidc.yaml` and push. It isn't
+   secret: a public client has none, and the ID shows in every sign-in URL.
 
 Each friend gets a new, non-admin Home Assistant user on first sign-in. To
 revoke access, remove them from `home` in Pocket ID **and** deactivate their
