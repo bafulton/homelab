@@ -27,12 +27,12 @@ RUN git init -q . \
 # The frontend is built on the build platform only: its output is static
 # JS/WASM, identical for every architecture, so there is no reason to run the
 # Vite build under arm64 emulation.
-FROM --platform=$BUILDPLATFORM oven/bun:1.2.22 AS build
+FROM --platform=$BUILDPLATFORM oven/bun:1.4.4 AS build
 WORKDIR /src
 COPY --from=source /src .
 RUN bun install --frozen-lockfile && bun run build
 
-FROM oven/bun:1.2.22-alpine
+FROM oven/bun:1.4.4-alpine
 WORKDIR /app
 COPY --from=build /src/dist ./dist
 COPY --from=build /src/deploy/server.ts /src/deploy/wgb-etag.ts /src/deploy/lan-relay.ts ./deploy/
