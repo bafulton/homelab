@@ -141,7 +141,6 @@ local-storage:
       node: beelink
       backup:
         schedule: "0 9 * * 0"  # Sundays at 4am EST (9am UTC), after jellyfin-media
-        manual: "20261030-manual"  # TODO: remove after this run completes
         repository: volsync-bottleship-apps-restic
         # Disposable restic metadata cache.
         cacheStorageClassName: scratch
