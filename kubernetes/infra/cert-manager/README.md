@@ -23,7 +23,7 @@ Let's Encrypt ACME Server
 
 **Configuration:**
 - Uses Cloudflare DNS-01 challenge for domain validation
-- API token stored in `cloudflare-api-token` secret (synced from Bitwarden)
+- API token stored in `cloudflare-api-token` secret (synced from Bitwarden): its own token, Zone → DNS → Edit on `catfish-mountain.com` and `fultonhuffman.com` only. OpenTofu uses a separate, broader token that stays on the workstation (`opentofu/cloudflare/env.sh`)
 - Auto-renews 30 days before 90-day expiration
 - Browser-trusted certificates (no warnings)
 

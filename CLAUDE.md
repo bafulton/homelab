@@ -226,6 +226,8 @@ See `kubernetes/infra/cert-manager/README.md` for details.
 - **Tailscale OAuth client** - `auth_keys` scope, `tag:edge` only; mints the edge's tailnet key
 - **Healthchecks.io API key** - the project's single read-write key, shared with node-health
 
+**Cloudflare API token** ("Homelab Terraform": DNS, tunnel and zone settings edit) - macOS keychain, read by `opentofu/cloudflare/env.sh`. Not in the cluster: cert-manager has its own DNS-only token.
+
 **Talos secrets** (gitignored):
 - `secrets.yaml` - Cluster PKI (`talosctl gen secrets`), read by `generate-configs.sh`
 - `.env` - Tailscale auth key for Talos extension

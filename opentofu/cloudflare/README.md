@@ -14,14 +14,15 @@ This OpenTofu configuration manages Cloudflare Tunnel and DNS records for routin
 
 Currently, this configuration is applied manually:
 
-1. Get the Cloudflare API token from Bitwarden (stored in BSM)
-2. Export it as an environment variable:
-   ```bash
-   export CLOUDFLARE_API_TOKEN="your-token-here"
-   ```
-3. Run OpenTofu:
+1. Load the "Homelab Terraform" Cloudflare API token from the macOS keychain
+   (DNS, Cloudflare Tunnel and Zone Settings edit). It is kept only on the
+   workstation, never in the cluster; `env.sh` shows how to add it once:
    ```bash
    cd opentofu/cloudflare
+   source ./env.sh
+   ```
+2. Run OpenTofu:
+   ```bash
    tofu init    # First time only
    tofu plan    # Review changes
    tofu apply   # Apply changes
