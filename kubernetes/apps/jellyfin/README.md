@@ -216,9 +216,7 @@ target Jellyfin 12. It works in the web UI. Apps and TVs sign in with
 **Quick Connect**: the app shows a code, and the person enters it under
 **Profile → Quick Connect** in a browser signed in through Pocket ID. Apps
 show the login page in a built-in browser that can't use passkeys, so the
-Pocket ID button doesn't work inside them. Local Jellyfin accounts keep
-working alongside it; keep one local admin, with its password in Bitwarden,
-for when Pocket ID is unavailable.
+Pocket ID button doesn't work inside them. Local Jellyfin accounts keep working alongside it.
 
 The plugin's settings live in Jellyfin's config volume, set up once in the
 dashboard:
@@ -259,6 +257,19 @@ dashboard:
      margin: 0;
    }
    ```
+
+On a first sign-in with no link yet, the plugin uses the Jellyfin user whose
+name matches the Pocket ID username, and creates one only if there is none.
+That is how an existing account keeps its history and password: give it the
+same name as the Pocket ID account and sign in once. The owner's account is
+linked this way, so its password is the way in when Pocket ID is down (in
+Bitwarden; Jellyfin has no second factor, so keep it long). The plugin's
+`/SSOViews/linking` page does not link in 5.1.1: it clears the browser's
+session before reading which user to link, then just signs in. Name every
+other local account something nobody would choose in Pocket ID, since the
+first Pocket ID user with that name takes the account over. Leave the
+provider's **Default Provider** empty, or every sign-in switches the user to
+Pocket ID-only and its password stops working.
 
 Each friend gets a Jellyfin user on first sign-in. To revoke access, remove
 them from `media` in Pocket ID **and** disable their Jellyfin user: Jellyfin
