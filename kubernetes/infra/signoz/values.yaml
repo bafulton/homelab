@@ -148,16 +148,27 @@ signoz:
     # took ~760 inserts/min and rewrote every row ~10x - most of the NVMe's
     # writes. Samples keep their collection timestamps, so stored data is
     # unchanged; the newest ~30s just shows up later. ~700 samples/s x 30s
-    # stays under send_batch_size. Traces and logs keep the 1s `batch`.
+    # stays under send_batch_size.
+    #
+    # Logs get 10s: they are small (~11 lines/s), so this mostly cuts insert
+    # and part churn rather than bytes, and new lines show up in the log view
+    # within 10s. Traces keep the chart's 1s `batch`. SigNoz's log-pipeline
+    # injection over OpAMP recognizes `batch/<id>` names and keeps its
+    # processors ahead of them.
     config:
       processors:
         batch/metrics:
           send_batch_size: 50000
           timeout: 30s
+        batch/logs:
+          send_batch_size: 50000
+          timeout: 10s
       service:
         pipelines:
           metrics:
             processors: [batch/metrics]
+          logs:
+            processors: [batch/logs]
 
   signoz:
     # Placement: beelink only. Its volume is a single strict-local replica on beelink's
