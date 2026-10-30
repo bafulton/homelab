@@ -23,6 +23,11 @@ replicasetCleanup:
   schedule: "0 */6 * * *"            # every 6 hours
   keepPerDeployment: 3               # keep newest 3 old ReplicaSets per Deployment
 
+# Keeps the two CoreDNS replicas on different nodes. See README.
+corednsSpread:
+  enabled: true
+  schedule: "45 5 * * *"             # daily
+
 # Weekly TRIM of the SSD-backed data filesystems. Talos schedules no periodic
 # trim and these xfs mounts carry no `discard` option, so without this the
 # drives never learn which blocks are free: every deleted block still looks

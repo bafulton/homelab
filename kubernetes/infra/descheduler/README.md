@@ -24,11 +24,14 @@ nodes by resource **requests** (not live usage) and evicts from nodes above
 | | CPU | Memory |
 |---|-----|--------|
 | `thresholds` (under → target) | 40% | 50% |
-| `targetThresholds` (over → source) | 60% | 65% |
+| `targetThresholds` (over → source) | 75% | 65% |
 
 Thresholds were set against the 2026-07-21 request allocation (beelink 66%/75%,
-rpi5 31%/45%) so beelink classifies as a source and rpi5 as a target. Re-check with
-`kubectl describe node <name>` (Allocated resources) if the cluster shape changes.
+rpi5 31%/45%) so beelink classifies as a source and rpi5 as a target. The CPU
+source threshold moved from 60% to 75% on 2026-10-30, because `ocifree` (under 2
+CPUs, ~860m of it fixed requests) sat at 60% and churned pods without rebalancing
+anything. Re-check with `kubectl describe node <name>` (Allocated resources) if the
+cluster shape changes.
 
 ## Safety rails
 

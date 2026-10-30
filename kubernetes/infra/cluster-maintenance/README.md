@@ -41,6 +41,26 @@ When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (def
 - Groups by owner Deployment and keeps the newest N
 - Does not affect the current active ReplicaSet
 
+## CoreDNS Spread CronJob
+
+Keeps the two cluster CoreDNS replicas on different nodes, so one node failing
+or the Tailscale link dropping can't take out cluster DNS.
+
+Talos owns the `coredns` Deployment and its anti-affinity is only a preference,
+so both replicas stayed on `ocifree` after the 2026-10-26 outage. The
+`coredns-spread` CronJob adds a required anti-affinity with `kubectl apply
+--server-side` under its own field manager. `talosctl upgrade-k8s` leaves that
+field alone because Talos doesn't own it; the daily run re-applies it after
+anything else that resets the Deployment, and is a no-op otherwise.
+
+The first apply changes the pod template, so CoreDNS does a rolling restart.
+
+Run it by hand:
+
+```bash
+kubectl -n kube-system create job --from=cronjob/coredns-spread coredns-spread-manual
+```
+
 ## fstrim CronJobs
 
 One CronJob per node (`fstrim-<node>`), Sundays 06:30 UTC, trims the SSD-backed

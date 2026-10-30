@@ -1,0 +1,80 @@
+{{- if .Values.corednsSpread.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: coredns-spread
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    resourceNames: ["coredns"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: coredns-spread
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: coredns-spread
+subjects:
+  - kind: ServiceAccount
+    name: cluster-maintenance
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: coredns-spread
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: {{ .Values.corednsSpread.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 3600
+      template:
+        spec:
+          serviceAccountName: cluster-maintenance
+          restartPolicy: OnFailure
+          containers:
+            - name: apply
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  kubectl apply --server-side --field-manager=homelab-cluster-maintenance -f - <<MANIFEST
+                  apiVersion: apps/v1
+                  kind: Deployment
+                  metadata:
+                    name: coredns
+                    namespace: kube-system
+                  spec:
+                    template:
+                      spec:
+                        affinity:
+                          podAntiAffinity:
+                            requiredDuringSchedulingIgnoredDuringExecution:
+                              - labelSelector:
+                                  matchLabels:
+                                    k8s-app: kube-dns
+                                topologyKey: kubernetes.io/hostname
+                  MANIFEST
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                runAsNonRoot: true
+                runAsUser: 1001
+                capabilities:
+                  drop: ["ALL"]
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+{{- end }}

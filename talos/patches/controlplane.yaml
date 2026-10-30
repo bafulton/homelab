@@ -71,6 +71,7 @@ cluster:
     extraArgs:
       cloud-provider: external
 
-  # CoreDNS pod anti-affinity is applied via kubectl patch after upgrade-k8s
-  # (inline manifest approach conflicts with upgrade-k8s manifest reconciliation
-  # because partial Deployment specs fail Kubernetes validation)
+  # CoreDNS's required anti-affinity is applied by the coredns-spread CronJob in
+  # cluster-maintenance (inline manifest approach conflicts with upgrade-k8s
+  # manifest reconciliation because partial Deployment specs fail Kubernetes
+  # validation)

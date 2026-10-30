@@ -68,8 +68,12 @@ descheduler:
                 cpu: 40
                 memory: 50
               # A node is a *source* (over-utilized) if EITHER is above:
+              # CPU is 75, not 60: ocifree has under 2 CPUs and ~860m of fixed
+              # requests, so 60 tripped on a few small pods while its memory sat
+              # at 19%, and the evicted pods landed straight back on it (185
+              # evictions in 30h, no change in balance).
               targetThresholds:
-                cpu: 60
+                cpu: 75
                 memory: 65
         plugins:
           balance:
