@@ -7,7 +7,7 @@
 clusterName: homelab
 endpoint: https://beelink.catfish-mountain.ts.net:6443
 talosVersion: v1.14.4
-kubernetesVersion: v1.37.1
+kubernetesVersion: v1.37.2
 
 # Machine config document layout (talosctl gen config --talos-version). The
 # nodes run the v1.13 layout: one v1alpha1 document plus a few named ones.

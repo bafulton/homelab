@@ -2,7 +2,7 @@ namespace: tuppr
 
 # Talos/Kubernetes versions for upgrades - Renovate updates these alongside talos/cluster.yaml
 talosVersion: v1.14.4
-kubernetesVersion: v1.37.1
+kubernetesVersion: v1.37.2
 
 # Each gate renders one upgrade resource (templates/) at the version above.
 # With a gate on, merging a version bump makes tuppr roll it out; with it off,
