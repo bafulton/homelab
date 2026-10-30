@@ -34,13 +34,14 @@ lanMaxConnPerIp: 64
 # The library. Served as /games-catalog.json in place of the image's own,
 # which lists the upstream demos whose bundles are not hosted here.
 # wgbUrl is /apps/<file>, served from the bottleship-apps volume.
-# coverUrl is optional; only Empire Earth's cover ships in the image.
+# coverUrl is optional: /covers/<file> for a cover in the image, or
+# /covers/custom/<file> for one in files/covers/ (templates/covers-configmap.yaml).
 games:
   - id: empire-earth-gold
     name: Empire Earth
     subtitle: Gold Edition
     wgbUrl: /apps/empire-earth-gold.wgb
-    coverUrl: /covers/empire-earth-gold-box.jpg
+    coverUrl: /covers/custom/empire-earth-gold.webp
     description: Lead a civilization from the Stone Age to the Nano Age, with LAN multiplayer over the virtual LAN.
     year: "2001"
     genre: RTS
@@ -50,7 +51,7 @@ games:
     name: "Empire Earth: The Art of Conquest"
     subtitle: Expansion
     wgbUrl: /apps/empire-earth-aoc.wgb
-    coverUrl: /covers/empire-earth-gold-box.jpg
+    coverUrl: /covers/custom/empire-earth-aoc.jpeg
     description: The expansion's Space Age, heroes and campaigns, on top of the full base game.
     year: "2002"
     genre: RTS

@@ -75,12 +75,18 @@ spec:
               mountPath: /app/dist/games-catalog.json
               subPath: games-catalog.json
               readOnly: true
+            - name: covers
+              mountPath: /app/dist/covers/custom
+              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:
         - name: apps
           persistentVolumeClaim:
             claimName: bottleship-apps
+        - name: covers
+          configMap:
+            name: bottleship-covers
         - name: catalog
           configMap:
             name: bottleship-catalog

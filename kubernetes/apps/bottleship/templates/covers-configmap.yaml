@@ -1,0 +1,13 @@
+# Cover art for catalog entries BottleShip doesn't ship a cover for, or whose
+# cover we'd rather replace. Served from /covers/custom/<file>; point a game's
+# coverUrl there. A ConfigMap holds at most 1 MiB, so keep covers small.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bottleship-covers
+  annotations:
+    reloader.stakater.com/match: "true"
+binaryData:
+  {{- range $path, $_ := .Files.Glob "files/covers/*" }}
+  {{ base $path }}: {{ $.Files.Get $path | b64enc }}
+  {{- end }}
