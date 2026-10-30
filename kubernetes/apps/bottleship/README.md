@@ -34,6 +34,9 @@ referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
 
 ## Adding a Game
 
+`docs/game-bringup.md` in `ievans/bottleship` covers getting a new game working.
+This section covers deploying one.
+
 1. Make a bundle from the game's GOG **offline backup installer**
    (`setup_<game>_*.exe`, plus any `.bin` files beside it; the small
    GOG Galaxy downloader has no game in it), in a BottleShip checkout with
@@ -56,14 +59,18 @@ referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
      under its own name, as the installer does.
    - A game installed from disc goes straight to `make-wgb` with its
      installed folder.
-2. Copy it onto the volume:
+2. Copy it onto the volume under a temporary name and rename it, so the server
+   never serves a half-copied bundle:
    ```sh
    POD=$(kubectl -n bottleship get pod -l app.kubernetes.io/name=bottleship -o name | cut -d/ -f2)
-   kubectl -n bottleship cp <id>.wgb "$POD:/apps/<id>.wgb"
+   kubectl -n bottleship cp <id>.wgb "$POD:/apps/.<id>.wgb"
+   kubectl -n bottleship exec "$POD" -- mv /apps/.<id>.wgb /apps/<id>.wgb
    ```
 3. Add or enable its entry in `games` in `values.yaml`, with
    `wgbUrl: /apps/<id>.wgb`, then commit and push. Reloader restarts the
-   server with the new catalog.
+   server with the new catalog, which ends any game in progress, so check
+   nobody's playing first. For cover art, add the file to `files/covers/` and
+   set `coverUrl: /covers/custom/<file>`.
 
 Empire Earth and The Art of Conquest are built that way, with the settings
 from BottleShip's compatibility notes: `--os winxp --ram 1536 --width 1024
@@ -85,6 +92,8 @@ catalog change) ends any game in progress.
 
 ## Updating BottleShip
 
-Bump `BOTTLESHIP_COMMIT` in `images/bottleship/Dockerfile` and
-`images/bottleship/VERSION` together, then set `image.tag` here to the new
-version once the build has published it.
+Set `BOTTLESHIP_COMMIT` in `images/bottleship/Dockerfile` to the current
+`main` of `ievans/bottleship`, and bump `images/bottleship/VERSION` with it.
+Once the build has published the image, set `image.tag` in `values.yaml`.
+Several people may be bumping at once: if another bump already includes your
+change, you're done. The restart ends any game in progress.
