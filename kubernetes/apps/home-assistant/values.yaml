@@ -4,9 +4,30 @@ namespace: home-assistant
 # Routes through Traefik Gateway (Cloudflare Tunnel for public, MetalLB for LAN)
 gateway-route:
   routes:
-    - name: public-lan
+    # Public access via Cloudflare Tunnel. The tunnel reaches Traefik over
+    # plain HTTP, and Traefik's `web` entrypoint replaces Cloudflare's
+    # X-Forwarded-Proto with `http`, so HA would build http:// URLs, including
+    # the Pocket ID callback, which Pocket ID then rejects. This name is only
+    # ever served over HTTPS at Cloudflare's edge, so the route says so.
+    - name: public
       hostnames:
-        - home.fultonhuffman.com  # Public access via Cloudflare Tunnel
+        - home.fultonhuffman.com
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                set:
+                  - name: X-Forwarded-Proto
+                    value: https
+          backendRefs:
+            - name: home-assistant
+              port: 80
+    - name: lan
+      hostnames:
         - home.local              # LAN access via mDNS
       service:
         name: home-assistant
