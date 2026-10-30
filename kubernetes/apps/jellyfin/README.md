@@ -210,7 +210,9 @@ Once the pod is deleted, safely eject/unplug the external drive.
 ## Pocket ID Sign-in
 
 Friends in Pocket ID's `media` group sign in with their Pocket ID account
-through the [SSO plugin](https://github.com/9p4/jellyfin-plugin-sso). It works
+through the [SSO plugin](https://github.com/K0lin/jellyfin-plugin-sso), the
+maintained fork of the archived `9p4/jellyfin-plugin-sso`. Its 5.1.x releases
+target Jellyfin 12. It works
 in the web UI; apps and TVs sign in with **Quick Connect**, approved from a
 signed-in browser. Local Jellyfin accounts keep working alongside it.
 
@@ -219,9 +221,9 @@ dashboard:
 
 1. **Pocket ID → OIDC Clients → Add**: name `Jellyfin`, **Public Client** off,
    callback URL `https://media.fultonhuffman.com/sso/OID/redirect/pocket-id`,
-   allowed group `media`. Create a client secret.
+   allowed group `media`, PKCE on. Create a client secret.
 2. **Dashboard → Plugins → Repositories**: add
-   `https://raw.githubusercontent.com/9p4/jellyfin-plugin-sso/manifest-release/manifest.json`,
+   `https://raw.githubusercontent.com/k0lin/jellyfin-plugin-sso/manifest-release/manifest.json`,
    then install **SSO Authentication** from the catalog and restart Jellyfin.
 3. **Plugins → SSO Authentication**, add an OpenID provider named `pocket-id`:
    - **OID Endpoint**: `https://auth.fultonhuffman.com`
