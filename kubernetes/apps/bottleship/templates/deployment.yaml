@@ -9,11 +9,18 @@ metadata:
 spec:
   replicas: 1
   # One pod: the LAN relay keeps rooms in memory, so two replicas would split
-  # players who joined the same room - and a rolling update would briefly run
-  # two. Recreate drops every room on a rollout instead, which only happens
-  # when the image or catalog changes.
+  # players who joined the same room. A rollout starts the new pod first and
+  # stops the old one once the new one is ready, so the site never goes down:
+  # the emulator reads bundles from the server while a game runs. The two
+  # overlap for about a second, and the old pod's rooms end with it.
+  # bottleship-apps is a hostPath on one node, so both pods can mount it.
+  # A PodDisruptionBudget would not help here: it governs evictions, not
+  # rollouts, and with one replica it would block every drain of beelink.
   strategy:
-    type: Recreate
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app.kubernetes.io/name: bottleship
