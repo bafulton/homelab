@@ -212,9 +212,13 @@ Once the pod is deleted, safely eject/unplug the external drive.
 Friends in Pocket ID's `media` group sign in with their Pocket ID account
 through the [SSO plugin](https://github.com/K0lin/jellyfin-plugin-sso), the
 maintained fork of the archived `9p4/jellyfin-plugin-sso`. Its 5.1.x releases
-target Jellyfin 12. It works
-in the web UI; apps and TVs sign in with **Quick Connect**, approved from a
-signed-in browser. Local Jellyfin accounts keep working alongside it.
+target Jellyfin 12. It works in the web UI. Apps and TVs sign in with
+**Quick Connect**: the app shows a code, and the person enters it under
+**Profile → Quick Connect** in a browser signed in through Pocket ID. Apps
+show the login page in a built-in browser that can't use passkeys, so the
+Pocket ID button doesn't work inside them. Local Jellyfin accounts keep
+working alongside it; keep one local admin, with its password in Bitwarden,
+for when Pocket ID is unavailable.
 
 The plugin's settings live in Jellyfin's config volume, set up once in the
 dashboard:
@@ -225,11 +229,15 @@ dashboard:
 2. **Dashboard → Plugins → Repositories**: add
    `https://raw.githubusercontent.com/k0lin/jellyfin-plugin-sso/manifest-release/manifest.json`,
    then install **SSO Authentication** from the catalog and restart Jellyfin.
-3. **Plugins → SSO Authentication**, add an OpenID provider named `pocket-id`:
+3. **Plugins → SSO Authentication**, add an OpenID provider named exactly
+   `pocket-id`. The name is part of the callback URL and the button's URL,
+   and the plugin matches it exactly:
    - **OID Endpoint**: `https://auth.fultonhuffman.com`
    - **Client ID / Secret**: from step 1
    - **Enabled**, **Enable Authorization**: on
-   - **Roles**: `media`; **Admin Roles**: empty; **Role Claim**: `groups`
+   - **Roles**: `media`; **Admin Roles**: `media-admins`; **Role Claim**: `groups`.
+     The plugin sets each user's administrator flag from these groups at every
+     sign-in, so grant admin by adding someone to `media-admins` in Pocket ID
    - **Scopes**: `groups`
    - **Enable All Folders**: on
    - **Scheme Override**: `https`. Jellyfin has no known proxies set, so it
@@ -239,6 +247,17 @@ dashboard:
    <form action="https://media.fultonhuffman.com/sso/OID/start/pocket-id">
      <button class="raised block emby-button button-submit">Sign in with Pocket ID</button>
    </form>
+   ```
+5. **Dashboard → General → Branding → Custom CSS**, so the button matches the
+   width of the sign-in buttons above it:
+   ```css
+   .loginDisclaimer {
+     width: 100%;
+   }
+   .loginDisclaimer .button-submit {
+     width: 100%;
+     margin: 0;
+   }
    ```
 
 Each friend gets a Jellyfin user on first sign-in. To revoke access, remove
