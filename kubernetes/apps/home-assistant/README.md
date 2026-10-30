@@ -168,6 +168,13 @@ Setup, once:
 3. Put its client ID in `client_id` in `auth_oidc.yaml` and push. It isn't
    secret: a public client has none, and the ID shows in every sign-in URL.
 
+To sign in to an existing Home Assistant user through Pocket ID (the owner's,
+say), give it the same username as the Pocket ID account, add
+`features: {automatic_user_linking: true}` to `auth_oidc.yaml`, sign in once
+with Pocket ID, then remove the feature: while it is on, anyone whose Pocket
+ID username matches a Home Assistant username gets that account. The user
+keeps its password login, which is the way in when Pocket ID is down.
+
 Each friend gets a new, non-admin Home Assistant user on first sign-in. To
 revoke access, remove them from `home` in Pocket ID **and** deactivate their
 user under **Settings → People → Users**: Home Assistant keeps its own
