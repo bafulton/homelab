@@ -1,16 +1,16 @@
 # BottleShip: runs classic Windows games in the browser, served with the
 # COOP/COEP headers, Range support and LAN relay its client needs.
 #
-# Built from a friend's fork rather than upstream jenissimo/bottleship, for the
-# virtual-LAN multiplayer: a WebSocket relay in the server plus real Winsock in
-# the emulator. split/ui stacks the room UI on the engine change
-# (ievans/bottleship PRs 1 and 3). Move back to upstream once those merge.
+# Built from ievans/bottleship, the fork we develop in, rather than upstream
+# jenissimo/bottleship: it carries the virtual-LAN multiplayer, a WebSocket
+# relay in the server plus real Winsock in the emulator.
 #
-# Pinned to a commit, not the branch: a branch would rebuild to different
+# Pinned to a commit of its main, not the branch: a branch would rebuild to
+# different
 # content under the same VERSION. Renovate does not track this; bump the commit
 # and VERSION together by hand.
 ARG BOTTLESHIP_REPO=https://github.com/ievans/bottleship.git
-ARG BOTTLESHIP_COMMIT=cf5e714e82798441915cc0ecd6e8f7e5646e4362
+ARG BOTTLESHIP_COMMIT=e8a376bf6991cb425ec38c65da53bedf1ac10540
 
 # vendor/v86 is a submodule whose libv86.mjs and v86.wasm are committed
 # prebuilt, so the build needs no Rust toolchain - only the checkout.
