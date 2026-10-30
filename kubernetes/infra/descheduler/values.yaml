@@ -46,6 +46,11 @@ descheduler:
               # control-plane pods) from being thrashed — they have no other home,
               # so the descheduler leaves them alone instead of churning them.
               nodeFit: true
+              # Leave pods under 5 minutes old alone. Short Job pods (e.g.
+              # signoz-dashboard-sync, backoffLimit 0) were evicted a second
+              # after starting, failing the Job and marking its ArgoCD app
+              # Degraded; it also stops a just-moved pod being moved again.
+              minPodAge: 5m
               podProtections:
                 # emptyDir/hostPath scratch is ephemeral anyway (lost on any
                 # restart), so allow those stateless controllers to move.
