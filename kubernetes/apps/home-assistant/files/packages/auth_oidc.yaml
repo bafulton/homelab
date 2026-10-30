@@ -9,6 +9,12 @@ auth_oidc:
   client_id: "d3c70646-fc9c-44de-97eb-1b36f31a319d"
   discovery_url: https://auth.fultonhuffman.com/.well-known/openid-configuration
   display_name: Pocket ID
+  # TEMPORARY: attaches a first Pocket ID sign-in to the existing HA user
+  # with the same username, so the owner keeps their account. Remove once
+  # linked: while on, anyone whose Pocket ID username matches an HA username
+  # takes over that account.
+  features:
+    automatic_user_linking: true
   roles:
     # Pocket ID already refuses anyone outside `home`; requiring it here too
     # means a misconfigured client still cannot let anyone else in.
