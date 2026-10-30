@@ -61,13 +61,13 @@ ArgoCD leaves that alone, because the chart renders no `stop` field and the
 three-way diff ignores fields absent from both desired and last-applied state.
 Remove it with a JSON-patch `remove` of `/spec/stop` to start back up.
 
-Both Jobs in this app are hooks, and a hook that cannot finish blocks every
-later sync - including the push that would fix it:
+ArgoCD waits for both Jobs in this app on every sync, and a Job that cannot
+finish blocks every later sync - including the push that would fix it:
 
-- `telemetrystore-migrator` needs ClickHouse up. Kept out of syncs via
-  `telemetryStoreMigrator.upgradeHelmHooks: false`. (The key is
-  `telemetryStoreMigrator`; `schemaMigrator` is not read by this chart and
-  setting it does nothing.)
+- `telemetrystore-migrator` is recreated by each sync and needs ClickHouse up.
+  Set `telemetryStoreMigrator.enabled: false` in `values.yaml` for the length of
+  the quiesce. (It is an ordinary synced resource, not a hook: the PostSync hook
+  below is what makes ArgoCD wait for it.)
 - `dashboard-sync` is a PostSync hook that waits on the SigNoz API, so it
   spins for its full timeout whenever the app is scaled down.
 

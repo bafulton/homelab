@@ -44,18 +44,19 @@ bitwarden-secret:
 signoz:
   clusterName: homelab
 
-  # Disable Helm hooks - ArgoCD handles sync waves differently
-  # Without this, otel-collector waits for a sync-init job that never gets created
-  # NOTE: the chart key is telemetryStoreMigrator, not schemaMigrator. This was
-  # set as `schemaMigrator.upgradeHelmHooks` for a long time, which silently did
-  # nothing - the chart has no such key - so the sync hook kept running.
+  # The migrator Job is an ordinary synced resource, not a hook: the chart only
+  # adds helm.sh/hook when .Release.IsUpgrade is set, and ArgoCD's `helm template`
+  # never sets it. Its only other effect is the sync-options annotation below,
+  # which upgradeHelmHooks: false removes from the chart, so it is set here.
   #
-  # Its Job is an ArgoCD sync hook, and a failing hook wedges the whole app: the
-  # sync blocks on "waiting for healthy state of batch/Job/..." and applies
-  # nothing else, so pushing a fix does not recover it - the stuck operation has
-  # to be terminated first. upgradeHelmHooks: false keeps it out of the sync.
+  # Replace is what lets a new collector image land, since a Job's pod template
+  # is immutable and it uses that image. It recreates the Job on every sync, not
+  # just when it changes, and the sync waits for it to finish - so the migrator
+  # needs ClickHouse up (see "Quiescing SigNoz" in the README).
   telemetryStoreMigrator:
     upgradeHelmHooks: false
+    annotations:
+      argocd.argoproj.io/sync-options: Force=true,Replace=true
 
   # All three SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB) are rebuildable
   # observability data, so they sit on `state` rather than `config`.
