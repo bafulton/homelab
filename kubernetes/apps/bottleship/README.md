@@ -104,6 +104,11 @@ it.
    lists the new commits.
 3. Merge it when nobody is playing. The restart ends any game in progress.
 
+The image downloads its `.wasm` files from the release the fork's CI publishes
+for that commit's `wasm.lock.json`. If a bump changes the lock, wait for the
+fork's CI on that commit to finish first, or the image build fails. A failed
+build leaves the site on its current version.
+
 Several people may be bumping at once: if another bump already includes your
 change, you're done. Running the workflow again replaces the open bump.
 
