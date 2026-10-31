@@ -9,7 +9,7 @@
 # different content under the same VERSION. Renovate does not track this; use
 # the Bump BottleShip workflow (kubernetes/apps/bottleship/README.md).
 ARG BOTTLESHIP_REPO=https://github.com/ievans/bottleship.git
-ARG BOTTLESHIP_COMMIT=15caf4312230402c20db6f32f38d2d915567b9a5
+ARG BOTTLESHIP_COMMIT=aae8d4414508e636210467db25aca5276c62187c
 
 # The .wasm files aren't committed. The fork's CI publishes them as a release
 # keyed to wasm.lock.json, which saves this build the Rust, clang and FFmpeg
