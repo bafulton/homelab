@@ -6,14 +6,15 @@
 # relay in the server plus real Winsock in the emulator.
 #
 # Pinned to a commit of its main, not the branch: a branch would rebuild to
-# different
-# content under the same VERSION. Renovate does not track this; bump the commit
-# and VERSION together by hand.
+# different content under the same VERSION. Renovate does not track this; use
+# the Bump BottleShip workflow (kubernetes/apps/bottleship/README.md).
 ARG BOTTLESHIP_REPO=https://github.com/ievans/bottleship.git
-ARG BOTTLESHIP_COMMIT=e8a376bf6991cb425ec38c65da53bedf1ac10540
+ARG BOTTLESHIP_COMMIT=15caf4312230402c20db6f32f38d2d915567b9a5
 
-# vendor/v86 is a submodule whose libv86.mjs and v86.wasm are committed
-# prebuilt, so the build needs no Rust toolchain - only the checkout.
+# The .wasm files aren't committed. The fork's CI publishes them as a release
+# keyed to wasm.lock.json, which saves this build the Rust, clang and FFmpeg
+# toolchains. `bun run build` then checks them against the lock: it skips files
+# that match, and fails on any that don't.
 FROM alpine/git:2.54.0 AS source
 ARG BOTTLESHIP_REPO
 ARG BOTTLESHIP_COMMIT
@@ -23,6 +24,10 @@ RUN git init -q . \
     && git fetch -q --depth 1 origin "$BOTTLESHIP_COMMIT" \
     && git checkout -q FETCH_HEAD \
     && git submodule update -q --init --depth 1
+RUN tag="wasm-$(sha256sum tools/build-wasm/wasm.lock.json | cut -c1-16)" \
+    && wget -q -O /tmp/wasm.tar.gz "${BOTTLESHIP_REPO%.git}/releases/download/$tag/wasm.tar.gz" \
+    && tar -xzf /tmp/wasm.tar.gz \
+    && rm /tmp/wasm.tar.gz
 
 # The frontend is built on the build platform only: its output is static
 # JS/WASM, identical for every architecture, so there is no reason to run the
