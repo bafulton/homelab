@@ -56,6 +56,26 @@ games:
     year: "2002"
     genre: RTS
     enabled: true
+  - id: empire-earth-2
+    name: Empire Earth II
+    subtitle: Gold Edition
+    wgbUrl: /apps/empire-earth-2.wgb
+    coverUrl: /covers/custom/empire-earth-2.jpeg
+    description: Fifteen epochs of real-time strategy, from the Stone Age to the Synthetic Age. Single player; LAN joining isn't finished yet.
+    year: "2005"
+    genre: RTS
+    enabled: true
+  # Same installed files as Empire Earth II, starting EE2X.exe. Its own gameId
+  # keeps its saves apart: that id is the browser storage key.
+  - id: empire-earth-2-aos
+    name: "Empire Earth II: The Art of Supremacy"
+    subtitle: Expansion
+    wgbUrl: /apps/empire-earth-2-aos.wgb
+    coverUrl: /covers/custom/empire-earth-2-aos.jpeg
+    description: The expansion's new civilizations and campaigns. Reaches the menus, but gameplay hasn't been tested yet.
+    year: "2006"
+    genre: RTS
+    enabled: true
   # Untested in BottleShip. Leave disabled until a bundle is on the volume and
   # it boots.
   - id: rise-of-nations

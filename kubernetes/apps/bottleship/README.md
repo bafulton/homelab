@@ -79,6 +79,11 @@ registry values, and `--create-dirs` for each game's `Data\Saved Games`. The
 Art of Conquest's bundle carries both game folders, since it refuses to start
 without the base game.
 
+Empire Earth II and The Art of Supremacy share one installer and differ only in
+`entrypoint`. Give an expansion like that its own `gameId` (`bun tools/wgb.ts
+patch-manifest <id>.wgb gameId gog:<productId>-<suffix>`): the id is the browser
+storage key, so two bundles with one id share their saves.
+
 ## Multiplayer
 
 Players in the same room share a virtual LAN (`192.168.77.0/24`), relayed
