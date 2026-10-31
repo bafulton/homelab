@@ -92,8 +92,21 @@ catalog change) ends any game in progress.
 
 ## Updating BottleShip
 
-Set `BOTTLESHIP_COMMIT` in `images/bottleship/Dockerfile` to the current
-`main` of `ievans/bottleship`, and bump `images/bottleship/VERSION` with it.
-Once the build has published the image, set `image.tag` in `values.yaml`.
+Updates don't happen on their own: the image is pinned to one commit of
+`ievans/bottleship`, so new commits on its `main` stay undeployed until you bump
+it.
+
+1. Run the **Bump BottleShip** workflow, from the Actions tab or with
+   `gh workflow run bump-bottleship.yaml`. It uses the latest `main` unless you
+   give it a `commit`.
+2. Open the pull request from the link in the run's summary. It changes
+   `BOTTLESHIP_COMMIT`, `images/bottleship/VERSION` and `image.tag` together, and
+   lists the new commits.
+3. Merge it when nobody is playing. The restart ends any game in progress.
+
 Several people may be bumping at once: if another bump already includes your
-change, you're done. The restart ends any game in progress.
+change, you're done. Running the workflow again replaces the open bump.
+
+This is an interim process. The fork will eventually have a formal version
+release process, and then we can track its releases directly, with a more
+straightforward update regime.

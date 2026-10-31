@@ -1,0 +1,134 @@
+name: Bump BottleShip
+
+# Prepares a BottleShip engine update as one change: the fork commit, the image
+# VERSION and the deployed tag. Run by hand, because a rollout ends every game
+# in progress, and because an engine change only matters once a game needs it.
+#
+# Interim process: the fork has no releases yet, so this pins commits of its
+# main. Once ievans/bottleship has a formal version release process, replace
+# this with tracking those releases, for example through Renovate.
+#
+# Merging a bump is safe before its image exists: the new pod waits for the
+# image while the old one keeps serving (RollingUpdate, maxUnavailable 0).
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: 'ievans/bottleship commit to deploy (default: latest main)'
+        required: false
+        type: string
+
+concurrency:
+  group: bump-bottleship
+
+env:
+  FORK: ievans/bottleship
+  BRANCH: bottleship-bump
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve the commits
+        id: commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUESTED: ${{ inputs.commit }}
+        run: |
+          CURRENT=$(sed -n 's/^ARG BOTTLESHIP_COMMIT=\([0-9a-f]\{40\}\)$/\1/p' images/bottleship/Dockerfile)
+          if [ -z "$CURRENT" ]; then
+            echo "::error file=images/bottleship/Dockerfile::No pinned BOTTLESHIP_COMMIT found"
+            exit 1
+          fi
+
+          TARGET=$(gh api "repos/$FORK/commits/${REQUESTED:-main}" --jq .sha)
+
+          # A commit on another branch would deploy work that isn't on main.
+          ON_MAIN=$(gh api "repos/$FORK/compare/$TARGET...main" --jq .status)
+          case "$ON_MAIN" in
+            ahead|identical) ;;
+            *)
+              echo "::error::$TARGET is not on $FORK main"
+              exit 1
+              ;;
+          esac
+
+          NEWER=$(gh api "repos/$FORK/compare/$CURRENT...$TARGET" --jq .status)
+          case "$NEWER" in
+            identical)
+              echo "::notice::Already on $TARGET; nothing to do."
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+            ahead) ;;
+            *)
+              echo "::error::$TARGET is not newer than the deployed $CURRENT"
+              exit 1
+              ;;
+          esac
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "target=$TARGET" >> "$GITHUB_OUTPUT"
+
+      - name: Update the pins
+        if: steps.commits.outputs.changed == 'true'
+        id: pins
+        env:
+          CURRENT: ${{ steps.commits.outputs.current }}
+          TARGET: ${{ steps.commits.outputs.target }}
+        run: |
+          OLD=$(tr -d '[:space:]' < images/bottleship/VERSION)
+          NEW=$(echo "$OLD" | awk -F. '{ print $1 "." $2 + 1 ".0" }')
+
+          sed -i "s/^ARG BOTTLESHIP_COMMIT=$CURRENT$/ARG BOTTLESHIP_COMMIT=$TARGET/" images/bottleship/Dockerfile
+          echo "$NEW" > images/bottleship/VERSION
+          sed -i "s/^  tag: \"$OLD\"$/  tag: \"$NEW\"/" kubernetes/apps/bottleship/values.yaml
+
+          # Each file must change by exactly one line, or a pin was missed.
+          for f in images/bottleship/Dockerfile images/bottleship/VERSION kubernetes/apps/bottleship/values.yaml; do
+            if [ "$(git diff --numstat -- "$f" | cut -f1)" != "1" ]; then
+              echo "::error file=$f::Expected exactly one changed line"
+              git diff -- "$f"
+              exit 1
+            fi
+          done
+
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
+
+      - name: Push the bump branch
+        if: steps.commits.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT: ${{ steps.commits.outputs.current }}
+          TARGET: ${{ steps.commits.outputs.target }}
+          VERSION: ${{ steps.pins.outputs.version }}
+        run: |
+          # GitHub prefills a pull request from a one-commit branch's message,
+          # so this message is the description.
+          {
+            echo "feat(bottleship): deploy $VERSION"
+            echo
+            echo "Merging restarts the server and ends every game in progress."
+            echo
+            echo "https://github.com/$FORK/compare/$CURRENT...$TARGET"
+            echo
+            gh api "repos/$FORK/compare/$CURRENT...$TARGET" \
+              --jq '.commits[] | "- " + .sha[:7] + " " + (.commit.message | split("\n")[0])' \
+              | sed -E "s|\(#([0-9]+)\)|($FORK#\1)|"
+          } > "$RUNNER_TEMP/message"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git commit -a -F "$RUNNER_TEMP/message"
+          git push --force origin "$BRANCH"
+
+          URL="https://github.com/$GITHUB_REPOSITORY/compare/main...$BRANCH?expand=1"
+          echo "::notice::Open the pull request: $URL"
+          echo "[Open the pull request for BottleShip $VERSION]($URL)" >> "$GITHUB_STEP_SUMMARY"
