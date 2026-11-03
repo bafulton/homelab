@@ -18,7 +18,7 @@ image:
   # distroless: no shell and no root entrypoint. The default image starts as
   # root to chown /app/data and drop to PUID via su-exec; here fsGroup does
   # that job and the pod never runs as root.
-  tag: "v2.19.1-distroless"
+  tag: "v2.19.2-distroless"
   pullPolicy: IfNotPresent
 
 appUrl: https://auth.fultonhuffman.com
