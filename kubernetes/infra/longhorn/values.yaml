@@ -66,6 +66,7 @@ nodeConfig:
         usb-disk:
           path: /var/mnt/usb
           storageReserved: 1945700409344  # filesystem size - 50 GiB
+          allowScheduling: false # Temporary: rebuild beelink copies on NVMe.
           tags: ["durable"]
 
     - name: ocifree
