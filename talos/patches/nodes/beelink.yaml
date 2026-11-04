@@ -16,11 +16,9 @@ machine:
   nodeTaints:
     homelab.io/prefer-off: "true:PreferNoSchedule"
 
-  # NVMe: Longhorn. USB: Jellyfin media. TM: Time Machine's own USB drive.
+  # USB: Jellyfin media. TM: Time Machine's own USB drive. The NVMe is
+  # provisioned below as EPHEMERAL and a user volume.
   disks:
-    - device: ${BEELINK_NVME_DISK}
-      partitions:
-        - mountpoint: /var/mnt/nvme
     - device: ${BEELINK_USB_DISK}
       partitions:
         - mountpoint: /var/mnt/usb
@@ -58,6 +56,27 @@ machine:
       validSubnets:
         - 192.168.1.0/24
         - 100.64.0.0/10
+---
+apiVersion: v1alpha1
+kind: VolumeConfig
+name: EPHEMERAL
+provisioning:
+  diskSelector:
+    match: "disk.transport == 'nvme' && !system_disk"
+  minSize: 100GiB
+  maxSize: 150GiB
+  grow: false
+---
+apiVersion: v1alpha1
+kind: UserVolumeConfig
+name: nvme
+provisioning:
+  diskSelector:
+    match: "disk.transport == 'nvme' && !system_disk"
+  minSize: 1TiB
+  grow: true
+filesystem:
+  type: xfs
 ---
 apiVersion: v1alpha1
 kind: HostnameConfig

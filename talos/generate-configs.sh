@@ -17,7 +17,7 @@ set -euo pipefail
 #   - talosctl: brew install siderolabs/tap/talosctl
 #   - yq:       brew install yq
 #   - envsubst: brew install gettext
-#   - .env file with TS_CLIENT_ID, TS_CLIENT_SECRET and the *_DISK paths
+#   - .env file with TS_CLIENT_ID, TS_CLIENT_SECRET and the USB/TM disk paths
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
@@ -27,7 +27,7 @@ SECRETS_FILE="${SCRIPT_DIR}/secrets.yaml"
 OUTPUT_DIR="${SCRIPT_DIR}/clusterconfig"
 
 # Only these are substituted into patches; any other ${...} is left alone.
-ENV_VARS=(TS_CLIENT_ID TS_CLIENT_SECRET BEELINK_NVME_DISK BEELINK_USB_DISK BEELINK_TM_DISK RPI5_USB_DISK)
+ENV_VARS=(TS_CLIENT_ID TS_CLIENT_SECRET BEELINK_USB_DISK BEELINK_TM_DISK RPI5_USB_DISK)
 
 log()  { printf "\n==> %s\n" "$*"; }
 err()  { printf "\n[error] %s\n" "$*" >&2; exit 1; }
