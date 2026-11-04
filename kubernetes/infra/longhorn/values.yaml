@@ -36,16 +36,6 @@ nodeConfig:
           storageReserved: 16106127360  # 15GB reserved for OS
           tags: ["emmc"]
           allowScheduling: false
-        # NVMe SSD - holds a replica of every Longhorn volume. `nvme` selects it
-        # alone; `durable` also selects rpi5's usb-disk, for classes that keep
-        # a second replica on another node.
-        nvme-disk:
-          path: /var/mnt/nvme
-          storageReserved: 0
-          allowScheduling: false
-          # Alphabetical: Longhorn stores tags sorted, so any other order is a
-          # permanent ArgoCD diff.
-          tags: ["durable", "nvme"]
         # Temporary landing place while the NVMe is repartitioned. Create
         # this directory on the USB filesystem before syncing this config.
         usb-temp-disk:
