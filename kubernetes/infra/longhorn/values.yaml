@@ -47,6 +47,7 @@ nodeConfig:
         usb-temp-disk:
           path: /var/mnt/usb/longhorn-temp
           storageReserved: 0
+          allowScheduling: false
           tags: ["durable", "nvme"]
 
     - name: rpi5
