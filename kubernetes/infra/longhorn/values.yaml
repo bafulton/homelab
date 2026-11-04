@@ -45,6 +45,12 @@ nodeConfig:
           # Alphabetical: Longhorn stores tags sorted, so any other order is a
           # permanent ArgoCD diff.
           tags: ["durable", "nvme"]
+        # Temporary landing place while the NVMe is repartitioned. Create
+        # this directory on the USB filesystem before syncing this config.
+        usb-temp-disk:
+          path: /var/mnt/usb/longhorn-temp
+          storageReserved: 0
+          tags: ["durable", "nvme"]
 
     - name: rpi5
       allowScheduling: true
