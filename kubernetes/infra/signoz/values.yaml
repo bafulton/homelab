@@ -101,7 +101,7 @@ signoz:
           <crash_log remove="1"/>
         </clickhouse>
     zookeeper:
-      replicaCount: 0
+      replicaCount: 1
       heapSize: 256
       # Placement: beelink only. Its volume is a single strict-local replica on beelink's
       # NVMe (the `state` class), so Longhorn will attach it nowhere else - and
