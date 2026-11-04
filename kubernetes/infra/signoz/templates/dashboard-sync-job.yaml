@@ -1,3 +1,4 @@
+{{- if .Values.dashboardSync.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -38,3 +39,4 @@ spec:
           configMap:
             name: signoz-sync-script
             defaultMode: 0755
+{{- end }}
