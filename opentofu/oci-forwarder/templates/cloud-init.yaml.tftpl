@@ -3,6 +3,9 @@
 # rebuild reproduces it exactly, rather than depending on anything typed in
 # over SSH.
 
+hostname: ${hostname}
+preserve_hostname: false
+
 package_update: true
 packages:
   - iptables-persistent
