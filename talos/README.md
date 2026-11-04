@@ -17,6 +17,13 @@ Example configuration:
 | Mini PC | Control Plane + Worker | amd64 | beelink |
 | Raspberry Pi | Worker | arm64 | rpi5 |
 
+Beelink boots Talos from eMMC. Its EPHEMERAL volume (`/var`, including etcd and
+containerd) is a fixed 150 GiB partition on `/dev/nvme0n1`; the remaining NVMe
+space is the XFS `u-nvme` user volume mounted at `/var/mnt/nvme` for Longhorn.
+Both volumes are declared in `patches/nodes/beelink.yaml`. Resetting beelink's
+EPHEMERAL volume requires an etcd snapshot and recovery; the two NVMe
+partitions are separate from the eMMC boot disk.
+
 ## Networking model (two planes)
 
 The cluster deliberately runs on two network planes. Keeping them separate is
@@ -543,7 +550,7 @@ Direct reboots can cause filesystem corruption because:
 ./scripts/safe-reboot-node.sh beelink
 ```
 
-Reboot one node at a time, and let beelink settle (pods Running, eMMC idle)
+Reboot one node at a time, and let beelink settle (pods Running, NVMe idle)
 before the next disruptive change; see "Pace the disruptive steps" in
 `kubernetes/infra/tuppr/README.md`.
 

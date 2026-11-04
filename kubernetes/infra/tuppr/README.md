@@ -30,24 +30,25 @@ pending or running.
    `main`. Merge.
 4. **Kubernetes rollout.** tuppr runs `upgrade-k8s`.
 
-Be around for step 2. Every Longhorn volume has its only replica on beelink,
-and beelink is the only control-plane node, so its turn takes the API server
-and every Longhorn-backed app down for the few minutes of drain and reboot.
-rpi5's turn moves its pods to beelink, which then pulls their images.
+Be around for step 2. Beelink is the only control-plane node and hosts the
+strict-local state volumes, so its reboot takes the API server and those apps
+down. Config volumes keep a second replica on rpi5. Workloads pinned to
+beelink may need to be scaled down through GitOps before its drain; check the
+live pod placement and PDBs before merging the Talos PR. rpi5's turn moves
+its pods to beelink, which then pulls their images.
 
 ### Pace the disruptive steps
 
-etcd and containerd share beelink's eMMC (`/var`), and the eMMC saturates
-under a burst of image pulls: etcd's writes then take seconds instead of
-milliseconds, kube-scheduler and kube-controller-manager lose their leases,
-and on 2026-10-26 the API server went down. Every saturation so far came from
-several pull-heavy changes landing together. So:
+etcd and containerd share beelink's NVMe EPHEMERAL partition (`/var`). Before
+the 2026-11-04 migration they shared the eMMC, which saturated under a burst
+of image pulls and caused API server instability on 2026-10-26. Keep the
+rollouts paced while the new NVMe baseline is established:
 
 - Run one disruptive change at a time: a Talos rollout, a Kubernetes rollout,
   a node reboot, or a batch of chart bumps that replace many images.
 - After each, wait until beelink settles before starting the next: every pod
-  Running, and beelink's eMMC busy time back near idle in SigNoz
-  (`system.disk.io_time`, device `mmcblk0`).
+  Running, and beelink's NVMe busy time back near idle in SigNoz
+  (`system.disk.io_time`, device `nvme0n1`).
 - Merge Renovate's chart bumps in small groups rather than all at once, and
   not while a node is draining or rebooting.
 - When rpi5 has to go down, expect its pods to land on beelink and pull
