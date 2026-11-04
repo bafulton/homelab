@@ -9,7 +9,7 @@ chart renders from `values.yaml`:
 
 | Resource | Name | Does |
 |----------|------|------|
-| `TalosUpgrade` | `talos` | Moves every node to `talosVersion`, one at a time, control plane first: health checks, then `talosctl upgrade` (run from the other node), which drains, reboots, waits for Ready and uncordons |
+| `TalosUpgrade` | `talos` | Moves every node to `talosVersion`, one at a time, workers before the control plane: health checks, then `talosctl upgrade` (run from another node), which drains, reboots, waits for Ready and uncordons |
 | `KubernetesUpgrade` | `kubernetes` | Runs `talosctl upgrade-k8s` against the control plane: control-plane components, kube-proxy, then each kubelet. No drain, no reboot |
 
 A version bump edits the resource in place and tuppr re-runs it. The two never
@@ -22,7 +22,8 @@ pending or running.
    here. Skim the Talos release notes and
    [sbc-raspberrypi](https://github.com/siderolabs/sbc-raspberrypi) for Pi 5
    regressions, `brew upgrade siderolabs/tap/talosctl`, then merge.
-2. **Talos rollout.** tuppr upgrades beelink, then rpi5.
+2. **Talos rollout.** tuppr upgrades the workers, then beelink. The 2026-11-04
+   rollout went ocifree, rpi5, beelink.
 3. **Kubernetes PR.** Renovate bumps `kubernetesVersion` in both files and
    `KUBECTL_VERSION` in `images/homelab-toolbox/Dockerfile`. Bump
    `images/homelab-toolbox/VERSION` on the PR so the image build passes. The
