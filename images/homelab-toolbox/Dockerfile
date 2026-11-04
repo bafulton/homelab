@@ -11,7 +11,7 @@ FROM alpine:3.24
 # Value carries the leading "v" so it matches kubernetes/kubernetes release tags
 # verbatim and Renovate can rewrite it in place.
 # renovate: datasource=github-releases depName=kubernetes/kubernetes
-ARG KUBECTL_VERSION=v1.37.1
+ARG KUBECTL_VERSION=v1.37.2
 ARG TARGETARCH
 
 RUN apk add --no-cache \
