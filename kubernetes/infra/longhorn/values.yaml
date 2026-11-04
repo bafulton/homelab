@@ -36,6 +36,12 @@ nodeConfig:
           storageReserved: 16106127360  # 15GB reserved for OS
           tags: ["emmc"]
           allowScheduling: false
+        # Fresh user volume on NVMe partition 2. Holds the permanent beelink
+        # replicas after they are moved back from usb-temp-disk.
+        nvme-disk:
+          path: /var/mnt/nvme
+          storageReserved: 0
+          tags: ["durable", "nvme"]
         # Temporary landing place while the NVMe is repartitioned. Create
         # this directory on the USB filesystem before syncing this config.
         usb-temp-disk:
