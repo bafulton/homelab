@@ -190,6 +190,9 @@ longhorn:
     jobEnabled: false
 
   defaultSettings:
+    # Temporary for the NVMe evacuation: permit a second replica on the
+    # beelink USB disk while the old NVMe replica is still present.
+    replicaSoftAntiAffinity: true
     # Data path for Talos (matches kubelet extraMount)
     defaultDataPath: /var/lib/longhorn
     # Freeze filesystem before snapshot to prevent DeadlineExceeded on busy volumes.
