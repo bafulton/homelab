@@ -40,11 +40,78 @@ Data is stored in ClickHouse with default retention:
 - Logs & Traces: 7 days
 - Metrics: 30 days
 
-Persistent volumes, all on the Longhorn `state` class - this data is
-rebuildable, so it is snapshotted but not backed up:
+Persistent volumes currently use the Longhorn `state` class:
 - ClickHouse: 50Gi
 - Zookeeper: 8Gi
-- SigNoz DB: 1Gi
+- SigNoz DB: 1Gi (`signoz-db-signoz-0`)
+
+ClickHouse and Zookeeper telemetry remains disposable. The SigNoz SQLite DB
+contains accounts, API tokens, notification channels, and other application
+settings. Its existing PVC cannot change storage class in place, so a PostSync
+Job labels that claim for the `signoz-db-backup` Longhorn RecurringJob. The job
+backs up the DB daily at 04:00 UTC to the existing Garage backup target and
+keeps seven backups. The `default` group label retains the shared trim job.
+Dashboards and alerts in Git are reasserted by the sync Job, but the database
+backup protects information that Git cannot recreate.
+
+### Verify the application DB backup
+
+After this change syncs, check that the claim and its Longhorn Volume both
+carry the `signoz-db` and `default` recurring-job groups:
+
+```sh
+kubectl get pvc -n signoz signoz-db-signoz-0 --show-labels
+pv=$(kubectl get pvc -n signoz signoz-db-signoz-0 -o jsonpath='{.spec.volumeName}')
+volume=$(kubectl get pv "$pv" -o jsonpath='{.spec.csi.volumeHandle}')
+kubectl get volumes.longhorn.io -n longhorn "$volume" --show-labels
+kubectl get recurringjobs.longhorn.io -n longhorn signoz-db-backup
+```
+
+Run an initial backup from the Longhorn Volume UI. Wait for its state to be
+`Completed` in the Backup page and confirm the Volume's `lastBackupAt` advanced:
+
+```sh
+kubectl get volumes.longhorn.io -n longhorn "$volume" -o jsonpath='{.status.lastBackupAt}{"\n"}'
+kubectl get backups.longhorn.io -n longhorn -o wide
+```
+
+Repeat after the first scheduled run; an ArgoCD green sync alone does not
+prove that Garage contains a usable backup.
+
+### Restore the application DB
+
+1. Record the currently bound PV and Longhorn Volume names using the commands
+   above. Select a completed `signoz-db` backup in the Longhorn Backup page.
+2. Stop SigNoz by setting `signoz.signoz.replicaCount: 0` in `values.yaml` and
+   syncing. Disable the migrator temporarily if needed as described below.
+   Confirm the SigNoz pod is gone and the DB volume is detached.
+3. In Longhorn's Backup page, choose **Restore Latest Backup** for that backup
+   and give the restored volume a new name. Wait until it is detached and
+   `restoreRequired` is `false`. Keep the original volume until recovery is
+   verified. Longhorn cannot restore onto an existing volume of the same name.
+4. Preserve the old PV, then remove the old claim (with SigNoz still stopped):
+
+   ```sh
+   kubectl patch pv "$pv" -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+   kubectl delete pvc -n signoz signoz-db-signoz-0
+   ```
+
+   Use Longhorn's **Create PV/PVC** action on the
+   restored volume, with PVC name `signoz-db-signoz-0`, namespace `signoz`,
+   capacity `1Gi`, and storage class `state`. Verify that the new PVC is Bound
+   to the restored volume. The StatefulSet reuses this PVC name.
+5. Restore `replicaCount: 1` and the migrator setting, then sync. Check SigNoz
+   login, API tokens, and the Email channel. If the Email channel or sync token
+   was created after the backup, recreate it in SigNoz and update the
+   Bitwarden token before running the dashboard sync Job (or an ArgoCD sync).
+   The sync reasserts dashboards, alerts, and channel headers from Git.
+   The sync does not trust cached hashes after a database restore. Check its
+   logs and compare the expected dashboards and alerts in SigNoz.
+
+If an account, token, or channel was created after the selected backup, recreate
+it manually. The Bitwarden copy of the sync API token may need updating if that
+token did not exist in the restored database. [Longhorn restore instructions](https://longhorn.io/docs/1.13.0/snapshots-and-backups/backup-and-restore/restore-from-a-backup/)
+describe the UI recovery path and PV/PVC binding.
 
 ## Quiescing SigNoz
 
@@ -249,11 +316,17 @@ are never touched.
 1. An ArgoCD PostSync Job runs after each sync
 2. The Job clones the repo and reads JSON files directly (avoids ConfigMap size limits)
 3. For each dashboard/alert, it finds existing resources by title/name
-4. If found, updates in place via PUT (preserves IDs and alert history)
+4. If found, updates in place via PUT (preserves IDs and alert history); the
+   sync reasserts content even when the source hash is unchanged, so a restored
+   database cannot hide older state
 5. If not found, creates via POST
 6. After all upserts, reconciles: deletes any `source: gitops` rules not in git
 7. Finally, merges any `channels/*.json` header overrides onto the matching
    notification channels (see [Email Subject Lines](#email-subject-lines))
+
+Required API or Kubernetes discovery/write failures make the Job fail. A failed
+source or destination list prevents pruning, so an outage cannot turn an empty
+discovery result into a delete-all operation.
 
 ### Forcing a PostSync Run
 

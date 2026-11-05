@@ -11,6 +11,19 @@ dashboardSync:
     tag: "1.0.4"
     pullPolicy: IfNotPresent
 
+# The StatefulSet created signoz-db-signoz-0 on the state class. Its storage
+# class is immutable; back up this small application DB independently of the
+# disposable ClickHouse and Zookeeper volumes. The PostSync label Job below
+# adds this group and the default trim group to the existing claim.
+longhorn-storage:
+  jobs:
+    - name: signoz-db-backup
+      task: backup
+      cron: "0 4 * * *"
+      groups:
+        - signoz-db
+      retain: 7
+
 # Ignore Kubernetes runtime defaults that cause perpetual drift
 ignoreDifferences:
   # ClickHouse operator metrics-exporter adds divisor: "0" defaults to resourceFieldRef
@@ -60,8 +73,8 @@ signoz:
     annotations:
       argocd.argoproj.io/sync-options: Force=true,Replace=true
 
-  # All three SigNoz PVCs (ClickHouse, Zookeeper, SigNoz DB) are rebuildable
-  # observability data, so they sit on `state` rather than `config`.
+  # Existing PVC classes are immutable. ClickHouse and Zookeeper telemetry is
+  # disposable; the separate SigNoz application DB gets a dedicated backup.
   global:
     storageClass: state
 
