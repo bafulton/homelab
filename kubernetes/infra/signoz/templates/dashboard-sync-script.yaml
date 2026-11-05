@@ -181,44 +181,47 @@ data:
     # Track all IaC alert names so we can reconcile at the end.
     # Rules with labels.source=gitops that are NOT in this list will be deleted.
     : > /tmp/synced_alert_names
-    # Fetch the rule list once per phase. The v2alpha1 migration moves the list
-    # to /api/v3/rules, whose response envelope is not documented, so the id
-    # lookups below search it recursively instead of assuming .data.rules.
-    #
-    # On any non-200 the file is left as {} and RULES_LIST_OK stays false, so
-    # every lookup misses and the create paths refuse to run: a blind upsert
-    # against an empty list would POST a duplicate of all 19 rules.
+    # GET /api/v3/rules defaults to 20 results. Read every page before any
+    # upsert or prune; treating one page as the full inventory creates duplicate
+    # rules for names on later pages. Fail closed if pagination is incomplete.
     RULES_LIST_OK=false
     fetch_rules() {
-      if ! _resp=$(api -w "\n%{http_code}" "$SIGNOZ_URL/api/v3/rules" \
-        -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN"); then
-        RULES_LIST_OK=false
-        echo '{}' > /tmp/rules.json
-        fail "GET /api/v3/rules request failed"
+      RULES_LIST_OK=false
+      echo '{"data":{"rules":[]}}' > /tmp/rules.json
+      : > /tmp/rule-pages.jsonl
+      _offset=0
+      while :; do
+        api_response "$SIGNOZ_URL/api/v3/rules?limit=200&offset=$_offset" \
+          -H "SIGNOZ-API-KEY: $SIGNOZ_API_TOKEN" || return
+        _code=$(printf '%s\n' "$response" | tail -n1)
+        _page=$(printf '%s\n' "$response" | sed '$d')
+        if [ "$_code" != "200" ] ||
+           ! printf '%s' "$_page" | jq -e '(.data.rules | type == "array") and (.data.total | type == "number")' > /dev/null 2>&1; then
+          fail "GET /api/v3/rules offset $_offset returned HTTP $_code or an invalid page"
+          return
+        fi
+        _count=$(printf '%s' "$_page" | jq '.data.rules | length')
+        _total=$(printf '%s' "$_page" | jq '.data.total')
+        if [ "$_count" -eq 0 ] && [ "$_offset" -lt "$_total" ]; then
+          fail "GET /api/v3/rules returned an empty page before total $_total"
+          return
+        fi
+        printf '%s\n' "$_page" >> /tmp/rule-pages.jsonl
+        _offset=$((_offset + _count))
+        [ "$_offset" -lt "$_total" ] || break
+      done
+      if [ "$_offset" -ne "$_total" ] ||
+         ! jq -s '{data:{rules:[.[].data.rules[]],total:.[-1].data.total}}' /tmp/rule-pages.jsonl > /tmp/rules.json; then
+        fail "GET /api/v3/rules returned $_offset rules but reported $_total"
         return
       fi
-      _code=$(echo "$_resp" | tail -n1)
-      if [ "$_code" = "200" ]; then
-        echo "$_resp" | sed '$d' > /tmp/rules.json
-        # A 200 whose envelope we cannot parse is the dangerous case: every
-        # lookup would miss and the create path would POST a duplicate of each
-        # rule. Treat "payload mentions rules but none parsed" as a failure.
-        # Zero parsed with no rules in the payload is a legitimately empty
-        # instance (first bootstrap), so creates stay allowed there.
-        _n=$(jq '[.. | objects | select(((.alert? // "") != "") and ((.id? // "") != ""))] | unique_by(.id) | length' /tmp/rules.json 2>/dev/null || echo 0)
-        if ! jq -e '(type == "array") or (type == "object" and (has("data") or has("rules")) and (has("error") | not))' /tmp/rules.json > /dev/null 2>&1 ||
-           { [ "${_n:-0}" -eq 0 ] && grep -q '"alert"' /tmp/rules.json 2>/dev/null; }; then
-          RULES_LIST_OK=false
-          fail "/api/v3/rules returned an invalid or unparseable rule list"
-        else
-          RULES_LIST_OK=true
-          echo "  Rule list: $_n existing rule(s)"
-        fi
-      else
-        RULES_LIST_OK=false
-        echo "{}" > /tmp/rules.json
-        fail "GET /api/v3/rules returned HTTP $_code"
+      _unique=$(jq '[.data.rules[].id] | unique | length' /tmp/rules.json)
+      if [ "$_unique" -ne "$_total" ]; then
+        fail "GET /api/v3/rules returned duplicate or missing rule IDs"
+        return
       fi
+      RULES_LIST_OK=true
+      echo "  Rule list: $_total existing rule(s)"
     }
 
     # Load alerts from ConfigMaps (label: signoz.homelab.io/alert=true)
