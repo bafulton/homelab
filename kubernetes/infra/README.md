@@ -72,7 +72,7 @@ flowchart LR
 ```
 
 **Access patterns:**
-- **Private infrastructure** (*.catfish-mountain.com) → Tailscale Split DNS → Gateway API → Services
+- **Infrastructure** (*.catfish-mountain.com) → Tailscale Split DNS or local LAN DNS → Gateway API → Services; most names are not routed by the public tunnel
 - **Public services** (*.fultonhuffman.com, etc.) → Cloudflare Tunnel → Gateway API → Services
 - **LAN services** (*.local) → mDNS → MetalLB → Gateway or direct
 
@@ -80,12 +80,14 @@ flowchart LR
 Provides DNS for pods and services inside the cluster. When a pod calls `http://my-service:8080`, CoreDNS resolves `my-service` to the Service's ClusterIP.
 
 ### Tailscale Split DNS
-Routes `*.catfish-mountain.com` queries from Tailscale clients to the cluster. Configured in Tailscale admin console. Enables private access to infrastructure services from anywhere on the tailnet.
+Routes `*.catfish-mountain.com` queries from Tailscale clients to the cluster.
+Configured in Tailscale admin console. LAN clients can also resolve these
+names locally to the gateway's LAN IP and connect without Tailscale.
 
 **Use for private infrastructure services:**
 - ArgoCD, dashboards, admin UIs
 - Internal APIs and tools
-- Anything you want accessible remotely but **not** public
+- Anything you want accessible remotely or from the LAN but **not** through the public tunnel
 
 ### Cloudflare Tunnel
 Routes specific public subdomains (defined in `opentofu/cloudflare/variables.tf`) to the cluster via secure tunnel. Most domains are **private by default** - only explicitly configured subdomains are public.

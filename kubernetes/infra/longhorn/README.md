@@ -90,15 +90,16 @@ neither carries an ArgoCD tracking-id and neither can be removed with
 `longhorn` is gated by `persistence.createStorageClass: false`, which is what
 actually removes it. Setting `defaultClass: false` alone is not enough: that
 only un-defaults it, leaving behind a class that requests 3 replicas, which can
-never schedule here (one node has Longhorn disks and
-`replica-soft-anti-affinity` is false), so any PVC naming it would sit Pending
+never schedule across the two Longhorn storage nodes with
+`replica-soft-anti-affinity` false, so any PVC naming it would sit Pending
 forever. The flag gates a ConfigMap the manager reads, so deleting the
 StorageClass object by hand does nothing on its own.
 
 `longhorn-static` cannot be removed at all. longhorn-manager recreates it from
 the `default-longhorn-static-storage-class` setting, which Longhorn uses
-internally for statically provisioned volumes - it reappeared within minutes of
-being deleted. Nothing in this repo references it; leave it alone.
+internally for statically provisioned volumes. In a previous cleanup attempt,
+it reappeared within minutes of deletion. Nothing in this repo references it;
+leave it alone.
 
 ### How a class maps to a drive
 

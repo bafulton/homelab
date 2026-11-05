@@ -30,7 +30,10 @@ The tunnel is configured in Cloudflare's dashboard with:
 
 ### What's Public?
 
-By default, **all domains are private** (accessible only via Tailscale Split DNS). Only subdomains explicitly listed in `opentofu/cloudflare/variables.tf` are routed through the tunnel and publicly accessible:
+For `catfish-mountain.com`, only subdomains explicitly listed in
+`opentofu/cloudflare/variables.tf` are routed through the public tunnel. Other
+names can resolve through Tailscale Split DNS or local LAN DNS and reach the
+gateway directly:
 
 ```hcl
 variable "public_subdomains" {
@@ -45,9 +48,11 @@ variable "public_subdomains" {
 
 ### Private by Default
 
-Services on `*.catfish-mountain.com` are **not** public - they're only accessible when connected to the Tailscale network. This is enforced by:
-- Tailscale Split DNS (routes private domains to cluster)
-- Cloudflare Tunnel config (only routes configured public subdomains)
+Most services on `*.catfish-mountain.com` are **not publicly routed**. Tailscale
+Split DNS resolves them for tailnet clients; LAN clients can reach the gateway
+at `192.168.1.200` with the same hostname if local DNS or a hosts entry
+resolves it there. The Cloudflare Tunnel only accepts configured public
+subdomains. These controls do not restrict direct LAN access to the gateway.
 
 ## Deployment
 

@@ -1,2 +1,4 @@
-# Server-side apply required - CRDs exceed Helm annotation size limit
-serverSideApply: true
+# Server-side apply required - CRDs exceed the client-side apply annotation limit.
+# The ApplicationSet reads this option from syncPolicy, not from chart values.
+syncPolicy:
+  serverSideApply: true

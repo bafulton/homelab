@@ -37,7 +37,7 @@ Domains are configured in `variables.tf` with two key settings:
 ### `wildcard_public`
 
 - `true`: Creates wildcard DNS (`*.domain.com`) routing all subdomains to the tunnel - used for fully public domains
-- `false`: No wildcard DNS - domain is private (Tailscale Split DNS only) with specific public exceptions
+- `false`: No public wildcard DNS; tailnet clients use Split DNS, while LAN clients can resolve the name locally and reach the gateway directly. Specific public exceptions can still be configured.
 
 ### `public_subdomains`
 
@@ -55,7 +55,7 @@ variable "domains" {
     }
     "catfish-mountain-com" = {
       domain            = "catfish-mountain.com"
-      wildcard_public   = false   # Private (Tailscale only)
+      wildcard_public   = false   # No public wildcard DNS
       public_subdomains = [
         "argocd-webhook"          # Exception: public webhook
       ]
@@ -69,8 +69,8 @@ variable "domains" {
 The configuration implements the homelab's domain strategy:
 
 - `*.fultonhuffman.com`, `*.yak-shave.com`, `*.benfulton.me` - Fully public domains (wildcard routing)
-- `*.catfish-mountain.com` - Private infrastructure domain (Tailscale Split DNS)
-  - Only accessible via Tailscale when connected to the tailnet
+- `*.catfish-mountain.com` - Infrastructure domain without public wildcard DNS
+  - Tailnet clients use Tailscale Split DNS; LAN clients with local name resolution can use the gateway's LAN address
   - Specific subdomains (like `argocd-webhook`) are explicitly made public for external services
 
 ## How DNS and Tunnel Work Together

@@ -6,7 +6,7 @@ Kubernetes Gateway API implementation that routes all HTTP traffic in the cluste
 
 | Method | Address | Use Case |
 |--------|---------|----------|
-| Private (Tailscale) | `https://traefik.catfish-mountain.com` | Dashboard (remote) |
+| Tailnet or LAN | `https://traefik.catfish-mountain.com` | Dashboard (Split DNS on tailnet; local DNS to gateway on LAN) |
 | LAN | `http://192.168.1.200:8080` | Dashboard (local) |
 
 ## Architecture
@@ -16,7 +16,7 @@ Traefik implements the **Gateway API** standard and serves as the single HTTP en
 ```
 Traffic Sources:
 ├── Cloudflare Tunnel (public: *.fultonhuffman.com, etc.)
-├── Tailscale Split DNS (private: *.catfish-mountain.com)
+├── Tailscale Split DNS or local LAN DNS (*.catfish-mountain.com)
 └── LAN/mDNS (*.local)
          ↓
     192.168.1.200 (MetalLB)
