@@ -25,7 +25,10 @@ Kubernetes' default garbage collection threshold (12500 pods) is too high for sm
 
 Cleans up old ReplicaSets to reduce clutter in the ArgoCD UI.
 
-When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (default: 10 per Deployment). This CronJob removes excess old ReplicaSets.
+When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback
+(default: 10 per Deployment). Not every upstream Helm chart exposes
+`revisionHistoryLimit`, so this CronJob applies the same retention target to
+all Deployments, including those managed by charts we cannot configure.
 
 ### Configuration
 
@@ -37,9 +40,15 @@ When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (def
 
 ### Behavior
 
-- Only deletes ReplicaSets with 0 replicas (inactive/old)
-- Groups by owner Deployment and keeps the newest N
-- Does not affect the current active ReplicaSet
+- Groups by namespace and Deployment UID, so same-named or recreated
+  Deployments do not share a retention counter.
+- Keeps the active ReplicaSet plus the newest N old ReplicaSets for rollback.
+  `kubectl rollout undo` cannot reach older deleted revisions; revert the Git
+  change or image version to create a new rollout instead.
+- Skips scaled-to-zero Deployments and incomplete rollouts. Cleanup resumes
+  after the Deployment has healthy replicas and a completed rollout.
+- Rechecks Deployment generation, owner UID, and ReplicaSet state before each
+  delete so a concurrent rollout or scale change does not delete its revision.
 
 ## CoreDNS Spread CronJob
 
