@@ -27,6 +27,8 @@ metadata:
   name: matter-server-data
   namespace: {{ .Release.Namespace }}
   labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
     recurring-job-group.longhorn.io/matter-server: enabled
 spec:
   accessModes:

@@ -7,7 +7,7 @@ pvcs: []
   #   size: 10Gi                     # Storage size (default: 1Gi)
   #   storageClass: config           # Storage class (default: config)
   #   accessMode: ReadWriteOnce      # Access mode (default: ReadWriteOnce)
-  #   backupGroup: my-app            # Optional: adds recurring-job-group label for backups
+  #   backupGroup: my-app            # Optional: syncs this group and default from PVC to Volume
 
 # List of RecurringJobs to create (target PVCs via backupGroup label)
 jobs: []

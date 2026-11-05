@@ -5,7 +5,7 @@ A reusable Helm chart for creating Longhorn PVCs with optional recurring snapsho
 ## Features
 
 - Create PVCs with configurable size, storageClass, and accessMode
-- Optional backup group labels for recurring snapshots
+- Optional PVC-to-Volume synchronization of recurring-job groups
 - RecurringJob creation targeting labeled volumes
 - Pure IaC approach to Longhorn backups
 
@@ -59,7 +59,7 @@ my-app:
 | `pvcs[].size` | Storage size | `1Gi` |
 | `pvcs[].storageClass` | Longhorn storage class (`config`, `state`, `scratch`) | `config` |
 | `pvcs[].accessMode` | Access mode | `ReadWriteOnce` |
-| `pvcs[].backupGroup` | Adds `recurring-job-group.longhorn.io/<group>: enabled` label | - |
+| `pvcs[].backupGroup` | Adds the source label plus `<group>` and `default` recurring-job groups to the PVC | - |
 
 ### RecurringJobs
 
@@ -76,9 +76,12 @@ my-app:
 
 ## How It Works
 
-1. PVCs with `backupGroup` get labeled: `recurring-job-group.longhorn.io/<group>: enabled`
-2. RecurringJobs target volumes via their `groups` field
-3. Longhorn automatically snapshots/backs up matching volumes on schedule
+1. PVCs with `backupGroup` get `recurring-job.longhorn.io/source: enabled`, their app group, and the `default` group.
+2. Longhorn synchronizes those recurring-job labels to the Volume, including existing bound volumes. The PVC becomes authoritative for recurring-job labels on that Volume.
+3. RecurringJobs target Volume groups; `default` retains the cluster-wide trim job.
+4. Longhorn snapshots or backs up matching attached volumes on schedule.
+
+Before enabling `backupGroup` on a PVC that already has Volume-level recurring-job labels, add every job/group that should survive synchronization to the PVC. See the [Longhorn runbook](../../kubernetes/infra/longhorn/README.md#verifying-a-recurring-job-group-actually-applies).
 
 ## Resources Created
 
