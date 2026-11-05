@@ -1,0 +1,8 @@
+# Only the initial Helm install uses these overrides. The GitOps Application
+# renders kubernetes/infra/argocd/values.yaml without them after the CRDs exist.
+# Keep the core Argo CD installation identical so it can hand over in place.
+gateway-route:
+  routes: []
+
+bitwarden-secret:
+  secrets: []

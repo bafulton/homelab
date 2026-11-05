@@ -449,12 +449,30 @@ The script will:
 2. Retrieve and install kubeconfig
 3. Prompt for secrets (ArgoCD admin password and Bitwarden access token)
 4. Create the required Kubernetes secrets
-5. Install ArgoCD via Helm
-6. Apply the root GitOps application
-7. Verify the deployment
+5. Install core ArgoCD via Helm using `argocd-bootstrap-values.yaml`. The
+   bootstrap render omits HTTPRoutes and ExternalSecrets, whose CRDs do not
+   exist yet on a clean cluster.
+6. Apply the root GitOps application. Its infra ApplicationSet starts the
+   `traefik-crds` and `external-secrets` apps, which install the Gateway API
+   and External Secrets CRDs.
+7. Wait for those CRDs and for the full `argocd` Application to sync. The
+   GitOps app then adds ArgoCD's HTTPRoutes and webhook ExternalSecret.
+8. Verify the deployment.
 
-Once complete, ArgoCD will begin syncing your infrastructure. Access the UI via Tailscale:
-- `https://argocd.<tailnet>.ts.net`
+The bootstrap secret `argocd/argocd-secret` holds the bcrypt hash of the admin
+password you enter. Keep the password in your password manager; it cannot be
+recovered from that hash. The optional `external-secrets/bitwarden-access-token`
+secret holds the Bitwarden Secrets Manager machine account token. If you skip
+it, add it before expecting Bitwarden-backed secrets to sync.
+
+If bootstrap stops before the root Application is created, rerun the script;
+Helm will upgrade the partial core installation. Once the root Application
+exists, rerunning the script leaves the ArgoCD Helm release alone and waits
+for GitOps to finish the handoff. Check `kubectl get applications -n argocd`
+and `kubectl describe application argocd -n argocd` if the handoff times out.
+
+Once complete, access the UI while connected to Tailscale:
+- `https://argocd.catfish-mountain.com`
 - Username: `admin`
 - Password: (what you entered during bootstrap)
 

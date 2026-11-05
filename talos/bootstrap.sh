@@ -13,9 +13,10 @@ set -euo pipefail
 #   2. Retrieves kubeconfig
 #   3. Prompts for required secrets (ArgoCD password and Bitwarden token)
 #   4. Creates pre-bootstrap Kubernetes secrets
-#   5. Installs ArgoCD via Helm
+#   5. Installs core ArgoCD via Helm without HTTPRoutes or ExternalSecrets
 #   6. Applies the root GitOps application
-#   7. Verifies the deployment
+#   7. Waits for prerequisite CRDs and the full GitOps ArgoCD configuration
+#   8. Verifies the deployment
 #
 # The script is idempotent - it skips secrets that already exist and only
 # prompts for missing ones. Safe to re-run on an existing cluster.
@@ -228,6 +229,13 @@ create_secrets() {
 }
 
 bootstrap_argocd() {
+  # Once the root application exists, GitOps owns ArgoCD. A later Helm upgrade
+  # with bootstrap-only values would revert resources managed by that app.
+  if kubectl -n argocd get application applications >/dev/null 2>&1; then
+    log "Root application already exists; leaving ArgoCD to GitOps"
+    return
+  fi
+
   log "Setting up Helm repositories"
   helm repo add argo https://argoproj.github.io/argo-helm --force-update
   helm repo update
@@ -235,10 +243,11 @@ bootstrap_argocd() {
   log "Building Helm dependencies for ArgoCD"
   helm dependency update "${KUBERNETES_DIR}/infra/argocd"
 
-  log "Installing ArgoCD"
-  # Use upgrade --install for idempotency (installs if missing, upgrades if exists)
+  log "Installing core ArgoCD without Gateway API or External Secrets resources"
+  # Upgrade handles an interrupted first bootstrap before the root app exists.
   helm upgrade --install argocd "${KUBERNETES_DIR}/infra/argocd" \
     -n argocd \
+    -f "${SCRIPT_DIR}/argocd-bootstrap-values.yaml" \
     --wait \
     --timeout 5m
 
@@ -265,6 +274,27 @@ apply_gitops() {
   kubectl apply -f "${KUBERNETES_DIR}/applications.yaml"
 }
 
+wait_for_gitops_handoff() {
+  log "Waiting for Gateway API and External Secrets CRDs"
+  # The root Application creates the infra ApplicationSet, which installs the
+  # CRD owners. The full ArgoCD chart can render only after both APIs exist.
+  kubectl wait --for=create --for=condition=Established --timeout=15m \
+    crd/httproutes.gateway.networking.k8s.io \
+    crd/externalsecrets.external-secrets.io
+
+  log "Waiting for the GitOps-managed ArgoCD application"
+  kubectl -n argocd wait --for=create application/argocd --timeout=5m
+  # A first automatic sync may have failed while the CRDs were still absent.
+  # Let an in-flight sync finish before requesting another one.
+  if ! kubectl -n argocd wait --for=jsonpath='{.status.sync.status}'=Synced \
+    application/argocd --timeout=2m; then
+    kubectl -n argocd patch application argocd --type=merge \
+      -p '{"operation":{"sync":{"revision":"main"}}}'
+  fi
+  kubectl -n argocd wait --for=jsonpath='{.status.sync.status}'=Synced \
+    application/argocd --timeout=15m
+}
+
 verify_cluster() {
   log "Verifying cluster state"
 
@@ -287,8 +317,8 @@ print_summary() {
   printf "\nArgoCD is now syncing your infrastructure. This may take a few minutes.\n"
   printf "\nTo check sync status:\n"
   printf "  kubectl get applications -n argocd\n"
-  printf "\nOnce the tailscale-operator application is synced, ArgoCD UI will be available at:\n"
-  printf "  https://argocd.<your-tailnet>.ts.net\n"
+  printf "\nOnce the gateway is synced, ArgoCD UI will be available at:\n"
+  printf "  https://argocd.catfish-mountain.com (while connected to Tailscale)\n"
   printf "\nLogin with:\n"
   printf "  Username: admin\n"
   printf "  Password: (the password you entered during this script)\n"
@@ -304,6 +334,7 @@ main() {
   create_secrets
   bootstrap_argocd
   apply_gitops
+  wait_for_gitops_handoff
   verify_cluster
   print_summary
 }

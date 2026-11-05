@@ -69,3 +69,9 @@ Pruning is intentionally disabled (`syncPolicy.prune: false`) to prevent ArgoCD 
 ## Why This Chart Has a Chart.lock
 
 This is the only infra app with a committed `Chart.lock` file. Unlike other apps which are deployed *by* ArgoCD (which handles dependency resolution during sync), this chart is installed directly via Helm during `bootstrap.sh` before ArgoCD exists. The lock file ensures reproducible installs by pinning the exact dependency version.
+
+The first Helm install uses `talos/argocd-bootstrap-values.yaml` to omit the
+HTTPRoutes and ExternalSecret until their CRDs exist. After the root Application
+is applied, the generated `argocd` Application renders this chart without those
+overrides and manages the full configuration. Do not run a later Helm upgrade
+with the bootstrap overrides after the root Application exists.
