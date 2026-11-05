@@ -66,15 +66,20 @@ to `main` at priority 5260, keeping all home↔home node/LAN traffic on flannel.
 
 ### Each tick (default 5m)
 
-1. Pin `localLanCIDR` (`192.168.1.0/24`) to `main` at priority 5260.
-2. `kubectl get nodes -l homelab.io/location=local` → each node's name + `.spec.podCIDR`.
-3. Skip our own node (its pods are local, on `cni0`).
-4. For every other local node: add `ip rule to <cidr> table main priority 5260` if absent.
+1. Discover local nodes and their `.spec.podCIDR` values. An API error or missing
+   CIDR leaves the existing rules in place and logs the failure.
+2. Build the desired set from `localLanCIDR` and every other local node's pod
+   CIDR (our own pods are local on `cni0`).
+3. Add missing rules, then remove obsolete rules. Each managed rule uses
+   priority 5260, table `main`, and routing protocol **242** as an ownership tag.
+   Errors are logged and retried on the next tick. If an add fails, pruning is
+   skipped for that tick.
 
 It is a reconcile loop, not a one-shot, so the rules survive a Tailscale restart
 (which recreates `tailscale0` and can reset policy) and new local nodes are
-picked up with no redeploy. `enabled: false` flips it into a self-cleanup that
-removes the rules it added and idles - the rollback path.
+picked up with no redeploy. `enabled: false` removes only protocol-242 rules at
+the configured priority and table, then idles - the rollback path. Other rules
+at the same priority are left alone.
 
 ## Why the invariant still holds
 
@@ -99,5 +104,6 @@ nothing here and no other node's config:
 The ACL grants and auto-approves the whole pod space (`10.244.0.0/16`) for
 `tag:k8s-node`, so a new node's advertised `/24` is covered with no ACL edit.
 
-Rules are added, not pruned: if a local node is removed its stale rule lingers
-harmlessly (its CIDR is unused) until the pod restarts.
+Rules live in the host network namespace, so a pod restart does **not** clear
+them. The loop prunes its tagged rules when a peer's CIDR or location changes,
+or the peer is removed.
