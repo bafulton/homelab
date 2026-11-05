@@ -1,3 +1,10 @@
+{{/*
+SigNoz creates signoz-db-signoz-0 from its StatefulSet volumeClaimTemplate,
+which does not expose PVC labels through chart values. Longhorn's recurring
+backup job selects volumes by group label. This hook labels the existing PVC
+as the source of the signoz-db group so Longhorn propagates the labels to its
+Volume and includes only the application database in the backup schedule.
+*/}}
 {{- if (index .Values "longhorn-storage" "jobs") }}
 apiVersion: v1
 kind: ServiceAccount
