@@ -156,7 +156,6 @@ traefik:
   deployment:
     # High availability - 2 replicas for zero downtime
     replicas: 2
-    revisionHistoryLimit: 3
     podAnnotations:
       prometheus.io/scrape: "true"
       prometheus.io/port: "9100"

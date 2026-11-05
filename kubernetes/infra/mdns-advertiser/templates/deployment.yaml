@@ -3,7 +3,6 @@ kind: Deployment
 metadata:
   name: mdns-advertiser
 spec:
-  revisionHistoryLimit: 3
   replicas: 1
   selector:
     matchLabels:

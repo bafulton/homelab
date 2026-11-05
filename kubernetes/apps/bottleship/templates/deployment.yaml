@@ -7,7 +7,6 @@ metadata:
     # never sees ConfigMap updates.
     reloader.stakater.com/search: "true"
 spec:
-  revisionHistoryLimit: 3
   replicas: 1
   # One pod: the LAN relay keeps rooms in memory, so two replicas would split
   # players who joined the same room. A rollout starts the new pod first and

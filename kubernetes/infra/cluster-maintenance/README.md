@@ -21,22 +21,25 @@ Kubernetes' default garbage collection threshold (12500 pods) is too high for sm
 - **Succeeded (Completed) pods**: Deleted every minute. These are typically finished Jobs with no debugging value.
 - **Failed pods**: Deleted every hour, giving time for debugging.
 
-## Deployment rollback history
+## ReplicaSet Cleanup CronJob
 
-The Deployment controller owns ReplicaSet retention. Repo-owned Deployment
-manifests set `spec.revisionHistoryLimit: 3`; upstream charts that expose this
-setting (Home Assistant, Jellyfin, Argo CD, Traefik, and Node Feature Discovery)
-also use three old revisions. Other upstream charts retain the Kubernetes
-default of ten old revisions when they do not expose a chart value. Talos owns
-CoreDNS, so its Deployment also keeps the Kubernetes default.
+Cleans up old ReplicaSets to reduce clutter in the ArgoCD UI.
 
-These are counts of **old** ReplicaSets, in addition to the current revision.
-The Deployment controller handles each Deployment by namespace and UID and
-preserves its current revision even when scaled to zero. It prunes history
-only after a rollout is complete; a paused or failed rollout may temporarily
-exceed the limit. `kubectl rollout undo` can reach only retained revisions.
-For older versions, revert the Git change (or use the image version from Git)
-and let Argo CD reconcile a new revision.
+When Deployments are updated, Kubernetes keeps old ReplicaSets for rollback (default: 10 per Deployment). This CronJob removes excess old ReplicaSets.
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `replicasetCleanup.enabled` | `true` | Enable/disable the cleanup CronJob |
+| `replicasetCleanup.schedule` | `0 */6 * * *` | Cron schedule (every 6 hours) |
+| `replicasetCleanup.keepPerDeployment` | `3` | Number of old ReplicaSets to keep per Deployment |
+
+### Behavior
+
+- Only deletes ReplicaSets with 0 replicas (inactive/old)
+- Groups by owner Deployment and keeps the newest N
+- Does not affect the current active ReplicaSet
 
 ## CoreDNS Spread CronJob
 
@@ -79,20 +82,21 @@ Run one by hand:
 kubectl create job -n kube-system --from=cronjob/fstrim-beelink fstrim-beelink-manual
 ```
 
-## kubectl image version
+## kubectl Image Version
 
-The pod cleanup and CoreDNS spread CronJobs use the versioned homelab toolbox
-image set in `values.yaml`. Keep its kubectl minor version aligned with the
-API server when updating the image.
+The CronJobs use `bitnami/kubectl:latest` with `imagePullPolicy: IfNotPresent`. Pinning to a specific version was considered but rejected for this reason: Bitnami doesn't publish semantic version tags that map reliably to k8s versions, making Renovate automation require complex custom logic to track the cluster's k8s version. The operations performed (`kubectl delete pods`, `kubectl delete replicasets`) have been API-stable across all k8s versions, and the k8s skew policy allows kubectl to be ±1 minor version from the server, so `latest` with `IfNotPresent` is safe in practice.
 
 ## Logs
 
-View maintenance logs:
+View cleanup logs:
 
 ```bash
 # Pod cleanup
 kubectl logs -n kube-system -l job-name=cleanup-succeeded-pods --tail=20
 kubectl logs -n kube-system -l job-name=cleanup-failed-pods --tail=20
+
+# ReplicaSet cleanup
+kubectl logs -n kube-system -l job-name=cleanup-old-replicasets --tail=50
 
 # fstrim (one job per node)
 kubectl logs -n kube-system -l job-name --tail=20 | grep -A2 fstrim

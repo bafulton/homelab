@@ -79,7 +79,6 @@ home-assistant:
   # Use Deployment with pre-provisioned PVC (managed by longhorn-storage chart)
   controller:
     type: Deployment
-    revisionHistoryLimit: 3
 
   # Use existing PVC created by longhorn-storage chart (has backup labels)
   persistence:
