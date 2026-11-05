@@ -1,0 +1,53 @@
+{{- if (index .Values "longhorn-storage" "jobs") }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: signoz-db-backup-label
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: signoz-db-backup-label
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    resourceNames: ["signoz-db-signoz-0"]
+    verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: signoz-db-backup-label
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: signoz-db-backup-label
+subjects:
+  - kind: ServiceAccount
+    name: signoz-db-backup-label
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: signoz-db-backup-label
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      serviceAccountName: signoz-db-backup-label
+      restartPolicy: Never
+      containers:
+        - name: label
+          image: "{{ .Values.dashboardSync.image.repository }}:{{ .Values.dashboardSync.image.tag }}"
+          imagePullPolicy: {{ .Values.dashboardSync.image.pullPolicy }}
+          command: ["kubectl", "label", "pvc", "signoz-db-signoz-0", "recurring-job.longhorn.io/source=enabled", "recurring-job-group.longhorn.io/default=enabled", "recurring-job-group.longhorn.io/signoz-db=enabled", "--overwrite", "-n", "{{ .Release.Namespace }}"]
+{{- end }}
