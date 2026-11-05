@@ -105,8 +105,5 @@ The ACL grants and auto-approves the whole pod space (`10.244.0.0/16`) for
 `tag:k8s-node`, so a new node's advertised `/24` is covered with no ACL edit.
 
 Rules live in the host network namespace, so a pod restart does **not** clear
-them. Rules created by older versions have no protocol tag and cannot be safely
-identified as ours; this version leaves those legacy rules untouched. Inspect
-`ip -4 rule list` and remove any obsolete untagged priority-5260 `main` rules
-manually after confirming their origin. Newly tagged rules are pruned when a
-peer's CIDR or location changes, or the peer is removed.
+them. The loop prunes its tagged rules when a peer's CIDR or location changes,
+or the peer is removed.
