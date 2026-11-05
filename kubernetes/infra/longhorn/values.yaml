@@ -153,8 +153,8 @@ longhorn:
     # createStorageClass, not defaultClass, is what removes the built-in
     # "longhorn" class. defaultClass: false only stops it being the default -
     # the class is still created, and it requests 3 replicas, which can never
-    # schedule here (one node has Longhorn disks and replica-soft-anti-affinity
-    # is false). Any PVC naming it would sit Pending forever.
+    # schedule on the two Longhorn storage nodes with replica-soft-anti-affinity
+    # disabled. Any PVC naming it would sit Pending forever.
     createStorageClass: false
     defaultClass: false
 
@@ -178,11 +178,11 @@ longhorn:
     freezeFilesystemForSnapshot: true
     engineReplicaTimeout: 30
     backupExecutionTimeout: 20
-    # Every volume is single-replica on beelink, so under the default
-    # (block-if-contains-last-replica) beelink's instance-manager PDB never
-    # releases and no drain of beelink can finish. This releases it once the
-    # node's replicas are stopped - i.e. once the drain has evicted the pods
-    # using them. The data stays on beelink's disk through the reboot.
+    # The state and scratch classes have one strict-local replica on beelink.
+    # With the default block-if-contains-last-replica policy, its
+    # instance-manager PDB can hold a drain. Release it after the pods using
+    # those volumes are evicted and their replicas stop. Config volumes keep
+    # two replicas, on beelink and rpi5.
     nodeDrainPolicy: allow-if-replica-is-stopped
 
   defaultBackupStore:

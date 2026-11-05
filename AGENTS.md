@@ -31,7 +31,8 @@ The ApplicationSets scan for `values.yaml` files and generate ArgoCD Application
 namespace: custom-namespace
 
 # Optional: Enable server-side apply for CRD-heavy charts
-serverSideApply: true
+syncPolicy:
+  serverSideApply: true
 
 # Gateway API routing (for public, LAN, or private access)
 gateway-route:
@@ -83,7 +84,7 @@ gateway-route:
   routes:
     - name: private
       hostnames:
-        - myapp.catfish-mountain.com  # Tailscale Split DNS only
+        - myapp.catfish-mountain.com  # Private DNS via Tailscale; LAN clients can reach the gateway directly
       service:
         name: my-app-server
         port: 80
@@ -164,8 +165,8 @@ metadata:
 
 **Domain usage patterns:**
 - `*.catfish-mountain.ts.net` → Tailscale network resources (gateway, DNS, physical devices)
-- `*.catfish-mountain.com` → Infrastructure (dashboards, webhooks, etc.) - **private by default**
-  - Accessible only via Tailscale Split DNS when connected to tailnet
+- `*.catfish-mountain.com` → Infrastructure (dashboards, webhooks, etc.) - **not publicly routed by default**
+  - Tailnet clients resolve it via Tailscale Split DNS; LAN clients can reach the gateway directly with the hostname (for example, via local DNS or a hosts entry)
   - Specific public exceptions defined in `opentofu/cloudflare/variables.tf` (`public_subdomains`)
 - `*.fultonhuffman.com`, `*.yak-shave.com`, `*.benfulton.me` → Public services
 

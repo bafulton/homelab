@@ -23,22 +23,19 @@ kubernetes/
 
 ## Sync Waves
 
-ArgoCD uses [sync-waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/) to control deployment order.
+The ApplicationSets put a `sync-wave` annotation on generated Applications,
+using `syncWave` from each app's `values.yaml` or `0` by default. The root
+Application syncs the ApplicationSet resources; it does not wait for each
+generated Application to become healthy before creating the next one. Thus
+these annotations do not enforce an inter-Application deployment order.
 
 **Philosophy**: Avoid sync waves unless strictly necessary. Most apps should use the default (wave 0) and rely on ArgoCD's automatic retry for dependency resolution.
 
-### Critical Dependency Chain
-
-There is one critical dependency chain that requires explicit sync waves:
-
-```
-cert-manager (-2) → external-secrets (-1) → tailscale-operator (0)
-```
-
-- **cert-manager → external-secrets**: External Secrets webhook needs TLS certs from cert-manager
-- **external-secrets → tailscale-operator**: Tailscale operator needs the `operator-oauth` secret from Bitwarden
-
-Everything else uses the default (wave 0) and self-heals via ArgoCD retry.
+No app currently sets `syncWave`, so all generated Applications carry wave 0
+and sync independently. cert-manager, external-secrets, and tailscale-operator
+have dependencies, but the repository does not enforce that sequence with
+ApplicationSet waves. If a dependency is unavailable at first, the affected
+Application must recover on a later sync.
 
 ### Setting Sync Waves
 
@@ -48,7 +45,9 @@ Apps can set their sync wave in `values.yaml`:
 syncWave: "-1"  # Deploy in wave -1 (before wave 0)
 ```
 
-The ApplicationSet reads this field and converts it to the `argocd.argoproj.io/sync-wave` annotation.
+The ApplicationSet reads this field and converts it to the
+`argocd.argoproj.io/sync-wave` annotation. The annotation alone does not make
+the root Application wait for the generated Application's health.
 
 **Note**: Both `infra/` and `apps/` ApplicationSets sync simultaneously. There is no ordering between infrastructure and user applications at the ApplicationSet level.
 

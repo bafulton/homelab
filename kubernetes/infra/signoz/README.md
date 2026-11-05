@@ -45,18 +45,21 @@ Persistent volumes currently use the Longhorn `state` class:
 - Zookeeper: 8Gi
 - SigNoz DB: 1Gi (`signoz-db-signoz-0`)
 
-ClickHouse and Zookeeper telemetry remains disposable. The SigNoz SQLite DB
+ClickHouse and Zookeeper telemetry remains disposable. No recurring snapshot
+job is configured for these `state` volumes. The SigNoz SQLite DB
 contains accounts, API tokens, notification channels, and other application
 settings. Its existing PVC cannot change storage class in place, so a PostSync
 Job labels that claim for the `signoz-db-backup` Longhorn RecurringJob. The job
 backs up the DB daily at 04:00 UTC to the existing Garage backup target and
 keeps seven backups. The `default` group label retains the shared trim job.
 Dashboards and alerts in Git are reasserted by the sync Job, but the database
-backup protects information that Git cannot recreate.
+backup protects information that Git cannot recreate. This is a daily backup
+to Garage, not a configured local snapshot schedule. The backup depends on the
+PVC labels propagating to the Longhorn Volume and a completed recurring run.
 
 ### Verify the application DB backup
 
-After this change syncs, check that the claim and its Longhorn Volume both
+Check that the claim and its Longhorn Volume both
 carry the `signoz-db` and `default` recurring-job groups:
 
 ```sh

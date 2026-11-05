@@ -36,7 +36,7 @@ homelab/
 | GitHub Actions | Built-in manager | `actions/checkout@v6` |
 | Container images | Inline annotations | airconnect, matter-server, python |
 | Talos/Kubernetes | Custom regex manager | `talos/cluster.yaml`, tuppr values |
-| kubectl | Custom regex manager | cluster-maintenance (grouped with K8s) |
+| kubectl | Inline Dockerfile annotation | toolbox image (grouped with Kubernetes) |
 | argocd-diff-preview | Custom regex manager | Docker image in CI workflow |
 
 Container images in `values.yaml` files use inline annotations:
@@ -53,15 +53,18 @@ image:
 |-------------|----------|
 | Minor/patch updates | Auto-merged after CI passes |
 | Major updates | Manual review required |
-| Talos/Kubernetes/kubectl | Grouped together, manual review required |
+| Talos | Separate PR for each minor version; manual review required |
+| Kubernetes/kubectl | Grouped in a separate PR; manual review required |
 
 ### Talos & Kubernetes Upgrades
 
-Talos, Kubernetes, and kubectl versions are grouped together since compatibility depends on the Talos version. When updates are available:
+Talos upgrades land before the Kubernetes and kubectl bump they support:
 
-1. Renovate creates a single PR updating `talos/cluster.yaml`, tuppr upgrade CRs, and kubectl image
-2. [CI validates](.github/workflows/talos-k8s-compatibility.yaml) the Kubernetes version is compatible with the Talos version
-3. After merge, [tuppr](https://github.com/home-operations/tuppr) orchestrates the upgrade safely (node-by-node with health checks)
+1. Renovate opens a Talos PR updating `talos/cluster.yaml` and the tuppr Talos version. After review and merge, [tuppr](https://github.com/home-operations/tuppr) rolls Talos through the nodes.
+2. Renovate opens a separate Kubernetes PR updating `talos/cluster.yaml`, the tuppr Kubernetes version, and the toolbox image's kubectl version. The image version must be bumped for its build.
+3. [CI checks](.github/workflows/talos-k8s-compatibility.yaml) compatibility with the Talos version on `main`; after review and merge, tuppr runs the Kubernetes upgrade.
+
+See the [tuppr upgrade cycle](kubernetes/infra/tuppr/README.md#upgrade-cycle) for rollout details.
 
 ## Dashboards
 
