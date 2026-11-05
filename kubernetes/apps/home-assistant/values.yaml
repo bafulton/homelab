@@ -222,6 +222,22 @@ signoz-alerts:
       # single replica and regularly takes longer than five.
       for: 10m0s
 
+    - name: Home Assistant Longhorn Backup Stale
+      description: Home Assistant has no successful Longhorn backup in the last 36 hours
+      severity: critical
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="home-assistant",pvc="home-assistant-config"}) or vector(0))'
+      op: ">"
+      threshold: 129600
+
+    - name: Matter Server Longhorn Backup Stale
+      description: Matter Server has no successful Longhorn backup in the last 36 hours
+      severity: critical
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="home-assistant",pvc="matter-server-data"}) or vector(0))'
+      op: ">"
+      threshold: 129600
+
     - name: Smart Home Device Offline
       description: >-
         A smart home peripheral has been unavailable in Home Assistant for 15+

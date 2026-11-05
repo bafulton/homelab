@@ -163,27 +163,53 @@ ArgoCD leaves alone because the chart renders no `stop` field.
 
 ### Verifying a recurring-job group actually applies
 
-RecurringJobs match on **Volume** labels, and Longhorn copies
-`recurring-job-group.longhorn.io/*` from the PVC to the Volume at provision
-time - but not reliably. `mosquitto-data` was created with the label on its PVC
-and the Volume came up with only `default`, so the backup schedule looked
-correct in git and would have backed up nothing.
+RecurringJobs match **Volume** labels. Longhorn only synchronizes a PVC's
+recurring-job labels when it has `recurring-job.longhorn.io/source=enabled`.
+Without it, a group on the PVC can leave the Volume in `default` only.
+The shared `longhorn-storage` chart now sets the source label and both the app
+and `default` groups. The latter retains `trim-daily`: once the PVC is the
+source, its recurring-job labels replace the Volume's labels. Matter Server's
+direct PVC template follows the same rule. See [Longhorn's recurring-job
+documentation](https://longhorn.io/docs/1.13.0/snapshots-and-backups/scheduling-backups-and-snapshots/).
 
-After adding a volume to a group, check the Volume, not the PVC:
+For an existing protected PVC, first inspect its Volume labels for any
+manually assigned jobs or groups that must survive. Put those labels on its PVC
+template before enabling the source label. After ArgoCD sync, compare both:
 
 ```bash
-kubectl get volumes.longhorn.io -n longhorn <pvc-...> -o jsonpath='{.metadata.labels}'
+kubectl get pvc -n pocket-id pocket-id-data --show-labels
+pv=$(kubectl get pvc -n pocket-id pocket-id-data -o jsonpath='{.spec.volumeName}')
+volume=$(kubectl get pv "$pv" -o jsonpath='{.spec.csi.volumeHandle}')
+kubectl get volumes.longhorn.io -n longhorn "$volume" --show-labels
+kubectl get recurringjobs.longhorn.io -n longhorn pocket-id-daily pocket-id-backup trim-daily
 ```
 
-If the group label is missing, set it directly:
+The PVC and Volume should both have `recurring-job-group.longhorn.io/pocket-id`
+and `recurring-job-group.longhorn.io/default`; the PVC also has the source
+label. Repeat for `home-assistant-config`, `matter-server-data`,
+`jellyfin-config`, and `mosquitto-data`. The app group supplies snapshot and
+backup jobs, while `default` supplies trim. If labels differ, inspect the PVC,
+Volume, and Longhorn manager logs before changing a Volume directly.
+
+To test new provisioning, create a disposable `config` PVC with the source,
+`default`, and a test group labels. The StorageClass binds immediately; check
+that the bound Volume gets both groups
+without a manual Volume label. Delete the pod and PVC afterward; the class has
+`Retain`, so inspect and clean up the test PV/Volume explicitly.
+
+After sync, run a Pocket ID backup from Longhorn's Volume UI and wait for it to
+complete. Check the backup store entry and the Volume's timestamp:
 
 ```bash
-kubectl label volumes.longhorn.io -n longhorn <pvc-...> \
-  recurring-job-group.longhorn.io/<group>=enabled --overwrite
+kubectl get volumes.longhorn.io -n longhorn "$volume" -o jsonpath='{.status.lastBackupAt}{"\n"}'
+kubectl get backups.longhorn.io -n longhorn -o wide
 ```
 
-A relabelled volume keeps its group labels, because the Volume object is never
-recreated.
+The timestamp must advance, and the corresponding backup must be `Completed`
+in the configured Garage backup target. The five SigNoz Longhorn backup alerts
+fire when a protected volume has no successful backup timestamp or its latest
+backup is more than 36 hours old. Confirm the Pocket ID alert resolves after
+the backup and that the other protected volumes retain their intended jobs.
 
 ### Migrating replicas between disks
 

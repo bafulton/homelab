@@ -135,3 +135,10 @@ signoz-alerts:
       op: "<"
       threshold: 1
       for: 5m0s
+    - name: Jellyfin Longhorn Backup Stale
+      description: Jellyfin config has no successful Longhorn backup in the last 36 hours
+      severity: critical
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="jellyfin",pvc="jellyfin-config"}) or vector(0))'
+      op: ">"
+      threshold: 129600

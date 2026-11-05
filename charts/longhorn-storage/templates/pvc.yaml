@@ -6,6 +6,8 @@ metadata:
   name: {{ .name }}
   {{- if .backupGroup }}
   labels:
+    recurring-job.longhorn.io/source: enabled
+    recurring-job-group.longhorn.io/default: enabled
     recurring-job-group.longhorn.io/{{ .backupGroup }}: enabled
   {{- end }}
 spec:
