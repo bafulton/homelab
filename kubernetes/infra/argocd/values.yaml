@@ -6,10 +6,6 @@ syncPolicy:
   prune: false
   serverSideApply: true
 
-# ArgoCD Vault Plugin - injects secrets from K8s Secrets
-avp:
-  enabled: true
-
 # Gateway API HTTPRoute for private UI and public webhook
 gateway-route:
   routes:
@@ -126,62 +122,6 @@ argo-cd:
         cpu: 25m
       limits:
         memory: 1Gi
-
-    # AVP sidecar plugin
-    initContainers:
-      - name: download-avp
-        # renovate: datasource=docker depName=alpine
-        image: alpine:3.24
-        command: [sh, -c]
-        # renovate: datasource=github-releases depName=argoproj-labs/argocd-vault-plugin
-        args:
-          - |
-            ARCH=$(uname -m)
-            case $ARCH in
-              x86_64) ARCH=amd64 ;;
-              aarch64) ARCH=arm64 ;;
-            esac
-            wget -qO /custom-tools/argocd-vault-plugin \
-              https://github.com/argoproj-labs/argocd-vault-plugin/releases/download/v1.18.1/argocd-vault-plugin_1.18.1_linux_${ARCH} && \
-            chmod +x /custom-tools/argocd-vault-plugin
-        volumeMounts:
-          - name: custom-tools
-            mountPath: /custom-tools
-
-    extraContainers:
-      - name: avp-helm
-        command: [/var/run/argocd/argocd-cmp-server]
-        # renovate: datasource=docker depName=quay.io/argoproj/argocd
-        image: quay.io/argoproj/argocd:v3.6.1
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 999
-        env:
-          # Use Kubernetes Secret backend (secrets synced from Bitwarden via ESO)
-          - name: AVP_TYPE
-            value: kubernetessecret
-        volumeMounts:
-          - name: var-files
-            mountPath: /var/run/argocd
-          - name: plugins
-            mountPath: /home/argocd/cmp-server/plugins
-          - name: cmp-plugin
-            mountPath: /home/argocd/cmp-server/config/plugin.yaml
-            subPath: avp-helm.yaml
-          - name: custom-tools
-            mountPath: /usr/local/bin/argocd-vault-plugin
-            subPath: argocd-vault-plugin
-          - name: cmp-tmp
-            mountPath: /tmp
-
-    volumes:
-      - name: custom-tools
-        emptyDir: {}
-      - name: cmp-plugin
-        configMap:
-          name: argocd-vault-plugin-cmp
-      - name: cmp-tmp
-        emptyDir: {}
 
   notifications:
     resources:
