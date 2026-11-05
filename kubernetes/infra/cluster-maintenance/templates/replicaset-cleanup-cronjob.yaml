@@ -22,29 +22,14 @@ spec:
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               command:
                 - /bin/sh
-                - -c
-                - |
-                  set -e
-                  KEEP={{ .Values.replicasetCleanup.keepPerDeployment }}
-                  echo "Cleaning up old ReplicaSets (keeping newest $KEEP per Deployment)..."
-
-                  # Get all ReplicaSets with 0 desired replicas, grouped by owner
-                  kubectl get rs -A -o jsonpath='{range .items[?(@.spec.replicas==0)]}{.metadata.namespace}{" "}{.metadata.name}{" "}{.metadata.ownerReferences[0].name}{" "}{.metadata.creationTimestamp}{"\n"}{end}' | \
-                    sort -k3,3 -k4,4r | \
-                    awk -v keep="$KEEP" '
-                      {
-                        owner = $3
-                        count[owner]++
-                        if (count[owner] > keep) {
-                          print $1, $2
-                        }
-                      }
-                    ' | while read ns name; do
-                      echo "Deleting ReplicaSet $ns/$name"
-                      kubectl delete rs -n "$ns" "$name" --ignore-not-found
-                    done
-
-                  echo "Cleanup complete"
+                - /scripts/replicaset-cleanup.sh
+              env:
+                - name: KEEP_PER_DEPLOYMENT
+                  value: {{ .Values.replicasetCleanup.keepPerDeployment | quote }}
+              volumeMounts:
+                - name: script
+                  mountPath: /scripts
+                  readOnly: true
               securityContext:
                 allowPrivilegeEscalation: false
                 readOnlyRootFilesystem: true
@@ -55,4 +40,8 @@ spec:
           securityContext:
             seccompProfile:
               type: RuntimeDefault
+          volumes:
+            - name: script
+              configMap:
+                name: replicaset-cleanup-script
 {{- end }}
