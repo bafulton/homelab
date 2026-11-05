@@ -11,13 +11,75 @@ on:
       - 'images/**'
       - '.github/workflows/build-images.yaml'
   workflow_dispatch:
+    inputs:
+      image:
+        description: Image to build and publish
+        required: true
+        type: choice
+        options:
+          - bottleship
+          - homelab-toolbox
+          - mdns-advertiser
 
 concurrency:
-  group: build-images-${{ github.ref }}
-  cancel-in-progress: true
+  # Serialize releases across refs so two manual/push runs cannot both pass
+  # the tag-existence check before either publishes.
+  group: build-images
+  cancel-in-progress: false
 
 jobs:
+  select:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.changed.outputs.images }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Select changed images and check versions
+        id: changed
+        env:
+          EVENT: ${{ github.event_name }}
+          HEAD_SHA: ${{ github.sha }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+          REQUESTED_IMAGE: ${{ inputs.image }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            echo "images=[\"$REQUESTED_IMAGE\"]" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "$EVENT" = pull_request ]; then BASE="$PR_BASE"; else BASE="$PUSH_BASE"; fi
+          case "$BASE" in
+            ''|0000000000000000000000000000000000000000)
+              BASE=$(git rev-parse "${HEAD_SHA}^" 2>/dev/null || true)
+              ;;
+          esac
+          if [ -z "$BASE" ]; then
+            echo "::error::No base commit available to check image versions"
+            exit 1
+          fi
+
+          selected=()
+          for image in bottleship homelab-toolbox mdns-advertiser; do
+            if [ -z "$(git diff --name-only "$BASE" "$HEAD_SHA" -- "images/$image/")" ]; then
+              continue
+            fi
+            old=$(git show "$BASE:images/$image/VERSION" 2>/dev/null || true)
+            new=$(tr -d '[:space:]' < "images/$image/VERSION")
+            if [ -z "$new" ] || [ "$old" = "$new" ]; then
+              echo "::error file=images/$image/VERSION::images/$image changed without a new VERSION"
+              exit 1
+            fi
+            selected+=("$image")
+          done
+          images=$(printf '%s\n' "${selected[@]}" | jq -Rsc 'split("\n") | map(select(length > 0))')
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: select
+    if: needs.select.outputs.images != '[]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,59 +87,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image:
-          - bottleship
-          - homelab-toolbox
-          - mdns-advertiser
+        image: ${{ fromJSON(needs.select.outputs.images) }}
     steps:
       - uses: actions/checkout@v7
-        with:
-          # Full history so the VERSION guard can diff against the base commit.
-          fetch-depth: 0
-
-      # Renovate bumps Dockerfile deps without touching VERSION. Publishing that
-      # would overwrite an existing tag: nodes with imagePullPolicy: IfNotPresent
-      # keep their cached layer while a freshly provisioned node pulls different
-      # content under the same tag. Fail the build instead.
-      - name: Guard - VERSION must change when the image does
-        if: github.event_name != 'workflow_dispatch'
-        env:
-          IMAGE: ${{ matrix.image }}
-          HEAD_SHA: ${{ github.sha }}
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          PUSH_BASE: ${{ github.event.before }}
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE="$PR_BASE"
-          else
-            BASE="$PUSH_BASE"
-          fi
-          case "$BASE" in
-            ''|0000000000000000000000000000000000000000)
-              BASE=$(git rev-parse "${HEAD_SHA}^" 2>/dev/null || echo "")
-              ;;
-          esac
-          if [ -z "$BASE" ]; then
-            echo "No base commit to compare against; skipping guard."
-            exit 0
-          fi
-
-          CHANGED=$(git diff --name-only "$BASE" "$HEAD_SHA" -- "images/${IMAGE}/")
-          if [ -z "$CHANGED" ]; then
-            echo "No changes under images/${IMAGE}/ - nothing to guard."
-            exit 0
-          fi
-
-          echo "Changed under images/${IMAGE}/:"
-          echo "$CHANGED" | sed 's/^/  /'
-
-          if echo "$CHANGED" | grep -qx "images/${IMAGE}/VERSION"; then
-            echo "VERSION was bumped alongside the change."
-            exit 0
-          fi
-
-          echo "::error file=images/${IMAGE}/VERSION::images/${IMAGE}/ changed but VERSION did not. Publishing would overwrite the existing tag and nodes using imagePullPolicy: IfNotPresent would keep the stale cached layer. Bump images/${IMAGE}/VERSION."
-          exit 1
 
       - name: Read image version
         id: meta
@@ -100,6 +112,27 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Reject existing image tags
+        if: github.event_name != 'pull_request'
+        env:
+          IMAGE: ${{ matrix.image }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          for tag in "ghcr.io/$OWNER/$IMAGE:$VERSION" "ghcr.io/$OWNER/$IMAGE:sha-$GITHUB_SHA"; do
+            if docker buildx imagetools inspect "$tag" > "$RUNNER_TEMP/tag-inspect" 2>&1; then
+              echo "::error::$tag already exists; refusing to replace an image tag"
+              exit 1
+            fi
+            if grep -Eqi 'not found|manifest unknown|name unknown' "$RUNNER_TEMP/tag-inspect"; then
+              echo "Image tag $tag is available"
+            else
+              cat "$RUNNER_TEMP/tag-inspect"
+              echo "::error::Could not verify whether $tag exists"
+              exit 1
+            fi
+          done
 
       # Pull requests build both architectures but push nothing, so a broken
       # Dockerfile fails review instead of reaching the cluster.
