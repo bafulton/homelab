@@ -98,7 +98,7 @@ games:
 oauth2Proxy:
   image:
     repository: quay.io/oauth2-proxy/oauth2-proxy
-    tag: "v7.15.5"
+    tag: "v7.15.6"
   # The OIDC client in Pocket ID (README.md, "Pocket ID Client"). Its ID is
   # not secret; its secret is in Bitwarden below. The client must be
   # confidential: oauth2-proxy's oidc provider refuses to start without a
