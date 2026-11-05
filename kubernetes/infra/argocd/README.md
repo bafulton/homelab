@@ -11,22 +11,6 @@ GitOps continuous delivery for Kubernetes. Watches this repo and automatically s
 - **Username**: `admin`
 - **Password**: Set during cluster bootstrap (stored in `argocd-secret`)
 
-## One-time cleanup after removing the Vault Plugin
-
-After the ArgoCD application syncs the version without the plugin, remove its
-old resources explicitly. This application's `syncPolicy.prune` is disabled, so
-ArgoCD will leave them in the cluster:
-
-```sh
-kubectl -n argocd rollout status deployment/argocd-repo-server
-kubectl delete clusterrolebinding argocd-avp-secret-reader --ignore-not-found
-kubectl delete clusterrole argocd-avp-secret-reader --ignore-not-found
-kubectl -n argocd delete configmap argocd-vault-plugin-cmp --ignore-not-found
-```
-
-Check that the repo-server deployment has no `download-avp` init container or
-`avp-helm` container, and that the three resources above are absent.
-
 ## Persistent OutOfSync Noise
 
 The `argocd` app shows two categories of persistent drift that are cosmetic — neither is a real problem:
