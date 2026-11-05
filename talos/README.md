@@ -573,12 +573,21 @@ before the next disruptive change; see "Pace the disruptive steps" in
 `kubernetes/infra/tuppr/README.md`.
 
 The script performs these steps automatically:
-1. Cordons the node (prevents new pods)
-2. Drains the node (evicts pods gracefully, 5-minute timeout)
-3. **Waits for all Longhorn volumes to detach** (critical!)
-4. Reboots the node via talosctl
-5. Waits for the node to become Ready
-6. Uncordons the node
+1. Validates the node against `cluster.yaml` and pins the Kubernetes and Talos
+   `homelab` contexts to the configured endpoint, regardless of the current context.
+2. Cordons and drains the node (5-minute drain timeout).
+3. **Waits for Longhorn's observed attachment state to clear**. A pending
+   detachment, failed or malformed API response, or timeout aborts the reboot.
+4. Aborts if any pod with a PVC still runs on the node, including DaemonSet pods.
+   There is no storage-user exception; remove or relocate the pod before retrying.
+5. Reboots via talosctl and waits for a changed boot ID and Ready condition.
+6. Uncordons only after successful recovery. Any failure after cordoning leaves
+   the node cordoned for inspection and a deliberate retry.
+
+The detach wait defaults to 180 seconds and the reboot recovery wait to 600
+seconds. `SAFE_REBOOT_DETACH_TIMEOUT` and `SAFE_REBOOT_RECOVERY_TIMEOUT` can
+override these whole-second limits (also used by the mocked tests). Run the
+offline behavior suite with `python3 -m unittest discover -s talos/scripts/tests`.
 
 #### Manual Safe Reboot Procedure
 

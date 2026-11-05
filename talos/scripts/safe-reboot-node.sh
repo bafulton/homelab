@@ -1,152 +1,149 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Safe Node Reboot Script for Talos + Longhorn
-#
-# This script performs a safe reboot of a Talos node that has Longhorn volumes.
-# It ensures all volumes are properly detached before rebooting to prevent
-# filesystem corruption from unsafe shutdowns.
-#
+# Safe Talos reboot: never reboot while storage state is unknown or in use.
 # Usage: ./safe-reboot-node.sh <node-name>
-# Example: ./safe-reboot-node.sh beelink
 
-NODE_NAME="${1}"
-
-if [ -z "$NODE_NAME" ]; then
-  echo "Error: Node name required"
-  echo "Usage: $0 <node-name>"
-  echo "Example: $0 beelink"
+NODE_NAME="${1:-}"
+if [[ $# -ne 1 || -z "$NODE_NAME" ]]; then
+  echo "Usage: $0 <node-name>" >&2
   exit 1
 fi
 
-# Check if node exists
-if ! kubectl get node "$NODE_NAME" &>/dev/null; then
-  echo "Error: Node '$NODE_NAME' not found"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLUSTER_FILE="$SCRIPT_DIR/../cluster.yaml"
+KUBE_CONTEXT=homelab
+TALOS_CONTEXT=homelab
+DETACH_TIMEOUT="${SAFE_REBOOT_DETACH_TIMEOUT:-180}"
+RECOVERY_TIMEOUT="${SAFE_REBOOT_RECOVERY_TIMEOUT:-600}"
+
+fail() {
+  echo "Error: $*" >&2
+  echo "If cordoned, the node remains cordoned for inspection." >&2
   exit 1
-fi
+}
+
+[[ "$DETACH_TIMEOUT" =~ ^[0-9]+$ && "$RECOVERY_TIMEOUT" =~ ^[0-9]+$ ]] || fail "Timeout values must be whole seconds"
+
+# Read the target from this repository, and verify both clients point at its
+# control plane before changing anything. All subsequent calls pin the context.
+CLUSTER_JSON=$(yq -o=json '.' "$CLUSTER_FILE") || fail "Cannot read cluster.yaml"
+TARGET=$(jq -ec --arg node "$NODE_NAME" '
+  if (.endpoint | type) != "string" or (.nodes | type) != "array" then error("invalid cluster definition") else . end
+  | . as $cluster
+  | [.nodes[] | select(.name == $node)] as $matches
+  | if ($matches | length) != 1 then error("node missing or duplicated") else
+      {endpoint: $cluster.endpoint, name: $matches[0].name, lanIP: ($matches[0].lanIP // "")}
+    end
+  | if (.endpoint | test("^https://[^/]+:6443$")) and
+       (.name | type == "string") and (.lanIP | type == "string")
+    then . else error("invalid target") end
+' <<<"$CLUSTER_JSON") || fail "Node '$NODE_NAME' is not a valid cluster.yaml target"
+KUBE_SERVER=$(jq -r '.endpoint' <<<"$TARGET")
+LAN_IP=$(jq -r '.lanIP' <<<"$TARGET")
+TALOS_ENDPOINT="${KUBE_SERVER#https://}"
+TALOS_ENDPOINT="${TALOS_ENDPOINT%:6443}"
+
+KUBE_CONFIG=$(kubectl --context "$KUBE_CONTEXT" config view --minify -o json) || fail "Cannot read Kubernetes context '$KUBE_CONTEXT'"
+jq -e --arg context "$KUBE_CONTEXT" --arg server "$KUBE_SERVER" '
+  (.contexts | length) == 1 and .contexts[0].name == $context and
+  (.clusters | length) == 1 and .clusters[0].cluster.server == $server
+' <<<"$KUBE_CONFIG" >/dev/null || fail "Kubernetes context does not point at $KUBE_SERVER"
+TALOS_CONFIG=$(talosctl --context "$TALOS_CONTEXT" config info -o json) || fail "Cannot read Talos context '$TALOS_CONTEXT'"
+jq -e --arg context "$TALOS_CONTEXT" --arg endpoint "$TALOS_ENDPOINT" '
+  .context == $context and (.endpoints | type) == "array" and
+  (.endpoints | index($endpoint)) != null
+' <<<"$TALOS_CONFIG" >/dev/null || fail "Talos context does not point at $TALOS_ENDPOINT"
+
+kube() { kubectl --context "$KUBE_CONTEXT" "$@"; }
+talos() { talosctl --context "$TALOS_CONTEXT" "$@"; }
+
+NODE_JSON=$(kube get node "$NODE_NAME" -o json) || fail "Cannot query node '$NODE_NAME'"
+jq -e --arg node "$NODE_NAME" '.metadata.name == $node and (.status.nodeInfo.bootID | type == "string" and length > 0)' <<<"$NODE_JSON" >/dev/null || fail "Node identity or boot ID is missing"
+BOOT_ID=$(jq -r '.status.nodeInfo.bootID' <<<"$NODE_JSON")
 
 echo "=== Safe Reboot Procedure for $NODE_NAME ==="
-echo ""
+echo "Step 1/6: Cordoning node..."
+kube cordon "$NODE_NAME" || fail "Cordon failed"
 
-# Step 1: Cordon the node
-echo "Step 1/6: Cordoning node (preventing new pod scheduling)..."
-kubectl cordon "$NODE_NAME"
-echo "✓ Node cordoned"
-echo ""
+echo "Step 2/6: Draining node..."
+kube drain "$NODE_NAME" --ignore-daemonsets --delete-emptydir-data --timeout=300s --grace-period=120 || fail "Drain failed"
 
-# Step 2: Drain the node
-echo "Step 2/6: Draining node (evicting pods gracefully)..."
-echo "This may take a few minutes..."
-if ! kubectl drain "$NODE_NAME" \
-  --ignore-daemonsets \
-  --delete-emptydir-data \
-  --timeout=300s \
-  --grace-period=120; then
-  echo "✗ Drain failed; the node is still cordoned. A pod that won't evict is"
-  echo "  usually a PDB (kubectl get pdb -A). Fix it and re-run, or undo with:"
-  echo "  kubectl uncordon $NODE_NAME"
-  exit 1
-fi
-echo "✓ Node drained"
-echo ""
-
-# Step 3: Wait for Longhorn volumes to detach
 echo "Step 3/6: Waiting for Longhorn volumes to detach..."
-MAX_WAIT=180  # 3 minutes
+# A cleared spec.nodeID only requests detachment. status.state and
+# status.currentNodeID report the observed result. Migration can leave a
+# second engine on this node, so check that status field too.
 ELAPSED=0
-while [ $ELAPSED -lt $MAX_WAIT ]; do
-  ATTACHED_VOLUMES=$(kubectl get volumes.longhorn.io -n longhorn -o json | \
-    jq -r ".items[] | select(.spec.nodeID == \"$NODE_NAME\") | .metadata.name" | wc -l)
-
-  if [ "$ATTACHED_VOLUMES" -eq 0 ]; then
-    echo "✓ All Longhorn volumes detached"
+while :; do
+  VOLUMES_JSON=$(kube get volumes.longhorn.io -n longhorn -o json) || fail "Longhorn volume query failed"
+  BLOCKING_VOLUMES=$(jq -ec --arg node "$NODE_NAME" '
+    if (.items | type) != "array" then error("missing volume list") else .items end
+    | map(
+        if (.metadata.name | type) != "string" or
+           (.spec.nodeID | type) != "string" or
+           (.status.state | type) != "string" or
+           (.status.currentNodeID | type) != "string" or
+           ((.status.currentMigrationNodeID // "") | type) != "string"
+        then error("incomplete volume state") else . end
+      )
+    | map(select(.spec.nodeID == $node or .status.currentNodeID == $node or
+                 .status.currentMigrationNodeID == $node))
+    | map({name: .metadata.name, desired: .spec.nodeID,
+           actual: .status.currentNodeID, migration: (.status.currentMigrationNodeID // ""),
+           state: .status.state})
+  ' <<<"$VOLUMES_JSON") || fail "Longhorn volume state is incomplete or invalid"
+  if [[ $(jq 'length' <<<"$BLOCKING_VOLUMES") -eq 0 ]]; then
+    echo "✓ No Longhorn volumes attached to or requested on $NODE_NAME"
     break
   fi
-
-  echo "  Waiting for $ATTACHED_VOLUMES volume(s) to detach... (${ELAPSED}s elapsed)"
+  echo "Waiting for Longhorn volumes: $BLOCKING_VOLUMES (${ELAPSED}s elapsed)"
+  if (( ELAPSED >= DETACH_TIMEOUT )); then
+    fail "Timed out waiting for Longhorn detachment"
+  fi
   sleep 10
   ELAPSED=$((ELAPSED + 10))
 done
 
-if [ $ELAPSED -ge $MAX_WAIT ]; then
-  echo "⚠ Warning: Timeout waiting for volumes to detach"
-  echo "The following volumes are still attached:"
-  kubectl get volumes.longhorn.io -n longhorn -o json | \
-    jq -r ".items[] | select(.spec.nodeID == \"$NODE_NAME\") | \"  - \(.metadata.name) (state: \(.status.state))\""
-  echo ""
-  read -p "Continue with reboot anyway? (yes/no): " CONTINUE
-  if [ "$CONTINUE" != "yes" ]; then
-    echo "Aborting reboot. Uncordoning node..."
-    kubectl uncordon "$NODE_NAME"
-    exit 1
-  fi
+echo "Step 4/6: Checking pods with PVCs on the node..."
+PODS_JSON=$(kube get pods -A -o json) || fail "Pod query failed"
+PODS_WITH_PVCS=$(jq -ec --arg node "$NODE_NAME" '
+  if (.items | type) != "array" then error("missing pod list") else .items end
+  | map(
+      if (.metadata.name | type) != "string" or (.metadata.namespace | type) != "string" or
+         (.spec | type) != "object" or ((.spec.volumes // []) | type) != "array"
+      then error("incomplete pod state") else . end
+    )
+  | map(select(.spec.nodeName == $node and
+               any((.spec.volumes // [])[]; has("persistentVolumeClaim"))))
+  | map(.metadata.namespace + "/" + .metadata.name)
+' <<<"$PODS_JSON") || fail "Pod storage state is incomplete or invalid"
+if [[ $(jq 'length' <<<"$PODS_WITH_PVCS") -gt 0 ]]; then
+  fail "PVC-using pods remain on $NODE_NAME: $PODS_WITH_PVCS"
 fi
-echo ""
+echo "✓ No PVC-using pods remain"
 
-# Step 4: Verify no pods using volumes
-echo "Step 4/6: Verifying no pods are using volumes on this node..."
-PODS_WITH_VOLUMES=$(kubectl get pods -A -o json | \
-  jq -r ".items[] | select(.spec.nodeName == \"$NODE_NAME\") | select(.spec.volumes[]?.persistentVolumeClaim) | \"\(.metadata.namespace)/\(.metadata.name)\"" | wc -l)
-
-if [ "$PODS_WITH_VOLUMES" -gt 0 ]; then
-  echo "⚠ Warning: Found $PODS_WITH_VOLUMES pod(s) with PVCs still on node:"
-  kubectl get pods -A -o json | \
-    jq -r ".items[] | select(.spec.nodeName == \"$NODE_NAME\") | select(.spec.volumes[]?.persistentVolumeClaim) | \"  - \(.metadata.namespace)/\(.metadata.name)\""
-else
-  echo "✓ No pods with volumes remaining on node"
-fi
-echo ""
-
-# Step 5: Reboot the node
-# Over the LAN IP from cluster.yaml where the node has one, so Tailscale
-# restarting mid-reboot can't cut the connection; remote nodes go via Tailscale.
 echo "Step 5/6: Rebooting node via talosctl..."
-CLUSTER_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/cluster.yaml"
-LAN_IP=$(yq -r ".nodes[] | select(.name == \"$NODE_NAME\") | .lanIP // \"\"" "$CLUSTER_FILE")
-if [ -n "$LAN_IP" ]; then
+if [[ -n "$LAN_IP" ]]; then
   TALOS_TARGET=(-n "$LAN_IP" -e "$LAN_IP")
 else
-  TALOS_TARGET=(-n "${NODE_NAME}.catfish-mountain.ts.net")
+  TALOS_TARGET=(-n "${NODE_NAME}.catfish-mountain.ts.net" -e "$TALOS_ENDPOINT")
 fi
-BOOT_ID=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}')
-talosctl "${TALOS_TARGET[@]}" reboot --wait=false
-echo "✓ Reboot command sent"
-echo ""
+talos "${TALOS_TARGET[@]}" reboot --wait=false || fail "Talos reboot command failed"
 
-# Step 6: Wait for node to come back
-# The node still reports Ready until its kubelet stops, so wait for a new boot
-# ID first; waiting on Ready alone would return before the reboot happened.
-echo "Step 6/6: Waiting for node to reboot and become Ready..."
-echo "This typically takes 2-3 minutes..."
-DEADLINE=$((SECONDS + 600))
-# An empty read means the API didn't answer, not that the node rebooted.
-until NEW_BOOT_ID=$(kubectl get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null) \
-  && [ -n "$NEW_BOOT_ID" ] && [ "$NEW_BOOT_ID" != "$BOOT_ID" ]; do
-  if [ $SECONDS -ge $DEADLINE ]; then
-    echo "⚠ Warning: Node did not reboot within 10 minutes; leaving it cordoned"
-    echo "Check node status manually: kubectl get node $NODE_NAME"
-    exit 1
+echo "Step 6/6: Waiting for a new boot ID and Ready condition..."
+DEADLINE=$((SECONDS + RECOVERY_TIMEOUT))
+until NEW_BOOT_ID=$(kube get node "$NODE_NAME" -o jsonpath='{.status.nodeInfo.bootID}' 2>/dev/null) \
+  && [[ -n "$NEW_BOOT_ID" && "$NEW_BOOT_ID" != "$BOOT_ID" ]]; do
+  if (( SECONDS >= DEADLINE )); then
+    fail "Node did not report a new boot ID within ${RECOVERY_TIMEOUT}s"
   fi
   sleep 10
 done
-if kubectl wait --for=condition=Ready "node/$NODE_NAME" --timeout=$((DEADLINE - SECONDS))s; then
-  echo "✓ Node rebooted and is Ready"
-else
-  echo "⚠ Warning: Node rebooted but did not become Ready; leaving it cordoned"
-  echo "Check node status manually: kubectl get node $NODE_NAME"
-  exit 1
+REMAINING=$((DEADLINE - SECONDS))
+if (( REMAINING <= 0 )); then
+  fail "Node did not become Ready within ${RECOVERY_TIMEOUT}s"
 fi
-echo ""
+kube wait --for=condition=Ready "node/$NODE_NAME" --timeout="${REMAINING}s" || fail "Node rebooted but did not become Ready"
 
-# Uncordon the node
-echo "Uncordoning node (allowing pod scheduling)..."
-kubectl uncordon "$NODE_NAME"
-echo "✓ Node uncordoned"
-echo ""
-
+kube uncordon "$NODE_NAME" || fail "Node is Ready but uncordon failed"
 echo "=== Reboot complete ==="
-echo ""
-echo "Post-reboot checklist:"
-echo "  - Check node status: kubectl get node $NODE_NAME"
-echo "  - Check Longhorn volumes: kubectl get volumes.longhorn.io -n longhorn"
-echo "  - Check pods: kubectl get pods -A -o wide | grep $NODE_NAME"
