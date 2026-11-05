@@ -11,44 +11,21 @@ GitOps continuous delivery for Kubernetes. Watches this repo and automatically s
 - **Username**: `admin`
 - **Password**: Set during cluster bootstrap (stored in `argocd-secret`)
 
-## ArgoCD Vault Plugin (AVP)
+## One-time cleanup after removing the Vault Plugin
 
-AVP enables secret injection into Helm charts at render time. This is useful when upstream charts require secrets as plain values (not Secret references) in their values.yaml—for example, API keys, CSRF tokens, or credentials that get embedded into ConfigMaps or other non-Secret resources.
+After the ArgoCD application syncs the version without the plugin, remove its
+old resources explicitly. This application's `syncPolicy.prune` is disabled, so
+ArgoCD will leave them in the cluster:
 
-Most charts support `existingSecret` patterns where you reference a Kubernetes Secret. For those, use ExternalSecrets directly. AVP is for the cases where that's not an option.
-
-### How It Works
-
-1. ExternalSecret syncs secret from Bitwarden → Kubernetes Secret
-2. App sets `useAVP: true` in values.yaml to opt-in
-3. AVP's CMP sidecar processes Helm output, replacing placeholders with secret values
-
-### Usage
-
-In your app's values.yaml:
-```yaml
-useAVP: true
-
-# Configure ExternalSecret to sync from Bitwarden
-bitwarden-secret:
-  secrets:
-    - name: my-app-secrets
-      data:
-        apiKey: "<bitwarden-secret-id>"
-
-# Use AVP placeholder syntax in chart values
-my-upstream-chart:
-  secretValue: <path:my-namespace:my-app-secrets#apiKey>
+```sh
+kubectl -n argocd rollout status deployment/argocd-repo-server
+kubectl delete clusterrolebinding argocd-avp-secret-reader --ignore-not-found
+kubectl delete clusterrole argocd-avp-secret-reader --ignore-not-found
+kubectl -n argocd delete configmap argocd-vault-plugin-cmp --ignore-not-found
 ```
 
-Placeholder syntax: `<path:namespace:secret-name#key>`
-
-### Configuration
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `avp.enabled` | `true` | Enable AVP sidecar |
-| `avp.version` | `v1.18.1` | AVP binary version |
+Check that the repo-server deployment has no `download-avp` init container or
+`avp-helm` container, and that the three resources above are absent.
 
 ## Persistent OutOfSync Noise
 
