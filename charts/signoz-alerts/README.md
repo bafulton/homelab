@@ -3,8 +3,9 @@
 Shared Helm chart for declarative SigNoz alert configuration.
 
 > **Note:** This chart carries app-specific alerts that live alongside the app.
-> Current consumers: `kubernetes/apps/home-assistant`, `kubernetes/apps/jellyfin`,
-> `kubernetes/apps/yak-shave`, `kubernetes/infra/time-machine`. Infrastructure-wide
+> Current consumers include `kubernetes/apps/home-assistant`, `kubernetes/apps/jellyfin`,
+> `kubernetes/apps/yak-shave`, `kubernetes/infra/mosquitto`,
+> `kubernetes/infra/pocket-id`, and `kubernetes/infra/time-machine`. Infrastructure-wide
 > alerts are managed directly as JSON files in `kubernetes/infra/signoz/alerts/`.
 >
 > The values interface below is unchanged, but the chart now renders the

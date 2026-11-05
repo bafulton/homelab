@@ -72,3 +72,13 @@ longhorn-storage:
       groups:
         - mosquitto
       retain: 3
+
+signoz-alerts:
+  alerts:
+    - name: Mosquitto Longhorn Backup Stale
+      description: Mosquitto has no successful Longhorn backup in the last 36 hours
+      severity: critical
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="mosquitto",pvc="mosquitto-data"}) or vector(0))'
+      op: ">"
+      threshold: 129600

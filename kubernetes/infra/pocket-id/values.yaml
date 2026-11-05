@@ -81,3 +81,11 @@ signoz-alerts:
       op: "<"
       threshold: 1
       for: 5m0s
+    # The zero fallback catches a volume that has never backed up or has no metric.
+    - name: Pocket ID Longhorn Backup Stale
+      description: Pocket ID has no successful Longhorn backup in the last 36 hours
+      severity: critical
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="pocket-id",pvc="pocket-id-data"}) or vector(0))'
+      op: ">"
+      threshold: 129600
