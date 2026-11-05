@@ -18,7 +18,7 @@
 # The override matters only while Tailscale is up.)
 namespace: kube-system
 
-# false => the loop instead REMOVES the rules it added, then idles (clean rollback).
+# false => the loop removes only rules tagged with this controller's protocol.
 enabled: true
 
 image:
@@ -47,11 +47,9 @@ localLanCIDR: "192.168.1.0/24"
 # Must sit after Tailscale's fwmark rules (<=5250) and before its table-52 rule
 # (5270), so only these local CIDRs are pulled back to the LAN.
 rulePriority: "5260"
-# The rules persist in the kernel once added (a Tailscale restart deletes only
-# its own 5210-5270 rules, not our 5260; a pod restart re-adds on the first tick
-# before sleeping). So this loop is not load-bearing moment to moment - it only
-# picks up a newly-added local node or re-asserts a deleted rule. 5 min is fine;
-# worst case a brand-new local node's pods ride Tailscale briefly before pinning.
+# Host rules persist across pod restarts. The loop reconciles protocol-tagged
+# rules with current node discovery, including removing obsolete destinations.
+# 5 min is fine; a new local node's pods may ride Tailscale until the next tick.
 reconcileInterval: "300"
 
 # The limit is sized for page cache, not the process (~9Mi between ticks):
