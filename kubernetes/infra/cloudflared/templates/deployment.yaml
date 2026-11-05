@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: cloudflared
 spec:
+  revisionHistoryLimit: 3
   replicas: {{ .Values.cloudflared.replicas }}
   selector:
     matchLabels:

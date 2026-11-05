@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: pocket-id
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   # SQLite on a ReadWriteOnce volume: the old pod must let go of it before the
   # new one starts.

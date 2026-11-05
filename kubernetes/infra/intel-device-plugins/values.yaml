@@ -12,6 +12,7 @@
 # Labels nodes with intel.feature.node.kubernetes.io/gpu when Intel GPU is detected
 node-feature-discovery:
   master:
+    revisionHistoryLimit: 3
     resources:
       requests:
         memory: 32Mi
@@ -45,6 +46,7 @@ node-feature-discovery:
             - vendor
 
   gc:
+    revisionHistoryLimit: 3
     resources:
       requests:
         memory: 16Mi

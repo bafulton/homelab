@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: yak-shave
 spec:
+  revisionHistoryLimit: 3
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:

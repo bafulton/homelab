@@ -76,6 +76,7 @@ bitwarden-secret:
 
 # Jellyfin chart configuration
 jellyfin:
+  revisionHistoryLimit: 3
   # Jellyfin must run on beelink, for two independent reasons:
   # - Hardware: transcoding needs the Intel GPU (the gpu.intel.com/i915
   #   resource request below enforces this).

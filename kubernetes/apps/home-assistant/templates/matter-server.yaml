@@ -49,6 +49,7 @@ metadata:
     app.kubernetes.io/name: matter-server
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   strategy:
     type: Recreate

@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/name: aircast
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
+  revisionHistoryLimit: 3
   replicas: 1
   selector:
     matchLabels:
