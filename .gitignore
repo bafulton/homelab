@@ -1,5 +1,6 @@
 .DS_Store
 .idea
+__pycache__/
 
 # Helm dependency charts (downloaded by helm dep update)
 kubernetes/**/charts/
