@@ -59,13 +59,6 @@ gateway-route:
   routes:
     - name: public-lan
       access: apps
-      parentRefs:
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: web
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: websecure
       hostnames:
         - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
         - myapp.local              # LAN via mDNS

@@ -204,13 +204,6 @@ gateway-route:
   routes:
     - name: dashboard
       access: admin
-      parentRefs:
-        - name: traefik
-          namespace: traefik
-          sectionName: web
-        - name: traefik
-          namespace: traefik
-          sectionName: websecure
       hostnames:
         - longhorn.catfish-mountain.com
       service:

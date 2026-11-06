@@ -1,50 +1,58 @@
 # Gateway routes
 
-Shared Helm chart for explicitly classified HTTPRoutes and optional mDNS advertisements.
-See [CAT-17 migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
-
-Every route needs `access: admin` or `access: apps` and explicit `parentRefs`, including
-`sectionName`. There is no implicit/default Gateway attachment. The chart rejects
-mismatched parents and admin mDNS advertisements; the cutover stage adds cluster admission checks for hostnames, administrative
-namespaces and the Argo webhook exception.
+Shared Helm chart for HTTPRoutes and optional mDNS advertisements. Applications
+choose an access class; the chart generates explicit Kubernetes Gateway references.
+See [the migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
 
 ```yaml
 gateway-route:
   routes:
     - name: ui
       access: admin
-      parentRefs:
-        - name: traefik-admin
-          namespace: traefik-admin
-          sectionName: admin
       hostnames: [myapp.catfish-mountain.com]
       service:
         name: myapp-server
         port: 80
 ```
 
-Household/public routes use `access: apps` and `traefik-apps` in namespace
-`traefik-apps`. Add a parent for every required listener:
+`access: admin` selects the administrative entrance. `access: apps` selects the
+household/public entrance and normally uses both `web` and `websecure` listeners.
+Gateway names, namespaces, and default listeners live centrally in this chart's
+`gateways` mapping. Ordinary app values do not repeat them.
+
+## Listener overrides
+
+Apps that need a different set of entrances can specify `listeners`. This replaces
+the default list. The existing OCI services use:
+
+```yaml
+# Jellyfin: LAN/ordinary HTTPS plus the public media passthrough listener.
+access: apps
+listeners: [web, websecure, edge-media]
+
+# BottleShip: LAN/ordinary HTTPS plus the public games passthrough listener.
+access: apps
+listeners: [web, websecure, edge-games]
+```
 
 | Listener | Port | Purpose |
 | --- | --- | --- |
 | `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
 | `websecure` | 443 | Household HTTPS over LAN/Tailscale |
-| `edge` | 8443 | OCI passthrough, `media.fultonhuffman.com` only |
+| `edge-media` | 8443 | OCI passthrough, `media.fultonhuffman.com` only |
 | `edge-games` | 8443 | OCI passthrough, `games.fultonhuffman.com` only |
+
+Admin listeners are controlled by the central mapping, with no per-route override.
+The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty
+listener overrides, duplicate listeners, and administrative mDNS advertisements.
+
+## Household discovery and custom rules
 
 ```yaml
 gateway-route:
   routes:
     - name: household
       access: apps
-      parentRefs:
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: web
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: websecure
       hostnames: [myapp.fultonhuffman.com, myapp.local]
       service:
         name: myapp-server
@@ -54,25 +62,24 @@ gateway-route:
         ip: 192.168.1.200
 ```
 
-Public apps and `.local` household services belong on apps ingress. Wholly
-administrative routes use explicit names under `catfish-mountain.com`. Existing
-application authentication remains required; network authorization does not log
-users into applications. Home Assistant, Jellyfin and Pocket ID remain mixed-use
-apps protected by their application roles/authentication.
+`rules` supplies Gateway API HTTPRoute rules instead of the default `/` backend.
+BottleShip uses this for ForwardAuth; the Argo public webhook uses an exact
+`POST /api/webhook` match. Existing application authentication remains required.
 
-`rules` accepts Gateway API HTTPRoute rules in place of the default `/` backend
-rule. BottleShip uses this for ForwardAuth. Its Middleware is explicitly labeled
-`homelab.io/ingress: apps` and annotated with ingress class `traefik-apps` to match
-the scoped CRD provider. The Argo public hostname permits only `POST /api/webhook`.
+The generated HTTPRoute uses native Gateway API `parentRefs`: `name` identifies
+the Gateway, `namespace` locates it, and `sectionName` selects a listener. These
+are output fields rather than the application-facing values interface.
 
-Keep `gateway-route` as a `file://../../../charts/gateway-route` dependency at
-version `1.0.0`. Run `helm dependency update`, rather than trusting old local
-archives, whenever this shared chart changes. See [ingress validation](../../scripts/tests/ingress/README.md).
+## Migration mapping
 
-## Temporary legacy attachment
+Stages 1/2 centrally map both access classes to the scoped legacy `traefik` Gateway,
+retaining current entrances. Stage 2's two new ingress wrappers override only the
+admin mapping to expose their dashboards through the new admin Gateway. These
+are infrastructure-owned provisioning overrides, not repeated app configuration.
+Stage 3 changes the shared mapping to the dedicated gateways and removes those
+overrides. Strict admission then checks generated attachments and the public
+webhook exception. Classification alone does not enforce isolation before cutover.
 
-During the first migration stage, explicit parent `traefik` in namespace
-`traefik` remains allowed for both access classes on its existing listeners.
-All current application routes retain that attachment in this PR. Classification
-is metadata at this stage; administrative LAN isolation is not yet enforced.
-The cutover PR removes this exception after the replacement gateways are ready.
+Keep the `file://../../../charts/gateway-route` dependency at version `1.0.0`.
+Run `helm dependency update` whenever this shared chart changes; old local archives
+can hide updated defaults/templates. See [validation](../../scripts/tests/ingress/README.md).
