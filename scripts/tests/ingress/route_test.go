@@ -111,10 +111,14 @@ func TestRouteContract(t *testing.T) {
 func TestRejectInvalidRouteContract(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	for _, tc := range []struct{ name, contents string }{
-		{"missing access", `routes: [{name: invalid, hostnames: [invalid.local]}]`},
-		{"missing parents", `routes: [{name: invalid, access: admin, hostnames: [invalid.catfish-mountain.com]}]`},
-		{"admin on apps", `routes: [{name: invalid, access: admin, parentRefs: [{name: traefik-apps, namespace: traefik-apps, sectionName: web}], hostnames: [invalid.catfish-mountain.com]}]`},
-		{"missing listener", `routes: [{name: invalid, access: apps, parentRefs: [{name: traefik-apps, namespace: traefik-apps}], hostnames: [invalid.local]}]`},
+		{"missing access", `routes: [{name: invalid, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"unknown access", `routes: [{name: invalid, access: other, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"raw parentRefs", `routes: [{name: invalid, access: apps, parentRefs: [{name: traefik-apps}], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"admin listener override", `routes: [{name: invalid, access: admin, listeners: [web], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"unknown listener", `routes: [{name: invalid, access: apps, listeners: [other], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"empty listeners", `routes: [{name: invalid, access: apps, listeners: [], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"duplicate listeners", `routes: [{name: invalid, access: apps, listeners: [web, web], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"admin mDNS", `routes: [{name: invalid, access: admin, mdns: {name: Example, ip: 192.168.1.200}, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			file := filepath.Join(t.TempDir(), "values.yaml")
@@ -126,6 +130,48 @@ func TestRejectInvalidRouteContract(t *testing.T) {
 				t.Fatalf("unsafe route rendered: %s", out)
 			} else if !bytes.Contains(out, []byte("gateway-route:")) {
 				t.Fatalf("unexpected Helm failure: %s", out)
+			}
+		})
+	}
+}
+
+func TestAccessProfiles(t *testing.T) {
+	root, _ := filepath.Abs("../../..")
+	for _, tc := range []struct {
+		name, access, override string
+		listeners              []string
+	}{
+		{"admin defaults", "admin", "", []string{"web", "websecure"}},
+		{"apps defaults", "apps", "", []string{"web", "websecure"}},
+		{"media override", "apps", "listeners: [web, websecure, edge-media]", []string{"web", "websecure", "edge-media"}},
+		{"games only", "apps", "listeners: [edge-games]", []string{"edge-games"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			file := filepath.Join(t.TempDir(), "values.yaml")
+			contents := "routes:\n  - name: example\n    access: " + tc.access + "\n    " + tc.override + "\n    hostnames: [example.local]\n    service: {name: example, port: 80}\n"
+			if err := os.WriteFile(file, []byte(contents), 0600); err != nil {
+				t.Fatal(err)
+			}
+			docs := renderChart(t, filepath.Join(root, "charts/gateway-route"), "example", "-f", file)
+			found := false
+			for _, o := range docs {
+				if o["kind"] != "HTTPRoute" {
+					continue
+				}
+				found = true
+				parents := o["spec"].(map[string]any)["parentRefs"].([]any)
+				if len(parents) != len(tc.listeners) {
+					t.Fatalf("wrong listener count: %v", parents)
+				}
+				for i, raw := range parents {
+					p := raw.(map[string]any)
+					if p["name"] != "traefik" || p["namespace"] != "traefik" || p["sectionName"] != tc.listeners[i] {
+						t.Fatalf("wrong generated parent: %v", p)
+					}
+				}
+			}
+			if !found {
+				t.Fatal("missing generated route")
 			}
 		})
 	}

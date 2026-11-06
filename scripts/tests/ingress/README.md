@@ -2,7 +2,8 @@
 
 Requires Helm, Go, Python and PyYAML. Run `./scripts/validate-ingress.sh` to refresh
 affected chart dependencies and test every rendered HTTPRoute's classification and
-explicit Gateway/listener attachment, plus rejection of invalid chart inputs.
+generated Gateway/listener attachment, access-profile defaults/listener overrides,
+and rejection of unsafe chart inputs.
 Use `go -C scripts/tests/ingress test -count=1 -v ./...` after dependencies are fresh.
 
 The first migration stage retains explicit legacy attachment. These checks do
