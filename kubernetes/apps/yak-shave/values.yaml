@@ -44,6 +44,14 @@ resources:
 gateway-route:
   routes:
     - name: apex
+      access: apps
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - yak-shave.com
       service:
@@ -53,6 +61,14 @@ gateway-route:
     # its own Traefik would 404. Redirect rather than serve, so there is one
     # canonical host.
     - name: www
+      access: apps
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - www.yak-shave.com
       rules:

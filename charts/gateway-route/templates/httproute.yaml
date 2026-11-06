@@ -1,16 +1,39 @@
 {{- range .Values.routes }}
+{{- $access := required "gateway-route: every route needs access (admin or apps)" .access }}
+{{- if not (has $access (list "admin" "apps")) }}
+{{- fail "gateway-route: access must be admin or apps" }}
+{{- end }}
+{{- $parents := required "gateway-route: every route needs explicit parentRefs" .parentRefs }}
+{{- range $parents }}
+{{- $legacy := and (eq .name "traefik") (eq .namespace "traefik") }}
+{{- if and (not $legacy) (or (ne .name (printf "traefik-%s" $access)) (ne .namespace (printf "traefik-%s" $access))) }}
+{{- fail "gateway-route: parent Gateway name and namespace must match route access" }}
+{{- end }}
+{{- $section := required "gateway-route: every parent needs sectionName" .sectionName }}
+{{- if and $legacy (not (has $section (list "web" "websecure" "edge" "edge-games"))) }}
+{{- fail "gateway-route: invalid legacy listener" }}
+{{- end }}
+{{- if and (not $legacy) (eq $access "admin") (ne $section "admin") }}
+{{- fail "gateway-route: admin routes must attach only to the admin listener" }}
+{{- end }}
+{{- if and (eq $access "apps") (not (has $section (list "web" "websecure" "edge" "edge-games"))) }}
+{{- fail "gateway-route: invalid apps listener" }}
+{{- end }}
+{{- end }}
+{{- if and (eq $access "admin") .mdns }}
+{{- fail "gateway-route: admin routes must not advertise LAN access" }}
+{{- end }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: {{ $.Release.Name }}-{{ .name }}
   namespace: {{ $.Release.Namespace }}
+  labels:
+    homelab.io/access: {{ $access }}
 spec:
   parentRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: {{ $.Values.gateway.name }}
-      namespace: {{ $.Values.gateway.namespace }}
+    {{- toYaml $parents | nindent 4 }}
   hostnames:
     {{- range .hostnames }}
     - {{ . }}

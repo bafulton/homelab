@@ -120,6 +120,17 @@ oauth2Proxy:
 gateway-route:
   routes:
     - name: public
+      access: apps
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
+        - name: traefik
+          namespace: traefik
+          sectionName: edge-games
       hostnames:
         # The edge forwarder passes TLS through with this SNI, and the edge
         # listener with this hostname is the only one this route can bind to.

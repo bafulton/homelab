@@ -33,6 +33,14 @@ resources:
 gateway-route:
   routes:
     - name: public
+      access: apps
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - auth.fultonhuffman.com  # Public via Cloudflare Tunnel
       service:

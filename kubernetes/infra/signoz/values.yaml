@@ -37,6 +37,14 @@ ignoreDifferences:
 gateway-route:
   routes:
     - name: ui
+      access: admin
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - signoz.catfish-mountain.com
       service:
