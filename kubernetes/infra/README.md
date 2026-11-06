@@ -158,7 +158,7 @@ gateway-route:
   routes:
     - name: media
       access: apps
-      listeners: [web, websecure, edge-media]
+      listeners: [web, websecure, edge]
       hostnames:
         - media.fultonhuffman.com      # Public (this one via the OCI edge forwarder)
         - media.local                  # LAN via mDNS

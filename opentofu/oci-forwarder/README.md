@@ -162,8 +162,7 @@ cannot resolve before the tunnel is up.
 **SNI is the only thing this host can check, so the cluster checks the rest.**
 After the cluster terminates TLS, routing follows the Host header, which a
 client may set to any name. The upstream is therefore Traefik's dedicated
-`edge-media` / `edge-games` listeners on `:8443`, whose hostnames admit only
-their respective public names, and
+shared `edge` listener on `:8443`, restricted to `*.fultonhuffman.com`, and
 the tailnet grant allows tag:edge nothing but `tcp:8443`. Pointing this host at
 `:443` would expose every private route in the cluster.
 

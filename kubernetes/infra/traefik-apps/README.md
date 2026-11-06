@@ -15,11 +15,11 @@ This README describes the intended configuration, not rollout status.
 | Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80, `websecure` 443 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80, 443 |
-| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge-media`, `edge-games` |
+| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge` |
 
 Both LoadBalancers explicitly disable NodePort allocation. Port 8443 is published
-only on the Tailscale Service. The OCI listeners retain exact hostname restrictions
-for `media.fultonhuffman.com` and `games.fultonhuffman.com`; a public SNI plus an
+only on the Tailscale Service. The shared OCI listener is restricted to `*.fultonhuffman.com`, and the forwarder
+retains an exact media/games SNI allowlist; a public SNI plus an
 administrative Host header must not reach any dashboard.
 
 Home Assistant, Jellyfin, Pocket ID, BottleShip, yak-shave and the Argo webhook

@@ -215,3 +215,44 @@ func TestIngressBoundary(t *testing.T) {
 	}
 	fmt.Printf("Validated %d rendered resources and %d negative admission cases\n", len(all), len(cases))
 }
+
+func TestEdgeHostnamePolicy(t *testing.T) {
+	root, _ := filepath.Abs("../../..")
+	var policy, gateway map[string]any
+	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik"), "traefik") {
+		if o["kind"] == "ValidatingAdmissionPolicy" && meta(o)["name"] == "gateway-public-listeners-need-public-hostname" {
+			policy = o
+		}
+	}
+	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik-apps"), "traefik-apps") {
+		if o["kind"] == "Gateway" {
+			gateway = o
+			meta(gateway)["namespace"] = "traefik-apps"
+		}
+	}
+	if policy == nil || gateway == nil {
+		t.Fatal("missing Gateway policy fixture")
+	}
+	if !allowed(t, policy, gateway) {
+		t.Fatal("shared public edge rejected")
+	}
+	for _, hostname := range []string{"*", "*.com", "*.catfish-mountain.com", "media.fultonhuffman.com", ""} {
+		t.Run(hostname, func(t *testing.T) {
+			bad := clone(gateway)
+			found := false
+			for _, raw := range spec(bad)["listeners"].([]any) {
+				listener := raw.(map[string]any)
+				if listener["name"] == "edge" {
+					found = true
+					listener["hostname"] = hostname
+				}
+			}
+			if !found {
+				t.Fatal("missing edge listener")
+			}
+			if allowed(t, policy, bad) {
+				t.Fatalf("unexpected edge hostname accepted: %q", hostname)
+			}
+		})
+	}
+}

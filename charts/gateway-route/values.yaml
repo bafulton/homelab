@@ -18,5 +18,4 @@ routes: []
 #     name: myapp
 #     port: 80
 # Apps normally inherit web/websecure. OCI services may override listeners:
-# listeners: [web, websecure, edge-media]  # media
-# listeners: [web, websecure, edge-games]  # games
+# listeners: [web, websecure, edge]  # OCI media/games entrance

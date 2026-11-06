@@ -26,21 +26,22 @@ Apps that need a different set of entrances can specify `listeners`. This replac
 the default list. The existing OCI services use:
 
 ```yaml
-# Jellyfin: LAN/ordinary HTTPS plus the public media passthrough listener.
+# Jellyfin and BottleShip: ordinary access plus the shared OCI entrance.
 access: apps
-listeners: [web, websecure, edge-media]
-
-# BottleShip: LAN/ordinary HTTPS plus the public games passthrough listener.
-access: apps
-listeners: [web, websecure, edge-games]
+listeners: [web, websecure, edge]
 ```
 
 | Listener | Port | Purpose |
 | --- | --- | --- |
 | `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
 | `websecure` | 443 | Household HTTPS over LAN/Tailscale |
-| `edge-media` | 8443 | OCI passthrough, `media.fultonhuffman.com` only |
-| `edge-games` | 8443 | OCI passthrough, `games.fultonhuffman.com` only |
+| `edge` | 8443 | OCI passthrough; listener restricted to `*.fultonhuffman.com` |
+
+The edge wildcard does not attach other routes automatically. Only routes
+selecting `edge` can use it; the forwarder still accepts only media/games SNI.
+Both existing certificates must be Ready; a bad reference can affect both apps.
+Public SNI and Host may select different
+public apps within this shared listener; application authentication still applies.
 
 Admin listeners are controlled by the central mapping, with no per-route override.
 The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty

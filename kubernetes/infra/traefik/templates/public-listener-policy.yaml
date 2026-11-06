@@ -23,10 +23,8 @@ spec:
          object.spec.listeners.all(l,
            (l.name == 'web' && l.port == 80 && l.protocol == 'HTTP') ||
            (l.name == 'websecure' && l.port == 443 && l.protocol == 'HTTPS') ||
-           (l.name == 'edge-media' && l.port == 8443 && l.protocol == 'HTTPS' &&
-            has(l.hostname) && l.hostname == 'media.fultonhuffman.com') ||
-           (l.name == 'edge-games' && l.port == 8443 && l.protocol == 'HTTPS' &&
-            has(l.hostname) && l.hostname == 'games.fultonhuffman.com')))
+           (l.name == 'edge' && l.port == 8443 && l.protocol == 'HTTPS' &&
+            has(l.hostname) && l.hostname == '*.fultonhuffman.com')))
       message: Gateways must use the dedicated admin or apps identity and approved listeners.
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -65,7 +63,7 @@ spec:
           has(p.namespace) && has(p.sectionName) &&
           ((variables.admin && p.name == 'traefik-admin' && p.namespace == 'traefik-admin' && p.sectionName == 'admin') ||
            (variables.apps && p.name == 'traefik-apps' && p.namespace == 'traefik-apps' &&
-            p.sectionName in ['web', 'websecure', 'edge-media', 'edge-games'])))
+            p.sectionName in ['web', 'websecure', 'edge'])))
       message: Routes must explicitly attach only to listeners matching their access class.
     - expression: >-
         has(object.spec.hostnames) && size(object.spec.hostnames) > 0 &&

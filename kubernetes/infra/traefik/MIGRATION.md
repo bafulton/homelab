@@ -214,5 +214,5 @@ whole repository or alter unrelated user work.
 Applications declare `access: admin` or `access: apps`; the shared chart owns the
 Gateway name/namespace/default-listener mappings. Stage 3 switches those mappings
 once and removes the two provisioning overrides in the ingress wrappers. OCI
-services retain `listeners` lists for `edge-media`/`edge-games`. Rendered
+services retain `listeners` lists for `edge`. Rendered
 HTTPRoutes still contain explicit native `parentRefs` and are checked by admission.
