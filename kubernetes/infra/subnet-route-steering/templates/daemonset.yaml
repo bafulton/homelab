@@ -31,34 +31,7 @@ spec:
             - /bin/sh
             - -c
             - |
-              set -u
-              echo "subnet-route-steering: enabled=$ENABLED node=$NODE_NAME selector='$SELECTOR' priority=$PRIORITY interval=${INTERVAL}s"
-              while true; do
-                if [ "$ENABLED" = "true" ]; then
-                  # Pin the home LAN to main so home<->home node traffic (and
-                  # flannel's VXLAN underlay, keyed on node IPs) stays on the LAN
-                  # even though each node accepts the others' advertised node /32.
-                  ip rule list | grep -q "to $LANCIDR lookup main" \
-                    || ip rule add to "$LANCIDR" table main priority "$PRIORITY"
-                  # Discover the OTHER local nodes' pod CIDRs (never hardcoded;
-                  # a new local node is picked up on the next tick) and pin each
-                  # to the main table, where flannel's LAN route wins over the
-                  # Tailscale-accepted route in table 52. Our own node is skipped
-                  # - its pods are local (cni0), never routed off-box.
-                  kubectl get nodes -l "$SELECTOR" \
-                    -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.podCIDR}{"\n"}{end}' 2>/dev/null \
-                    | while read -r name cidr; do
-                        [ -n "$cidr" ] || continue
-                        if [ "$name" = "$NODE_NAME" ]; then continue; fi
-                        ip rule list | grep -q "to $cidr lookup main" \
-                          || ip rule add to "$cidr" table main priority "$PRIORITY"
-                      done
-                else
-                  # Disabled: remove anything we added, then idle (clean rollback).
-                  while ip rule del priority "$PRIORITY" 2>/dev/null; do :; done
-                fi
-                sleep "$INTERVAL"
-              done
+{{ .Files.Get "files/reconcile.sh" | indent 14 }}
           env:
             - name: ENABLED
               value: {{ .Values.enabled | quote }}
