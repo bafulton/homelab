@@ -1,151 +1,78 @@
-# gateway-route
+# Gateway routes
 
-Shared Helm chart for creating HTTPRoute resources for Gateway API routing. Supports unified routing for both public access (via Cloudflare Tunnel) and LAN access (via MetalLB) through a single HTTPRoute.
+Shared Helm chart for explicitly classified HTTPRoutes and optional mDNS advertisements.
+See [CAT-17 migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
 
-## Overview
-
-This chart replaces the deprecated `traefik-ingress` chart and uses Kubernetes Gateway API instead of Traefik-specific IngressRoute CRDs. The Gateway API provides:
-- Vendor-neutral, standardized routing
-- Single HTTPRoute for both public (Cloudflare Tunnel) and LAN (MetalLB) traffic
-- Better multi-tenant support with explicit Gateway references
-
-## Migration from traefik-ingress
-
-Replace in your `Chart.yaml`:
-```yaml
-# Old
-- name: traefik-ingress
-  version: 1.0.0
-  repository: file://../../../charts/traefik-ingress
-
-# New
-- name: gateway-route
-  version: 1.0.0
-  repository: file://../../../charts/gateway-route
-```
-
-Update your `values.yaml`:
-```yaml
-# Old traefik-ingress format
-traefik-ingress:
-  ingresses:
-    - name: lan
-      hostname: myapp.local
-      service:
-        name: myapp-service
-        port: 80
-
-# New gateway-route format
-gateway-route:
-  routes:
-    - name: lan
-      hostnames:              # Note: array instead of single hostname
-        - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
-        - myapp.local              # LAN via mDNS
-      service:
-        name: myapp-service
-        port: 80
-```
-
-## Usage
-
-Add as a dependency in your app's `Chart.yaml`:
-
-```yaml
-dependencies:
-  - name: gateway-route
-    version: 1.0.0
-    repository: file://../../../charts/gateway-route
-```
-
-Configure routes in your `values.yaml`:
+Every route needs `access: admin` or `access: apps` and explicit `parentRefs`, including
+`sectionName`. There is no implicit/default Gateway attachment. The chart rejects
+mismatched parents and admin mDNS advertisements; the cutover stage adds cluster admission checks for hostnames, administrative
+namespaces and the Argo webhook exception.
 
 ```yaml
 gateway-route:
   routes:
-    - name: myapp
-      hostnames:
-        - myapp.catfish-mountain.com
+    - name: ui
+      access: admin
+      parentRefs:
+        - name: traefik-admin
+          namespace: traefik-admin
+          sectionName: admin
+      hostnames: [myapp.catfish-mountain.com]
       service:
-        name: myapp-service
+        name: myapp-server
         port: 80
 ```
 
-## Configuration
+Household/public routes use `access: apps` and `traefik-apps` in namespace
+`traefik-apps`. Add a parent for every required listener:
 
-### Gateway Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `gateway.name` | Name of the Gateway resource | `traefik` |
-| `gateway.namespace` | Namespace of the Gateway | `traefik` |
-
-### Route Configuration
-
-Each route supports the following parameters:
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `name` | Name suffix for the HTTPRoute | Yes |
-| `hostnames` | List of hostnames for this route | Yes |
-| `service.name` | Name of the backend Service | Yes |
-| `service.port` | Port number of the Service | No (default: 80) |
-| `rules` | Custom HTTPRoute rules (overrides default catch-all) | No |
-
-## Important Notes
-
-- **Same namespace requirement**: The HTTPRoute and backend Service must be in the same namespace (the release namespace). Cross-namespace routing requires manual ReferenceGrant creation, which is outside the scope of this chart.
-- **Gateway access**: The Gateway (in the `traefik` namespace) can route to HTTPRoutes in any namespace because the Gateway is configured with `namespacePolicy.from: All`.
-
-## mDNS Support
-
-Routes can optionally advertise services via mDNS (Bonjour/Zeroconf) for LAN service discovery. This is useful when you have `.local` hostnames for LAN access.
-
-The mDNS configuration creates a ConfigMap with the label `mdns.homelab.io/advertise: "true"` that is picked up by the mdns-advertiser service.
-
-Example with mDNS:
+| Listener | Port | Purpose |
+| --- | --- | --- |
+| `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
+| `websecure` | 443 | Household HTTPS over LAN/Tailscale |
+| `edge` | 8443 | OCI passthrough, `media.fultonhuffman.com` only |
+| `edge-games` | 8443 | OCI passthrough, `games.fultonhuffman.com` only |
 
 ```yaml
 gateway-route:
   routes:
-    - name: media
-      hostnames:
-        - media.local                  # LAN access (add to /etc/hosts)
-        - media.catfish-mountain.com   # Remote access (DNS)
+    - name: household
+      access: apps
+      parentRefs:
+        - name: traefik-apps
+          namespace: traefik-apps
+          sectionName: web
+        - name: traefik-apps
+          namespace: traefik-apps
+          sectionName: websecure
+      hostnames: [myapp.fultonhuffman.com, myapp.local]
       service:
-        name: jellyfin
-        port: 8096
+        name: myapp-server
+        port: 80
       mdns:
-        name: Media Server
-        ip: 192.168.1.200              # Gateway MetalLB IP
-        port: 8096
-        types:
-          - type: _http._tcp
+        name: My App
+        ip: 192.168.1.200
 ```
 
-This allows devices on the LAN to discover the service as `media.local` via Bonjour.
+Public apps and `.local` household services belong on apps ingress. Wholly
+administrative routes use explicit names under `catfish-mountain.com`. Existing
+application authentication remains required; network authorization does not log
+users into applications. Home Assistant, Jellyfin and Pocket ID remain mixed-use
+apps protected by their application roles/authentication.
 
-**When to use this vs. direct mdns-config**: Use gateway-route's integrated mDNS support for HTTP/HTTPS services that need both Gateway API routing AND mDNS discovery. For non-HTTP services (MQTT, SMB, etc.) that only need mDNS discovery, use the `mdns-config` chart directly. See `/charts/README.md` for detailed pattern comparison.
+`rules` accepts Gateway API HTTPRoute rules in place of the default `/` backend
+rule. BottleShip uses this for ForwardAuth. Its Middleware is explicitly labeled
+`homelab.io/ingress: apps` and annotated with ingress class `traefik-apps` to match
+the scoped CRD provider. The Argo public hostname permits only `POST /api/webhook`.
 
-## Example
+Keep `gateway-route` as a `file://../../../charts/gateway-route` dependency at
+version `1.0.0`. Run `helm dependency update`, rather than trusting old local
+archives, whenever this shared chart changes. See [ingress validation](../../scripts/tests/ingress/README.md).
 
-Full example for an app with multiple routes:
+## Temporary legacy attachment
 
-```yaml
-gateway-route:
-  routes:
-    - name: web
-      hostnames:
-        - myapp.catfish-mountain.com
-        - www.myapp.catfish-mountain.com
-      service:
-        name: myapp-web
-        port: 8080
-
-    - name: api
-      hostnames:
-        - api.myapp.catfish-mountain.com
-      service:
-        name: myapp-api
-        port: 3000
-```
+During the first migration stage, explicit parent `traefik` in namespace
+`traefik` remains allowed for both access classes on its existing listeners.
+All current application routes retain that attachment in this PR. Classification
+is metadata at this stage; administrative LAN isolation is not yet enforced.
+The cutover PR removes this exception after the replacement gateways are ready.

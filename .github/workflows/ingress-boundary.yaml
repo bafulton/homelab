@@ -1,0 +1,33 @@
+name: Ingress Boundary
+on:
+  pull_request:
+    paths:
+      - 'charts/**'
+      - 'kubernetes/**'
+      - 'scripts/validate-ingress.sh'
+      - 'scripts/tests/ingress/**'
+      - '.github/workflows/ingress-boundary.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
+      - 'kubernetes/**'
+      - 'scripts/validate-ingress.sh'
+      - 'scripts/tests/ingress/**'
+      - '.github/workflows/ingress-boundary.yaml'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: azure/setup-helm@v4.3.1
+        with:
+          version: v4.2.2
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: scripts/tests/ingress/go.mod
+          cache-dependency-path: scripts/tests/ingress/go.sum
+      - run: python3 -m pip install PyYAML
+      - run: ./scripts/validate-ingress.sh

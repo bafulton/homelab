@@ -118,3 +118,11 @@ View details for a specific route:
 ```bash
 kubectl describe httproute -n my-namespace my-route
 ```
+
+## CAT-17 preparation
+
+[The staged migration](MIGRATION.md) first makes route attachment explicit and
+scopes this controller to Gateway `traefik/traefik` and GatewayClass label
+`homelab.io/ingress=legacy`. All existing entrances remain in service. Verify
+this rollout before merging the replacement-controller PR; release names alone
+do not isolate multiple Traefik controllers.

@@ -66,6 +66,14 @@ goldpinger:
 gateway-route:
   routes:
     - name: private
+      access: admin
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - goldpinger.catfish-mountain.com
       service:

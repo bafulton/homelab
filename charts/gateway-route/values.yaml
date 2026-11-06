@@ -1,22 +1,14 @@
-# Gateway configuration
-gateway:
-  name: traefik
-  namespace: traefik
-
-# HTTPRoute configuration
+# Every route declares access and explicit Gateway/listener attachment.
 routes: []
-# Example route configuration:
-# - name: myapp
-#   hostnames:
-#     - myapp.catfish-mountain.com  # Remote access
-#     - myapp.local                 # LAN access
+# - name: dashboard
+#   access: admin
+#   parentRefs:
+#     - name: traefik-admin
+#       namespace: traefik-admin
+#       sectionName: admin
+#   hostnames: [myapp.catfish-mountain.com]
 #   service:
-#     name: myapp-service
+#     name: myapp
 #     port: 80
-#   rules: []  # Optional: custom rules (if not specified, defaults to catch-all)
-#   mdns:     # Optional: mDNS advertisement for LAN discovery
-#     name: My App              # Display name (required)
-#     ip: 192.168.1.200         # Gateway MetalLB IP (required)
-#     port: 80                  # Port number (default: 80)
-#     types:                    # Service types (default: _http._tcp)
-#       - type: _http._tcp
+# apps listeners: web, websecure, edge (media), edge-games (games).
+# Use multiple parentRefs for services available over multiple transports.

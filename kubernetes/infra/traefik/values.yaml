@@ -34,6 +34,15 @@ traefik:
   providers:
     kubernetesGateway:
       enabled: true
+      labelSelector: homelab.io/ingress=legacy
+      gateways:
+        - name: traefik
+          namespace: traefik
+
+  # Scope the existing controller before replacement GatewayClasses are created.
+  gatewayClass:
+    labels:
+      homelab.io/ingress: legacy
 
   # Configure standard HTTP/HTTPS ports
   ports:
@@ -197,6 +206,14 @@ traefik:
 gateway-route:
   routes:
     - name: dashboard
+      access: admin
+      parentRefs:
+        - name: traefik
+          namespace: traefik
+          sectionName: web
+        - name: traefik
+          namespace: traefik
+          sectionName: websecure
       hostnames:
         - traefik.catfish-mountain.com
       service:
