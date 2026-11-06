@@ -42,7 +42,8 @@ gateway does not grant an application session.
   with GatewayClass label selector `homelab.io/ingress=admin`.
 - Kubernetes Ingress and Traefik CRD providers are disabled. The Gateway is
   explicitly templated to avoid inheriting the upstream default HTTP listener.
-- Administrative routes declare `access: admin` and explicit `sectionName: admin`.
+- Administrative routes declare `access: admin`; the chart generates the explicit
+  admin Gateway/listener references.
   The shared chart rejects mismatched new route parents; strict cluster admission
   and retirement of alternate legacy exposure are added in stage 3.
 - The wildcard certificate is issued in this namespace by the existing
@@ -75,3 +76,8 @@ spoofing as described in the [runbook](../traefik/MIGRATION.md).
 Refresh dependencies with `helm dependency update` before rendering. First render with `--include-crds` to inspect bundled CRDs. To mirror Argo
 with `skipCrds: true`, omit `--include-crds`; adding `--skip-crds` alongside
 `--include-crds` does not suppress them in Helm template.
+
+The wrapper's temporary `gateway-route.gateways.admin` mapping provisions its
+dashboard through the new admin Gateway while ordinary app charts retain the
+central legacy mapping. Stage 3 removes this provisioning override and switches
+the shared defaults; app values never need raw Kubernetes `parentRefs`.

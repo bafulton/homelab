@@ -11,13 +11,6 @@ gateway-route:
   routes:
     - name: ui
       access: admin
-      parentRefs:
-        - name: traefik
-          namespace: traefik
-          sectionName: web
-        - name: traefik
-          namespace: traefik
-          sectionName: websecure
       hostnames:
         - argocd.catfish-mountain.com  # Private UI access
       service:
@@ -25,13 +18,6 @@ gateway-route:
         port: 80
     - name: webhook
       access: apps
-      parentRefs:
-        - name: traefik
-          namespace: traefik
-          sectionName: web
-        - name: traefik
-          namespace: traefik
-          sectionName: websecure
       hostnames:
         - argocd-webhook.catfish-mountain.com  # Public GitHub webhook
       # Only GitHub's webhook POST. This hostname is a public Cloudflare Tunnel

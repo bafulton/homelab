@@ -17,7 +17,7 @@ cutover target; `.200` and public upstreams move only in stage 3.
 | Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80, `websecure` 443 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80, 443 |
-| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge`, `edge-games` |
+| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge-media`, `edge-games` |
 
 Both LoadBalancers explicitly disable NodePort allocation. Port 8443 is published
 only on the Tailscale Service. The OCI listeners retain exact hostname restrictions
@@ -38,8 +38,9 @@ filtered by `homelab.io/ingress=apps` and ingress class `traefik-apps`. Middlewa
 resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
 Do not introduce unscoped IngressRoutes as an alternate route mechanism.
 
-Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`
-and explicit listener parents. Stage 3 adds admission rejecting admin attachment to this Gateway,
+Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`.
+The shared chart generates explicit Gateway/listener parents; only apps needing
+special entrances specify a `listeners` override. Stage 3 adds admission rejecting admin attachment to this Gateway,
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 
@@ -64,3 +65,8 @@ conflicting Host/SNI and check that administrative responses never appear.
 
 Use `helm dependency update` before trusting a local render. First render with `--include-crds` to audit bundled CRDs. To mirror Argo's
 `skipCrds: true`, omit `--include-crds` (it overrides `--skip-crds` in template).
+
+The wrapper's temporary `gateway-route.gateways.admin` mapping provisions its
+dashboard through the new admin Gateway while ordinary app charts retain the
+central legacy mapping. Stage 3 removes this provisioning override and switches
+the shared defaults; app values never need raw Kubernetes `parentRefs`.

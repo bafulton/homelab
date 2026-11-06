@@ -58,7 +58,7 @@ traefik:
         certificateRefs:
         - name: wildcard-catfish-mountain-com-tls
         mode: Terminate
-      edge:
+      edge-media:
         port: 8443
         protocol: HTTPS
         hostname: media.fultonhuffman.com
@@ -139,13 +139,15 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
+  # Provisioning-only mapping; ordinary apps retain the shared legacy defaults.
+  gateways:
+    admin:
+      name: traefik-admin
+      namespace: traefik-admin
+      listeners: [admin]
   routes:
   - name: dashboard
     access: admin
-    parentRefs:
-    - name: traefik-admin
-      namespace: traefik-admin
-      sectionName: admin
     hostnames:
     - traefik.catfish-mountain.com
     service:
