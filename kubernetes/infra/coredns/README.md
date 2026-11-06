@@ -5,7 +5,7 @@ a Tailscale LoadBalancer Service. Configure its Tailscale IP as the restricted
 nameserver for `catfish-mountain.com` in the tailnet DNS settings. It is separate
 from Kubernetes' built-in `kube-dns` service.
 
-After the [CAT-17 migration](../traefik/MIGRATION.md), explicit administrative
+After the [ingress migration](../traefik/MIGRATION.md), explicit administrative
 records (`argocd`, `longhorn`, `garage`, `signoz`, `goldpinger`, `traefik`,
 `traefik-admin`) point to the assigned `cluster-admin` Tailscale IP. The zone apex
 and wildcard point to `cluster-apps`. These are two shared proxy identities;
@@ -24,7 +24,7 @@ TCP 443 from `group:homelab-admins`; ordinary LAN clients cannot use the apps VI
 with an admin hostname. The DNS proxy retains `tag:k8s` during migration, with
 TCP/UDP 53 grants for tailnet members and cluster nodes. It does not acquire the
 admin tag. The existing Tailscale Service's NodePorts should be reviewed separately
-if changing DNS exposure; CAT-17 does not recreate this identity.
+if changing DNS exposure; this migration does not recreate this identity.
 
 ## Proxy PodSecurity
 

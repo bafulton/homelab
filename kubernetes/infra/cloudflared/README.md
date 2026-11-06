@@ -4,7 +4,7 @@ Outbound Cloudflare Tunnel for intentional public applications. The tunnel goes
 to `http://traefik-apps.traefik-apps.svc.cluster.local:80`, then classified Gateway
 API routes select the backend. It never targets the admin gateway.
 
-The [CAT-17 migration](../traefik/MIGRATION.md) coordinates this upstream change;
+The [ingress migration](../traefik/MIGRATION.md) coordinates this upstream change;
 this README describes the target configuration, not a completed rollout.
 
 ## Configuration and public names

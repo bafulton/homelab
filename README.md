@@ -72,7 +72,7 @@ Access through the shared [admin gateway](kubernetes/infra/traefik-admin/README.
 
 - [ArgoCD](https://argocd.catfish-mountain.com) - GitOps deployments
 - [SigNoz](https://signoz.catfish-mountain.com) - Observability (metrics, logs, traces)
-- [Traefik apps](https://traefik.catfish-mountain.com) - Household/public gateway dashboard
+- [Traefik apps](https://traefik-apps.catfish-mountain.com) - Household/public gateway dashboard
 - [Traefik admin](https://traefik-admin.catfish-mountain.com) - Administrative gateway dashboard
 
 ## Getting Started

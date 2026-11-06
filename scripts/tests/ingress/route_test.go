@@ -117,6 +117,7 @@ routes: [{name: invalid, access: admin, hostnames: [invalid.catfish-mountain.com
 		{"unknown access", `routes: [{name: invalid, access: other, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"raw parentRefs", `routes: [{name: invalid, access: apps, parentRefs: [{name: traefik-apps}], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"admin listener override", `routes: [{name: invalid, access: admin, listeners: [web], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
+		{"apps websecure listener override", `routes: [{name: invalid, access: apps, listeners: [websecure], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"unknown listener", `routes: [{name: invalid, access: apps, listeners: [other], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"empty listeners", `routes: [{name: invalid, access: apps, listeners: [], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"duplicate listeners", `routes: [{name: invalid, access: apps, listeners: [web, web], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
@@ -144,8 +145,8 @@ func TestAccessProfiles(t *testing.T) {
 		listeners              []string
 	}{
 		{"admin defaults", "admin", "", []string{"admin"}},
-		{"apps defaults", "apps", "", []string{"web", "websecure"}},
-		{"media override", "apps", "listeners: [web, websecure, edge]", []string{"web", "websecure", "edge"}},
+		{"apps defaults", "apps", "", []string{"web"}},
+		{"media override", "apps", "listeners: [web, edge]", []string{"web", "edge"}},
 		{"games only", "apps", "listeners: [edge]", []string{"edge"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

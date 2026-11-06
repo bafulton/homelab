@@ -3,7 +3,7 @@
 Traefik controller for household LAN access and intentional public applications.
 It replaces the old shared gateway's application traffic. Wholly administrative
 UIs attach to [traefik-admin](../traefik-admin), including this controller's own
-dashboard at `https://traefik.catfish-mountain.com`.
+dashboard at `https://traefik-apps.catfish-mountain.com`.
 
 **Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
 This README describes the intended configuration, not rollout status.
@@ -12,9 +12,9 @@ This README describes the intended configuration, not rollout status.
 
 | Entrance | Destination | Listeners |
 | --- | --- | --- |
-| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80, `websecure` 443 |
+| Household LAN/mDNS | MetalLB `192.168.1.200` after stage 3 | `web` 80 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
-| Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80, 443 |
+| Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80 |
 | OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge` |
 
 Both LoadBalancers explicitly disable NodePort allocation. Port 8443 is published
@@ -47,9 +47,10 @@ special entrances specify `listeners`. Admission rejects admin attachment to thi
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 
-Certificates are owned here for `*.catfish-mountain.com`,
-`media.fultonhuffman.com`, and `games.fultonhuffman.com`. Other public TLS normally
-terminates at Cloudflare. The single `traefik-crds` app continues to own CRDs;
+Certificates are owned here for `media.fultonhuffman.com` and
+`games.fultonhuffman.com`, used only by the shared OCI listener. Public TLS for
+other application hostnames terminates at Cloudflare; private admin TLS belongs
+to `traefik-admin`. The single `traefik-crds` app continues to own CRDs;
 this app sets `skipCrds: true`. Scheduling remains redundant across nodes with a
 preference for local nodes; OCI remains a scheduling target.
 
@@ -60,9 +61,11 @@ kubectl -n traefik-apps get deployment,svc,gateway,httproute,certificate
 kubectl get gatewayclass traefik-apps
 ```
 
-Confirm the LAN Service owns `.200`, neither Service has NodePorts, both OCI
-certificates are Ready, the Gateway is Programmed, and BottleShip's Middleware
-resolves. Test household discovery/control, Jellyfin streaming/seek, OIDC sign-in,
+During stage 2, confirm the default apps Service remains `ClusterIP` and the
+legacy controller still owns `.200`; do not hand off the VIP yet. After stage 3,
+confirm the apps Service owns `.200`. Neither Service should have NodePorts.
+Confirm both OCI certificates are Ready, the Gateway is Programmed, and
+BottleShip's Middleware resolves. Test household discovery/control, Jellyfin streaming/seek, OIDC sign-in,
 BottleShip callbacks and a real GitHub webhook delivery. Test public access with
 conflicting Host/SNI and check that administrative responses never appear.
 

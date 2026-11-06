@@ -1,4 +1,4 @@
-# CAT-17 ingress migration
+# Ingress migration runbook
 
 This is stage 3 of the dependent PR stack: [routing preparation #581](https://github.com/bafulton/homelab/pull/581),
 [replacement gateways #583](https://github.com/bafulton/homelab/pull/583), then this
@@ -19,7 +19,7 @@ not provide cross-Application ordering.
 | Public | BottleShip, yak-shave, household public names, OIDC, Argo webhook | apps ingress; existing intended transports |
 | Household non-HTTP | MQTT `.202`, Time Machine `.201`, discovery/Matter | preserved |
 | Internal | Garage S3/admin API, ClickHouse, Redis, collectors, metrics, webhooks | ClusterIP/internal traffic; no new admin routes |
-| Recovery exception | credential-protected Talos/Kubernetes node APIs | preserve local access; CAT-19/CAT-20 cover recovery verification |
+| Recovery exception | credential-protected Talos/Kubernetes node APIs | preserve local access; verify recovery procedures separately |
 
 Read-only live inventory on 2026-11-05 confirmed the six original admin backends
 are ClusterIP Services. The old LAN gateway uses NodePorts 31642/31789 and the old
@@ -29,7 +29,7 @@ blocking only `.200` is insufficient. Inventory again immediately before rollout
 Home Assistant uses host networking/8123, Matter Server uses 5580. Other observed
 host ports belong to node-exporter, MetalLB, and OTel agent health/metrics/ingestion.
 They are not additional admin dashboards. Preserve household endpoints, and record
-those telemetry surfaces for CAT-6 rather than claiming ingress grants isolate
+those telemetry surfaces for broader workload-isolation work rather than claiming ingress grants isolate
 all node ports. Kubernetes/Talos APIs remain intentional credential-protected
 local exceptions. No arbitrary LAN route to pod/Service CIDRs is authorized by
 this design; audit local router routes and IPv6 as well as Kubernetes objects.
@@ -154,7 +154,7 @@ legacy controller immediately. Do not expect duplicate routes or zero downtime.
 
 ## Retire the legacy ingress
 
-Do this before declaring CAT-17 enforced. The old `traefik-dashboard` HTTPRoute
+Do this before declaring the migration complete. The old `traefik-dashboard` HTTPRoute
 and backend Service are no longer desired but remain because pruning is disabled.
 
 1. Inventory all remaining references to Gateway `traefik/traefik`. Remove the
@@ -197,8 +197,8 @@ and therefore fails a denied-path test.
   or listener, webhook catchalls, LAN/NodePort admin Services, and host-network
   admin pods. Policies report no type warnings. Run the local CEL regression suite.
 
-Do not mark the issue complete without these live results. CAT-6 workload
-isolation and CAT-8/CAT-18 household locality/availability remain separate work.
+Do not mark the migration complete without these live results. Broader workload
+isolation and household locality/availability remain separate work.
 
 ## Rollback
 
@@ -216,7 +216,7 @@ whole repository or alter unrelated user work.
    saved OCI dynamic configuration. Check household/public/admin access.
 4. Keep the new Tailscale policy if administrator recovery still works; restore
    the saved policy through GitOps only if required. Policy rollback may reopen
-   the previous broad access, so record that CAT-17 is no longer enforced.
+   the previous broad access, so record that the ingress boundary is no longer enforced.
 5. Once recovery is verified, disable/remove only the replacement ingress
    resources and restore original reconciliation settings. Preserve the saved
    artifacts until the rollout is accepted.

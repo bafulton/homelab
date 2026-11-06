@@ -25,7 +25,7 @@ After the required DNS generation/cutover step, CoreDNS maps these names to the 
 - `garage.catfish-mountain.com`
 - `signoz.catfish-mountain.com`
 - `goldpinger.catfish-mountain.com`
-- `traefik.catfish-mountain.com` — apps controller dashboard
+- `traefik-apps.catfish-mountain.com` — apps controller dashboard
 - `traefik-admin.catfish-mountain.com` — this controller's dashboard
 
 The dashboard Services use port 8080 inside the cluster. They are not published
@@ -54,7 +54,7 @@ tag, but is not itself granted access to the administrative frontend.
 
 This isolates ingress from ordinary LAN/public clients. Cluster-internal access
 and Kubernetes administrators' ability to port-forward are separate trust paths;
-CAT-6 covers workload NetworkPolicies. Home Assistant, Jellyfin and Pocket ID
+Broader workload NetworkPolicy enforcement is separate. Home Assistant, Jellyfin and Pocket ID
 remain on apps ingress with application authentication; their administration is
 not claimed to be network-isolated by this change.
 

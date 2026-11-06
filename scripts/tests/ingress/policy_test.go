@@ -195,6 +195,9 @@ func TestIngressBoundary(t *testing.T) {
 			r := spec(o)["rules"].([]any)[0].(map[string]any)
 			r["matches"] = []any{map[string]any{"path": map[string]any{"type": "PathPrefix", "value": "/"}}}
 		}},
+		{"webhook hostname outside argocd", "httproute-access-boundary", appsRoute, func(o map[string]any) {
+			spec(o)["hostnames"] = []any{"argocd-webhook.catfish-mountain.com"}
+		}},
 		{"apps cross-namespace backend", "httproute-access-boundary", appsRoute, func(o map[string]any) {
 			r := spec(o)["rules"].([]any)[0].(map[string]any)
 			backend := r["backendRefs"].([]any)[0].(map[string]any)

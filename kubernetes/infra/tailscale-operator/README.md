@@ -13,8 +13,8 @@ share Traefik gateways rather than having individual Tailscale machines.
 | `cluster-dns` | `coredns/coredns-tailscale` | existing `tag:k8s` |
 | `cluster-gateway` (legacy) | `traefik/traefik-tailscale` | existing `tag:k8s`, removed at retirement |
 
-All hostnames are under `catfish-mountain.ts.net`. The new gateways are the
-[CAT-17 target topology](../traefik/MIGRATION.md); verify rollout status in the
+All hostnames are under `catfish-mountain.ts.net`. The new gateways are described
+in the [ingress migration runbook](../traefik/MIGRATION.md); verify rollout status in the
 cluster. Individual admin hostnames resolve through split DNS to `cluster-admin`,
 then Traefik selects the backend by Host/SNI.
 

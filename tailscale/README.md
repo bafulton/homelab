@@ -4,13 +4,13 @@ Tailscale ACLs are managed via GitOps. The web editor is locked.
 
 ## Ingress access model
 
-The [CAT-17 migration](../kubernetes/infra/traefik/MIGRATION.md) introduces two
+The [ingress migration](../kubernetes/infra/traefik/MIGRATION.md) introduces two
 shared gateway proxies; individual dashboards do not become tailnet machines.
 
 | Source | Destination | Permission |
 | --- | --- | --- |
 | `group:homelab-admins` (initially `fulton.benjamin@gmail.com`) | `tag:k8s-admin` | TCP 443 |
-| tailnet members | `tag:k8s-apps` | TCP 80/443 |
+| tailnet members | `tag:k8s-apps` | TCP 80 |
 | tailnet members and cluster nodes | CoreDNS's existing `tag:k8s` | TCP/UDP 53 |
 | `tag:edge` | `tag:k8s-apps` | TCP 8443 |
 | homelab administrators | nodes/operator/edge and legacy `tag:k8s` endpoints | operations access |

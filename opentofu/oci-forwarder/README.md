@@ -181,7 +181,7 @@ keeping all Cloudflare resources in one place. The tailnet policy lives in
 add a `tailscale_acl` resource here, it would fight that workflow for ownership
 of the same document.
 
-## CAT-17 upstream migration
+## Ingress upstream migration
 
 The target is now the [apps gateway](../../kubernetes/infra/traefik-apps/README.md),
 `cluster-apps.catfish-mountain.ts.net:8443`, tagged `tag:k8s-apps`. The edge never

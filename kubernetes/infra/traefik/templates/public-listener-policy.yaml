@@ -31,7 +31,6 @@ spec:
            l.allowedRoutes.kinds.all(k,
              k.group == 'gateway.networking.k8s.io' && k.kind == 'HTTPRoute') &&
            ((l.name == 'web' && l.port == 80 && l.protocol == 'HTTP') ||
-            (l.name == 'websecure' && l.port == 443 && l.protocol == 'HTTPS') ||
             (l.name == 'edge' && l.port == 8443 && l.protocol == 'HTTPS' &&
              has(l.hostname) && l.hostname == '*.fultonhuffman.com'))))
       message: Gateways must use the dedicated admin or apps identity and approved listeners.
@@ -72,7 +71,7 @@ spec:
           has(p.namespace) && has(p.sectionName) &&
           ((variables.admin && p.name == 'traefik-admin' && p.namespace == 'traefik-admin' && p.sectionName == 'admin') ||
            (variables.apps && p.name == 'traefik-apps' && p.namespace == 'traefik-apps' &&
-            p.sectionName in ['web', 'websecure', 'edge'])))
+            p.sectionName in ['web', 'edge'])))
       message: Routes must explicitly attach only to listeners matching their access class.
     - expression: >-
         has(object.spec.hostnames) && size(object.spec.hostnames) > 0 &&
@@ -85,6 +84,10 @@ spec:
     - expression: >-
         !(object.metadata.namespace in ['longhorn', 'garage', 'signoz', 'goldpinger', 'traefik-admin', 'traefik-apps']) || variables.admin
       message: Administrative backend namespaces may only publish administrative routes.
+    - expression: >-
+        !variables.apps || object.metadata.namespace == 'argocd' ||
+        !object.spec.hostnames.exists(h, h == 'argocd-webhook.catfish-mountain.com')
+      message: The Argo webhook hostname may only be claimed by an apps route in the argocd namespace.
     - expression: >-
         !variables.apps || object.spec.rules.all(r,
           (!has(r.backendRefs) || r.backendRefs.all(b,

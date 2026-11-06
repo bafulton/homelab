@@ -60,7 +60,7 @@ coredns:
   # These existing records are retained until replacement proxies are provisioned.
   # Before cutover run scripts/update-ingress-dns.py, review and commit its output.
   # It writes explicit admin/apps A records from live Tailscale Service status.
-  # Never sync this old zone as the final CAT-17 configuration; see traefik/MIGRATION.md.
+  # Never sync this old zone as the final configuration; see traefik/MIGRATION.md.
   zoneFiles:
     - filename: catfish-mountain.com.db
       domain: catfish-mountain.com

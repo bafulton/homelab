@@ -28,7 +28,7 @@
     {
       "src": ["autogroup:member"],
       "dst": ["tag:k8s-apps"],
-      "ip": ["tcp:80", "tcp:443"],
+      "ip": ["tcp:80"],
     },
     // Existing CoreDNS proxy keeps tag:k8s to avoid in-place proxy retagging.
     {
@@ -82,8 +82,8 @@
   "tests": [
     {
       "src": "fulton.benjamin@gmail.com",
-      "accept": ["tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443", "tag:k8s:53"],
-      "deny": ["tag:k8s-admin:80", "tag:k8s-admin:8080", "tag:k8s-admin:8443"],
+      "accept": ["tag:k8s-admin:443", "tag:k8s-apps:80", "tag:k8s-node:6443", "tag:k8s:53"],
+      "deny": ["tag:k8s-admin:80", "tag:k8s-admin:8080", "tag:k8s-admin:8443", "tag:k8s-apps:443"],
     },
     {
       "src": "tag:edge",

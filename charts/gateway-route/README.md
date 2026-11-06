@@ -16,7 +16,9 @@ gateway-route:
 ```
 
 `access: admin` selects the administrative entrance. `access: apps` selects the
-household/public entrance and normally uses both `web` and `websecure` listeners.
+household/public entrance and normally uses the `web` listener. The apps Gateway
+does not terminate HTTPS for household/public routes; Cloudflare terminates public
+TLS, while the OCI forwarder has its own shared TLS listener.
 Gateway names, namespaces, and default listeners live centrally in this chart's
 `gateways` mapping. Ordinary app values do not repeat them.
 
@@ -26,22 +28,21 @@ Apps that need a different set of entrances can specify `listeners`. This replac
 the default list. The existing OCI services use:
 
 ```yaml
-# Jellyfin and BottleShip: ordinary access plus the shared OCI entrance.
+# Jellyfin and BottleShip: household HTTP plus the shared OCI TLS entrance.
 access: apps
-listeners: [web, websecure, edge]
+listeners: [web, edge]
 ```
 
 | Listener | Port | Purpose |
 | --- | --- | --- |
 | `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
-| `websecure` | 443 | Household HTTPS over LAN/Tailscale |
-| `edge` | 8443 | OCI passthrough; listener restricted to `*.fultonhuffman.com` |
+| `edge` | 8443 | OCI TLS passthrough; shared listener restricted to `*.fultonhuffman.com` |
 
-The edge wildcard does not attach other routes automatically. Only routes
-selecting `edge` can use it; the forwarder still accepts only media/games SNI.
-Both existing certificates must be Ready; a bad reference can affect both apps.
-Public SNI and Host may select different
-public apps within this shared listener; application authentication still applies.
+The shared `edge` listener is one entrance for OCI-forwarded public traffic. Only
+routes selecting `edge` can use it; the forwarder still accepts only media/games
+SNI. Both existing certificates must be Ready; a bad reference can affect both
+apps. Public SNI and Host may select different public apps within this shared
+listener; application authentication still applies.
 
 Admin listeners are controlled by the central mapping, with no per-route override.
 The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty
@@ -67,9 +68,14 @@ gateway-route:
 BottleShip uses this for ForwardAuth; the Argo public webhook uses an exact
 `POST /api/webhook` match. Existing application authentication remains required.
 
-The generated HTTPRoute uses native Gateway API `parentRefs`: `name` identifies
-the Gateway, `namespace` locates it, and `sectionName` selects a listener. These
-are output fields rather than the application-facing values interface.
+The generated HTTPRoute uses the Gateway API's standard `parentRefs` fields:
+`name` is the referenced Gateway object's name, `namespace` tells Kubernetes
+where to find that object, and `sectionName` names one of its
+`spec.listeners[].name` values. The name and namespace often match by convention,
+as they do for these Gateways, but identify different parts of the reference.
+`sectionName` is the API field name; it selects a Gateway listener, rather than
+an arbitrary application-defined label. These fields are generated output, not
+part of the app-facing values interface.
 
 ## Migration mapping
 

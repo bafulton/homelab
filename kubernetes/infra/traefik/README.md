@@ -28,9 +28,9 @@ certificates/proxy provisioning; this is a coordinated migration.
 - Admin ingress pods cannot use host networking or host ports.
 
 These policies govern supported Gateway API ingress. They do not replace
-Kubernetes RBAC, application authentication, or workload isolation under CAT-6.
+Kubernetes RBAC, application authentication, or broader workload isolation.
 The [regression suite](../../../scripts/tests/ingress/README.md) evaluates the
 actual CEL against rendered manifests and adversarial changes.
 
-Mixed-use application administration remains separately tracked in
-[CAT-21](https://linear.app/catfish-mountain/issue/CAT-21).
+Mixed-use application administration remains subject to its existing
+application authorization.

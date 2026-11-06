@@ -37,7 +37,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 
 ## Networking Overview
 
-The [CAT-17 runbook](traefik/MIGRATION.md) coordinates migration from the legacy
+The [ingress migration runbook](traefik/MIGRATION.md) coordinates migration from the legacy
 shared gateway. The topology below describes the target configuration.
 
 ```mermaid
@@ -158,7 +158,7 @@ gateway-route:
   routes:
     - name: media
       access: apps
-      listeners: [web, websecure, edge]
+      listeners: [web, edge]
       hostnames:
         - media.fultonhuffman.com      # Public (this one via the OCI edge forwarder)
         - media.local                  # LAN via mDNS

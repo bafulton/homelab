@@ -1,4 +1,4 @@
-# CAT-17: see ../traefik/MIGRATION.md before merging or syncing.
+# Final apps Gateway configuration. Follow the coordinated migration runbook.
 namespace: traefik-apps
 skipCrds: true
 syncPolicy:
@@ -30,8 +30,8 @@ traefik:
     websecure:
       port: 443
       expose:
-        default: true
-        tailscale: true
+        default: false
+        tailscale: false
     edge:
       port: 8443
       exposedPort: 8443
@@ -52,14 +52,6 @@ traefik:
         protocol: HTTP
         namespacePolicy:
           from: All
-      websecure:
-        port: 443
-        protocol: HTTPS
-        namespacePolicy:
-          from: All
-        certificateRefs:
-        - name: wildcard-catfish-mountain-com-tls
-        mode: Terminate
       edge:
         port: 8443
         protocol: HTTPS
@@ -139,7 +131,7 @@ gateway-route:
   - name: dashboard
     access: admin
     hostnames:
-    - traefik.catfish-mountain.com
+    - traefik-apps.catfish-mountain.com
     service:
       name: traefik-apps-dashboard
       port: 8080
