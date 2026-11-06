@@ -78,25 +78,37 @@ this design; audit local router routes and IPv6 as well as Kubernetes objects.
 
 ## Build the replacement entrances
 
-1. Manually sync the legacy `traefik` Application to install its new admission
+1. Inventory alternate Traefik route CRDs before installing the admission
+   policies:
+
+   ```sh
+   kubectl get ingressroutes.traefik.io,ingressroutetcps.traefik.io,ingressrouteudps.traefik.io -A
+   ```
+
+   Migrate or remove every returned routing object first. The policies reject
+   new or updated Traefik route CRDs cluster-wide, but admission is not
+   retroactive. The CRD provider remains enabled for Bottleship's Middleware.
+   Both new Gateways explicitly allow only `HTTPRoute`; the Gateway policy
+   rejects any update that broadens that route-kind set.
+2. Manually sync the legacy `traefik` Application to install its new admission
    policies. Its old deployment is not pruned because `prune: false` remains.
    Do not run a broad prune against this Application. Check policy
    `status.typeChecking.expressionWarnings` is empty before proceeding. The strict
    Gateway policy replaces stage 2's temporary legacy/listener-name allowances.
-2. Verify the existing new Argo Applications still use their matching paths and
+3. Verify the existing new Argo Applications still use their matching paths and
    namespaces, `source.helm.skipCrds: true`, and `CreateNamespace=true`. Keep
    automated sync disabled during cutover. Both replacement Applications were
    created by stage 2; do not create duplicate Helm owners.
-3. **Do not sync `traefik-apps` to stage 3 yet.** Leave its running stage-2 default
+4. **Do not sync `traefik-apps` to stage 3 yet.** Leave its running stage-2 default
    Service as ClusterIP until the VIP handoff. Its Tailscale Service, Gateway,
    dashboard route and certificates are already provisioned. Confirm there are
    no temporary Helm parameters left from earlier experiments.
-4. Require both new Deployments Available and all referenced Certificates Ready;
+5. Require both new Deployments Available and all referenced Certificates Ready;
    require Gateways Programmed. Verify `cluster-admin` has **only** `tag:k8s-admin`
    and `cluster-apps` has **only** `tag:k8s-apps`. Never give admin ingress
    `tag:k8s`. Inspect generated Services/pods for NodePorts, host ports and host
    networking. Sync admin ingress if needed; defer apps ingress until handoff.
-5. Verify administrator access to `traefik-admin.catfish-mountain.com` using the
+6. Verify administrator access to `traefik-admin.catfish-mountain.com` using the
    new proxy IP and correct SNI/Host before changing DNS. The apps controller's
    dashboard uses an admin route too. The admin proxy exposes only TCP 443;
    metrics/dashboard backend ports remain ClusterIP.

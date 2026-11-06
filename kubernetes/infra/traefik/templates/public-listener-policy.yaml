@@ -16,15 +16,24 @@ spec:
         (object.metadata.namespace == 'traefik-admin' &&
          object.metadata.name == 'traefik-admin' &&
          object.spec.gatewayClassName == 'traefik-admin' &&
-         object.spec.listeners.all(l, l.name == 'admin' && l.port == 443 && l.protocol == 'HTTPS')) ||
+         object.spec.listeners.all(l,
+           has(l.allowedRoutes) && has(l.allowedRoutes.kinds) &&
+           size(l.allowedRoutes.kinds) == 1 &&
+           l.allowedRoutes.kinds.all(k,
+             k.group == 'gateway.networking.k8s.io' && k.kind == 'HTTPRoute') &&
+           l.name == 'admin' && l.port == 443 && l.protocol == 'HTTPS')) ||
         (object.metadata.namespace == 'traefik-apps' &&
          object.metadata.name == 'traefik-apps' &&
          object.spec.gatewayClassName == 'traefik-apps' &&
          object.spec.listeners.all(l,
-           (l.name == 'web' && l.port == 80 && l.protocol == 'HTTP') ||
-           (l.name == 'websecure' && l.port == 443 && l.protocol == 'HTTPS') ||
-           (l.name == 'edge' && l.port == 8443 && l.protocol == 'HTTPS' &&
-            has(l.hostname) && l.hostname == '*.fultonhuffman.com')))
+           has(l.allowedRoutes) && has(l.allowedRoutes.kinds) &&
+           size(l.allowedRoutes.kinds) == 1 &&
+           l.allowedRoutes.kinds.all(k,
+             k.group == 'gateway.networking.k8s.io' && k.kind == 'HTTPRoute') &&
+           ((l.name == 'web' && l.port == 80 && l.protocol == 'HTTP') ||
+            (l.name == 'websecure' && l.port == 443 && l.protocol == 'HTTPS') ||
+            (l.name == 'edge' && l.port == 8443 && l.protocol == 'HTTPS' &&
+             has(l.hostname) && l.hostname == '*.fultonhuffman.com'))))
       message: Gateways must use the dedicated admin or apps identity and approved listeners.
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -77,6 +86,20 @@ spec:
         !(object.metadata.namespace in ['longhorn', 'garage', 'signoz', 'goldpinger', 'traefik-admin', 'traefik-apps']) || variables.admin
       message: Administrative backend namespaces may only publish administrative routes.
     - expression: >-
+        !variables.apps || object.spec.rules.all(r,
+          (!has(r.backendRefs) || r.backendRefs.all(b,
+            (!has(b.group) || b.group == '') &&
+            (!has(b.kind) || b.kind == 'Service') &&
+            (!has(b.namespace) || b.namespace == object.metadata.namespace))) &&
+          (!has(r.filters) || r.filters.all(f,
+            f.type != 'RequestMirror' ||
+            (has(f.requestMirror) && has(f.requestMirror.backendRef) &&
+             (!has(f.requestMirror.backendRef.group) || f.requestMirror.backendRef.group == '') &&
+             (!has(f.requestMirror.backendRef.kind) || f.requestMirror.backendRef.kind == 'Service') &&
+             (!has(f.requestMirror.backendRef.namespace) ||
+              f.requestMirror.backendRef.namespace == object.metadata.namespace)))))
+      message: Apps routes may reference only same-namespace Services, including request mirror destinations.
+    - expression: >-
         object.metadata.namespace != 'argocd' || variables.admin ||
         (size(object.spec.hostnames) == 1 && object.spec.hostnames[0] == 'argocd-webhook.catfish-mountain.com' &&
          object.spec.rules.all(r, has(r.matches) && size(r.matches) > 0 &&
@@ -93,6 +116,30 @@ metadata:
   name: httproute-access-boundary
 spec:
   policyName: httproute-access-boundary
+  validationActions: [Deny]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: disable-traefik-alternate-routes
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [traefik.io]
+        apiVersions: ['*']
+        operations: [CREATE, UPDATE]
+        resources: [ingressroutes, ingressroutetcps, ingressrouteudps]
+  validations:
+    - expression: "false"
+      message: Traefik IngressRoute resources are disabled; use a policy-validated HTTPRoute.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: disable-traefik-alternate-routes
+spec:
+  policyName: disable-traefik-alternate-routes
   validationActions: [Deny]
 ---
 apiVersion: admissionregistration.k8s.io/v1

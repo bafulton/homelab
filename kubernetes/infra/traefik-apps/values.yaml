@@ -42,7 +42,9 @@ traefik:
         tls:
           enabled: true
   gateway:
-    enabled: true
+    # The wrapper template emits this Gateway with an explicit HTTPRoute-only
+    # allowedRoutes.kinds contract. The upstream chart does not expose kinds.
+    enabled: false
     name: traefik-apps
     listeners:
       web:

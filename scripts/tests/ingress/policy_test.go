@@ -120,7 +120,7 @@ func TestIngressBoundary(t *testing.T) {
 			all = append(all, o)
 		}
 	}
-	var route, webhook, gateway, service, pod map[string]any
+	var route, appsRoute, webhook, gateway, service, pod map[string]any
 	for _, o := range all {
 		switch o["kind"] {
 		case "HTTPRoute":
@@ -129,6 +129,9 @@ func TestIngressBoundary(t *testing.T) {
 			}
 			if meta(o)["namespace"] == "longhorn" {
 				route = o
+			}
+			if labels, ok := meta(o)["labels"].(map[string]any); ok && labels["homelab.io/access"] == "apps" && meta(o)["namespace"] == "bottleship" {
+				appsRoute = o
 			}
 			if meta(o)["name"] == "argocd-webhook" {
 				webhook = o
@@ -169,7 +172,7 @@ func TestIngressBoundary(t *testing.T) {
 			}
 		}
 	}
-	for label, fixture := range map[string]map[string]any{"route": route, "webhook": webhook, "gateway": gateway, "service": service, "pod": pod} {
+	for label, fixture := range map[string]map[string]any{"route": route, "apps route": appsRoute, "webhook": webhook, "gateway": gateway, "service": service, "pod": pod} {
 		if fixture == nil {
 			t.Fatalf("missing %s fixture", label)
 		}
@@ -192,6 +195,23 @@ func TestIngressBoundary(t *testing.T) {
 			r := spec(o)["rules"].([]any)[0].(map[string]any)
 			r["matches"] = []any{map[string]any{"path": map[string]any{"type": "PathPrefix", "value": "/"}}}
 		}},
+		{"apps cross-namespace backend", "httproute-access-boundary", appsRoute, func(o map[string]any) {
+			r := spec(o)["rules"].([]any)[0].(map[string]any)
+			backend := r["backendRefs"].([]any)[0].(map[string]any)
+			backend["namespace"] = "longhorn"
+		}},
+		{"apps non-Service backend", "httproute-access-boundary", appsRoute, func(o map[string]any) {
+			r := spec(o)["rules"].([]any)[0].(map[string]any)
+			backend := r["backendRefs"].([]any)[0].(map[string]any)
+			backend["group"] = "traefik.io"
+			backend["kind"] = "IngressRoute"
+		}},
+		{"apps administrative request mirror", "httproute-access-boundary", appsRoute, func(o map[string]any) {
+			r := spec(o)["rules"].([]any)[0].(map[string]any)
+			r["filters"] = []any{map[string]any{"type": "RequestMirror", "requestMirror": map[string]any{
+				"backendRef": map[string]any{"name": "longhorn-frontend", "namespace": "longhorn", "port": 80},
+			}}}
+		}},
 		{"admin HTTP listener", "gateway-public-listeners-need-public-hostname", gateway, func(o map[string]any) { spec(o)["listeners"].([]any)[0].(map[string]any)["protocol"] = "HTTP" }},
 		{"LAN loadbalancer", "admin-ingress-no-lan-service", service, func(o map[string]any) { delete(spec(o), "loadBalancerClass") }},
 		{"allocated node ports", "admin-ingress-no-lan-service", service, func(o map[string]any) { spec(o)["allocateLoadBalancerNodePorts"] = true }},
@@ -200,6 +220,16 @@ func TestIngressBoundary(t *testing.T) {
 		{"host port", "admin-ingress-no-host-ports", pod, func(o map[string]any) {
 			spec(o)["containers"].([]any)[0].(map[string]any)["ports"] = []any{map[string]any{"containerPort": 443, "hostPort": 443}}
 		}},
+	}
+	for _, kind := range []string{"IngressRoute", "IngressRouteTCP", "IngressRouteUDP"} {
+		t.Run("reject "+kind, func(t *testing.T) {
+			obj := map[string]any{"apiVersion": "traefik.io/v1alpha1", "kind": kind,
+				"metadata": map[string]any{"name": "alternate-route", "namespace": "bottleship"},
+				"spec":     map[string]any{}}
+			if allowed(t, policies["disable-traefik-alternate-routes"], obj) {
+				t.Fatalf("%s unexpectedly accepted", kind)
+			}
+		})
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -213,28 +243,78 @@ func TestIngressBoundary(t *testing.T) {
 			}
 		})
 	}
+	t.Run("same-namespace explicit Service backend accepted", func(t *testing.T) {
+		obj := clone(appsRoute)
+		r := spec(obj)["rules"].([]any)[0].(map[string]any)
+		backend := r["backendRefs"].([]any)[0].(map[string]any)
+		backend["namespace"] = meta(obj)["namespace"]
+		if !allowed(t, policies["httproute-access-boundary"], obj) {
+			t.Fatal("explicit same-namespace Service backend rejected")
+		}
+	})
+	t.Run("same-namespace request mirror accepted", func(t *testing.T) {
+		obj := clone(appsRoute)
+		r := spec(obj)["rules"].([]any)[0].(map[string]any)
+		r["filters"] = []any{map[string]any{"type": "RequestMirror", "requestMirror": map[string]any{
+			"backendRef": map[string]any{"name": "bottleship-mirror", "port": 80},
+		}}}
+		if !allowed(t, policies["httproute-access-boundary"], obj) {
+			t.Fatal("same-namespace Service mirror rejected")
+		}
+	})
 	fmt.Printf("Validated %d rendered resources and %d negative admission cases\n", len(all), len(cases))
 }
 
 func TestEdgeHostnamePolicy(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
-	var policy, gateway map[string]any
+	var policy, gateway, adminPolicy, adminGateway map[string]any
 	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik"), "traefik") {
-		if o["kind"] == "ValidatingAdmissionPolicy" && meta(o)["name"] == "gateway-public-listeners-need-public-hostname" {
-			policy = o
+		if o["kind"] == "ValidatingAdmissionPolicy" {
+			switch meta(o)["name"] {
+			case "gateway-public-listeners-need-public-hostname":
+				policy = o
+			}
 		}
 	}
+	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik-admin"), "traefik-admin") {
+		if o["kind"] == "Gateway" {
+			adminGateway = o
+		}
+	}
+	adminPolicy = policy
 	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik-apps"), "traefik-apps") {
 		if o["kind"] == "Gateway" {
 			gateway = o
 			meta(gateway)["namespace"] = "traefik-apps"
 		}
 	}
-	if policy == nil || gateway == nil {
+	if policy == nil || gateway == nil || adminGateway == nil || adminPolicy == nil {
 		t.Fatal("missing Gateway policy fixture")
 	}
 	if !allowed(t, policy, gateway) {
 		t.Fatal("shared public edge rejected")
+	}
+	if !allowed(t, adminPolicy, adminGateway) {
+		t.Fatal("admin Gateway rejected")
+	}
+	for _, tc := range []struct {
+		name string
+		base map[string]any
+	}{
+		{"apps Gateway", gateway},
+		{"admin Gateway", adminGateway},
+	} {
+		t.Run(tc.name+" broadened route kinds", func(t *testing.T) {
+			bad := clone(tc.base)
+			listener := spec(bad)["listeners"].([]any)[0].(map[string]any)
+			listener["allowedRoutes"].(map[string]any)["kinds"] = []any{
+				map[string]any{"group": "gateway.networking.k8s.io", "kind": "HTTPRoute"},
+				map[string]any{"group": "gateway.networking.k8s.io", "kind": "GRPCRoute"},
+			}
+			if allowed(t, policy, bad) {
+				t.Fatal("broadened Gateway route kinds accepted")
+			}
+		})
 	}
 	for _, hostname := range []string{"*", "*.com", "*.catfish-mountain.com", "media.fultonhuffman.com", ""} {
 		t.Run(hostname, func(t *testing.T) {

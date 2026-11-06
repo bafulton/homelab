@@ -10,6 +10,9 @@ spec:
       port: 443
       protocol: HTTPS
       allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
         namespaces:
           from: All
       tls:

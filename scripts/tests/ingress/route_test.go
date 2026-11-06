@@ -178,3 +178,34 @@ func TestAccessProfiles(t *testing.T) {
 		})
 	}
 }
+
+func TestGatewayKindsAreExplicit(t *testing.T) {
+	root, _ := filepath.Abs("../../..")
+	for _, chart := range []string{"traefik-admin", "traefik-apps"} {
+		t.Run(chart, func(t *testing.T) {
+			docs := renderChart(t, filepath.Join(root, "kubernetes/infra", chart), chart)
+			found := false
+			for _, o := range docs {
+				if o["kind"] != "Gateway" {
+					continue
+				}
+				found = true
+				listeners := o["spec"].(map[string]any)["listeners"].([]any)
+				for _, raw := range listeners {
+					listener := raw.(map[string]any)
+					kinds := listener["allowedRoutes"].(map[string]any)["kinds"].([]any)
+					if len(kinds) != 1 {
+						t.Fatalf("listener %s must allow exactly HTTPRoute: %v", listener["name"], kinds)
+					}
+					kind := kinds[0].(map[string]any)
+					if kind["group"] != "gateway.networking.k8s.io" || kind["kind"] != "HTTPRoute" {
+						t.Fatalf("listener %s has unexpected route kind: %v", listener["name"], kind)
+					}
+				}
+			}
+			if !found {
+				t.Fatal("Gateway not rendered")
+			}
+		})
+	}
+}

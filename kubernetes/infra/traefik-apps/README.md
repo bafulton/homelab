@@ -34,7 +34,12 @@ GatewayClass selector `homelab.io/ingress=apps`. The ordinary Ingress provider i
 disabled. The CRD provider remains enabled for BottleShip's ForwardAuth Middleware,
 filtered by `homelab.io/ingress=apps` and ingress class `traefik-apps`. Middleware
 resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
-Do not introduce unscoped IngressRoutes as an alternate route mechanism.
+HTTPRoute is the only supported routing API. The CRD provider remains enabled
+for Bottleship's Middleware, while admission rejects `IngressRoute`,
+`IngressRouteTCP`, and `IngressRouteUDP` resources. Apps routes may target only
+Services in their own namespace, including RequestMirror destinations. Check the
+live CRD inventory in `../traefik/MIGRATION.md` before installing that policy;
+admission does not remove existing objects.
 
 Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`;
 the chart generates its explicit Gateway/listener parents. Only apps needing
