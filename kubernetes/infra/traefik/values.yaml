@@ -34,6 +34,8 @@ traefik:
   providers:
     kubernetesGateway:
       enabled: true
+      # Traefik applies this selector to GatewayClass objects, not Gateways or
+      # Routes. The generated GatewayClass below carries the matching label.
       labelSelector: homelab.io/ingress=legacy
       gateways:
         - name: traefik
