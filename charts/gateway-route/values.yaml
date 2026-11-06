@@ -8,7 +8,7 @@ gateways:
   apps:
     name: traefik
     namespace: traefik
-    listeners: [web, websecure]
+    listeners: [web]
 
 routes: []
 # - name: dashboard
@@ -17,5 +17,5 @@ routes: []
 #   service:
 #     name: myapp
 #     port: 80
-# Apps normally inherit web/websecure. OCI services may override listeners:
-# listeners: [web, websecure, edge]  # OCI media/games entrance
+# Apps normally inherit web. OCI services may override listeners:
+# listeners: [web, edge]  # OCI media/games entrance
