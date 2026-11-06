@@ -92,7 +92,8 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
-  # Provisioning-only mapping; ordinary apps retain the shared legacy defaults.
+  # Stage 2 publishes this dashboard on the new admin Gateway before the
+  # shared chart's default mapping switches during stage 3.
   gateways:
     admin:
       name: traefik-admin
