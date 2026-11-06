@@ -1,0 +1,153 @@
+# Stage 2: LAN Service stays ClusterIP until the coordinated VIP handoff.
+namespace: traefik-apps
+skipCrds: true
+syncPolicy:
+  prune: false
+traefik:
+  priorityClassName: system-cluster-critical
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  providers:
+    kubernetesGateway:
+      enabled: true
+      labelSelector: homelab.io/ingress=apps
+      gateways:
+      - name: traefik-apps
+        namespace: traefik-apps
+    kubernetesIngress:
+      enabled: false
+    kubernetesCRD:
+      enabled: true
+      ingressClass: traefik-apps
+      labelSelector: homelab.io/ingress=apps
+  ports:
+    web:
+      port: 80
+      expose:
+        default: true
+        tailscale: true
+    websecure:
+      port: 443
+      expose:
+        default: true
+        tailscale: true
+    edge:
+      port: 8443
+      exposedPort: 8443
+      expose:
+        default: false
+        tailscale: true
+      http:
+        tls:
+          enabled: true
+  gateway:
+    enabled: true
+    name: traefik-apps
+    listeners:
+      web:
+        port: 80
+        protocol: HTTP
+        namespacePolicy:
+          from: All
+      websecure:
+        port: 443
+        protocol: HTTPS
+        namespacePolicy:
+          from: All
+        certificateRefs:
+        - name: wildcard-catfish-mountain-com-tls
+        mode: Terminate
+      edge:
+        port: 8443
+        protocol: HTTPS
+        hostname: media.fultonhuffman.com
+        namespacePolicy:
+          from: All
+        certificateRefs:
+        - name: media-fultonhuffman-com-tls
+        mode: Terminate
+      edge-games:
+        port: 8443
+        protocol: HTTPS
+        hostname: games.fultonhuffman.com
+        namespacePolicy:
+          from: All
+        certificateRefs:
+        - name: games-fultonhuffman-com-tls
+        mode: Terminate
+  topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: traefik
+        app.kubernetes.io/instance: traefik-apps-traefik-apps
+    matchLabelKeys:
+    - pod-template-hash
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: homelab.io/location
+            operator: In
+            values:
+            - local
+  tolerations:
+  - key: homelab.io/prefer-off
+    operator: Exists
+    effect: PreferNoSchedule
+  deployment:
+    replicas: 2
+    podAnnotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '9100'
+  service:
+    annotations: {}
+    additionalServices:
+      tailscale:
+        annotations:
+          tailscale.com/hostname: cluster-apps
+          tailscale.com/tags: tag:k8s-apps
+        spec:
+          type: LoadBalancer
+          loadBalancerClass: tailscale
+          allocateLoadBalancerNodePorts: false
+    spec:
+      type: ClusterIP
+  metrics:
+    prometheus:
+      service:
+        enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+  fullnameOverride: traefik-apps
+  ingressClass:
+    enabled: false
+  gatewayClass:
+    name: traefik-apps
+    labels:
+      homelab.io/ingress: apps
+  api:
+    dashboard: true
+    insecure: true
+gateway-route:
+  routes:
+  - name: dashboard
+    access: admin
+    parentRefs:
+    - name: traefik-admin
+      namespace: traefik-admin
+      sectionName: admin
+    hostnames:
+    - traefik.catfish-mountain.com
+    service:
+      name: traefik-apps-dashboard
+      port: 8080

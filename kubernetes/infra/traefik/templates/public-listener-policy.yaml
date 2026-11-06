@@ -1,5 +1,6 @@
-# Every Gateway listener except the private ones (web, websecure) must name a
-# public hostname.
+# During staged provisioning, the dedicated traefik-admin identity may serve
+# its admin HTTPS listener. Other non-web/websecure listeners need public names.
+# Stage 3 replaces these temporary legacy allowances with strict role checks.
 #
 # A passthrough entrance like the OCI edge forwarder can only check SNI; after
 # TLS terminates here, routing follows the Host header, which the client
@@ -33,6 +34,10 @@ spec:
     - name: offending
       expression: >-
         object.spec.listeners.filter(l,
+          !(object.metadata.namespace == 'traefik-admin' &&
+            object.metadata.name == 'traefik-admin' &&
+            object.spec.gatewayClassName == 'traefik-admin' &&
+            l.name == 'admin' && l.port == 443 && l.protocol == 'HTTPS') &&
           !(l.name in ['web', 'websecure']) &&
           !(has(l.hostname) &&
             ['.fultonhuffman.com', '.yak-shave.com', '.benfulton.me']
@@ -41,8 +46,8 @@ spec:
     - expression: size(variables.offending) == 0
       messageExpression: >-
         'listener(s) ' + variables.offending.map(l, l.name).join(', ') +
-        ' need a hostname under a public domain: only web/websecure may serve' +
-        ' private routes. See the edge listener in kubernetes/infra/traefik/values.yaml.'
+        ' need a public hostname or the dedicated admin Gateway identity;'  +
+        ' see kubernetes/infra/traefik/MIGRATION.md.'
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
