@@ -143,8 +143,8 @@ func TestAccessProfiles(t *testing.T) {
 	}{
 		{"admin defaults", "admin", "", []string{"web", "websecure"}},
 		{"apps defaults", "apps", "", []string{"web", "websecure"}},
-		{"media override", "apps", "listeners: [web, websecure, edge-media]", []string{"web", "websecure", "edge-media"}},
-		{"games only", "apps", "listeners: [edge-games]", []string{"edge-games"}},
+		{"media override", "apps", "listeners: [web, websecure, edge]", []string{"web", "websecure", "edge"}},
+		{"games only", "apps", "listeners: [edge]", []string{"edge"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			file := filepath.Join(t.TempDir(), "values.yaml")

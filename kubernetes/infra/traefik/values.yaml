@@ -91,37 +91,18 @@ traefik:
           # cert for every name on the port.
           - name: wildcard-catfish-mountain-com-tls
         mode: Terminate
-      # Jellyfin's public hostname, reached via the OCI edge forwarder.
-      #
-      # The forwarder passes TLS through and can only check SNI; once TLS
-      # terminates here, routing follows the Host header, which the client
-      # chooses freely. On a listener with no hostname, every HTTPRoute in the
-      # cluster attaches, so SNI media.fultonhuffman.com plus
-      # Host: longhorn.catfish-mountain.com reached Longhorn from the internet.
-      #
-      # The hostname below closes that: a route attaches to a listener only
-      # for the hostnames they share, so no other app's route can ever bind
-      # here, whatever Host header arrives. Another public passthrough name
-      # needs its own listener (one hostname each) and a new SNI rule on the
-      # forwarder.
-      edge-media:
+      # One OCI entrance for the intentional public apps. The listener's
+      # public-domain restriction excludes private infrastructure hostnames;
+      # routes must also explicitly select edge. The forwarder retains its
+      # exact media/games SNI allowlist. Both certificates must be Ready.
+      edge:
         port: 8443
         protocol: HTTPS
-        hostname: media.fultonhuffman.com
+        hostname: "*.fultonhuffman.com"
         namespacePolicy:
           from: All
         certificateRefs:
           - name: media-fultonhuffman-com-tls
-        mode: Terminate
-      # BottleShip's public hostname, the same way as media above. Only a
-      # Certificate already Ready may be referenced here.
-      edge-games:
-        port: 8443
-        protocol: HTTPS
-        hostname: games.fultonhuffman.com
-        namespacePolicy:
-          from: All
-        certificateRefs:
           - name: games-fultonhuffman-com-tls
         mode: Terminate
 

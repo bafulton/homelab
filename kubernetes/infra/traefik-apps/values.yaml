@@ -58,22 +58,14 @@ traefik:
         certificateRefs:
         - name: wildcard-catfish-mountain-com-tls
         mode: Terminate
-      edge-media:
+      edge:
         port: 8443
         protocol: HTTPS
-        hostname: media.fultonhuffman.com
+        hostname: '*.fultonhuffman.com'
         namespacePolicy:
           from: All
         certificateRefs:
         - name: media-fultonhuffman-com-tls
-        mode: Terminate
-      edge-games:
-        port: 8443
-        protocol: HTTPS
-        hostname: games.fultonhuffman.com
-        namespacePolicy:
-          from: All
-        certificateRefs:
         - name: games-fultonhuffman-com-tls
         mode: Terminate
   topologySpreadConstraints:
@@ -139,12 +131,12 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
-  # Provisioning-only mapping; ordinary apps retain the shared legacy defaults.
   gateways:
     admin:
       name: traefik-admin
       namespace: traefik-admin
-      listeners: [admin]
+      listeners:
+      - admin
   routes:
   - name: dashboard
     access: admin

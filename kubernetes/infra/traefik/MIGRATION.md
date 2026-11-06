@@ -24,10 +24,11 @@ Tailscale policy and public upstreams are unchanged. Keep CRD ownership in
 in the final phase. OCI placement/locality and mixed-use app authorization remain
 separate concerns under CAT-8/CAT-18/CAT-21.
 
-The media listener is named `edge-media`, matching `edge-games`; its underlying
-Traefik entrypoint/port remains `edge`/8443. Rename the listener and its generated
-route references together in stage 1. Gateway references stay explicit in the
-rendered resources without repeating Kubernetes plumbing in every values file.
+The OCI apps share one `edge` listener on 8443, restricted to
+`*.fultonhuffman.com`, with both existing media/games certificates. Routes must
+explicitly select this entrance; the forwarder retains its exact media/games
+SNI allowlist. Both certificates must be Ready before the combined listener is
+used. Gateway references remain explicit in generated resources.
 
 ## Stage 2 provisioning checks
 
