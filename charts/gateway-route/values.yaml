@@ -1,14 +1,22 @@
-# Every route declares access and explicit Gateway/listener attachment.
+# Infrastructure-owned mapping; applications normally set only route.access.
+# Both classes now use their dedicated Gateways after cutover.
+gateways:
+  admin:
+    name: traefik-admin
+    namespace: traefik-admin
+    listeners: [admin]
+  apps:
+    name: traefik-apps
+    namespace: traefik-apps
+    listeners: [web, websecure]
+
 routes: []
 # - name: dashboard
 #   access: admin
-#   parentRefs:
-#     - name: traefik-admin
-#       namespace: traefik-admin
-#       sectionName: admin
 #   hostnames: [myapp.catfish-mountain.com]
 #   service:
 #     name: myapp
 #     port: 80
-# apps listeners: web, websecure, edge (media), edge-games (games).
-# Use multiple parentRefs for services available over multiple transports.
+# Apps normally inherit web/websecure. OCI services may override listeners:
+# listeners: [web, websecure, edge-media]  # media
+# listeners: [web, websecure, edge-games]  # games

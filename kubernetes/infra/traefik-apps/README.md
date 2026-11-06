@@ -15,7 +15,7 @@ This README describes the intended configuration, not rollout status.
 | Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80, `websecure` 443 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80, 443 |
-| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge`, `edge-games` |
+| OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge-media`, `edge-games` |
 
 Both LoadBalancers explicitly disable NodePort allocation. Port 8443 is published
 only on the Tailscale Service. The OCI listeners retain exact hostname restrictions
@@ -36,8 +36,9 @@ filtered by `homelab.io/ingress=apps` and ingress class `traefik-apps`. Middlewa
 resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
 Do not introduce unscoped IngressRoutes as an alternate route mechanism.
 
-Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`
-and explicit listener parents. Admission rejects admin attachment to this Gateway,
+Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`;
+the chart generates its explicit Gateway/listener parents. Only apps needing
+special entrances specify `listeners`. Admission rejects admin attachment to this Gateway,
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 

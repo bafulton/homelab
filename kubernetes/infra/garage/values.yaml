@@ -137,10 +137,6 @@ gateway-route:
   routes:
     - name: private
       access: admin
-      parentRefs:
-        - name: traefik-admin
-          namespace: traefik-admin
-          sectionName: admin
       hostnames:
         - garage.catfish-mountain.com
       service:

@@ -109,10 +109,12 @@ legacy controller immediately. Do not expect duplicate routes or zero downtime.
 1. Sync Goldpinger first, then Garage, Longhorn, SigNoz, and finally Argo CD. Check
    each route Accepted/ResolvedRefs on `traefik-admin`. Keep local kubectl access
    while moving Argo's UI. Its public webhook is separately attached to apps.
-2. Sync the household/public route Applications. BottleShip's Middleware now has
+2. The shared chart now maps `admin` and `apps` to their dedicated Gateways.
+   Ordinary application values retain their access classes; no parent-reference
+   rewrites are needed. Sync the household/public route Applications. BottleShip's Middleware now has
    the apps provider label and ingress class; verify it resolves and continues to
    enforce authentication. Require every route's explicit parent/listener and
-   access label. No administrative backend may remain on a legacy/apps route.
+   generated access label. No administrative backend may remain on a legacy/apps route.
 3. Run `./scripts/update-ingress-dns.py --check`, then sync CoreDNS using the
    values reviewed in this PR before merge. Explicit admin A records target the
    admin proxy, and the zone apex/wildcard target apps. If the check detects
@@ -206,3 +208,11 @@ whole repository or alter unrelated user work.
 5. Once recovery is verified, disable/remove only the replacement ingress
    resources and restore original reconciliation settings. Preserve the saved
    artifacts until the rollout is accepted.
+
+## Values interface
+
+Applications declare `access: admin` or `access: apps`; the shared chart owns the
+Gateway name/namespace/default-listener mappings. Stage 3 switches those mappings
+once and removes the two provisioning overrides in the ingress wrappers. OCI
+services retain `listeners` lists for `edge-media`/`edge-games`. Rendered
+HTTPRoutes still contain explicit native `parentRefs` and are checked by admission.

@@ -3,18 +3,34 @@
 {{- if not (has $access (list "admin" "apps")) }}
 {{- fail "gateway-route: access must be admin or apps" }}
 {{- end }}
-{{- $parents := required "gateway-route: every route needs explicit parentRefs" .parentRefs }}
-{{- range $parents }}
-{{- if or (ne .name (printf "traefik-%s" $access)) (ne .namespace (printf "traefik-%s" $access)) }}
-{{- fail "gateway-route: parent Gateway name and namespace must match route access" }}
+{{- if hasKey . "parentRefs" }}
+{{- fail "gateway-route: configure access and optional listeners, not parentRefs" }}
 {{- end }}
-{{- $section := required "gateway-route: every parent needs sectionName" .sectionName }}
-{{- if and (eq $access "admin") (ne $section "admin") }}
-{{- fail "gateway-route: admin routes must attach only to the admin listener" }}
+{{- $gateway := get $.Values.gateways $access }}
+{{- if not $gateway }}{{- fail "gateway-route: missing access-class gateway mapping" }}{{- end }}
+{{- if or (ne $gateway.name (printf "traefik-%s" $access)) (ne $gateway.namespace (printf "traefik-%s" $access)) }}
+{{- fail "gateway-route: gateway mapping must match its access class" }}
 {{- end }}
-{{- if and (eq $access "apps") (not (has $section (list "web" "websecure" "edge" "edge-games"))) }}
+{{- $listeners := $gateway.listeners }}
+{{- if hasKey . "listeners" }}
+{{- if eq $access "admin" }}{{- fail "gateway-route: admin listeners are controlled centrally" }}{{- end }}
+{{- $listeners = .listeners }}
+{{- end }}
+{{- if or (not (kindIs "slice" $listeners)) (not $listeners) }}
+{{- fail "gateway-route: listeners must be a nonempty list" }}
+{{- end }}
+{{- if ne (len $listeners) (len (uniq $listeners)) }}
+{{- fail "gateway-route: listeners must not contain duplicates" }}
+{{- end }}
+{{- $parents := list }}
+{{- range $listeners }}
+{{- if and (eq $access "apps") (not (has . (list "web" "websecure" "edge-media" "edge-games"))) }}
 {{- fail "gateway-route: invalid apps listener" }}
 {{- end }}
+{{- if and (eq $access "admin") (ne . "admin") }}
+{{- fail "gateway-route: admin mapping must use the admin listener" }}
+{{- end }}
+{{- $parents = append $parents (dict "name" $gateway.name "namespace" $gateway.namespace "sectionName" .) }}
 {{- end }}
 {{- if and (eq $access "admin") .mdns }}
 {{- fail "gateway-route: admin routes must not advertise LAN access" }}

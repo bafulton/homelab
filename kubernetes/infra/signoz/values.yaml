@@ -38,10 +38,6 @@ gateway-route:
   routes:
     - name: ui
       access: admin
-      parentRefs:
-        - name: traefik-admin
-          namespace: traefik-admin
-          sectionName: admin
       hostnames:
         - signoz.catfish-mountain.com
       service:

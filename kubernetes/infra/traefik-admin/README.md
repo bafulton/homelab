@@ -41,7 +41,8 @@ gateway does not grant an application session.
   with GatewayClass label selector `homelab.io/ingress=admin`.
 - Kubernetes Ingress and Traefik CRD providers are disabled. The Gateway is
   explicitly templated to avoid inheriting the upstream default HTTP listener.
-- Administrative routes declare `access: admin` and explicit `sectionName: admin`.
+- Administrative routes declare `access: admin`; the shared chart generates
+  explicit admin Gateway/listener references.
   Admission rejects mismatched route attachments and alternate external exposure.
 - The wildcard certificate is issued in this namespace by the existing
   `letsencrypt-production` ClusterIssuer. The apps instance has a separate copy.

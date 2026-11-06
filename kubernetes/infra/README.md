@@ -158,16 +158,7 @@ gateway-route:
   routes:
     - name: media
       access: apps
-      parentRefs:
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: web
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: websecure
-        - name: traefik-apps
-          namespace: traefik-apps
-          sectionName: edge
+      listeners: [web, websecure, edge-media]
       hostnames:
         - media.fultonhuffman.com      # Public (this one via the OCI edge forwarder)
         - media.local                  # LAN via mDNS

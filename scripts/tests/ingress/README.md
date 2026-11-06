@@ -12,7 +12,7 @@ do not rely on stale shared-chart or upstream archives. No Chart.lock or archive
 are committed. For an already refreshed checkout, run `go -C scripts/tests/ingress test -count=1 -v ./...`.
 
 Tests render every classified application, both controllers, and the ingress
-admission policies, respecting each app's `skipCrds` setting. They evaluate the
+admission policies, respecting each app's `skipCrds` setting. They cover access-profile defaults and optional listener overrides, then evaluate the
 actual policy CEL with cel-go against valid manifests and adversarial mutations.
 The test harness uses dynamic CEL objects; Kubernetes server-side dry runs are
 also required to check API schemas, and live policy status must show no type
