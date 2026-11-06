@@ -6,9 +6,7 @@ UIs attach to [traefik-admin](../traefik-admin), including this controller's own
 dashboard at `https://traefik.catfish-mountain.com`.
 
 **Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
-This provisioning stage leaves the apps LAN Service as ClusterIP and retains
-existing application routes on legacy ingress. The table below describes the
-cutover target; `.200` and public upstreams move only in stage 3.
+This README describes the intended configuration, not rollout status.
 
 ## Entrances
 
@@ -39,7 +37,7 @@ resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
 Do not introduce unscoped IngressRoutes as an alternate route mechanism.
 
 Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`
-and explicit listener parents. Stage 3 adds admission rejecting admin attachment to this Gateway,
+and explicit listener parents. Admission rejects admin attachment to this Gateway,
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 

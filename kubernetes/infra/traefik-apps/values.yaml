@@ -1,4 +1,4 @@
-# Stage 2: LAN Service stays ClusterIP until the coordinated VIP handoff.
+# CAT-17: see ../traefik/MIGRATION.md before merging or syncing.
 namespace: traefik-apps
 skipCrds: true
 syncPolicy:
@@ -106,7 +106,8 @@ traefik:
       prometheus.io/scrape: 'true'
       prometheus.io/port: '9100'
   service:
-    annotations: {}
+    annotations:
+      metallb.io/loadBalancerIPs: 192.168.1.200
     additionalServices:
       tailscale:
         annotations:
@@ -117,7 +118,8 @@ traefik:
           loadBalancerClass: tailscale
           allocateLoadBalancerNodePorts: false
     spec:
-      type: ClusterIP
+      type: LoadBalancer
+      allocateLoadBalancerNodePorts: false
   metrics:
     prometheus:
       service:

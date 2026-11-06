@@ -6,8 +6,8 @@ GitOps-driven Kubernetes cluster for my homelab, running on Talos Linux with Tai
 
 - **OS**: [Talos Linux](https://www.talos.dev/) - immutable, API-driven Kubernetes OS
 - **Networking**: [Tailscale](https://tailscale.com/) - nodes communicate over a private mesh network
-- **Access Control**: Tailscale Split DNS + Cloudflare Tunnel for private/public routing
-- **Routing**: Kubernetes Gateway API with Traefik gateway
+- **Access Control**: Tailscale administrator grants and separate administrative/application ingress
+- **Routing**: Kubernetes Gateway API with separate Traefik admin and apps gateways
 - **GitOps**: [ArgoCD](https://argo-cd.readthedocs.io/) - all cluster state is defined in this repo
 - **Dependency Updates**: [Renovate](https://docs.renovatebot.com/) - automated PRs for version updates
 
@@ -68,11 +68,12 @@ See the [tuppr upgrade cycle](kubernetes/infra/tuppr/README.md#upgrade-cycle) fo
 
 ## Dashboards
 
-Access via Tailscale (private by default):
+Access through the shared [admin gateway](kubernetes/infra/traefik-admin/README.md) requires the Tailscale administrator grant. See the [migration runbook](kubernetes/infra/traefik/MIGRATION.md) for rollout status checks:
 
 - [ArgoCD](https://argocd.catfish-mountain.com) - GitOps deployments
 - [SigNoz](https://signoz.catfish-mountain.com) - Observability (metrics, logs, traces)
-- [Traefik](https://traefik.catfish-mountain.com) - Gateway dashboard
+- [Traefik apps](https://traefik.catfish-mountain.com) - Household/public gateway dashboard
+- [Traefik admin](https://traefik-admin.catfish-mountain.com) - Administrative gateway dashboard
 
 ## Getting Started
 

@@ -6,9 +6,8 @@ The operator exposes one proxy, `cluster-admin.catfish-mountain.ts.net`, tagged
 only `tag:k8s-admin`. `group:homelab-admins` may reach its TCP port 443.
 
 **Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
-Merge and verify stage 1 first so the legacy controller cannot watch these new
-Gateways. This provisioning stage leaves existing application routes on legacy
-ingress; the coordinated cutover remains a separate PR.
+Merging without pausing reconciliation and preparing the legacy controller is
+unsafe. This README describes the intended configuration, not rollout status.
 
 ## Traffic and routes
 
@@ -19,7 +18,7 @@ Administrator's Tailscale device
   -> ClusterIP backend
 ```
 
-After the later DNS generation/cutover step, CoreDNS will map these names to the shared proxy:
+After the required DNS generation/cutover step, CoreDNS maps these names to the shared proxy:
 
 - `argocd.catfish-mountain.com`
 - `longhorn.catfish-mountain.com`
@@ -43,8 +42,7 @@ gateway does not grant an application session.
 - Kubernetes Ingress and Traefik CRD providers are disabled. The Gateway is
   explicitly templated to avoid inheriting the upstream default HTTP listener.
 - Administrative routes declare `access: admin` and explicit `sectionName: admin`.
-  The shared chart rejects mismatched new route parents; strict cluster admission
-  and retirement of alternate legacy exposure are added in stage 3.
+  Admission rejects mismatched route attachments and alternate external exposure.
 - The wildcard certificate is issued in this namespace by the existing
   `letsencrypt-production` ClusterIssuer. The apps instance has a separate copy.
 - `skipCrds: true` leaves the single CRD owner, `traefik-crds`, unchanged.

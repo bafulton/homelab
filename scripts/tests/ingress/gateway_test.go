@@ -54,11 +54,14 @@ func TestGatewayIsolation(t *testing.T) {
 				}
 				if o["kind"] == "Service" {
 					md, sp := o["metadata"].(map[string]any), o["spec"].(map[string]any)
+					if sp["type"] == "LoadBalancer" && sp["allocateLoadBalancerNodePorts"] != false {
+						t.Fatal("LoadBalancer allocates NodePorts")
+					}
 					if sp["type"] == "NodePort" {
 						t.Fatal("NodePort Service")
 					}
-					if role == "apps" && md["name"] == "traefik-apps" && sp["type"] != "ClusterIP" {
-						t.Fatal("staging apps Service must not claim LAN VIP")
+					if role == "apps" && md["name"] == "traefik-apps" && sp["type"] != "LoadBalancer" {
+						t.Fatal("cutover apps Service must be a LoadBalancer")
 					}
 					if sp["loadBalancerClass"] == "tailscale" {
 						foundProxy = true

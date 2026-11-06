@@ -111,6 +111,7 @@ func TestRouteContract(t *testing.T) {
 func TestRejectInvalidRouteContract(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	for _, tc := range []struct{ name, contents string }{
+		{"legacy attachment", `routes: [{name: invalid, access: admin, parentRefs: [{name: traefik, namespace: traefik, sectionName: websecure}], hostnames: [invalid.catfish-mountain.com]}]`},
 		{"missing access", `routes: [{name: invalid, hostnames: [invalid.local]}]`},
 		{"missing parents", `routes: [{name: invalid, access: admin, hostnames: [invalid.catfish-mountain.com]}]`},
 		{"admin on apps", `routes: [{name: invalid, access: admin, parentRefs: [{name: traefik-apps, namespace: traefik-apps, sectionName: web}], hostnames: [invalid.catfish-mountain.com]}]`},

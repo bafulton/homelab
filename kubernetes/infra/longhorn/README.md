@@ -2,6 +2,13 @@
 
 Distributed block storage for Kubernetes. Provides persistent volumes with replication across nodes.
 
+## Dashboard access
+
+`https://longhorn.catfish-mountain.com` uses the shared
+[admin gateway](../traefik-admin/README.md), restricted to the Tailscale
+`group:homelab-admins` grant. It is not published on the household LAN VIP.
+See [CAT-17 migration](../traefik/MIGRATION.md) before deploying the split.
+
 ## Talos Requirements
 
 Longhorn requires specific Talos configuration:

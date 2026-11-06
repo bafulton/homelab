@@ -5,7 +5,7 @@ namespace: coredns
 #    - Internal cluster service, unused in our setup
 # 2. coredns-tailscale (LoadBalancer) - Custom service defined in templates/
 #    - Exposed via Tailscale at cluster-dns.catfish-mountain.ts.net
-#    - Used for Split DNS to resolve *.catfish-mountain.com → 100.96.89.36
+#    - Split DNS: explicit admin records and an apps apex/wildcard after cutover
 
 coredns:
   resources:
@@ -57,9 +57,10 @@ coredns:
         - name: loadbalance
 
   # Custom zone file for catfish-mountain.com
-  # IMPORTANT: The IP addresses below (100.96.89.36) point to the Gateway Tailscale IP
-  # This is the traefik-tailscale service EXTERNAL-IP from: kubectl get svc -n traefik
-  # If the Gateway Tailscale IP changes, update both @ and * records below
+  # These existing records are retained until replacement proxies are provisioned.
+  # Before cutover run scripts/update-ingress-dns.py, review and commit its output.
+  # It writes explicit admin/apps A records from live Tailscale Service status.
+  # Never sync this old zone as the final CAT-17 configuration; see traefik/MIGRATION.md.
   zoneFiles:
     - filename: catfish-mountain.com.db
       domain: catfish-mountain.com

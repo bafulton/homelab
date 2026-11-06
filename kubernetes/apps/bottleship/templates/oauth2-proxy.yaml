@@ -96,6 +96,10 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: pocket-id-auth
+  labels:
+    homelab.io/ingress: apps
+  annotations:
+    kubernetes.io/ingress.class: traefik-apps
 spec:
   forwardAuth:
     # The root path, not /oauth2/auth: /oauth2/auth answers a bare 401, while

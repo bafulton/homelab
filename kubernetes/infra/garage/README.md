@@ -126,10 +126,9 @@ kubectl exec -n garage garage-0 -- /garage key info longhorn-backup
 
 The web console (`garage-webui`) is served at
 **https://garage.catfish-mountain.com** for browsing buckets, keys and usage.
-catfish-mountain.com is
-`wildcard_public = false`, so it resolves only through Tailscale Split DNS, the
-same trust boundary as the Longhorn dashboard. Chart-level basic auth
-(`webui.auth`) is therefore left off; enabling it requires an
+Access uses the shared [admin gateway](../traefik-admin/README.md) and requires
+the `group:homelab-admins` Tailscale grant. Private DNS alone is not the access
+boundary. Chart-level basic auth (`webui.auth`) remains off; enabling it requires an
 `existingSecret` holding a `webuiAuthUserPass` bcrypt hash, because this chart
 sets `garage.secret.create: false`.
 

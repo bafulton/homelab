@@ -60,7 +60,7 @@ variable "exposure_canary_host" {
 variable "upstream" {
   description = "Where passed-through TLS goes: the Traefik gateway published on the tailnet by the Tailscale operator."
   type        = string
-  default     = "cluster-gateway.catfish-mountain.ts.net:8443"
+  default     = "cluster-apps.catfish-mountain.ts.net:8443"
 }
 
 variable "tailnet_tag" {

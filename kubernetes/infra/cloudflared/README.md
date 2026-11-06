@@ -1,128 +1,53 @@
 # cloudflared
 
-Cloudflare Tunnel for secure public internet ingress without exposing ports or public IPs.
+Outbound Cloudflare Tunnel for intentional public applications. The tunnel goes
+to `http://traefik-apps.traefik-apps.svc.cluster.local:80`, then classified Gateway
+API routes select the backend. It never targets the admin gateway.
 
-## Overview
+The [CAT-17 migration](../traefik/MIGRATION.md) coordinates this upstream change;
+this README describes the target configuration, not a completed rollout.
 
-Cloudflare Tunnel creates an outbound-only connection from the cluster to Cloudflare's edge network. Public traffic routes through Cloudflare and into the cluster via this tunnel - no port forwarding or firewall configuration needed.
+## Configuration and public names
 
-**Architecture:**
-```
-Public Internet
-     ↓
-Cloudflare Edge (*.fultonhuffman.com, etc.)
-     ↓
-Cloudflare Tunnel (secure outbound connection)
-     ↓
-cloudflared pods in cluster
-     ↓
-Traefik Gateway (192.168.1.200)
-     ↓
-HTTPRoute → Service → Pod
-```
+Tunnel ingress and DNS are managed by [opentofu/cloudflare](../../../opentofu/cloudflare/README.md),
+not manually in the dashboard. The module's `domains` map defines:
 
-## Configuration
+- `wildcard_public: true` for `fultonhuffman.com`, `yak-shave.com`, and `benfulton.me`.
+- `wildcard_public: false` for `catfish-mountain.com`, with the explicit public
+  exception `argocd-webhook`.
+- A final 404 for all other tunnel hostnames.
 
-The tunnel is configured in Cloudflare's dashboard with:
-- **Tunnel token**: Stored in Bitwarden, synced as `tunnel-credentials` secret
-- **Public hostnames**: Defined in `opentofu/cloudflare/variables.tf` (`public_subdomains`)
-- **Tunnel route**: Routes to `http://192.168.1.200:80` (Traefik Gateway)
+The public Argo HTTPRoute additionally restricts access to `POST /api/webhook`.
+Administrative UIs attach only to [traefik-admin](../traefik-admin/README.md) and
+require an administrator Tailscale grant; supplying an admin Host header through
+this tunnel cannot select an administrative route on apps ingress.
 
-### What's Public?
+Public media/games names use the OCI edge forwarder and its hostname-restricted
+8443 listeners, rather than sending their bulk traffic through the tunnel.
+Home Assistant, Jellyfin and Pocket ID retain their application authorization.
 
-For `catfish-mountain.com`, only subdomains explicitly listed in
-`opentofu/cloudflare/variables.tf` are routed through the public tunnel. Other
-names can resolve through Tailscale Split DNS or local LAN DNS and reach the
-gateway directly:
+## Adding a public route
 
-```hcl
-variable "public_subdomains" {
-  default = {
-    "fultonhuffman.com" = [
-      "www",      # www.fultonhuffman.com
-      "blog",     # blog.fultonhuffman.com
-    ]
-  }
-}
-```
+For a wildcard-public domain, use an `access: apps` route with explicit parent
+`traefik-apps` / namespace `traefik-apps` / listener `web` (plus any other needed
+listeners). For a private-domain exception, update the module's domain
+`public_subdomains` set too and apply the reviewed OpenTofu plan. See the
+[shared route examples](../../../charts/gateway-route/README.md).
 
-### Private by Default
+Public TLS normally terminates at Cloudflare. The upstream from cloudflared to
+the apps Service is HTTP. Application authentication is still required where
+configured; Cloudflare Tunnel by itself does not authenticate users.
 
-Most services on `*.catfish-mountain.com` are **not publicly routed**. Tailscale
-Split DNS resolves them for tailnet clients; LAN clients can reach the gateway
-at `192.168.1.200` with the same hostname if local DNS or a hosts entry
-resolves it there. The Cloudflare Tunnel only accepts configured public
-subdomains. These controls do not restrict direct LAN access to the gateway.
+## Deployment and monitoring
 
-## Deployment
+This chart runs two cloudflared replicas. The existing Bitwarden-managed token is
+synced into `tunnel-credentials`. Metrics on port 2000 are scraped by OTel, including
+`cloudflared_tunnel_ha_connections`, `cloudflared_tunnel_total_requests`, and
+`cloudflared_tunnel_request_errors`.
 
-This chart deploys:
-- **cloudflared Deployment**: 2 replicas for high availability
-- **tunnel-credentials Secret**: Tunnel token from Bitwarden (via bitwarden-secret chart)
-- **Metrics endpoint**: Prometheus metrics on port 2000
-
-## Tunnel Management
-
-The tunnel itself is created and configured in Cloudflare's dashboard:
-
-1. Navigate to **Zero Trust** → **Networks** → **Tunnels**
-2. Find the tunnel (homelab)
-3. View/edit public hostname routes
-4. Tunnel token is stored in Bitwarden secret ID `d2f5ee49-1c69-4fc3-b286-b3e10043a1d0`
-
-**Note:** Changing public hostnames requires updating both:
-- `opentofu/cloudflare/variables.tf` (declares DNS records)
-- Cloudflare Tunnel routes (in dashboard)
-
-## How Services Become Public
-
-To make a service publicly accessible:
-
-1. Add hostname to `opentofu/cloudflare/variables.tf`:
-   ```hcl
-   variable "public_subdomains" {
-     default = {
-       "fultonhuffman.com" = ["www", "myapp"]  # Add myapp
-     }
-   }
-   ```
-
-2. Apply Terraform to create DNS record
-
-3. Create HTTPRoute with the public hostname using `gateway-route` chart:
-   ```yaml
-   gateway-route:
-     routes:
-       - name: myapp
-         hostnames:
-           - myapp.fultonhuffman.com  # Public
-         service:
-           name: myapp-service
-           port: 80
-   ```
-
-The Cloudflare Tunnel is already configured to route ALL `*.fultonhuffman.com` traffic to the Traefik Gateway. The gateway then routes based on HTTPRoute rules.
-
-## Monitoring
-
-cloudflared exposes Prometheus metrics on port 2000 (`/metrics`), scraped by the OTel collector via pod annotations. Metrics are available in SigNoz under the `cloudflared_*` namespace — key ones include:
-
-- `cloudflared_tunnel_ha_connections` — active connections to Cloudflare edge
-- `cloudflared_tunnel_total_requests` — request throughput
-- `cloudflared_tunnel_request_errors` — error rate
-
-View cloudflared logs:
-```bash
-kubectl logs -n cloudflared -l app=cloudflared -f
+```sh
+kubectl -n cloudflared logs -l app=cloudflared -f
 ```
 
-Check tunnel status in Cloudflare dashboard:
-- **Zero Trust** → **Networks** → **Tunnels** → **homelab**
-- Shows connection status, traffic metrics, and routes
-
-## Security
-
-- **Outbound-only connection**: No inbound ports exposed on home network
-- **Cloudflare authentication**: Traffic filtered at Cloudflare edge
-- **Zero Trust policies**: Can add access policies in Cloudflare dashboard
-- **Private by default**: Only explicitly configured subdomains are public
+The Cloudflare dashboard can be used to inspect tunnel health. Keep configuration
+changes in OpenTofu so DNS and routing remain reviewable.

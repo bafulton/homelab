@@ -1,12 +1,12 @@
 # Gateway routes
 
 Shared Helm chart for explicitly classified HTTPRoutes and optional mDNS advertisements.
-See [CAT-17 migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
+See [CAT-17 migration](../../kubernetes/infra/traefik/MIGRATION.md) before deploying the ingress split.
 
 Every route needs `access: admin` or `access: apps` and explicit `parentRefs`, including
 `sectionName`. There is no implicit/default Gateway attachment. The chart rejects
-mismatched parents and admin mDNS advertisements; the cutover stage adds cluster admission checks for hostnames, administrative
-namespaces and the Argo webhook exception.
+mismatched parents and admin mDNS advertisements; cluster admission additionally
+checks hostnames, administrative namespaces and the Argo webhook exception.
 
 ```yaml
 gateway-route:
@@ -68,11 +68,3 @@ the scoped CRD provider. The Argo public hostname permits only `POST /api/webhoo
 Keep `gateway-route` as a `file://../../../charts/gateway-route` dependency at
 version `1.0.0`. Run `helm dependency update`, rather than trusting old local
 archives, whenever this shared chart changes. See [ingress validation](../../scripts/tests/ingress/README.md).
-
-## Temporary legacy attachment
-
-During the first migration stage, explicit parent `traefik` in namespace
-`traefik` remains allowed for both access classes on its existing listeners.
-All current application routes retain that attachment in this PR. Classification
-is metadata at this stage; administrative LAN isolation is not yet enforced.
-The cutover PR removes this exception after the replacement gateways are ready.
