@@ -1,5 +1,9 @@
 namespace: home-assistant
 
+# Temporary cutover freeze: remove when the runbook restores auto-sync.
+syncPolicy:
+  autoSync: false
+
 # Gateway API HTTPRoute for public and LAN access
 # Routes through Traefik Gateway (Cloudflare Tunnel for public, MetalLB for LAN)
 gateway-route:

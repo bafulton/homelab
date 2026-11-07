@@ -30,9 +30,12 @@ The ApplicationSets scan for `values.yaml` files and generate ArgoCD Application
 # Optional: Override namespace (defaults to directory name)
 namespace: custom-namespace
 
-# Optional: Enable server-side apply for CRD-heavy charts
+# Optional: Enable server-side apply for CRD-heavy charts. `autoSync: false`
+# temporarily pauses reconciliation for a planned maintenance window; omit it
+# to keep the default automatic sync behavior.
 syncPolicy:
   serverSideApply: true
+  autoSync: false
 
 # Gateway API routing (for public, LAN, or private access)
 gateway-route:

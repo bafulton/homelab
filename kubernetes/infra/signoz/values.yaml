@@ -1,5 +1,9 @@
 namespace: signoz
 
+# Temporary cutover freeze: remove when the runbook restores auto-sync.
+syncPolicy:
+  autoSync: false
+
 dashboardSync:
   enabled: true
   image:
