@@ -179,8 +179,8 @@ and backend Service are no longer desired but remain because pruning is disabled
    label. **Keep** the legacy Argo Application and its admission policies, and
    keep `traefik-crds`. Do not delete namespaces or CRDs.
 3. Confirm the operator removes the old proxy and all old gateway NodePorts are
-   gone from Services. Remove temporary legacy `tag:k8s:8443` edge permission
-   from the policy in a follow-up reviewed commit; `tag:k8s` remains on CoreDNS.
+   gone from Services. Remove the edge's legacy `tag:k8s:8443` grant; keep
+   `tag:k8s` on CoreDNS for DNS service access.
 4. Restore reconciliation through GitOps after live acceptance. In a follow-up
    PR, remove the temporary `syncPolicy.autoSync: false` metadata from the
    affected values and set `argo-cd.applicationSet.replicas: 1`. Then run

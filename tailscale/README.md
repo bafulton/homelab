@@ -13,7 +13,7 @@ shared gateway proxies; individual dashboards do not become tailnet machines.
 | tailnet members | `tag:k8s-apps` | TCP 80 |
 | tailnet members and cluster nodes | CoreDNS's existing `tag:k8s` | TCP/UDP 53 |
 | `tag:edge` | `tag:k8s-apps` | TCP 8443 |
-| homelab administrators | nodes/operator/edge and legacy `tag:k8s` endpoints | operations access |
+| homelab administrators | nodes/operator/edge and CoreDNS's existing `tag:k8s` endpoint | operations access |
 
 Node/pod subnet grants remain separate from human authorization. The former broad
 member/cluster mutual-access grant is removed. Group membership authorizes people;
@@ -21,9 +21,9 @@ proxy tags identify endpoints. The operator owns the new tags for provisioning,
 which does not grant it dashboard access. Do not also tag the admin proxy
 `tag:k8s`: grants are additive and broader access would bypass the restriction.
 
-Temporary edge access to legacy `tag:k8s:8443` remains until gateway retirement;
-remove it in the documented follow-up. Existing CoreDNS keeps its identity/tag to
-avoid in-place retagging. Private DNS is convenience, not an access-control rule.
+The legacy gateway is retired, and `tag:edge` can reach only `tag:k8s-apps` on
+TCP 8443. Existing CoreDNS keeps its identity/tag to avoid in-place retagging.
+Private DNS is convenience, not an access-control rule.
 Network access does not replace application authentication. Add actual
 nonadministrator user tests when such an identity is available; the rollout must
 verify unauthorized-user denial independently of the administrator/edge tests.

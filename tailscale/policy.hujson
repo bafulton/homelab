@@ -18,7 +18,7 @@
       "dst": ["tag:k8s-admin"],
       "ip": ["tcp:443"],
     },
-    // Human operations, including the legacy gateway during migration.
+    // Human operations for cluster nodes, the operator, CoreDNS, and the edge.
     {
       "src": ["group:homelab-admins"],
       "dst": ["tag:k8s-node", "tag:k8s-operator", "tag:k8s", "tag:edge"],
@@ -57,11 +57,11 @@
       "dst": ["tag:k8s-node", "10.244.0.0/16", "192.168.1.0/24"],
       "ip": ["*"],
     },
-    // OCI edge forwarder: apps gateway only (plus legacy during migration).
+    // OCI edge forwarder: apps gateway only.
     //
     // This is the only internet-facing host on the tailnet, so it gets one
-    // port. tag:k8s temporarily retains the legacy gateway and CoreDNS proxy,
-    // which is harmless restricted to tcp:8443 given that one serves udp:53.
+    // port. The legacy gateway has been retired; tag:k8s remains on CoreDNS,
+    // but the edge no longer has any access to it.
     //
     // 8443 is Traefik's edge listener, which accepts only the forwarder's
     // public hostname. It must not be 443: that listener serves every private
@@ -73,7 +73,7 @@
     // tcp:8443 is both tighter and clearer.
     {
       "src": ["tag:edge"],
-      "dst": ["tag:k8s", "tag:k8s-apps"],
+      "dst": ["tag:k8s-apps"],
       "ip": ["tcp:8443"],
     },
   ],
@@ -88,7 +88,7 @@
     {
       "src": "tag:edge",
       "accept": ["tag:k8s-apps:8443"],
-      "deny": ["tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443"],
+      "deny": ["tag:k8s:8443", "tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443"],
     },
     {
       "src": "tag:k8s-node",
