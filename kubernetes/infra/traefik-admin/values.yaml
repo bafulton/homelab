@@ -1,9 +1,6 @@
 namespace: traefik-admin
 skipCrds: true
 
-syncPolicy:
-  prune: false
-
 # Controller discovery is restricted to this app's Gateway and GatewayClass.
 traefik:
   priorityClassName: system-cluster-critical

@@ -1,9 +1,6 @@
 namespace: traefik-apps
 skipCrds: true
 
-syncPolicy:
-  prune: false
-
 # This controller serves household/public routes and the shared OCI edge.
 traefik:
   priorityClassName: system-cluster-critical
