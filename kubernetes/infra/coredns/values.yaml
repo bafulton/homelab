@@ -1,9 +1,5 @@
 namespace: coredns
 
-# Automated sync remains paused until the final client-side access check passes.
-syncPolicy:
-  autoSync: false
-
 # Note: This deployment creates TWO services:
 # 1. coredns (ClusterIP) - Auto-created by upstream chart, cannot be disabled
 #    - Internal cluster service, unused in our setup

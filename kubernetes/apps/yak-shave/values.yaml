@@ -15,10 +15,6 @@
 
 namespace: yak-shave
 
-# Keep manual sync until final client-side access checks pass.
-syncPolicy:
-  autoSync: false
-
 image:
   repository: ghcr.io/bafulton/yak-shave
   # Written by .github/workflows/build-site.yaml on every push to main.

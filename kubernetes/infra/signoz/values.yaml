@@ -1,9 +1,5 @@
 namespace: signoz
 
-# Keep manual sync until final client-side access checks pass.
-syncPolicy:
-  autoSync: false
-
 dashboardSync:
   enabled: true
   image:
