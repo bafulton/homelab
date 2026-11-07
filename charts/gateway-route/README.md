@@ -79,7 +79,7 @@ as they do for these Gateways, but identify different parts of the reference.
 an arbitrary application-defined label. These fields are generated output, not
 part of the app-facing values interface.
 
-## Current Gateway mapping
+## Gateway mapping
 
 `admin` maps to `traefik-admin/traefik-admin` on its `admin` listener. Its Tailscale
 Service is tagged `tag:k8s-admin`; only `group:homelab-admins` can connect on TCP
