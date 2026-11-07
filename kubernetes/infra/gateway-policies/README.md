@@ -1,18 +1,18 @@
-# Ingress admission policies
+# Gateway admission policies
 
 This Application owns the cluster-wide Gateway API ingress admission policies.
 It does not run a Traefik controller. The `traefik-admin` and `traefik-apps`
 Applications run the two controllers; `traefik-crds` owns their CRDs.
 
-The replacements are:
+The gateway controllers are:
 
 - [traefik-admin](../traefik-admin/README.md): one shared Tailscale-only proxy for
   authorized administrators and wholly administrative interfaces.
 - [traefik-apps](../traefik-apps/README.md): household LAN and intentional public
   applications, including Cloudflare and OCI upstreams.
 
-The policy Application stays separate from either controller so shared
-admission rules have one owner independent of controller lifecycle.
+The policy Application is separate from both controllers, so the shared rules
+have one owner independent of either controller's lifecycle.
 
 ## Enforced boundaries
 

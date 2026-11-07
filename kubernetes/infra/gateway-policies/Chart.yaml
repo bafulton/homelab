@@ -1,5 +1,5 @@
 apiVersion: v2
-name: traefik
+name: gateway-policies
 description: Cluster-wide Gateway API ingress admission policies
 type: application
 version: 1.0.0

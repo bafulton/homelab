@@ -1,6 +1,6 @@
 # This Application owns cluster-wide ingress admission policies only.
 namespace: traefik
 syncPolicy:
-  # Keep manual sync until final client-side access checks pass.
+  # Keep sync manual while transferring this Application's ownership.
   autoSync: false
   prune: false
