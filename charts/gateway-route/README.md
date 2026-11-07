@@ -2,7 +2,9 @@
 
 Shared Helm chart for HTTPRoutes and optional mDNS advertisements. Applications
 choose an access class; the chart generates explicit Kubernetes Gateway references.
-See [the migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
+See the [admin gateway](../../kubernetes/infra/traefik-admin/README.md) and
+[apps gateway](../../kubernetes/infra/traefik-apps/README.md) for their current
+listeners and access boundaries.
 
 ```yaml
 gateway-route:
@@ -77,15 +79,18 @@ as they do for these Gateways, but identify different parts of the reference.
 an arbitrary application-defined label. These fields are generated output, not
 part of the app-facing values interface.
 
-## Migration mapping
+## Current Gateway mapping
 
-Stages 1/2 centrally map both access classes to the scoped legacy `traefik` Gateway,
-retaining current entrances. Stage 2's two new ingress wrappers override only the
-admin mapping to expose their dashboards through the new admin Gateway. These
-are infrastructure-owned provisioning overrides, not repeated app configuration.
-Stage 3 changes the shared mapping to the dedicated gateways and removes those
-overrides. Strict admission then checks generated attachments and the public
-webhook exception. Classification alone does not enforce isolation before cutover.
+`admin` maps to `traefik-admin/traefik-admin` on its `admin` listener. Its Tailscale
+Service is tagged `tag:k8s-admin`; only `group:homelab-admins` can connect on TCP
+443. `apps` maps to `traefik-apps/traefik-apps` on `web`. The apps Gateway serves
+the LAN VIP and Cloudflare Tunnel upstream; its shared `edge` listener is reserved
+for OCI-forwarded public hostnames. `gateway-route` generates each HTTPRoute's
+explicit parent references from this mapping.
+
+Cluster-wide admission policies enforce the route and Service boundaries. They are
+owned by the policy Application documented at
+[`kubernetes/infra/traefik`](../../kubernetes/infra/traefik/README.md).
 
 Keep the `file://../../../charts/gateway-route` dependency at version `1.0.0`.
 Run `helm dependency update` whenever this shared chart changes; old local archives

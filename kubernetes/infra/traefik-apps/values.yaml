@@ -1,10 +1,8 @@
-# Final apps Gateway configuration. Follow the coordinated migration runbook.
 namespace: traefik-apps
 skipCrds: true
 
-# Retain the legacy controller until the final cutover is complete.
 syncPolicy:
-  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  # Keep manual sync until final client-side access checks pass.
   autoSync: false
   prune: false
 

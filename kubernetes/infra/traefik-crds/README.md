@@ -44,15 +44,12 @@ CRs exist):
 kubectl get crd -o name | grep hub.traefik.io | xargs kubectl delete
 ```
 
-## Ownership handoff (v39 → v41)
+## Ownership
 
-When migrating the controller to v41, this app must own the CRDs without the
-`traefik` app deleting them as it stops rendering them. The guarantee is
-**`prune: false` on both apps**: the two Applications self-sync independently and
-in no fixed order (sync waves don't gate ApplicationSet-generated apps), so
-ordering can't be relied on — but with pruning off, the existing CRDs are never
-deleted regardless of which app syncs first, and this app adopts them via
-server-side apply.
+This Application is the sole owner of the Gateway API and Traefik CRDs. The
+controller Applications set `skipCrds: true`, and this Application uses
+`prune: false` so a deletion from Git cannot remove CRDs and cascade-delete
+Gateway resources.
 
 `serverSideApply: true` is required — the Gateway API CRDs exceed the
 client-side last-applied annotation size limit.

@@ -29,7 +29,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [snapshot-crds](./snapshot-crds) | VolumeSnapshot CRDs (cluster-level primitive required by VolSync) | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
-| [traefik](./traefik) | Ingress admission policies and legacy retirement | - |
+| [gateway policies](./traefik) | Cluster-wide Gateway API admission policies | - |
 | [traefik-admin](./traefik-admin) | Shared administrative gateway | Tailscale administrator grant, TCP 443 |
 | [traefik-apps](./traefik-apps) | Household and public application gateway | LAN VIP, Cloudflare, Tailscale/OCI |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
@@ -37,8 +37,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 
 ## Networking Overview
 
-The [ingress migration runbook](traefik/MIGRATION.md) coordinates migration from the legacy
-shared gateway. The topology below describes the target configuration.
+HTTP services use separate administrative and household/public gateways:
 
 ```mermaid
 flowchart LR
@@ -67,9 +66,9 @@ Provides DNS for pods and services inside the cluster. When a pod calls `http://
 
 Routes `*.catfish-mountain.com` queries to `cluster-dns`. Explicit administrative
 A records target the assigned `cluster-admin` Tailscale IP; the apex/wildcard
-target the assigned `cluster-apps` IP. The rollout helper populates these records
-after proxy provisioning. Both are shared gateway proxies,
-not individual application machines. See [CoreDNS](coredns/README.md).
+target the assigned `cluster-apps` IP. The DNS helper keeps these records aligned
+with their assigned proxy addresses. Both are shared gateway proxies, not
+individual application machines. See [CoreDNS](coredns/README.md).
 Ordinary LAN clients cannot reach administrative interfaces through the apps VIP,
 even when supplying their hostnames.
 

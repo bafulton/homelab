@@ -1,9 +1,8 @@
-# Ingress admission policies and legacy retirement
+# Ingress admission policies
 
-This Application now owns the admission policies for the ingress split. The
-upstream controller dependency and old dashboard/certificate templates have been
-removed from its desired manifests. **Because `prune: false` is retained, existing
-legacy resources remain running until explicitly retired.**
+This Application owns the cluster-wide Gateway API ingress admission policies.
+It does not run a Traefik controller. The `traefik-admin` and `traefik-apps`
+Applications run the two controllers; `traefik-crds` owns their CRDs.
 
 The replacements are:
 
@@ -12,9 +11,8 @@ The replacements are:
 - [traefik-apps](../traefik-apps/README.md): household LAN and intentional public
   applications, including Cloudflare and OCI upstreams.
 
-Follow [MIGRATION.md](MIGRATION.md) before merging or syncing. ApplicationSet
-sync-wave annotations do not serialize independent Applications or wait for
-certificates/proxy provisioning; this is a coordinated migration.
+The policy Application stays separate from either controller so shared
+admission rules have one owner independent of controller lifecycle.
 
 ## Enforced boundaries
 

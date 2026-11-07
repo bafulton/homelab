@@ -1,6 +1,6 @@
 namespace: coredns
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
+# Automated sync remains paused until the final client-side access check passes.
 syncPolicy:
   autoSync: false
 
@@ -9,7 +9,7 @@ syncPolicy:
 #    - Internal cluster service, unused in our setup
 # 2. coredns-tailscale (LoadBalancer) - Custom service defined in templates/
 #    - Exposed via Tailscale at cluster-dns.catfish-mountain.ts.net
-#    - Split DNS: explicit admin records and an apps apex/wildcard after cutover
+#    - Split DNS: explicit admin records and an apps apex/wildcard
 
 coredns:
   resources:
@@ -61,8 +61,8 @@ coredns:
         - name: loadbalance
 
   # Custom zone file for catfish-mountain.com
-  # Prepared from the provisioned replacement proxies for the stage-3 cutover.
-  # Sync only during the planned cutover; see traefik/MIGRATION.md.
+  # Keep these records aligned with the current cluster-admin and cluster-apps
+  # Tailscale Service addresses. Regenerate with scripts/update-ingress-dns.py.
   zoneFiles:
     - filename: catfish-mountain.com.db
       domain: catfish-mountain.com

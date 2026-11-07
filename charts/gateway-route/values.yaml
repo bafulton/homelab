@@ -1,5 +1,5 @@
 # Infrastructure-owned mapping; applications normally set only route.access.
-# Both classes now use their dedicated Gateways after cutover.
+# Both access classes use their dedicated Gateways.
 gateways:
   admin:
     name: traefik-admin

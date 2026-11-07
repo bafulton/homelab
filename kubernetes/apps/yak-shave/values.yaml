@@ -15,7 +15,7 @@
 
 namespace: yak-shave
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
+# Keep manual sync until final client-side access checks pass.
 syncPolicy:
   autoSync: false
 

@@ -11,18 +11,16 @@ share Traefik gateways rather than having individual Tailscale machines.
 | `cluster-admin` | `traefik-admin/traefik-admin` | `tag:k8s-admin` only |
 | `cluster-apps` | `traefik-apps/traefik-apps-tailscale` | `tag:k8s-apps` only |
 | `cluster-dns` | `coredns/coredns-tailscale` | existing `tag:k8s` |
-| `cluster-gateway` (legacy) | `traefik/traefik-tailscale` | existing `tag:k8s`, removed at retirement |
 
-All hostnames are under `catfish-mountain.ts.net`. The new gateways are described
-in the [ingress migration runbook](../traefik/MIGRATION.md); verify rollout status in the
-cluster. Individual admin hostnames resolve through split DNS to `cluster-admin`,
-then Traefik selects the backend by Host/SNI.
+All hostnames are under `catfish-mountain.ts.net`. Individual admin service names
+use split DNS under `catfish-mountain.com` and resolve to `cluster-admin`; Traefik
+selects the backend by Host/SNI.
 
 ## Tags and authorization
 
 The operator itself uses `tag:k8s-operator`. In [the tailnet policy](../../../tailscale/policy.hujson),
 that tag owns the proxy tags so it can provision them. Tag ownership does not
-itself grant network access. New Service annotations explicitly override the
+itself grant network access. Service annotations explicitly set the
 operator's default proxy tag:
 
 ```yaml
@@ -41,8 +39,6 @@ use household apps on 80/443 and DNS on TCP/UDP 53; the OCI edge gets apps TCP 8
 only. Do not add `tag:k8s` to the admin proxy. Proxy tags are set at provisioning;
 changing an existing Service annotation does not reliably retag an existing
 identity—see [upstream tag documentation](https://tailscale.com/docs/kubernetes-operator/reference/tags).
-The migration uses new Service/proxy identities deliberately.
-
 ## Credentials and lifecycle
 
 Bitwarden supplies the existing OAuth credentials through External Secrets.
@@ -51,6 +47,5 @@ backends. Verify OAuth/tag ownership permits the new proxy tags before deploymen
 No new OAuth credentials are introduced by the split.
 
 Proxy pods are named `ts-<service>-<hash>-0` in namespace `tailscale`. Inspect
-Service status and the tailnet machine tags after provisioning. Do not assume a
-Tailscale frontend removes ordinary LAN/NodePort paths: inspect generated Services
-and use the [acceptance matrix](../traefik/MIGRATION.md).
+Service status and tailnet machine tags after provisioning. A Tailscale frontend
+does not remove ordinary LAN or NodePort paths; inspect generated Services too.

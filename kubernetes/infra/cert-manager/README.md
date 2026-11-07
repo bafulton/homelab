@@ -97,12 +97,10 @@ spec:
 - **Infrastructure domain** (*.catfish-mountain.com) uses **Let's Encrypt** - tailnet clients use Tailscale Split DNS, and LAN clients with local name resolution can reach the gateway directly
 - All Let's Encrypt certificates require the `cloudflare-api-token` secret (managed by bitwarden-secret chart)
 
-## Certificates after the ingress split
+## Ingress certificates
 
 [traefik-admin](../traefik-admin/README.md) owns its wildcard Certificate/Secret in
 namespace `traefik-admin`; [traefik-apps](../traefik-apps/README.md) owns its own
 wildcard plus the media/games public certificates in namespace `traefik-apps`.
 They use the existing `letsencrypt-production` ClusterIssuer. No cross-namespace
-Secret sharing is needed. Wait for the replacement Certificates to be Ready
-before removing legacy copies from namespace `traefik`; see the
-[migration runbook](../traefik/MIGRATION.md).
+Secret sharing is needed.

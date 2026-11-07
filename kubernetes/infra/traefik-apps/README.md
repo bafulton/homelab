@@ -1,18 +1,14 @@
 # Household and public ingress
 
 Traefik controller for household LAN access and intentional public applications.
-It replaces the old shared gateway's application traffic. Wholly administrative
-UIs attach to [traefik-admin](../traefik-admin), including this controller's own
-dashboard at `https://traefik-apps.catfish-mountain.com`.
-
-**Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
-This README describes the intended configuration, not rollout status.
+Wholly administrative UIs attach to [traefik-admin](../traefik-admin), including
+this controller's own dashboard at `https://traefik-apps.catfish-mountain.com`.
 
 ## Entrances
 
 | Entrance | Destination | Listeners |
 | --- | --- | --- |
-| Household LAN/mDNS | MetalLB `192.168.1.200` after stage 3 | `web` 80 |
+| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80 |
 | OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge` |
@@ -34,12 +30,11 @@ GatewayClass selector `homelab.io/ingress=apps`. The ordinary Ingress provider i
 disabled. The CRD provider remains enabled for BottleShip's ForwardAuth Middleware,
 filtered by `homelab.io/ingress=apps` and ingress class `traefik-apps`. Middleware
 resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
-HTTPRoute is the only supported routing API. The CRD provider remains enabled
-for Bottleship's Middleware, while admission rejects `IngressRoute`,
-`IngressRouteTCP`, and `IngressRouteUDP` resources. Apps routes may target only
-Services in their own namespace, including RequestMirror destinations. Check the
-live CRD inventory in `../traefik/MIGRATION.md` before installing that policy;
-admission does not remove existing objects.
+HTTPRoute is the only supported route API. The CRD provider remains enabled for
+BottleShip's Middleware, while cluster-wide admission rejects
+`IngressRoute`, `IngressRouteTCP`, and `IngressRouteUDP` resources. Apps routes
+may target only Services in their own namespace, including RequestMirror
+destinations.
 
 Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`;
 the chart generates its explicit Gateway/listener parents. Only apps needing
@@ -61,13 +56,9 @@ kubectl -n traefik-apps get deployment,svc,gateway,httproute,certificate
 kubectl get gatewayclass traefik-apps
 ```
 
-During stage 2, confirm the default apps Service remains `ClusterIP` and the
-legacy controller still owns `.200`; do not hand off the VIP yet. After stage 3,
-confirm the apps Service owns `.200`. Neither Service should have NodePorts.
-Confirm both OCI certificates are Ready, the Gateway is Programmed, and
-BottleShip's Middleware resolves. Test household discovery/control, Jellyfin streaming/seek, OIDC sign-in,
-BottleShip callbacks and a real GitHub webhook delivery. Test public access with
-conflicting Host/SNI and check that administrative responses never appear.
+Confirm the apps Service owns `.200` without NodePorts, both OCI certificates are
+Ready, the Gateway is Programmed, and BottleShip's Middleware resolves. Household
+and public routes use this Gateway; administrative routes do not.
 
 Use `helm dependency update` before trusting a local render. First render with `--include-crds` to audit bundled CRDs. To mirror Argo's
 `skipCrds: true`, omit `--include-crds` (it overrides `--skip-crds` in template).

@@ -4,8 +4,10 @@ Tailscale ACLs are managed via GitOps. The web editor is locked.
 
 ## Ingress access model
 
-The [ingress migration](../kubernetes/infra/traefik/MIGRATION.md) introduces two
-shared gateway proxies; individual dashboards do not become tailnet machines.
+Two shared gateway proxies serve ingress; individual dashboards do not become
+tailnet machines. Their `*.catfish-mountain.com` names resolve to the admin
+proxy or apps proxy through split DNS. Only the proxies use
+`*.catfish-mountain.ts.net` machine names.
 
 | Source | Destination | Permission |
 | --- | --- | --- |
@@ -21,12 +23,11 @@ proxy tags identify endpoints. The operator owns the new tags for provisioning,
 which does not grant it dashboard access. Do not also tag the admin proxy
 `tag:k8s`: grants are additive and broader access would bypass the restriction.
 
-The legacy gateway is retired, and `tag:edge` can reach only `tag:k8s-apps` on
-TCP 8443. Existing CoreDNS keeps its identity/tag to avoid in-place retagging.
-Private DNS is convenience, not an access-control rule.
-Network access does not replace application authentication. Add actual
-nonadministrator user tests when such an identity is available; the rollout must
-verify unauthorized-user denial independently of the administrator/edge tests.
+`tag:edge` can reach only `tag:k8s-apps` on TCP 8443. CoreDNS keeps its
+existing identity/tag. Private DNS is convenience, not an access-control rule.
+Only `group:homelab-admins` has a grant to `tag:k8s-admin` on TCP 443. A tailnet
+member outside that group has no ACL grant to the admin proxy. Network access
+does not replace application authentication.
 
 ## How it works
 

@@ -20,7 +20,6 @@ ADMIN_NAMES = (
     'traefik-apps',
     'traefik-admin',
 )
-LEGACY_ADMIN_NAMES = ('traefik',)
 
 
 def address(service, role):
@@ -50,7 +49,7 @@ def update(text, admin, apps):
     # This zone is the final block in the values file. Refuse unexpected layouts.
     records = re.search(r'^        @\s+IN\s+A\s+[^\n]+\n        \*\s+IN\s+A\s+[^\n]+\s*$', text, re.M)
     if not records:
-        records = re.search(r'^        @\s+60 IN A[^\n]+\n        \*\s+60 IN A[^\n]+\n(?:        (?:' + '|'.join(ADMIN_NAMES + LEGACY_ADMIN_NAMES) + r')\s+60 IN A[^\n]+\n?)+\s*$', text, re.M)
+        records = re.search(r'^        @\s+60 IN A[^\n]+\n        \*\s+60 IN A[^\n]+\n(?:        (?:' + '|'.join(ADMIN_NAMES) + r')\s+60 IN A[^\n]+\n?)+\s*$', text, re.M)
     if not records:
         raise ValueError('Unexpected zone layout; refusing to replace records')
     return text[:records.start()] + '\n'.join(lines) + '\n'
@@ -73,7 +72,7 @@ def main():
     same = without_serial(current) == without_serial(expected)
     if args.check:
         if not same:
-            raise ValueError('DNS records differ from live proxy addresses; regenerate and update the cutover PR before syncing')
+            raise ValueError('DNS records differ from live proxy addresses; regenerate and update the CoreDNS values in Git before syncing')
         print('DNS records match the assigned gateway addresses')
         return
     if same:

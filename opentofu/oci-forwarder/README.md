@@ -181,13 +181,12 @@ keeping all Cloudflare resources in one place. The tailnet policy lives in
 add a `tailscale_acl` resource here, it would fight that workflow for ownership
 of the same document.
 
-## Ingress upstream migration
+## Ingress upstream
 
 The target is now the [apps gateway](../../kubernetes/infra/traefik-apps/README.md),
 `cluster-apps.catfish-mountain.ts.net:8443`, tagged `tag:k8s-apps`. The edge never
 receives a grant to the admin gateway. Retain the per-hostname SNI listeners and
-public exposure canary. See the [coordinated migration](../../kubernetes/infra/traefik/MIGRATION.md)
-for the live upstream switch. Changing `var.upstream` updates cloud-init for future
+public exposure canary. Changing `var.upstream` updates cloud-init for future
 provisioning; it does not change the running VM's ignored `user_data`. The rollout
 backs up and updates `/etc/traefik/dynamic.yml` explicitly, avoiding an unnecessary
 VM/public-IP replacement.

@@ -26,7 +26,7 @@ func TestSharedEdgeListener(t *testing.T) {
 		}
 		if _, active := values["traefik"]; !active {
 			continue
-		} // retired policy-only wrapper
+		} // policy-only wrapper
 		for _, o := range renderChart(t, chart, name) {
 			if o["kind"] != "Gateway" {
 				continue

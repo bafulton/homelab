@@ -1,10 +1,8 @@
-# See ../traefik/MIGRATION.md before merging or syncing.
 namespace: traefik-admin
 skipCrds: true
 
-# Keep legacy resources available until the coordinated cutover retires them.
 syncPolicy:
-  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  # Keep manual sync until final client-side access checks pass.
   autoSync: false
   prune: false
 
