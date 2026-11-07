@@ -58,7 +58,7 @@ my-upstream-chart:
 
 ### Gateway API Routes (Primary Pattern)
 
-**All HTTP services** use the `gateway-route` shared chart with an `access` classification. The shared chart generates explicit Gateway/listener references; apps use optional `listeners` overrides only for special entrances. Administrative routes use `traefik-admin`; household/public routes use `traefik-apps`. See `charts/gateway-route/README.md` and the staged rollout in `kubernetes/infra/traefik/MIGRATION.md`:
+**All HTTP services** use the `gateway-route` shared chart with an `access` classification. The shared chart generates explicit Gateway/listener references; apps use optional `listeners` overrides only for special entrances. Administrative routes use `traefik-admin`; household/public routes use `traefik-apps`. See `charts/gateway-route/README.md` and the current gateway app documentation:
 
 ```yaml
 # Chart.yaml

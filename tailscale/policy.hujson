@@ -60,8 +60,7 @@
     // OCI edge forwarder: apps gateway only.
     //
     // This is the only internet-facing host on the tailnet, so it gets one
-    // port. The legacy gateway has been retired; tag:k8s remains on CoreDNS,
-    // but the edge no longer has any access to it.
+    // port. CoreDNS retains tag:k8s, but the edge has no access to it.
     //
     // 8443 is Traefik's edge listener, which accepts only the forwarder's
     // public hostname. It must not be 443: that listener serves every private

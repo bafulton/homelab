@@ -3,7 +3,7 @@ namespace: argocd
 # Disable pruning - if manifest generation fails, we don't want ArgoCD to delete itself
 # SSA required - ArgoCD CRDs exceed 262KB annotation limit for client-side apply
 syncPolicy:
-  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  # Keep manual sync until final client-side access checks pass.
   autoSync: false
   prune: false
   serverSideApply: true
@@ -74,7 +74,7 @@ argo-cd:
 
   applicationSet:
     enabled: true
-    # Temporary cutover pause; restore to one replica through Git after acceptance.
+    # Keep ApplicationSet reconciliation paused until final client-side access checks pass.
     replicas: 0
     resources:
       requests:

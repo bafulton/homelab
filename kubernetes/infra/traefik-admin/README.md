@@ -5,10 +5,6 @@ shared gateway: individual dashboards do not become separate Tailscale machines.
 The operator exposes one proxy, `cluster-admin.catfish-mountain.ts.net`, tagged
 only `tag:k8s-admin`. `group:homelab-admins` may reach its TCP port 443.
 
-**Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
-Merging without pausing reconciliation and preparing the legacy controller is
-unsafe. This README describes the intended configuration, not rollout status.
-
 ## Traffic and routes
 
 ```text
@@ -18,7 +14,7 @@ Administrator's Tailscale device
   -> ClusterIP backend
 ```
 
-After the required DNS generation/cutover step, CoreDNS maps these names to the shared proxy:
+CoreDNS maps these administrative service names to the shared proxy:
 
 - `argocd.catfish-mountain.com`
 - `longhorn.catfish-mountain.com`
@@ -28,9 +24,11 @@ After the required DNS generation/cutover step, CoreDNS maps these names to the 
 - `traefik-apps.catfish-mountain.com` — apps controller dashboard
 - `traefik-admin.catfish-mountain.com` — this controller's dashboard
 
-The dashboard Services use port 8080 inside the cluster. They are not published
-on the proxy. Existing application login/authorization remains in place; the
-gateway does not grant an application session.
+The only `*.catfish-mountain.ts.net` name here is the shared proxy's
+`cluster-admin.catfish-mountain.ts.net` identity. The dashboard Services use port
+8080 inside the cluster and are not published on the proxy. Existing application
+login/authorization remains in place; the gateway does not grant an application
+session.
 
 ## Isolation
 
@@ -66,10 +64,11 @@ kubectl get gatewayclass traefik-admin
 kubectl -n tailscale get pods
 ```
 
-Require the wildcard Certificate Ready and Gateway Programmed, and confirm the
-proxy has only the intended tag. Test both an authorized and an unauthorized
-user, ordinary LAN without Tailscale, known old NodePorts, and public Host/SNI
-spoofing as described in the [runbook](../traefik/MIGRATION.md).
+The wildcard Certificate should be Ready and the Gateway Programmed. The
+`tag:k8s-admin` grant in the Tailscale policy is limited to
+`group:homelab-admins` on TCP 443; ungrouped tailnet members have no grant to this
+proxy. The apps Gateway, LAN VIP, public tunnel and OCI edge do not route admin
+hostnames to this controller.
 
 Refresh dependencies with `helm dependency update` before rendering. First render with `--include-crds` to inspect bundled CRDs. To mirror Argo
 with `skipCrds: true`, omit `--include-crds`; adding `--skip-crds` alongside

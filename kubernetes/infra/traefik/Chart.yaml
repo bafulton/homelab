@@ -1,6 +1,6 @@
 apiVersion: v2
 name: traefik
-description: Ingress boundary policies and legacy Traefik retirement
+description: Cluster-wide Gateway API ingress admission policies
 type: application
 version: 1.0.0
 appVersion: 1.0.0

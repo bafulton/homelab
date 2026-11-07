@@ -61,7 +61,7 @@ func TestGatewayIsolation(t *testing.T) {
 						t.Fatal("NodePort Service")
 					}
 					if role == "apps" && md["name"] == "traefik-apps" && sp["type"] != "LoadBalancer" {
-						t.Fatal("cutover apps Service must be a LoadBalancer")
+						t.Fatal("apps Gateway Service must be a LoadBalancer")
 					}
 					if sp["loadBalancerClass"] == "tailscale" {
 						foundProxy = true

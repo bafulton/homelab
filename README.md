@@ -68,7 +68,7 @@ See the [tuppr upgrade cycle](kubernetes/infra/tuppr/README.md#upgrade-cycle) fo
 
 ## Dashboards
 
-Access through the shared [admin gateway](kubernetes/infra/traefik-admin/README.md) requires the Tailscale administrator grant. See the [migration runbook](kubernetes/infra/traefik/MIGRATION.md) for rollout status checks:
+Access through the shared [admin gateway](kubernetes/infra/traefik-admin/README.md) requires membership in the Tailscale administrator group. Household and public routes use the separate [apps gateway](kubernetes/infra/traefik-apps/README.md):
 
 - [ArgoCD](https://argocd.catfish-mountain.com) - GitOps deployments
 - [SigNoz](https://signoz.catfish-mountain.com) - Observability (metrics, logs, traces)

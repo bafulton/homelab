@@ -17,5 +17,5 @@ actual policy CEL with cel-go against valid manifests and adversarial mutations.
 The test harness uses dynamic CEL objects; Kubernetes server-side dry runs are
 also required to check API schemas, and live policy status must show no type
 warnings before enabling bindings. These tests do not prove live routing, DNS,
-Tailscale authorization or enforcement from ordinary LAN clients. See the
-[migration runbook](../../../kubernetes/infra/traefik/MIGRATION.md) for that matrix.
+Tailscale authorization or enforcement from ordinary LAN clients; those require
+client-side checks through the relevant entry points.

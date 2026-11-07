@@ -1,7 +1,6 @@
-# Legacy controller retired. This app owns ingress admission policies only.
-# Existing resources are NOT automatically pruned; follow MIGRATION.md.
+# This Application owns cluster-wide ingress admission policies only.
 namespace: traefik
 syncPolicy:
-  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  # Keep manual sync until final client-side access checks pass.
   autoSync: false
   prune: false
