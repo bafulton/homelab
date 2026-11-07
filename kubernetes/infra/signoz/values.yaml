@@ -37,6 +37,7 @@ ignoreDifferences:
 gateway-route:
   routes:
     - name: ui
+      access: admin
       hostnames:
         - signoz.catfish-mountain.com
       service:

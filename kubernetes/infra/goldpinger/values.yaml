@@ -66,6 +66,7 @@ goldpinger:
 gateway-route:
   routes:
     - name: private
+      access: admin
       hostnames:
         - goldpinger.catfish-mountain.com
       service:

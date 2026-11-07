@@ -10,6 +10,7 @@ gateway-route:
     # the Pocket ID callback, which Pocket ID then rejects. This name is only
     # ever served over HTTPS at Cloudflare's edge, so the route says so.
     - name: public
+      access: apps
       hostnames:
         - home.fultonhuffman.com
       rules:
@@ -27,6 +28,7 @@ gateway-route:
             - name: home-assistant
               port: 80
     - name: lan
+      access: apps
       hostnames:
         - home.local              # LAN access via mDNS
       service:

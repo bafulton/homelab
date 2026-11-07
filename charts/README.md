@@ -58,6 +58,7 @@ dependencies:
 gateway-route:
   routes:
     - name: public-lan
+      access: apps
       hostnames:
         - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
         - myapp.local              # LAN via mDNS
@@ -147,7 +148,7 @@ dependencies:
     repository: file://../../../charts/mdns-config
 ```
 
-**Important**: Only include `mdns-config` if you're actually using the `.routes[].mdns` field in your values.yaml. If you're only using gateway-route for routing without mDNS advertisement (like traefik), you don't need to list mdns-config.
+**Important**: Only include `mdns-config` if you're actually using the `.routes[].mdns` field in your values.yaml. If you're only using gateway-route for routing without mDNS advertisement (like traefik-admin), you don't need to list mdns-config.
 
 ## Placement (node location)
 

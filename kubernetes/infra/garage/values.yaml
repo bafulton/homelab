@@ -138,6 +138,7 @@ garage:
 gateway-route:
   routes:
     - name: private
+      access: admin
       hostnames:
         - garage.catfish-mountain.com
       service:

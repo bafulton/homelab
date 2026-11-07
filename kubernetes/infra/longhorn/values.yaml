@@ -203,6 +203,7 @@ longhorn:
 gateway-route:
   routes:
     - name: dashboard
+      access: admin
       hostnames:
         - longhorn.catfish-mountain.com
       service:
