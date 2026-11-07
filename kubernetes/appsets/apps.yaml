@@ -23,6 +23,8 @@ spec:
         repoURL: https://github.com/bafulton/homelab
         targetRevision: main
         path: '{{ .path.path }}'  # eg, kubernetes/apps/jellyfin
+        helm:
+          releaseName: '{{ get . "name" | default .path.basenameNormalized }}'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ get . "namespace" | default .path.basenameNormalized }}'
