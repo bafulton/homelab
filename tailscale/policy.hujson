@@ -1,16 +1,40 @@
 {
+  "groups": {
+    "group:homelab-admins": ["fulton.benjamin@gmail.com"],
+  },
+
   // Define grants that govern access for users, groups, autogroups, tags,
   // Tailscale IP addresses, and subnet ranges.
   "grants": [
-    // Users and the cluster's own devices, with full access to each other.
-    // Spelled out rather than autogroup:member because every cluster device is
-    // tagged, and tagged devices are not members - an autogroup:member grant
-    // would exclude the nodes and the operator's proxies. tag:edge is absent
-    // on purpose; it gets the narrow grant below.
+    // User devices retain access to one another. Cluster access is explicit below.
     {
-      "src": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
-      "dst": ["autogroup:member", "tag:k8s", "tag:k8s-node", "tag:k8s-operator"],
+      "src": ["autogroup:member"],
+      "dst": ["autogroup:member"],
       "ip": ["*"],
+    },
+    // Wholly administrative web interfaces share one dedicated proxy identity.
+    {
+      "src": ["group:homelab-admins"],
+      "dst": ["tag:k8s-admin"],
+      "ip": ["tcp:443"],
+    },
+    // Human operations, including the legacy gateway during migration.
+    {
+      "src": ["group:homelab-admins"],
+      "dst": ["tag:k8s-node", "tag:k8s-operator", "tag:k8s", "tag:edge"],
+      "ip": ["*"],
+    },
+    // Household app ingress and split DNS are available to tailnet members.
+    {
+      "src": ["autogroup:member"],
+      "dst": ["tag:k8s-apps"],
+      "ip": ["tcp:80"],
+    },
+    // Existing CoreDNS proxy keeps tag:k8s to avoid in-place proxy retagging.
+    {
+      "src": ["autogroup:member", "tag:k8s-node"],
+      "dst": ["tag:k8s"],
+      "ip": ["udp:53", "tcp:53"],
     },
     // Cross-node pod networking over Tailscale subnet routes. Each node is the
     // subnet router for its own pod /24. The pod
@@ -33,10 +57,10 @@
       "dst": ["tag:k8s-node", "10.244.0.0/16", "192.168.1.0/24"],
       "ip": ["*"],
     },
-    // OCI edge forwarder: the Traefik gateway proxy, and nothing else.
+    // OCI edge forwarder: apps gateway only (plus legacy during migration).
     //
     // This is the only internet-facing host on the tailnet, so it gets one
-    // destination tag and one port. tag:k8s also covers the CoreDNS proxy,
+    // port. tag:k8s temporarily retains the legacy gateway and CoreDNS proxy,
     // which is harmless restricted to tcp:8443 given that one serves udp:53.
     //
     // 8443 is Traefik's edge listener, which accepts only the forwarder's
@@ -49,20 +73,26 @@
     // tcp:8443 is both tighter and clearer.
     {
       "src": ["tag:edge"],
-      "dst": ["tag:k8s"],
+      "dst": ["tag:k8s", "tag:k8s-apps"],
       "ip": ["tcp:8443"],
     },
-    // Reaching the edge forwarder to operate it. Without this the host is
-    // unreachable over the tailnet once it registers, since tag:edge appears
-    // nowhere as a destination above - leaving only the OCI serial console.
-    //
-    // Inbound only, so it does not widen what the edge itself can reach: that
-    // stays the grant above. All ports because this is an ops path - SSH plus
-    // whatever needs poking at during a problem.
+  ],
+
+  // Guard the new network boundary. No grants are inferred from DNS/Host names.
+  "tests": [
     {
-      "src": ["autogroup:member"],
-      "dst": ["tag:edge"],
-      "ip": ["*"],
+      "src": "fulton.benjamin@gmail.com",
+      "accept": ["tag:k8s-admin:443", "tag:k8s-apps:80", "tag:k8s-node:6443", "tag:k8s:53"],
+      "deny": ["tag:k8s-admin:80", "tag:k8s-admin:8080", "tag:k8s-admin:8443", "tag:k8s-apps:443"],
+    },
+    {
+      "src": "tag:edge",
+      "accept": ["tag:k8s-apps:8443"],
+      "deny": ["tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443"],
+    },
+    {
+      "src": "tag:k8s-node",
+      "deny": ["tag:k8s-admin:443"],
     },
   ],
 
@@ -89,10 +119,10 @@
       "dst": ["autogroup:self"],
       "users": ["autogroup:nonroot", "root"],
     },
-    // Allow all users to access devices with the k8s-node tag.
+    // Only homelab administrators may operate nodes through Tailscale SSH.
     {
       "action": "accept",
-      "src": ["autogroup:member"],
+      "src": ["group:homelab-admins"],
       "dst": ["tag:k8s-node"],
       "users": ["autogroup:nonroot", "root"],
     },
@@ -100,7 +130,7 @@
     // the OCI serial console.
     {
       "action": "accept",
-      "src": ["autogroup:member"],
+      "src": ["group:homelab-admins"],
       "dst": ["tag:edge"],
       "users": ["autogroup:nonroot", "root"],
     },
@@ -111,6 +141,8 @@
     // Kubernetes operator manages k8s-tagged devices
     "tag:k8s-operator": [],
     "tag:k8s": ["tag:k8s-operator"],
+    "tag:k8s-admin": ["tag:k8s-operator"],
+    "tag:k8s-apps": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
     // OCI edge forwarder for public hostnames outside cloudflare (eg, jellyfin)

@@ -1,0 +1,46 @@
+---
+# Let's Encrypt certificate for the Jellyfin public hostname.
+#
+# media.fultonhuffman.com is served to the public internet via an OCI edge
+# forwarder that passes TLS straight through (HostSNI match, no termination), so
+# this cluster is the only place the connection is decrypted. The other public
+# domains don't need a cert here because the Cloudflare Tunnel delivers them to
+# Traefik on plain :80 and Cloudflare terminates.
+#
+# Keep the individual media/games certificates. The shared edge listener
+# references both, and both must be Ready before it is used.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: media-fultonhuffman-com
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: media-fultonhuffman-com-tls
+  duration: 2160h  # 90 days (Let's Encrypt default)
+  renewBefore: 720h  # 30 days before expiration
+  commonName: "media.fultonhuffman.com"
+  dnsNames:
+    - "media.fultonhuffman.com"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+
+---
+# games.fultonhuffman.com (BottleShip) reaches the cluster the same way, for
+# the same reason as Jellyfin: multi-GB game bundles through Cloudflare's CDN
+# are outside their terms.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: games-fultonhuffman-com
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: games-fultonhuffman-com-tls
+  duration: 2160h  # 90 days (Let's Encrypt default)
+  renewBefore: 720h  # 30 days before expiration
+  commonName: "games.fultonhuffman.com"
+  dnsNames:
+    - "games.fultonhuffman.com"
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
