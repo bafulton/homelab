@@ -1,8 +1,12 @@
 # Final apps Gateway configuration. Follow the coordinated migration runbook.
 namespace: traefik-apps
 skipCrds: true
+
+# Retain the legacy controller until the final cutover is complete.
 syncPolicy:
   prune: false
+
+# This controller serves household/public routes and the shared OCI edge.
 traefik:
   priorityClassName: system-cluster-critical
   podDisruptionBudget:
@@ -13,8 +17,8 @@ traefik:
       enabled: true
       labelSelector: homelab.io/ingress=apps
       gateways:
-      - name: traefik-apps
-        namespace: traefik-apps
+        - name: traefik-apps
+          namespace: traefik-apps
     kubernetesIngress:
       enabled: false
     kubernetesCRD:
@@ -59,8 +63,8 @@ traefik:
         namespacePolicy:
           from: All
         certificateRefs:
-        - name: media-fultonhuffman-com-tls
-        - name: games-fultonhuffman-com-tls
+          - name: media-fultonhuffman-com-tls
+          - name: games-fultonhuffman-com-tls
         mode: Terminate
   topologySpreadConstraints:
   - maxSkew: 1

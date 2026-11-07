@@ -1,8 +1,12 @@
 # See ../traefik/MIGRATION.md before merging or syncing.
 namespace: traefik-admin
 skipCrds: true
+
+# Keep legacy resources available until the coordinated cutover retires them.
 syncPolicy:
   prune: false
+
+# Controller discovery is restricted to this app's Gateway and GatewayClass.
 traefik:
   priorityClassName: system-cluster-critical
   podDisruptionBudget:
@@ -13,8 +17,8 @@ traefik:
       enabled: true
       labelSelector: homelab.io/ingress=admin
       gateways:
-      - name: traefik-admin
-        namespace: traefik-admin
+        - name: traefik-admin
+          namespace: traefik-admin
     kubernetesIngress:
       enabled: false
     kubernetesCRD:
@@ -32,18 +36,22 @@ traefik:
     traefik:
       expose:
         default: false
+  # The wrapper template defines a single HTTPS-only listener and an explicit
+  # HTTPRoute allowlist; do not also generate the upstream chart's Gateway.
   gateway:
     enabled: false
+
+  # Spread replicas and prefer local nodes while retaining fallback placement.
   topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app.kubernetes.io/name: traefik
-        app.kubernetes.io/instance: traefik-admin-traefik-admin
-    matchLabelKeys:
-    - pod-template-hash
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+          app.kubernetes.io/instance: traefik-admin-traefik-admin
+      matchLabelKeys:
+        - pod-template-hash
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
@@ -64,6 +72,7 @@ traefik:
       prometheus.io/scrape: 'true'
       prometheus.io/port: '9100'
   service:
+    # This is the only external admin entrance: operator creates cluster-admin.
     annotations:
       tailscale.com/hostname: cluster-admin
       tailscale.com/tags: tag:k8s-admin
