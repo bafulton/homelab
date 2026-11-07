@@ -74,6 +74,8 @@ argo-cd:
 
   applicationSet:
     enabled: true
+    # Temporary cutover pause; restore to one replica through Git after acceptance.
+    replicas: 0
     resources:
       requests:
         memory: 48Mi
