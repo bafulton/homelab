@@ -19,6 +19,13 @@ spec:
       labels:
         app.kubernetes.io/name: oauth2-proxy
     spec:
+      # Session checks are part of the household application traffic path.
+      nodeSelector:
+        homelab.io/location: local
+      tolerations:
+        - key: homelab.io/prefer-off
+          operator: Exists
+          effect: PreferNoSchedule
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
