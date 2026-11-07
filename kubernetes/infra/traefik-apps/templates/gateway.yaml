@@ -1,0 +1,29 @@
+{{- $gateway := .Values.traefik.gateway }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: {{ $gateway.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: {{ .Values.traefik.gatewayClass.name }}
+  listeners:
+    {{- range $name, $config := $gateway.listeners }}
+    - name: {{ $name }}
+      port: {{ $config.port }}
+      protocol: {{ $config.protocol }}
+      {{- with $config.hostname }}
+      hostname: {{ . | quote }}
+      {{- end }}
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: {{ $config.namespacePolicy.from }}
+      {{- with $config.certificateRefs }}
+      tls:
+        mode: {{ $config.mode }}
+        certificateRefs:
+          {{- toYaml . | nindent 10 }}
+      {{- end }}
+    {{- end }}

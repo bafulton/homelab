@@ -1,4 +1,4 @@
-# Stage 2: LAN Service stays ClusterIP until the coordinated VIP handoff.
+# Final apps Gateway configuration. Follow the coordinated migration runbook.
 namespace: traefik-apps
 skipCrds: true
 
@@ -47,10 +47,10 @@ traefik:
       http:
         tls:
           enabled: true
-  # Stage 2 uses the chart-generated Gateway. Stage 3 adds the wrapper template
-  # so admission can enforce the HTTPRoute-only allowedRoutes contract.
   gateway:
-    enabled: true
+    # The wrapper template emits this Gateway with an explicit HTTPRoute-only
+    # allowedRoutes.kinds contract. The upstream chart does not expose kinds.
+    enabled: false
     name: traefik-apps
     listeners:
       web:
@@ -98,8 +98,8 @@ traefik:
       prometheus.io/scrape: 'true'
       prometheus.io/port: '9100'
   service:
-    annotations: {}
-    # Separate Tailscale service exposes household HTTP and the OCI edge only.
+    annotations:
+      metallb.io/loadBalancerIPs: 192.168.1.200
     additionalServices:
       tailscale:
         annotations:
@@ -110,8 +110,8 @@ traefik:
           loadBalancerClass: tailscale
           allocateLoadBalancerNodePorts: false
     spec:
-      # The old gateway keeps .200 until the stage-3 VIP transfer.
-      type: ClusterIP
+      type: LoadBalancer
+      allocateLoadBalancerNodePorts: false
   metrics:
     prometheus:
       service:
@@ -133,14 +133,6 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
-  # Stage 2 publishes this dashboard on the new admin Gateway before the
-  # shared chart's default mapping switches during stage 3.
-  gateways:
-    admin:
-      name: traefik-admin
-      namespace: traefik-admin
-      listeners:
-      - admin
   routes:
   - name: dashboard
     access: admin

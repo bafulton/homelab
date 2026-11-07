@@ -96,3 +96,13 @@ spec:
 - **Except `media.fultonhuffman.com`**, which reaches the cluster through the OCI edge forwarder (`opentofu/oci-forwarder/`). That host passes TLS through without terminating, so this cluster terminates it and holds a real certificate (`media-fultonhuffman-com`). The `letsencrypt-production` solver therefore lists `fultonhuffman.com` alongside `catfish-mountain.com` - a Certificate for a zone the solver does not list matches no solver at all, creates no Challenge, and sits at `Ready=False` with nothing in its conditions explaining why
 - **Infrastructure domain** (*.catfish-mountain.com) uses **Let's Encrypt** - tailnet clients use Tailscale Split DNS, and LAN clients with local name resolution can reach the gateway directly
 - All Let's Encrypt certificates require the `cloudflare-api-token` secret (managed by bitwarden-secret chart)
+
+## Certificates after the ingress split
+
+[traefik-admin](../traefik-admin/README.md) owns its wildcard Certificate/Secret in
+namespace `traefik-admin`; [traefik-apps](../traefik-apps/README.md) owns its own
+wildcard plus the media/games public certificates in namespace `traefik-apps`.
+They use the existing `letsencrypt-production` ClusterIssuer. No cross-namespace
+Secret sharing is needed. Wait for the replacement Certificates to be Ready
+before removing legacy copies from namespace `traefik`; see the
+[migration runbook](../traefik/MIGRATION.md).

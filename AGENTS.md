@@ -41,6 +41,7 @@ syncPolicy:
 gateway-route:
   routes:
     - name: main
+      access: apps
       hostnames:
         - my-app.fultonhuffman.com  # Public (via Cloudflare Tunnel)
         - my-app.local              # LAN (via mDNS)
@@ -57,7 +58,7 @@ my-upstream-chart:
 
 ### Gateway API Routes (Primary Pattern)
 
-**All services** use the `gateway-route` shared chart with Kubernetes Gateway API HTTPRoutes (see `charts/gateway-route/README.md` for details):
+**All HTTP services** use the `gateway-route` shared chart with an `access` classification. The shared chart generates explicit Gateway/listener references; apps use optional `listeners` overrides only for special entrances. Administrative routes use `traefik-admin`; household/public routes use `traefik-apps`. See `charts/gateway-route/README.md` and the staged rollout in `kubernetes/infra/traefik/MIGRATION.md`:
 
 ```yaml
 # Chart.yaml
@@ -70,6 +71,7 @@ dependencies:
 gateway-route:
   routes:
     - name: public-lan
+      access: apps
       hostnames:
         - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
         - myapp.local              # LAN via mDNS
@@ -86,8 +88,9 @@ gateway-route:
 gateway-route:
   routes:
     - name: private
+      access: admin
       hostnames:
-        - myapp.catfish-mountain.com  # Private DNS via Tailscale; LAN clients can reach the gateway directly
+        - myapp.catfish-mountain.com  # Dedicated admin gateway; requires administrator Tailscale grant
       service:
         name: my-app-server
         port: 80
@@ -98,14 +101,16 @@ gateway-route:
 gateway-route:
   routes:
     - name: ui
+      access: admin
       hostnames:
         - myapp.catfish-mountain.com  # Private UI
       service:
         name: myapp-server
         port: 80
     - name: webhook
+      access: apps
       hostnames:
-        - myapp-webhook.catfish-mountain.com  # Public webhook
+        - myapp-webhook.fultonhuffman.com  # Public webhook
       service:
         name: myapp-server
         port: 80
@@ -121,6 +126,7 @@ For LAN service discovery (Bonjour/Zeroconf), there are **two patterns**:
 gateway-route:
   routes:
     - name: public-lan
+      access: apps
       hostnames:
         - myapp.local
       mdns:
@@ -169,7 +175,7 @@ metadata:
 **Domain usage patterns:**
 - `*.catfish-mountain.ts.net` → Tailscale network resources (gateway, DNS, physical devices)
 - `*.catfish-mountain.com` → Infrastructure (dashboards, webhooks, etc.) - **not publicly routed by default**
-  - Tailnet clients resolve it via Tailscale Split DNS; LAN clients can reach the gateway directly with the hostname (for example, via local DNS or a hosts entry)
+  - Administrative names resolve to the dedicated `cluster-admin` proxy and require `group:homelab-admins`; the apps LAN VIP cannot serve them
   - Specific public exceptions defined in `opentofu/cloudflare/variables.tf` (`public_subdomains`)
 - `*.fultonhuffman.com`, `*.yak-shave.com`, `*.benfulton.me` → Public services
 
@@ -187,9 +193,9 @@ metadata:
   (`opentofu/oci-forwarder/`), which passes TLS through without terminating, so
   the cluster terminates it and needs a real certificate for that name. That is
   why `letsencrypt-production`'s dns01 solver covers `fultonhuffman.com` as
-  well. It terminates on Traefik's dedicated `edge` listener (`:8443`), never
-  `websecure`: the forwarder can only check SNI, and `edge`'s `hostname` is what
-  stops a client reaching private routes by choosing a different Host header.
+  well. It terminates on Traefik's shared `edge` listener (`:8443`), never
+  `websecure`: the forwarder checks an exact media/games SNI allowlist, while
+  `edge`'s public-domain hostname excludes private routes regardless of Host.
   Jellyfin bypasses the tunnel because video through Cloudflare's CDN is outside their
   Service-Specific Terms.
 

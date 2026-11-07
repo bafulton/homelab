@@ -4,7 +4,8 @@ Open-source observability platform with metrics, logs, and traces in a single pa
 
 ## Access
 
-`https://signoz.catfish-mountain.com` (requires Tailscale connection)
+`https://signoz.catfish-mountain.com` (requires the Tailscale `group:homelab-admins` grant through
+[traefik-admin](../traefik-admin/README.md))
 
 ## Architecture
 

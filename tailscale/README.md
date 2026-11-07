@@ -4,7 +4,7 @@ Tailscale ACLs are managed via GitOps. The web editor is locked.
 
 ## Ingress access model
 
-The [CAT-17 migration](../kubernetes/infra/traefik/MIGRATION.md) introduces two
+The [ingress migration](../kubernetes/infra/traefik/MIGRATION.md) introduces two
 shared gateway proxies; individual dashboards do not become tailnet machines.
 
 | Source | Destination | Permission |

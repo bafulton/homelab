@@ -111,6 +111,8 @@ func TestRouteContract(t *testing.T) {
 func TestRejectInvalidRouteContract(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	for _, tc := range []struct{ name, contents string }{
+		{"legacy mapping", `gateways: {admin: {name: traefik, namespace: traefik, listeners: [websecure]}}
+routes: [{name: invalid, access: admin, hostnames: [invalid.catfish-mountain.com], service: {name: example, port: 80}}]`},
 		{"missing access", `routes: [{name: invalid, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"unknown access", `routes: [{name: invalid, access: other, hostnames: [invalid.local], service: {name: example, port: 80}}]`},
 		{"raw parentRefs", `routes: [{name: invalid, access: apps, parentRefs: [{name: traefik-apps}], hostnames: [invalid.local], service: {name: example, port: 80}}]`},
@@ -142,7 +144,7 @@ func TestAccessProfiles(t *testing.T) {
 		name, access, override string
 		listeners              []string
 	}{
-		{"admin defaults", "admin", "", []string{"web", "websecure"}},
+		{"admin defaults", "admin", "", []string{"admin"}},
 		{"apps defaults", "apps", "", []string{"web"}},
 		{"media override", "apps", "listeners: [web, edge]", []string{"web", "edge"}},
 		{"games only", "apps", "listeners: [edge]", []string{"edge"}},
@@ -166,13 +168,44 @@ func TestAccessProfiles(t *testing.T) {
 				}
 				for i, raw := range parents {
 					p := raw.(map[string]any)
-					if p["name"] != "traefik" || p["namespace"] != "traefik" || p["sectionName"] != tc.listeners[i] {
+					if p["name"] != "traefik-"+tc.access || p["namespace"] != "traefik-"+tc.access || p["sectionName"] != tc.listeners[i] {
 						t.Fatalf("wrong generated parent: %v", p)
 					}
 				}
 			}
 			if !found {
 				t.Fatal("missing generated route")
+			}
+		})
+	}
+}
+
+func TestGatewayKindsAreExplicit(t *testing.T) {
+	root, _ := filepath.Abs("../../..")
+	for _, chart := range []string{"traefik-admin", "traefik-apps"} {
+		t.Run(chart, func(t *testing.T) {
+			docs := renderChart(t, filepath.Join(root, "kubernetes/infra", chart), chart)
+			found := false
+			for _, o := range docs {
+				if o["kind"] != "Gateway" {
+					continue
+				}
+				found = true
+				listeners := o["spec"].(map[string]any)["listeners"].([]any)
+				for _, raw := range listeners {
+					listener := raw.(map[string]any)
+					kinds := listener["allowedRoutes"].(map[string]any)["kinds"].([]any)
+					if len(kinds) != 1 {
+						t.Fatalf("listener %s must allow exactly HTTPRoute: %v", listener["name"], kinds)
+					}
+					kind := kinds[0].(map[string]any)
+					if kind["group"] != "gateway.networking.k8s.io" || kind["kind"] != "HTTPRoute" {
+						t.Fatalf("listener %s has unexpected route kind: %v", listener["name"], kind)
+					}
+				}
+			}
+			if !found {
+				t.Fatal("Gateway not rendered")
 			}
 		})
 	}

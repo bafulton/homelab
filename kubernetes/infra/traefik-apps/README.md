@@ -6,9 +6,7 @@ UIs attach to [traefik-admin](../traefik-admin), including this controller's own
 dashboard at `https://traefik-apps.catfish-mountain.com`.
 
 **Migration prerequisite:** follow [the coordinated rollout](../traefik/MIGRATION.md).
-This provisioning stage leaves the apps LAN Service as ClusterIP and retains
-existing application routes on legacy ingress. The table below describes the
-cutover target; `.200` and public upstreams move only in stage 3.
+This README describes the intended configuration, not rollout status.
 
 ## Entrances
 
@@ -36,11 +34,16 @@ GatewayClass selector `homelab.io/ingress=apps`. The ordinary Ingress provider i
 disabled. The CRD provider remains enabled for BottleShip's ForwardAuth Middleware,
 filtered by `homelab.io/ingress=apps` and ingress class `traefik-apps`. Middleware
 resources need both that label and `kubernetes.io/ingress.class: traefik-apps`.
-Do not introduce unscoped IngressRoutes as an alternate route mechanism.
+HTTPRoute is the only supported routing API. The CRD provider remains enabled
+for Bottleship's Middleware, while admission rejects `IngressRoute`,
+`IngressRouteTCP`, and `IngressRouteUDP` resources. Apps routes may target only
+Services in their own namespace, including RequestMirror destinations. Check the
+live CRD inventory in `../traefik/MIGRATION.md` before installing that policy;
+admission does not remove existing objects.
 
-Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`.
-The shared chart generates explicit Gateway/listener parents; only apps needing
-special entrances specify a `listeners` override. Stage 3 adds admission rejecting admin attachment to this Gateway,
+Every [gateway-route](../../../charts/gateway-route/README.md) declares `access`;
+the chart generates its explicit Gateway/listener parents. Only apps needing
+special entrances specify `listeners`. Admission rejects admin attachment to this Gateway,
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 
@@ -68,8 +71,3 @@ conflicting Host/SNI and check that administrative responses never appear.
 
 Use `helm dependency update` before trusting a local render. First render with `--include-crds` to audit bundled CRDs. To mirror Argo's
 `skipCrds: true`, omit `--include-crds` (it overrides `--skip-crds` in template).
-
-The wrapper's temporary `gateway-route.gateways.admin` mapping provisions its
-dashboard through the new admin Gateway while ordinary app charts retain the
-central legacy mapping. Stage 3 removes this provisioning override and switches
-the shared defaults; app values never need raw Kubernetes `parentRefs`.

@@ -13,7 +13,7 @@ viewer ──TLS──> this VM (public IP)
                   ▼  (terminates nothing, reads nothing)
                 Tailscale, outbound-dialed
                   ▼
-                cluster-gateway.catfish-mountain.ts.net:8443
+                cluster-apps.catfish-mountain.ts.net:8443
                   ▼
                 home Traefik, edge listener ──> HTTPRoute ──> jellyfin:8096
 ```
@@ -60,7 +60,7 @@ Everything below should hold after an apply. Substitute the `public_ip` output.
 ssh ubuntu@edge-forwarder 'sudo cloud-init status; systemctl is-active traefik'
 
 # the tailnet hop is DIRECT, not relayed  (see the warm-up note below)
-ssh ubuntu@edge-forwarder 'sudo tailscale ping --c 6 cluster-gateway'
+ssh ubuntu@edge-forwarder 'sudo tailscale ping --c 6 cluster-apps'
 
 # end to end from outside, with the real certificate
 curl -sv --resolve media.fultonhuffman.com:443:<public_ip> \
@@ -135,7 +135,7 @@ account problem but just means "wrong AD". `instance.tf` queries
 `oci_limits_resource_availability` per AD and picks one with quota.
 
 **A fresh host reports DERP before it reports direct.** NAT traversal needs a
-moment and some traffic. On first boot `tailscale ping cluster-gateway` relayed
+moment and some traffic. On first boot `tailscale ping cluster-apps` relayed
 through `DERP(iad)`, and only after a handful of real requests plus ~20s did it
 upgrade to a direct path via the home public IP. Do not conclude the design is
 relay-bound from an immediate check - send traffic, wait, then look again. A
@@ -162,7 +162,7 @@ cannot resolve before the tunnel is up.
 **SNI is the only thing this host can check, so the cluster checks the rest.**
 After the cluster terminates TLS, routing follows the Host header, which a
 client may set to any name. The upstream is therefore Traefik's dedicated
-`edge` listener on `:8443`, whose `hostname` admits only the public name, and
+shared `edge` listener on `:8443`, restricted to `*.fultonhuffman.com`, and
 the tailnet grant allows tag:edge nothing but `tcp:8443`. Pointing this host at
 `:443` would expose every private route in the cluster.
 
@@ -180,3 +180,14 @@ keeping all Cloudflare resources in one place. The tailnet policy lives in
 `tailscale/policy.hujson`, applied by its own GitHub Actions workflow - do not
 add a `tailscale_acl` resource here, it would fight that workflow for ownership
 of the same document.
+
+## Ingress upstream migration
+
+The target is now the [apps gateway](../../kubernetes/infra/traefik-apps/README.md),
+`cluster-apps.catfish-mountain.ts.net:8443`, tagged `tag:k8s-apps`. The edge never
+receives a grant to the admin gateway. Retain the per-hostname SNI listeners and
+public exposure canary. See the [coordinated migration](../../kubernetes/infra/traefik/MIGRATION.md)
+for the live upstream switch. Changing `var.upstream` updates cloud-init for future
+provisioning; it does not change the running VM's ignored `user_data`. The rollout
+backs up and updates `/etc/traefik/dynamic.yml` explicitly, avoiding an unnecessary
+VM/public-IP replacement.

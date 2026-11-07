@@ -40,9 +40,9 @@ listeners: [web, edge]
 
 The shared `edge` listener is one entrance for OCI-forwarded public traffic. Only
 routes selecting `edge` can use it; the forwarder still accepts only media/games
-SNI. Both existing certificates must be Ready. Public SNI and Host may select
-different public apps within this shared listener; application authentication
-still applies.
+SNI. Both existing certificates must be Ready; a bad reference can affect both
+apps. Public SNI and Host may select different public apps within this shared
+listener; application authentication still applies.
 
 Admin listeners are controlled by the central mapping, with no per-route override.
 The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty

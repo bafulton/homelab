@@ -103,13 +103,6 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
-  # Stage 2 publishes this dashboard on the new admin Gateway before the
-  # shared chart's default mapping switches during stage 3.
-  gateways:
-    admin:
-      name: traefik-admin
-      namespace: traefik-admin
-      listeners: [admin]
   routes:
   - name: dashboard
     access: admin
