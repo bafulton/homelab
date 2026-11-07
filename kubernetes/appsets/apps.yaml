@@ -30,6 +30,8 @@ spec:
     spec:
       syncPolicy:
         automated:
+          # Omitted metadata preserves the default automatic reconciliation.
+          enabled: {{ if and (get . "syncPolicy") (hasKey .syncPolicy "autoSync") }}{{ .syncPolicy.autoSync }}{{ else }}true{{ end }}
           prune: {{ if and (get . "syncPolicy") (hasKey .syncPolicy "prune") }}{{ .syncPolicy.prune }}{{ else }}true{{ end }}
           selfHeal: {{ if and (get . "syncPolicy") (hasKey .syncPolicy "selfHeal") }}{{ .syncPolicy.selfHeal }}{{ else }}true{{ end }}
         syncOptions:

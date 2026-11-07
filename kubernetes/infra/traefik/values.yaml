@@ -2,4 +2,6 @@
 # Existing resources are NOT automatically pruned; follow MIGRATION.md.
 namespace: traefik
 syncPolicy:
+  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  autoSync: false
   prune: false

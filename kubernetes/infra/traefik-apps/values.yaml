@@ -4,6 +4,8 @@ skipCrds: true
 
 # Retain the legacy controller until the final cutover is complete.
 syncPolicy:
+  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  autoSync: false
   prune: false
 
 # This controller serves household/public routes and the shared OCI edge.

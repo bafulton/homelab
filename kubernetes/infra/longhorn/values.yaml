@@ -1,5 +1,9 @@
 namespace: longhorn
 
+# Temporary cutover freeze: remove when the runbook restores auto-sync.
+syncPolicy:
+  autoSync: false
+
 # Garage backup credentials for Longhorn. The key is named longhorn-backup in
 # Garage; AWS_ACCESS_KEY_ID is its key ID, which Garage requires to be in
 # GK + 24-hex form. backupTarget below keeps its us-east-1 region, which
