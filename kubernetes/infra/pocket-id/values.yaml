@@ -13,10 +13,6 @@
 
 namespace: pocket-id
 
-# Keep manual sync until final client-side access checks pass.
-syncPolicy:
-  autoSync: false
-
 image:
   repository: ghcr.io/pocket-id/pocket-id
   # distroless: no shell and no root entrypoint. The default image starts as

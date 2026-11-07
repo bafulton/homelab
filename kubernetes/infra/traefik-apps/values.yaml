@@ -2,8 +2,6 @@ namespace: traefik-apps
 skipCrds: true
 
 syncPolicy:
-  # Keep manual sync until final client-side access checks pass.
-  autoSync: false
   prune: false
 
 # This controller serves household/public routes and the shared OCI edge.

@@ -15,10 +15,6 @@
 
 namespace: garage
 
-# Keep manual sync until final client-side access checks pass.
-syncPolicy:
-  autoSync: false
-
 # Rotating rpcSecret/adminToken in Bitwarden does not roll the pods: the chart
 # stamps no checksum/secret annotation when the secret comes from an external
 # Secret (garage.secret.create: false), so restart garage-0 by hand afterwards.

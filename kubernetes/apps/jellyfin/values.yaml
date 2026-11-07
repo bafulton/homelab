@@ -9,10 +9,6 @@
 
 namespace: jellyfin
 
-# Keep manual sync until final client-side access checks pass.
-syncPolicy:
-  autoSync: false
-
 # Gateway API HTTPRoute for public and LAN access
 # Routes through Traefik Gateway (Cloudflare Tunnel for public, MetalLB for LAN)
 gateway-route:

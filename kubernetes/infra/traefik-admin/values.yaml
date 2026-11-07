@@ -2,8 +2,6 @@ namespace: traefik-admin
 skipCrds: true
 
 syncPolicy:
-  # Keep manual sync until final client-side access checks pass.
-  autoSync: false
   prune: false
 
 # Controller discovery is restricted to this app's Gateway and GatewayClass.
