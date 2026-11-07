@@ -1,5 +1,9 @@
 namespace: goldpinger
 
+# Temporary cutover freeze: remove when the runbook restores auto-sync.
+syncPolicy:
+  autoSync: false
+
 # Bloomberg's Goldpinger: a DaemonSet where every instance pings every other over
 # the pod network and serves a live node-to-node connectivity + latency graph. The
 # pod-network path rides flannel on the LAN (home) and Tailscale subnet routes

@@ -4,6 +4,8 @@ skipCrds: true
 
 # Keep legacy resources available until the coordinated cutover retires them.
 syncPolicy:
+  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  autoSync: false
   prune: false
 
 # Controller discovery is restricted to this app's Gateway and GatewayClass.

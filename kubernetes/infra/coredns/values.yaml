@@ -1,5 +1,9 @@
 namespace: coredns
 
+# Temporary cutover freeze: remove when the runbook restores auto-sync.
+syncPolicy:
+  autoSync: false
+
 # Note: This deployment creates TWO services:
 # 1. coredns (ClusterIP) - Auto-created by upstream chart, cannot be disabled
 #    - Internal cluster service, unused in our setup

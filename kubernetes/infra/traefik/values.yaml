@@ -3,6 +3,8 @@ namespace: traefik
 # Never prune: keeps a sync race from cascade-deleting Gateways/HTTPRoutes,
 # since the CRDs those depend on are owned by the traefik-crds app.
 syncPolicy:
+  # Temporary cutover freeze; remove when the runbook restores auto-sync.
+  autoSync: false
   prune: false
 
 # The chart still ships 25 CRDs in crds/ (v41 did NOT stop shipping them - only
