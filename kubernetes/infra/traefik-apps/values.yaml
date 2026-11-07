@@ -1,8 +1,12 @@
 # Stage 2: LAN Service stays ClusterIP until the coordinated VIP handoff.
 namespace: traefik-apps
 skipCrds: true
+
+# Retain the legacy controller until the final cutover is complete.
 syncPolicy:
   prune: false
+
+# This controller serves household/public routes and the shared OCI edge.
 traefik:
   priorityClassName: system-cluster-critical
   podDisruptionBudget:
@@ -13,8 +17,8 @@ traefik:
       enabled: true
       labelSelector: homelab.io/ingress=apps
       gateways:
-      - name: traefik-apps
-        namespace: traefik-apps
+        - name: traefik-apps
+          namespace: traefik-apps
     kubernetesIngress:
       enabled: false
     kubernetesCRD:
@@ -41,6 +45,8 @@ traefik:
       http:
         tls:
           enabled: true
+  # Stage 2 uses the chart-generated Gateway. Stage 3 adds the wrapper template
+  # so admission can enforce the HTTPRoute-only allowedRoutes contract.
   gateway:
     enabled: true
     name: traefik-apps
@@ -57,8 +63,8 @@ traefik:
         namespacePolicy:
           from: All
         certificateRefs:
-        - name: media-fultonhuffman-com-tls
-        - name: games-fultonhuffman-com-tls
+          - name: media-fultonhuffman-com-tls
+          - name: games-fultonhuffman-com-tls
         mode: Terminate
   topologySpreadConstraints:
   - maxSkew: 1
@@ -91,6 +97,7 @@ traefik:
       prometheus.io/port: '9100'
   service:
     annotations: {}
+    # Separate Tailscale service exposes household HTTP and the OCI edge only.
     additionalServices:
       tailscale:
         annotations:
@@ -101,6 +108,7 @@ traefik:
           loadBalancerClass: tailscale
           allocateLoadBalancerNodePorts: false
     spec:
+      # The old gateway keeps .200 until the stage-3 VIP transfer.
       type: ClusterIP
   metrics:
     prometheus:

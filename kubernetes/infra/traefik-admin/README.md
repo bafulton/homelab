@@ -26,7 +26,7 @@ After the later DNS generation/cutover step, CoreDNS will map these names to the
 - `garage.catfish-mountain.com`
 - `signoz.catfish-mountain.com`
 - `goldpinger.catfish-mountain.com`
-- `traefik.catfish-mountain.com` — apps controller dashboard
+- `traefik-apps.catfish-mountain.com` — apps controller dashboard
 - `traefik-admin.catfish-mountain.com` — this controller's dashboard
 
 The dashboard Services use port 8080 inside the cluster. They are not published
