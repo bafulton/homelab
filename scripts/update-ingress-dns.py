@@ -11,7 +11,16 @@ import re
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-ADMIN_NAMES = ('argocd', 'longhorn', 'garage', 'signoz', 'goldpinger', 'traefik', 'traefik-admin')
+ADMIN_NAMES = (
+    'argocd',
+    'longhorn',
+    'garage',
+    'signoz',
+    'goldpinger',
+    'traefik-apps',
+    'traefik-admin',
+)
+LEGACY_ADMIN_NAMES = ('traefik',)
 
 
 def address(service, role):
@@ -41,7 +50,7 @@ def update(text, admin, apps):
     # This zone is the final block in the values file. Refuse unexpected layouts.
     records = re.search(r'^        @\s+IN\s+A\s+[^\n]+\n        \*\s+IN\s+A\s+[^\n]+\s*$', text, re.M)
     if not records:
-        records = re.search(r'^        @\s+60 IN A[^\n]+\n        \*\s+60 IN A[^\n]+\n(?:        (?:' + '|'.join(ADMIN_NAMES) + r')\s+60 IN A[^\n]+\n?)+\s*$', text, re.M)
+        records = re.search(r'^        @\s+60 IN A[^\n]+\n        \*\s+60 IN A[^\n]+\n(?:        (?:' + '|'.join(ADMIN_NAMES + LEGACY_ADMIN_NAMES) + r')\s+60 IN A[^\n]+\n?)+\s*$', text, re.M)
     if not records:
         raise ValueError('Unexpected zone layout; refusing to replace records')
     return text[:records.start()] + '\n'.join(lines) + '\n'
