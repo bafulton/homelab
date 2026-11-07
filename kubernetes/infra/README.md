@@ -29,7 +29,7 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [snapshot-crds](./snapshot-crds) | VolumeSnapshot CRDs (cluster-level primitive required by VolSync) | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
-| [gateway policies](./traefik) | Cluster-wide Gateway API admission policies | - |
+| [gateway-policies](./gateway-policies) | Cluster-wide Gateway API admission policies | - |
 | [traefik-admin](./traefik-admin) | Shared administrative gateway | Tailscale administrator grant, TCP 443 |
 | [traefik-apps](./traefik-apps) | Household and public application gateway | LAN VIP, Cloudflare, Tailscale/OCI |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |

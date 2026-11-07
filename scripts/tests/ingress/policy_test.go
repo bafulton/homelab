@@ -93,7 +93,7 @@ func allowed(t *testing.T, policy, obj map[string]any) bool {
 func TestIngressBoundary(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	policies := map[string]map[string]any{}
-	for _, p := range render(t, filepath.Join(root, "kubernetes/infra/traefik"), "traefik") {
+	for _, p := range render(t, filepath.Join(root, "kubernetes/infra/gateway-policies"), "gateway-policies") {
 		if p["kind"] == "ValidatingAdmissionPolicy" {
 			policies[meta(p)["name"].(string)] = p
 		}
@@ -271,7 +271,7 @@ func TestIngressBoundary(t *testing.T) {
 func TestEdgeHostnamePolicy(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	var policy, gateway, adminPolicy, adminGateway map[string]any
-	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/traefik"), "traefik") {
+	for _, o := range render(t, filepath.Join(root, "kubernetes/infra/gateway-policies"), "gateway-policies") {
 		if o["kind"] == "ValidatingAdmissionPolicy" {
 			switch meta(o)["name"] {
 			case "gateway-public-listeners-need-public-hostname":

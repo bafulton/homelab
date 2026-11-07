@@ -90,7 +90,7 @@ explicit parent references from this mapping.
 
 Cluster-wide admission policies enforce the route and Service boundaries. They are
 owned by the policy Application documented at
-[`kubernetes/infra/traefik`](../../kubernetes/infra/traefik/README.md).
+[`kubernetes/infra/gateway-policies`](../../kubernetes/infra/gateway-policies/README.md).
 
 Keep the `file://../../../charts/gateway-route` dependency at version `1.0.0`.
 Run `helm dependency update` whenever this shared chart changes; old local archives

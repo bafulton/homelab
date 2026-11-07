@@ -65,7 +65,7 @@
     // 8443 is Traefik's edge listener, which accepts only the forwarder's
     // public hostname. It must not be 443: that listener serves every private
     // route, and the forwarder can't stop a client from choosing the Host
-    // header after TLS. See kubernetes/infra/traefik/values.yaml.
+    // header after TLS. See kubernetes/infra/gateway-policies/values.yaml.
     //
     // "ip" is Tailscale's name for network-layer capability, i.e. protocol and
     // port - not an address. A bare "8443" would also grant UDP and ICMP, so

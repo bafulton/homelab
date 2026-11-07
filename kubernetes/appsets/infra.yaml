@@ -4,6 +4,10 @@ metadata:
   name: infra
   namespace: argocd
 spec:
+  # During Application renames, retain the old Application until its resources
+  # are safely adopted by the replacement and it can be deleted non-cascading.
+  syncPolicy:
+    applicationsSync: create-update
   goTemplate: true
   goTemplateOptions: ["missingkey=error"]
   generators:
