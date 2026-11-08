@@ -54,7 +54,7 @@ used by the host: `.local` links are for players on the same LAN.
 
 ## Rollout
 
-This change follows the mandatory household placement work in CAT-22 / PR #605.
+This change follows the mandatory household placement work in PR #605.
 The apps gateway and all household app/session endpoints must be on home nodes.
 Private CoreDNS, Tailscale proxies, and administrative gateway placement are not
 part of this change.
@@ -70,7 +70,7 @@ part of this change.
    replicas. Argo apps reconcile independently; a route waiting for its listener
    should be retried after the gateway sync, not worked around by weakening the
    policies.
-4. Execute the checks below and CAT-24's full client/path matrix. Record evidence
+4. Execute the deployment and client/path checks below. Record evidence
    against the deployed revision. The PR's render tests do not establish live
    browser behavior or prove a local network path.
 
@@ -121,7 +121,7 @@ absolute asset URLs using the public entrance. Recheck public BottleShip login,
 public HA/Jellyfin access, and rejection of admin Host/SNI requests on LAN/public
 entrances.
 
-For CAT-24, test clients with Tailscale both enabled and disabled. Correlate
+Test clients with Tailscale both enabled and disabled. Correlate
 requests with gateway/backend logs. Explicitly test a gateway and backend on
 different home nodes: inspect subnet-route-steering's rules plus narrowly scoped
 captures to show Flannel's bare-LAN transport, not just home pod placement. DNS

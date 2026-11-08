@@ -78,7 +78,8 @@ to `beelink` for their local media/bundle volumes. The
 [subnet-route-steering DaemonSet](../subnet-route-steering) stays enabled on every
 home node. Its priority-5260 rules direct the home LAN and peer home pod CIDRs
 to `main`, ahead of Tailscale table 52, so Flannel can use the bare LAN between
-home nodes. CAT-24 verifies actual traffic and mDNS resolution.
+home nodes. Verify actual traffic and mDNS resolution using the
+[household access checks](../../../docs/local-household-access.md#verification-after-deployment).
 
 Home-node capacity was checked separately before this change. General workloads
 retain their existing scheduling eligibility. Private CoreDNS, Tailscale proxies
@@ -102,7 +103,8 @@ Confirm two ready Traefik replicas spread across home nodes, a ready home-node
 proxy, ready Service endpoints on home nodes, and a ready steering pod on each
 home node. Recheck the existing local backends, mDNS and MetalLB speakers. Verify
 public routes and the administrative boundary using the ingress checks below
-and CAT-24's client-side checks. The change to oauth2-proxy's pod template rolls
+and the [household client-side checks](../../../docs/local-household-access.md#verification-after-deployment).
+The change to oauth2-proxy's pod template rolls
 that proxy; BottleShip's game server and in-memory relay rooms are unaffected.
 
 For rollback, revert the placement commit on `main`, push, and let ArgoCD sync
