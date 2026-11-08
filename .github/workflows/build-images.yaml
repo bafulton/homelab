@@ -17,7 +17,6 @@ on:
         required: true
         type: choice
         options:
-          - bottleship
           - homelab-toolbox
           - mdns-advertiser
 
@@ -62,7 +61,7 @@ jobs:
           fi
 
           selected=()
-          for image in bottleship homelab-toolbox mdns-advertiser; do
+          for image in homelab-toolbox mdns-advertiser; do
             if [ -z "$(git diff --name-only "$BASE" "$HEAD_SHA" -- "images/$image/")" ]; then
               continue
             fi

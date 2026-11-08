@@ -13,9 +13,12 @@
 
 namespace: bottleship
 
+# Published by ievans/bottleship for each release. Renovate opens the bump PR,
+# never automerged: the restart ends every game in progress (README.md,
+# "Updating BottleShip").
 image:
-  repository: ghcr.io/bafulton/bottleship
-  tag: "1.3.0"
+  repository: ghcr.io/ievans/bottleship
+  tag: "0.8.0"
   pullPolicy: IfNotPresent
 
 resources:
