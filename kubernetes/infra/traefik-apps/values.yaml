@@ -71,16 +71,9 @@ traefik:
         app.kubernetes.io/instance: traefik-apps-traefik-apps
     matchLabelKeys:
     - pod-template-hash
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-          - key: homelab.io/location
-            operator: In
-            values:
-            - local
+  # Keep application traffic local to avoid unnecessary hops across the internet
+  nodeSelector:
+    homelab.io/location: local
   tolerations:
   - key: homelab.io/prefer-off
     operator: Exists

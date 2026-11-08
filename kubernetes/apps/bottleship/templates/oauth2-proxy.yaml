@@ -19,6 +19,13 @@ spec:
       labels:
         app.kubernetes.io/name: oauth2-proxy
     spec:
+      # Keep bottleship traffic local to avoid unnecessary hops across the internet
+      nodeSelector:
+        homelab.io/location: local
+      tolerations:
+        - key: homelab.io/prefer-off
+          operator: Exists
+          effect: PreferNoSchedule
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
