@@ -245,8 +245,9 @@ For a new installation:
      sign-in, so grant admin by adding someone to `media-admins` in Pocket ID
    - **Scopes**: `groups`
    - **Enable All Folders**: on
-   - **Scheme Override** and **Port Override**: empty. Configure Jellyfin
-     to trust Traefik before clearing the scheme override; see the
+   - **Scheme Override** and **Port Override**: empty. Set Jellyfin
+     **Networking → Known Proxies** to `10.244.0.0/16` and restart before
+     clearing the scheme override. This trusts all cluster pods; see the
      [local SSO rollout](local-sso.md). Public requests must retain their
      forwarded HTTPS scheme, while LAN requests retain HTTP
    - **Disable HTTPS**, **Do Not Validate Endpoints**, and **Do Not Validate

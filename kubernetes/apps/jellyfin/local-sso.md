@@ -33,21 +33,17 @@ Browser casting still requires HTTPS.
    2.19.2 has an `ALLOW_INSECURE_CALLBACK_URLS` setting affecting the provider
    globally; do not silently enable it or relax HTTPS issuer validation as part
    of this migration. If the callback is rejected, stop and retain public SSO.
-3. Configure Jellyfin **Networking → Known Proxies** with the actual Traefik
-   pod source IPs. Find the current candidates with:
+3. Configure Jellyfin **Networking → Known Proxies** with the cluster pod CIDR:
 
-   ```sh
-   kubectl -n traefik-apps get pods -l app.kubernetes.io/name=traefik -o wide
+   ```text
+   10.244.0.0/16
    ```
 
-   Confirm the transport source seen by Jellyfin for both entrances, especially
-   if networking or placement changes. Use individual proxy addresses, not the
-   LAN VIP, the OCI forwarder address, or an unrestricted proxy trust range.
-   Include both Traefik replicas. Pod IPs are ephemeral: refresh this setting
-   and restart Jellyfin after proxy replacement before relying on SSO. This
-   manual maintenance is a limitation of the dashboard-managed configuration.
-   Do not widen trust to the entire cluster or enable insecure forwarded-header
-   trust in Traefik to avoid maintaining this list.
+   This covers both Traefik replicas after rescheduling, without maintaining
+   individual pod IPs. It deliberately trusts forwarded headers from all cluster
+   pods, matching the household's chosen cluster trust model. The LAN VIP and
+   OCI forwarder address are not the transport sources Jellyfin needs to trust.
+   Keep Traefik's own forwarded-header validation enabled.
 4. Restart Jellyfin to load its known proxies. Leave the SSO scheme override
    at `https` until the restart completes.
 5. In **SSO Authentication → pocket-id**, clear **Scheme Override** and
@@ -84,9 +80,11 @@ Browser casting still requires HTTPS.
   if public requests generate HTTP callbacks, restore the override and verify
   the trusted transport source rather than disabling validation.
 
-These browser checks require the dashboard migration; they have not been
-completed merely by reviewing this runbook. No ingress resources change, so
-the existing ingress boundaries remain in place.
+The operator reported the setup working after applying the dashboard changes
+with `10.244.0.0/16` on 2026-11-07. That confirms the reported login behavior;
+packet-path inspection, negative authorization tests, and the other checks
+above are not independently verified by that report. No ingress resources
+change, so the existing ingress boundaries remain in place.
 
 ## Rollback
 
