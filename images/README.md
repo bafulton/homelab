@@ -46,8 +46,8 @@ Renovate cannot edit `VERSION`, so `bump-image-versions.yaml` does it: on a
 patch bump to the PR branch, and CI re-runs with the guard satisfied. It pushes
 with the `VERSION_BUMP_TOKEN` secret (a pushed `GITHUB_TOKEN` commit would not
 re-trigger CI) as `homelab-version-bot`, which `renovate.json` lists under
-`gitIgnoredAuthors` so Renovate keeps rebasing the PR. Image PRs are excluded
-from automerge, so the deliberate pause stays: you click merge.
+`gitIgnoredAuthors` so Renovate keeps rebasing the PR. Once the bump makes CI
+green, image PRs automerge like any other minor or patch update.
 
 Pinned versions in `ARG <NAME>_VERSION=` lines are tracked by a `customManager`
 in `renovate.json`, keyed off the `# renovate: datasource=... depName=...`

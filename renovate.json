@@ -114,13 +114,6 @@
       "automerge": false
     },
     {
-      "description": "Image dependency bumps wait for a manual merge: bump-image-versions.yaml makes CI green, but a changed image should be looked at before it ships",
-      "matchFileNames": [
-        "images/**"
-      ],
-      "automerge": false
-    },
-    {
       "description": "BottleShip by hand, never automerge: the rollout restarts the server and ends every game in progress",
       "matchPackageNames": [
         "ghcr.io/ievans/bottleship"
