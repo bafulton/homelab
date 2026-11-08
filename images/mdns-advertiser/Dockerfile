@@ -14,12 +14,10 @@
 # renovate: datasource=docker depName=python versioning=docker
 FROM python:3.15-alpine AS build
 
-# Pin kubernetes<36 due to auth_settings() regression in v36:
-# https://github.com/kubernetes-client/python/issues/2582
 # renovate: datasource=pypi depName=zeroconf
 ARG ZEROCONF_VERSION=0.154.0
 # renovate: datasource=pypi depName=kubernetes
-ARG KUBERNETES_VERSION=35.0.0
+ARG KUBERNETES_VERSION=37.0.2
 
 RUN apk add --no-cache gcc musl-dev yaml-dev
 
