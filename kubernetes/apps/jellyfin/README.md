@@ -219,10 +219,17 @@ show the login page in a built-in browser that can't use passkeys, so the
 Pocket ID button doesn't work inside them. Local Jellyfin accounts keep working alongside it.
 
 The plugin's settings live in Jellyfin's config volume, set up once in the
-dashboard:
+dashboard. The relative login button keeps each browser on its starting
+origin after Pocket ID authentication: `http://media.local` for LAN access
+and `https://media.fultonhuffman.com` for public access. Existing installations
+need the ordered [local SSO rollout](local-sso.md); merging this documentation
+does not update dashboard settings.
+
+For a new installation:
 
 1. **Pocket ID → OIDC Clients → Add**: name `Jellyfin`, **Public Client** off,
-   callback URL `https://media.fultonhuffman.com/sso/OID/redirect/pocket-id`,
+   callback URLs `https://media.fultonhuffman.com/sso/OID/redirect/pocket-id`
+   and `http://media.local/sso/OID/redirect/pocket-id`,
    allowed group `media`, PKCE on. Create a client secret.
 2. **Dashboard → Plugins → Repositories**: add
    `https://raw.githubusercontent.com/k0lin/jellyfin-plugin-sso/manifest-release/manifest.json`,
@@ -238,11 +245,15 @@ dashboard:
      sign-in, so grant admin by adding someone to `media-admins` in Pocket ID
    - **Scopes**: `groups`
    - **Enable All Folders**: on
-   - **Scheme Override**: `https`. Jellyfin has no known proxies set, so it
-     would otherwise build `http://` callback URLs behind Traefik
+   - **Scheme Override** and **Port Override**: empty. Configure Jellyfin
+     to trust Traefik before clearing the scheme override; see the
+     [local SSO rollout](local-sso.md). Public requests must retain their
+     forwarded HTTPS scheme, while LAN requests retain HTTP
+   - **Disable HTTPS**, **Do Not Validate Endpoints**, and **Do Not Validate
+     Issuer Name**: off. The identity provider remains public HTTPS
 4. **Dashboard → General → Branding → Login disclaimer**, for a sign-in button:
    ```html
-   <form action="https://media.fultonhuffman.com/sso/OID/start/pocket-id">
+   <form action="/sso/OID/start/pocket-id">
      <button class="raised block emby-button button-submit">Sign in with Pocket ID</button>
    </form>
    ```
