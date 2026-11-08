@@ -41,6 +41,14 @@ because `renovate.json` automerges minor and patch updates once CI is green, and
 a base-image bump edits the Dockerfile without touching `VERSION` — so the guard
 is what turns that into a red check you have to resolve deliberately.
 
+Renovate cannot edit `VERSION`, so `bump-image-versions.yaml` does it: on a
+`renovate/*` PR that changes an image without bumping it, the workflow pushes a
+patch bump to the PR branch, and CI re-runs with the guard satisfied. It pushes
+with the `VERSION_BUMP_TOKEN` secret (a pushed `GITHUB_TOKEN` commit would not
+re-trigger CI) as `homelab-version-bot`, which `renovate.json` lists under
+`gitIgnoredAuthors` so Renovate keeps rebasing the PR. Image PRs are excluded
+from automerge, so the deliberate pause stays: you click merge.
+
 Pinned versions in `ARG <NAME>_VERSION=` lines are tracked by a `customManager`
 in `renovate.json`, keyed off the `# renovate: datasource=... depName=...`
 comment directly above each one. Keep that comment attached or the pin silently

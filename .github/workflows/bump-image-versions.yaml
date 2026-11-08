@@ -1,0 +1,72 @@
+name: Bump Image Versions
+
+# Renovate edits an image's Dockerfile but cannot edit its VERSION file, so the
+# VERSION guard in build-images.yaml fails every Renovate PR that touches
+# images/. This pushes the missing patch bump onto the PR branch, which
+# re-runs CI with the guard satisfied.
+#
+# The push uses VERSION_BUMP_TOKEN, not GITHUB_TOKEN: commits pushed with
+# GITHUB_TOKEN do not trigger workflows, so CI would never re-run. The commit
+# author is listed under gitIgnoredAuthors in renovate.json so Renovate keeps
+# rebasing the PR instead of treating the bump as someone else's edit.
+
+on:
+  pull_request:
+    paths:
+      - 'images/**'
+
+concurrency:
+  group: bump-image-versions-${{ github.head_ref }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    if: >-
+      startsWith(github.head_ref, 'renovate/') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.VERSION_BUMP_TOKEN }}
+
+      - name: Bump VERSION for changed images
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          bumped=()
+          for dir in images/*/; do
+            image=$(basename "$dir")
+            [ -f "images/$image/VERSION" ] || continue
+            if [ -z "$(git diff --name-only "$BASE" HEAD -- "images/$image/")" ]; then
+              continue
+            fi
+            old=$(git show "$BASE:images/$image/VERSION" 2>/dev/null | tr -d '[:space:]' || true)
+            new=$(tr -d '[:space:]' < "images/$image/VERSION")
+            if [ "$old" != "$new" ]; then
+              continue
+            fi
+            if ! [[ "$old" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              echo "::error file=images/$image/VERSION::Cannot bump '$old': not MAJOR.MINOR.PATCH"
+              exit 1
+            fi
+            next="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+            echo "$next" > "images/$image/VERSION"
+            git add "images/$image/VERSION"
+            bumped+=("$image $old -> $next")
+          done
+
+          if [ ${#bumped[@]} -eq 0 ]; then
+            echo "No image needs a VERSION bump"
+            exit 0
+          fi
+
+          git config user.name homelab-version-bot
+          git config user.email homelab-version-bot@users.noreply.github.com
+          git commit -m "chore(images): bump VERSION for Renovate update" \
+            -m "$(printf '%s\n' "${bumped[@]}")"
+          git push

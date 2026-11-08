@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "gitIgnoredAuthors": [
+    "homelab-version-bot@users.noreply.github.com"
+  ],
   "customManagers": [
     {
       "customType": "regex",
@@ -108,6 +111,13 @@
       ],
       "groupName": "kubernetes",
       "separateMultipleMinor": true,
+      "automerge": false
+    },
+    {
+      "description": "Image dependency bumps wait for a manual merge: bump-image-versions.yaml makes CI green, but a changed image should be looked at before it ships",
+      "matchFileNames": [
+        "images/**"
+      ],
       "automerge": false
     },
     {
