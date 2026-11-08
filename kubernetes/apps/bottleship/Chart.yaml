@@ -5,8 +5,6 @@ type: application
 version: 1.0.0
 appVersion: "1.0.0"
 dependencies:
-  # Argo resolves the wrapper's file dependencies without prebuilding nested
-  # library archives. Declare mDNS directly, as home-assistant/jellyfin do.
   - name: mdns-config
     version: 1.0.0
     repository: file://../../../charts/mdns-config
