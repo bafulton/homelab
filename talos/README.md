@@ -480,6 +480,9 @@ Once complete, access the UI while connected to Tailscale:
 
 ## Maintenance Commands
 
+For administration without Tailscale or public login, see the
+[local break-glass runbook](../docs/local-break-glass-access.md).
+
 ### Check node status
 ```bash
 talosctl health
