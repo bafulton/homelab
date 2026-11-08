@@ -1,7 +1,7 @@
 # LAN HTTPS foundation
 
-This foundation issues the private-CA server certificate and permits three exact
-LAN HTTPS listener/route names in the shared chart and admission policy. It does
+This foundation issues the private-CA server certificate and permits a shared
+`local` HTTPS listener and explicit `.local` route names in the shared chart and admission policy. It does
 not publish port 443, add Gateway listeners, change application routes, or redirect
 existing HTTP traffic. The dependent household-access PR enables those pieces
 only after this certificate is Ready.
@@ -65,10 +65,11 @@ kubectl -n traefik-apps get certificate household-local -o wide
 kubectl -n traefik-apps get gateway,svc
 ```
 
-The existing Gateway/Service still expose only their previous entrances. New
-listeners are permitted only on traefik-apps, with HTTPS port 443 and exact
-`games.local`, `home.local`, or `media.local` hostnames. Each attached route must
-contain only the corresponding hostname. Existing admin/public boundaries and
+The existing Gateway/Service still expose only their previous entrances. The new
+`local` listener is permitted only on traefik-apps, with HTTPS port 443 and
+hostname `*.local`. Attached routes must list explicit `.local` names. The
+certificate still lists only games/home/media.local; a routing wildcard does
+not make certificates valid for other names. Existing admin/public boundaries and
 CRD ownership remain intact. Run `./scripts/validate-ingress.sh` with freshly
 resolved dependencies before merge.
 

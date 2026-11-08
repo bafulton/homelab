@@ -17,8 +17,8 @@ have one owner independent of either controller's lifecycle.
 ## Enforced boundaries
 
 - Gateways have fixed namespace/name/class identities and approved listeners.
-- LAN HTTPS listeners are limited to exact games/home/media.local names; routes
-  attaching to one must contain only its matching hostname.
+- The shared `local` HTTPS listener is scoped to `*.local`; its routes must
+  list explicit `.local` hostnames. App names belong in routes and certificates.
 - All HTTPRoutes declare access and explicit Gateway/listener parents.
 - Admin hostnames and backend namespaces cannot be published as app routes.
 - The public Argo exception is limited to `POST /api/webhook`.

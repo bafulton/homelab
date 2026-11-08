@@ -19,7 +19,7 @@ gateway-route:
 
 `access: admin` selects the administrative entrance. `access: apps` selects the
 household/public entrance and normally uses the `web` listener. The apps Gateway
-can terminate LAN HTTPS for three explicit `.local` names once the dependent
+can terminate LAN HTTPS through a shared `local` listener once the dependent
 application change enables its listeners. Cloudflare terminates
 most public TLS, while the OCI forwarder has its own shared TLS listener.
 Gateway names, namespaces, and default listeners live centrally in this chart's
@@ -39,7 +39,7 @@ listeners: [web, edge]
 | Listener | Port | Purpose |
 | --- | --- | --- |
 | `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
-| `games-local`, `home-local`, `media-local` | 443 | Exact-host LAN HTTPS; private CA, no tailnet Service exposure |
+| `local` | 443 | LAN HTTPS scoped to `*.local`; private CA, no tailnet Service exposure |
 | `edge` | 8443 | OCI TLS passthrough; shared listener restricted to `*.fultonhuffman.com` |
 
 The shared `edge` listener is one entrance for OCI-forwarded public traffic. Only
@@ -48,8 +48,9 @@ SNI. Both existing certificates must be Ready; a bad reference can affect both
 apps. Public SNI and Host may select different public apps within this shared
 listener; application authentication still applies.
 
-The LAN HTTPS listeners each accept only their corresponding single hostname
-(`games-local` -> `games.local`, etc.). The dependent application PR adds
+The shared `local` listener accepts `.local` names; attached HTTPRoutes must
+list explicit `.local` hostnames. The routing wildcard does not require a
+wildcard certificate: the server certificate lists its supported names as SANs. The dependent application PR adds
 games HTTPS and home/media HTTPS-to-HTTP redirects. See [household access](../../docs/lan-https-foundation.md).
 
 Admin listeners are controlled by the central mapping, with no per-route override.
