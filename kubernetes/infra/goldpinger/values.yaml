@@ -1,9 +1,5 @@
 namespace: goldpinger
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
-syncPolicy:
-  autoSync: false
-
 # Bloomberg's Goldpinger: a DaemonSet where every instance pings every other over
 # the pod network and serves a live node-to-node connectivity + latency graph. The
 # pod-network path rides flannel on the LAN (home) and Tailscale subnet routes
@@ -65,8 +61,7 @@ goldpinger:
     limits:
       memory: 64Mi
 
-# UI on the tailnet only: goldpinger.catfish-mountain.com resolves via Tailscale
-# Split DNS and is not routed through the public Cloudflare Tunnel.
+# UI behind the shared admin gateway and administrator-only Tailscale grant.
 gateway-route:
   routes:
     - name: private

@@ -29,65 +29,48 @@ This directory contains Helm charts for cluster infrastructure, deployed via Arg
 | [snapshot-crds](./snapshot-crds) | VolumeSnapshot CRDs (cluster-level primitive required by VolSync) | - |
 | [tailscale-operator](./tailscale-operator) | Exposes services on your Tailscale network | - |
 | [time-machine](./time-machine) | Time Machine backup server for macOS | MetalLB |
-| [traefik](./traefik) | Gateway API implementation for HTTP routing | *.catfish-mountain.com |
+| [gateway-policies](./gateway-policies) | Cluster-wide Gateway API admission policies | - |
+| [traefik-admin](./traefik-admin) | Shared administrative gateway | Tailscale administrator grant, TCP 443 |
+| [traefik-apps](./traefik-apps) | Household and public application gateway | LAN VIP, Cloudflare, Tailscale/OCI |
 | [tuppr](./tuppr) | Automated Talos and Kubernetes upgrade orchestration | - |
 | [volsync](./volsync) | Asynchronous PVC replication for scheduled restic backups to Garage | - |
 
 ## Networking Overview
 
-Understanding how traffic flows in this cluster:
+HTTP services use separate administrative and household/public gateways:
 
 ```mermaid
 flowchart LR
-    subgraph external[External Access]
-        tailnet[Devices on Tailnet]
-        internet[Public Internet]
-        lan[Devices on LAN]
-    end
-
-    subgraph routing[Routing Layer]
-        splitdns[Tailscale Split DNS<br/>*.catfish-mountain.com]
-        cloudflare[Cloudflare Tunnel<br/>*.fultonhuffman.com]
-        mdns[mDNS<br/>*.local]
-    end
-
-    subgraph k8s[Kubernetes Cluster]
-        gateway[Traefik Gateway]
-        metallb[MetalLB LB]
-        svc[Services]
-        pods[Pods]
-    end
-
-    tailnet -->|Private| splitdns
-    internet -->|Public| cloudflare
-    lan -->|LAN| mdns
-
-    splitdns --> gateway
-    cloudflare --> gateway
-    mdns --> metallb
-
-    metallb --> gateway
-    gateway -->|Gateway API routes| svc
-    svc --> pods
+    admins[Authorized Tailscale administrators] --> admin[traefik-admin:443]
+    admin --> dashboards[Administrative ClusterIP backends]
+    lan[Household LAN] --> vip[MetalLB 192.168.1.200]
+    vip --> apps[traefik-apps]
+    internet[Public Internet] --> cf[Cloudflare Tunnel]
+    internet --> edge[OCI edge forwarder]
+    cf --> apps
+    edge -->|Tailscale port 8443| apps
+    members[Tailnet members] -->|80/443| apps
+    apps --> services[Household/public backends]
 ```
 
-**Access patterns:**
-- **Infrastructure** (*.catfish-mountain.com) → Tailscale Split DNS or local LAN DNS → Gateway API → Services; most names are not routed by the public tunnel
-- **Public services** (*.fultonhuffman.com, etc.) → Cloudflare Tunnel → Gateway API → Services
-- **LAN services** (*.local) → mDNS → MetalLB → Gateway or direct
+Private DNS names alone do not authorize access. Administrative names resolve to
+the separate `cluster-admin` proxy, tagged `tag:k8s-admin`; only
+`group:homelab-admins` may connect. Household/public applications use
+`traefik-apps` and retain existing application authentication. Home Assistant,
+Jellyfin and Pocket ID retain mixed-use capabilities and application roles.
 
 ### CoreDNS (built into Kubernetes)
 Provides DNS for pods and services inside the cluster. When a pod calls `http://my-service:8080`, CoreDNS resolves `my-service` to the Service's ClusterIP.
 
 ### Tailscale Split DNS
-Routes `*.catfish-mountain.com` queries from Tailscale clients to the cluster.
-Configured in Tailscale admin console. LAN clients can also resolve these
-names locally to the gateway's LAN IP and connect without Tailscale.
 
-**Use for private infrastructure services:**
-- ArgoCD, dashboards, admin UIs
-- Internal APIs and tools
-- Anything you want accessible remotely or from the LAN but **not** through the public tunnel
+Routes `*.catfish-mountain.com` queries to `cluster-dns`. Explicit administrative
+A records target the assigned `cluster-admin` Tailscale IP; the apex/wildcard
+target the assigned `cluster-apps` IP. The DNS helper keeps these records aligned
+with their assigned proxy addresses. Both are shared gateway proxies, not
+individual application machines. See [CoreDNS](coredns/README.md).
+Ordinary LAN clients cannot reach administrative interfaces through the apps VIP,
+even when supplying their hostnames.
 
 ### Cloudflare Tunnel
 Routes specific public subdomains (defined in `opentofu/cloudflare/variables.tf`) to the cluster via secure tunnel. Most domains are **private by default** - only explicitly configured subdomains are public.
@@ -106,7 +89,7 @@ Assigns real LAN IPs to `LoadBalancer` Services. Without it (or a cloud provider
 - Services that need dedicated IPs
 
 ### Traefik Gateway
-Kubernetes Gateway API implementation that routes HTTP(S) traffic based on Gateway API HTTPRoute resources. All HTTP services route through the Traefik Gateway at `192.168.1.200`.
+Kubernetes Gateway API implementation that routes HTTP(S) traffic based on Gateway API HTTPRoute resources. Household/public HTTP services use `traefik-apps`, including LAN VIP `192.168.1.200`. Administrative routes use the separate `traefik-admin` Gateway and Tailscale proxy.
 
 **Why use a Gateway?** Shares one IP across many services:
 
@@ -115,17 +98,17 @@ flowchart LR
     ip[192.168.1.200] --> gateway[Traefik Gateway]
     gateway -->|app1.fultonhuffman.com| app1[app1-service]
     gateway -->|app2.local| app2[app2-service]
-    gateway -->|app3.catfish-mountain.com| app3[app3-service]
+    gateway -->|app3.yak-shave.com| app3[app3-service]
 ```
 
-Services use the [gateway-route](../../charts/gateway-route/README.md) shared chart to create HTTPRoute resources. The same route can handle multiple hostnames (public, private, LAN). For details on the Gateway implementation, see [traefik](./traefik/README.md).
+Services use the [gateway-route](../../charts/gateway-route/README.md) shared chart to create HTTPRoute resources. Apps routes may combine public and household LAN names. Administrative names use separate admin-class routes. See [traefik-admin](./traefik-admin/README.md) and [traefik-apps](./traefik-apps/README.md).
 
 ### hostNetwork (for mDNS services)
 
 Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP which doesn't work across Kubernetes network namespaces. For these services, we use `hostNetwork: true` to bind directly to the node's network.
 
 **Use hostNetwork for:**
-- Time Machine (macOS auto-discovers backup destinations via mDNS)
+- The central mDNS advertiser (publishes HTTP and non-HTTP LAN service names)
 - Home Assistant (discovers IoT devices like Chromecast, HomeKit, ESPHome via mDNS)
 
 **Trade-offs:**
@@ -142,11 +125,11 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 │   └── Use gateway-route chart → creates HTTPRoute
 │
 │       Choose hostname(s):
-│       ├── Private remote access? → *.catfish-mountain.com
+│       ├── Administrative access? → traefik-admin, *.catfish-mountain.com
 │       ├── Public access? → *.fultonhuffman.com (or other public domain)
 │       └── LAN discovery? → *.local (with mDNS)
 │
-│       Can mix all three in one route!
+│       Public/LAN names may share apps routes; admin routes stay separate.
 │
 ├── Non-HTTP service (SMB, database, game server)?
 │   └── Use MetalLB LoadBalancer → gets dedicated LAN IP
@@ -159,11 +142,11 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 
 | Service Type | Method | Example Hostname |
 |--------------|--------|------------------|
-| Admin UIs (ArgoCD, dashboards) | gateway-route | `argocd.catfish-mountain.com` |
+| Admin UIs (ArgoCD, dashboards) | gateway-route, access: admin | `argocd.catfish-mountain.com` |
 | Public sites (blogs, portfolios) | gateway-route | `blog.fultonhuffman.com` |
 | LAN web apps (Jellyfin, media) | gateway-route with mDNS | `media.local` |
 | LAN non-HTTP (databases, SMB) | MetalLB LoadBalancer | `192.168.1.x:port` |
-| mDNS-dependent (Time Machine) | hostNetwork | Auto-discovered |
+| LAN discovery (Time Machine) | MetalLB + mdns-config | Auto-discovered |
 
 ### Multi-Hostname Example
 
@@ -173,9 +156,10 @@ Most services use a single HTTPRoute with multiple hostnames for different acces
 gateway-route:
   routes:
     - name: media
+      access: apps
+      listeners: [web, edge]
       hostnames:
         - media.fultonhuffman.com      # Public (this one via the OCI edge forwarder)
-        - media.catfish-mountain.com   # Private via Tailscale
         - media.local                  # LAN via mDNS
       service:
         name: jellyfin
@@ -183,7 +167,7 @@ gateway-route:
       mdns:  # Optional: advertise via Bonjour
         name: Media Server
         ip: 192.168.1.200
-        port: 8096
+        port: 80
 ```
 
 **Note:** Some services need multiple exposure methods. For example, Home Assistant might use:

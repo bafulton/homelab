@@ -36,8 +36,7 @@ Output: native HTTPRoute parentRefs as YAML.
 {{- end }}
 {{- $gateway := get $root.Values.gateways $access }}
 {{- if not $gateway }}{{- fail "gateway-route: missing access-class gateway mapping" }}{{- end }}
-{{- $legacy := and (eq $gateway.name "traefik") (eq $gateway.namespace "traefik") }}
-{{- if and (not $legacy) (or (ne $gateway.name (printf "traefik-%s" $access)) (ne $gateway.namespace (printf "traefik-%s" $access))) }}
+{{- if or (ne $gateway.name (printf "traefik-%s" $access)) (ne $gateway.namespace (printf "traefik-%s" $access)) }}
 {{- fail "gateway-route: gateway mapping must match its access class" }}
 {{- end }}
 {{- $listeners := $gateway.listeners }}
@@ -53,14 +52,11 @@ Output: native HTTPRoute parentRefs as YAML.
 {{- end }}
 {{- $parents := list }}
 {{- range $listeners }}
-{{- if and (eq $access "apps") (not (has . (list "web" "edge"))) }}
+{{- if and (eq $access "apps") (not (has . (list "web" "edge" "local"))) }}
 {{- fail "gateway-route: invalid apps listener" }}
 {{- end }}
-{{- if and (eq $access "admin") (not $legacy) (ne . "admin") }}
+{{- if and (eq $access "admin") (ne . "admin") }}
 {{- fail "gateway-route: admin mapping must use the admin listener" }}
-{{- end }}
-{{- if and $legacy (not (has . (list "web" "websecure" "edge"))) }}
-{{- fail "gateway-route: invalid legacy listener" }}
 {{- end }}
 {{- $parents = append $parents (dict "name" $gateway.name "namespace" $gateway.namespace "sectionName" .) }}
 {{- end }}

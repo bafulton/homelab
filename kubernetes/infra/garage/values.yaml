@@ -15,10 +15,6 @@
 
 namespace: garage
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
-syncPolicy:
-  autoSync: false
-
 # Rotating rpcSecret/adminToken in Bitwarden does not roll the pods: the chart
 # stamps no checksum/secret annotation when the secret comes from an external
 # Secret (garage.secret.create: false), so restart garage-0 by hand afterwards.
@@ -123,10 +119,8 @@ garage:
           - volsync-backups
           - etcd-backups
 
-  # Bucket/key/usage browser. Exposed only on
-  # catfish-mountain.com, which is wildcard_public = false, so it resolves
-  # solely through Tailscale Split DNS - the same trust boundary as the
-  # Longhorn dashboard. Chart-level basic auth is therefore left off.
+  # Bucket/key/usage browser, behind the dedicated admin ingress and
+  # administrator-only Tailscale grant. Chart-level basic auth remains off.
   webui:
     enabled: true
 

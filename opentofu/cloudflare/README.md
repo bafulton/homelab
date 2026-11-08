@@ -137,4 +137,4 @@ To expose a specific subdomain on `catfish-mountain.com` (or any private domain)
 - Cloudflare handles TLS termination for public domains (Universal SSL)
 - `media.fultonhuffman.com` is the one exception: a DNS-only (`proxied = false`) A record pointing at the OCI edge forwarder, so Jellyfin's video does not cross Cloudflare's CDN. The wildcard CNAME and the tunnel ingress rule are both left intact, which is also the rollback - remove that record and traffic returns to the tunnel. Its address is read from `../oci-forwarder` state, so apply that module first
 - Private domain TLS (*.catfish-mountain.com) is handled by Let's Encrypt in the cluster
-- The tunnel always routes to `traefik.traefik.svc.cluster.local:80` - Traefik handles routing to services
+- The tunnel always routes to `traefik-apps.traefik-apps.svc.cluster.local:80` - Traefik handles routing to services

@@ -1,0 +1,4 @@
+# This Application owns cluster-wide ingress admission policies only.
+namespace: traefik
+syncPolicy:
+  prune: false

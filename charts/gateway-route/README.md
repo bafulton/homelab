@@ -2,7 +2,9 @@
 
 Shared Helm chart for HTTPRoutes and optional mDNS advertisements. Applications
 choose an access class; the chart generates explicit Kubernetes Gateway references.
-See [the migration stages](../../kubernetes/infra/traefik/MIGRATION.md).
+See the [admin gateway](../../kubernetes/infra/traefik-admin/README.md) and
+[apps gateway](../../kubernetes/infra/traefik-apps/README.md) for their current
+listeners and access boundaries.
 
 ```yaml
 gateway-route:
@@ -17,8 +19,9 @@ gateway-route:
 
 `access: admin` selects the administrative entrance. `access: apps` selects the
 household/public entrance and normally uses the `web` listener. The apps Gateway
-does not terminate HTTPS for household/public routes; Cloudflare terminates public
-TLS, while the OCI forwarder has its own shared TLS listener.
+can terminate LAN HTTPS through a shared `local` listener once the dependent
+application change enables its listeners. Cloudflare terminates
+most public TLS, while the OCI forwarder has its own shared TLS listener.
 Gateway names, namespaces, and default listeners live centrally in this chart's
 `gateways` mapping. Ordinary app values do not repeat them.
 
@@ -36,13 +39,19 @@ listeners: [web, edge]
 | Listener | Port | Purpose |
 | --- | --- | --- |
 | `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
+| `local` | 443 | LAN HTTPS scoped to `*.local`; private CA, no tailnet Service exposure |
 | `edge` | 8443 | OCI TLS passthrough; shared listener restricted to `*.fultonhuffman.com` |
 
 The shared `edge` listener is one entrance for OCI-forwarded public traffic. Only
 routes selecting `edge` can use it; the forwarder still accepts only media/games
-SNI. Both existing certificates must be Ready. Public SNI and Host may select
-different public apps within this shared listener; application authentication
-still applies.
+SNI. Both existing certificates must be Ready; a bad reference can affect both
+apps. Public SNI and Host may select different public apps within this shared
+listener; application authentication still applies.
+
+The shared `local` listener accepts `.local` names; attached HTTPRoutes must
+list explicit `.local` hostnames. The routing wildcard does not require a
+wildcard certificate: the server certificate lists its supported names as SANs. The dependent application PR adds
+games HTTPS and home/media HTTPS-to-HTTP redirects. See [household access](../../docs/lan-https-foundation.md).
 
 Admin listeners are controlled by the central mapping, with no per-route override.
 The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty
@@ -77,15 +86,18 @@ as they do for these Gateways, but identify different parts of the reference.
 an arbitrary application-defined label. These fields are generated output, not
 part of the app-facing values interface.
 
-## Migration mapping
+## Gateway mapping
 
-Stages 1/2 centrally map both access classes to the scoped legacy `traefik` Gateway,
-retaining current entrances. Stage 2's two new ingress wrappers override only the
-admin mapping to expose their dashboards through the new admin Gateway. These
-are infrastructure-owned provisioning overrides, not repeated app configuration.
-Stage 3 changes the shared mapping to the dedicated gateways and removes those
-overrides. Strict admission then checks generated attachments and the public
-webhook exception. Classification alone does not enforce isolation before cutover.
+`admin` maps to `traefik-admin/traefik-admin` on its `admin` listener. Its Tailscale
+Service is tagged `tag:k8s-admin`; only `group:homelab-admins` can connect on TCP
+443. `apps` maps to `traefik-apps/traefik-apps` on `web`. The apps Gateway serves
+the LAN VIP and Cloudflare Tunnel upstream; its shared `edge` listener is reserved
+for OCI-forwarded public hostnames. `gateway-route` generates each HTTPRoute's
+explicit parent references from this mapping.
+
+Cluster-wide admission policies enforce the route and Service boundaries. They are
+owned by the policy Application documented at
+[`kubernetes/infra/gateway-policies`](../../kubernetes/infra/gateway-policies/README.md).
 
 Keep the `file://../../../charts/gateway-route` dependency at version `1.0.0`.
 Run `helm dependency update` whenever this shared chart changes; old local archives

@@ -11,7 +11,7 @@ import (
 func TestSharedEdgeListener(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	found := 0
-	for _, name := range []string{"traefik", "traefik-apps"} {
+	for _, name := range []string{"traefik-apps"} {
 		chart := filepath.Join(root, "kubernetes/infra", name)
 		data, err := os.ReadFile(filepath.Join(chart, "values.yaml"))
 		if os.IsNotExist(err) {
@@ -26,7 +26,7 @@ func TestSharedEdgeListener(t *testing.T) {
 		}
 		if _, active := values["traefik"]; !active {
 			continue
-		} // retired policy-only wrapper
+		}
 		for _, o := range renderChart(t, chart, name) {
 			if o["kind"] != "Gateway" {
 				continue

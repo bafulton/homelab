@@ -9,10 +9,6 @@
 
 namespace: jellyfin
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
-syncPolicy:
-  autoSync: false
-
 # Gateway API HTTPRoute for public and LAN access
 # Routes through Traefik Gateway (Cloudflare Tunnel for public, MetalLB for LAN)
 gateway-route:
@@ -31,6 +27,19 @@ gateway-route:
       mdns:
         name: Jellyfin
         ip: 192.168.1.200
+
+    # HTTPS is accepted for browser upgrades, then returns to the existing HTTP URL.
+    - name: local-https-to-http
+      access: apps
+      listeners: [local]
+      hostnames: [media.local]
+      rules:
+        - filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: http
+                port: 80
+                statusCode: 302
 
 # Local storage - media PVC directly on USB drive (hostPath, not Longhorn)
 # VolSync backs up to Garage weekly via restic

@@ -15,10 +15,6 @@
 
 namespace: yak-shave
 
-# Temporary cutover freeze: remove when the runbook restores auto-sync.
-syncPolicy:
-  autoSync: false
-
 image:
   repository: ghcr.io/bafulton/yak-shave
   # Written by .github/workflows/build-site.yaml on every push to main.
