@@ -9,10 +9,12 @@ Collected 2026-11-07 against context `homelab`. Live nodes were Ready, running T
 | Policy removal / recovery | **8/8 between-phase and 8/8 final rollback probes passed** | Same beelink fixture; namespace cleanup completed. Since policies were unenforced, this does not prove removal of active blocking rules. |
 | Harness infrastructure failure behavior | **4 regression tests passed** | Exec/transport errors cannot count as successful denial; pod setup failure triggers deletion of the generated namespace; comparison recognizes TCP defaults without hiding UDP or missing-policy differences. Run `python3 -m unittest discover -s scripts/network-isolation -p 'test_*.py' -v`. |
 | Python compile | Passed | Both tools and regression tests compile. |
-| Active enforcement, deny convergence, agent crash/restart | **Pending** | Requires version-matched disposable rehearsal and separately reviewed activation. |
+| Allowed/denied traffic under active enforcement | **Pending — required** | Run the existing three-node harness after reviewed activation; a disposable rehearsal cluster is optional. |
+| Detailed convergence and agent crash/fail-open analysis | **Deferred** | Investigate if concrete failures warrant it. |
 | LAN/tailnet egress, unrelated production databases/admin endpoints | **Pending** | Optional explicit target support is present; no such endpoints were probed in this preflight. |
 | Production gateway/identity/monitoring/storage/backup functionality under policy | **Pending** | Dependency matrix and policy review identify required checks. |
-| Engine disablement and kernel rule cleanup | **Pending — activation blocker** | Runbook separates policy rollback from engine rollback. |
+| Recovery procedure and policy removal | **Pending — required** | Confirm local access, write version-specific recovery commands, and exercise removal of active app policies. |
+| Full engine-removal/kernel cleanup rehearsal | **Deferred** | Retain documented recovery steps; expand testing if needed to establish a workable recovery path. |
 
 Neither test run enabled cluster enforcement or changed production policies. The only mutations were uniquely named `cat6-probe-*` namespaces and their disposable pods, Services, and test policies. They were removed on completion. Persisted JSON includes namespace names for auditability.
 
