@@ -1,10 +1,5 @@
-# See ../traefik/MIGRATION.md before merging or syncing.
 namespace: traefik-admin
 skipCrds: true
-
-# Keep legacy resources available until the coordinated cutover retires them.
-syncPolicy:
-  prune: false
 
 # Controller discovery is restricted to this app's Gateway and GatewayClass.
 traefik:
@@ -101,13 +96,6 @@ traefik:
     dashboard: true
     insecure: true
 gateway-route:
-  # Stage 2 publishes this dashboard on the new admin Gateway before the
-  # shared chart's default mapping switches during stage 3.
-  gateways:
-    admin:
-      name: traefik-admin
-      namespace: traefik-admin
-      listeners: [admin]
   routes:
   - name: dashboard
     access: admin

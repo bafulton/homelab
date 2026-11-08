@@ -15,6 +15,6 @@ traefik-crds:
   gatewayAPI: true
   # hub.traefik.io CRDs - Traefik Hub is a commercial add-on we don't use (0 CRs,
   # Hub disabled). The v39 chart shipped them unconditionally; we don't carry that
-  # cruft forward. The 14 orphaned CRDs are deleted once, by hand, post-migration
+  # cruft forward. The 14 orphaned CRDs can be deleted once, by hand
   # (see README) - safe, since nothing references them.
   hub: false

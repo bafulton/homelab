@@ -61,8 +61,7 @@ goldpinger:
     limits:
       memory: 64Mi
 
-# UI on the tailnet only: goldpinger.catfish-mountain.com resolves via Tailscale
-# Split DNS and is not routed through the public Cloudflare Tunnel.
+# UI behind the shared admin gateway and administrator-only Tailscale grant.
 gateway-route:
   routes:
     - name: private

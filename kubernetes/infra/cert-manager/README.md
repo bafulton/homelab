@@ -9,7 +9,7 @@ This cluster uses **two certificate issuers** depending on the use case:
 | Issuer | Use Case | Browser Trusted | Validity |
 |--------|----------|-----------------|----------|
 | `letsencrypt-production` | **Public/private domains** - Use for `*.catfish-mountain.com` and other domains accessible via Tailscale | ✅ Yes | 90 days (auto-renews) |
-| `homelab-ca` | **Internal cluster services** - Use for `.svc.cluster.local` and pod-to-pod communication | ❌ No (self-signed) | 1 year (10yr root CA) |
+| `homelab-ca` | **Internal/LAN services** - `.svc.cluster.local` and explicitly enrolled `.local` clients | ❌ No (self-signed) | 1 year (10yr root CA) |
 
 ## Certificate Hierarchies
 
@@ -96,3 +96,20 @@ spec:
 - **Except `media.fultonhuffman.com`**, which reaches the cluster through the OCI edge forwarder (`opentofu/oci-forwarder/`). That host passes TLS through without terminating, so this cluster terminates it and holds a real certificate (`media-fultonhuffman-com`). The `letsencrypt-production` solver therefore lists `fultonhuffman.com` alongside `catfish-mountain.com` - a Certificate for a zone the solver does not list matches no solver at all, creates no Challenge, and sits at `Ready=False` with nothing in its conditions explaining why
 - **Infrastructure domain** (*.catfish-mountain.com) uses **Let's Encrypt** - tailnet clients use Tailscale Split DNS, and LAN clients with local name resolution can reach the gateway directly
 - All Let's Encrypt certificates require the `cloudflare-api-token` secret (managed by bitwarden-secret chart)
+
+## Household LAN certificates
+
+`homelab-ca` also issues the `household-local` certificate in `traefik-apps` for
+`games.local`, `home.local`, and `media.local`. Only clients explicitly trusting
+the public root CA can validate it. This reuses the existing issuer; it does not
+install a new CA service or distribute private keys. See [household access](../../../docs/lan-https-foundation.md)
+for Mac enrollment, leaf renewal, root-rotation planning, and rollback. Root
+renewal is not automatic client trust distribution.
+
+## Ingress certificates
+
+[traefik-admin](../traefik-admin/README.md) owns its wildcard Certificate/Secret in
+namespace `traefik-admin`; [traefik-apps](../traefik-apps/README.md) owns the household-local
+private-CA certificate plus the media/games public certificates in namespace `traefik-apps`.
+Public certificates use `letsencrypt-production`; household-local uses `homelab-ca`. No cross-namespace
+Secret sharing is needed.

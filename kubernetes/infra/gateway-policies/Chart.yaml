@@ -1,0 +1,6 @@
+apiVersion: v2
+name: gateway-policies
+description: Cluster-wide Gateway API ingress admission policies
+type: application
+version: 1.0.0
+appVersion: 1.0.0

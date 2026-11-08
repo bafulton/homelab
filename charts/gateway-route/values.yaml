@@ -1,13 +1,13 @@
 # Infrastructure-owned mapping; applications normally set only route.access.
-# Migration stages 1/2 keep application traffic on the scoped legacy Gateway.
+# Both access classes use their dedicated Gateways.
 gateways:
   admin:
-    name: traefik
-    namespace: traefik
-    listeners: [web, websecure]
+    name: traefik-admin
+    namespace: traefik-admin
+    listeners: [admin]
   apps:
-    name: traefik
-    namespace: traefik
+    name: traefik-apps
+    namespace: traefik-apps
     listeners: [web]
 
 routes: []

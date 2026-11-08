@@ -6,7 +6,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SYNC_OPTIONS = {"serverSideApply", "prune", "selfHeal"}
+SYNC_OPTIONS = {"autoSync", "serverSideApply", "prune", "selfHeal"}
 
 
 def main() -> None:
