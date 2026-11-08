@@ -19,7 +19,7 @@ spec:
       labels:
         app.kubernetes.io/name: oauth2-proxy
     spec:
-      # Session checks are part of the household application traffic path.
+      # Keep bottleship traffic local to avoid unnecessary hops across the internet
       nodeSelector:
         homelab.io/location: local
       tolerations:

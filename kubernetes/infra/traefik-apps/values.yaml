@@ -71,7 +71,7 @@ traefik:
         app.kubernetes.io/instance: traefik-apps-traefik-apps
     matchLabelKeys:
     - pod-template-hash
-  # Household .local application traffic must stay on the home LAN.
+  # Keep application traffic local to avoid unnecessary hops across the internet
   nodeSelector:
     homelab.io/location: local
   tolerations:
