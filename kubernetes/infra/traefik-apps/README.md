@@ -8,7 +8,7 @@ this controller's own dashboard at `https://traefik-apps.catfish-mountain.com`.
 
 | Entrance | Destination | Listeners |
 | --- | --- | --- |
-| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80; exact-host LAN HTTPS 443 |
+| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80; shared `local` HTTPS 443 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80 |
 | OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge` |
@@ -42,9 +42,11 @@ special entrances specify `listeners`. Admission rejects admin attachment to thi
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 
-The `games-local`, `home-local`, and `media-local` listeners on 443 terminate a
-shared private-CA certificate with three explicit SANs. They accept only their
-matching hostname; admission rejects broadened or mismatched LAN routes.
+The shared `local` listener on 443 is scoped to `*.local` and terminates a
+private-CA certificate with three explicit SANs. Each HTTPRoute supplies its own
+explicit `.local` hostname; admission rejects wildcard or non-local hostnames
+on this listener. The listener wildcard is a routing scope, not a wildcard
+certificate.
 `games.local` serves BottleShip, while home/media HTTPS redirect to their existing
 HTTP URLs. These listeners do not change the OCI edge's SNI boundary. No HSTS or
 global HTTP-to-HTTPS redirect is configured. Setup, staged rollout, and rollback

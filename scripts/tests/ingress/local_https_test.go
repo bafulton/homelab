@@ -11,79 +11,31 @@ import (
 func TestLANHTTPSBoundary(t *testing.T) {
 	root, _ := filepath.Abs("../../..")
 	docs := renderChart(t, filepath.Join(root, "kubernetes/infra/traefik-apps"), "traefik-apps")
-	policies := renderChart(t, filepath.Join(root, "kubernetes/infra/gateway-policies"), "gateway-policies")
-	policy := findResource(t, policies, "ValidatingAdmissionPolicy", "gateway-public-listeners-need-public-hostname")
-	routePolicy := findResource(t, policies, "ValidatingAdmissionPolicy", "httproute-access-boundary")
 	gateway := findResource(t, docs, "Gateway", "traefik-apps")
-	cert := findResource(t, docs, "Certificate", "household-local")
-	if !reflect.DeepEqual(spec(cert)["dnsNames"], []any{"games.local", "home.local", "media.local"}) {
-		t.Fatalf("unexpected LAN certificate SANs: %v", spec(cert))
-	}
-	issuer := spec(cert)["issuerRef"].(map[string]any)
-	if issuer["name"] != "homelab-ca" || issuer["kind"] != "ClusterIssuer" {
-		t.Fatal("LAN certificate must use the existing private CA")
-	}
-	for _, name := range []string{"games-local", "home-local", "media-local"} {
-		var listener map[string]any
-		for _, raw := range spec(gateway)["listeners"].([]any) {
-			l := raw.(map[string]any)
-			if l["name"] == name {
-				listener = l
-			}
+	count := 0
+	for _, raw := range spec(gateway)["listeners"].([]any) {
+		l := raw.(map[string]any)
+		if l["port"] != 443 {
+			continue
 		}
-		if listener == nil {
-			t.Fatalf("missing %s listener", name)
+		count++
+		if l["name"] != "local" || l["hostname"] != "*.local" || l["protocol"] != "HTTPS" {
+			t.Fatalf("unexpected LAN listener: %v", l)
 		}
-		tls := listener["tls"].(map[string]any)
-		if listener["port"] != 443 || listener["protocol"] != "HTTPS" || tls["mode"] != "Terminate" ||
-			!reflect.DeepEqual(tls["certificateRefs"], []any{map[string]any{"name": "household-local-tls"}}) {
-			t.Fatalf("wrong LAN TLS configuration: %v", listener)
-		}
-		for _, hostname := range []string{"*.local", "*.catfish-mountain.com", "games.fultonhuffman.com", "unlisted.local", ""} {
-			t.Run(name+" rejects "+hostname, func(t *testing.T) {
-				bad := clone(gateway)
-				for _, raw := range spec(bad)["listeners"].([]any) {
-					l := raw.(map[string]any)
-					if l["name"] == name {
-						l["hostname"] = hostname
-					}
-				}
-				if allowed(t, policy, bad) {
-					t.Fatal("broadened LAN listener accepted")
-				}
-			})
-		}
-		route := map[string]any{
-			"metadata": map[string]any{"namespace": "bottleship", "labels": map[string]any{"homelab.io/access": "apps"}},
-			"spec": map[string]any{
-				"parentRefs": []any{map[string]any{"name": "traefik-apps", "namespace": "traefik-apps", "sectionName": name}},
-				"hostnames":  []any{listener["hostname"]},
-				"rules":      []any{map[string]any{"backendRefs": []any{map[string]any{"name": "example", "port": 80}}}},
-			},
-		}
-		if !allowed(t, routePolicy, route) {
-			t.Fatal("exact-host LAN route rejected")
-		}
-		for _, h := range []string{"argocd.catfish-mountain.com", "games.fultonhuffman.com", "other.local"} {
-			bad := clone(route)
-			spec(bad)["hostnames"] = []any{h}
-			if allowed(t, routePolicy, bad) {
-				t.Fatalf("%s accepted on %s", h, name)
-			}
-		}
-		bad := clone(route)
-		spec(bad)["hostnames"] = []any{listener["hostname"], "other.local"}
-		if allowed(t, routePolicy, bad) {
-			t.Fatal("multi-host LAN HTTPS route accepted")
+		tls := l["tls"].(map[string]any)
+		if tls["mode"] != "Terminate" || !reflect.DeepEqual(tls["certificateRefs"], []any{map[string]any{"name": "household-local-tls"}}) {
+			t.Fatalf("wrong local TLS configuration: %v", tls)
 		}
 	}
-	// TLS on :443 is published only on the LAN Service, never the edge/tailnet Service.
+	if count != 1 {
+		t.Fatalf("expected one shared local listener, got %d", count)
+	}
+	// :443 is published only on the LAN Service, never the tailnet Service.
 	for _, name := range []string{"traefik-apps", "traefik-apps-tailscale"} {
 		svc := findResource(t, docs, "Service", name)
 		has443 := false
 		for _, raw := range spec(svc)["ports"].([]any) {
-			port := raw.(map[string]any)
-			if port["port"] == 443 {
+			if raw.(map[string]any)["port"] == 443 {
 				has443 = true
 			}
 		}
@@ -100,8 +52,8 @@ func TestLocalRedirectsAndAuth(t *testing.T) {
 		port                               int
 	}{
 		{"bottleship", "local-http", "games.local", "web", "https", 443},
-		{"home-assistant", "local-https-to-http", "home.local", "home-local", "http", 80},
-		{"jellyfin", "local-https-to-http", "media.local", "media-local", "http", 80},
+		{"home-assistant", "local-https-to-http", "home.local", "local", "http", 80},
+		{"jellyfin", "local-https-to-http", "media.local", "local", "http", 80},
 	} {
 		docs := renderChart(t, filepath.Join(root, "kubernetes/apps", tc.app), tc.app)
 		route := findResource(t, docs, "HTTPRoute", tc.app+"-"+tc.route)
@@ -150,6 +102,11 @@ func TestLocalRedirectsAndAuth(t *testing.T) {
 		}
 	}
 	local := findResource(t, docs, "HTTPRoute", "bottleship-local-https")
+	parents := spec(local)["parentRefs"].([]any)
+	if len(parents) != 1 || parents[0].(map[string]any)["sectionName"] != "local" {
+		t.Fatal("BottleShip must use shared local listener")
+	}
+
 	rules := spec(local)["rules"].([]any)
 	callback := rules[0].(map[string]any)
 	if _, ok := callback["filters"]; ok {

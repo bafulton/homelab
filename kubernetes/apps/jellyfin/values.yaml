@@ -31,7 +31,7 @@ gateway-route:
     # HTTPS is accepted for browser upgrades, then returns to the existing HTTP URL.
     - name: local-https-to-http
       access: apps
-      listeners: [media-local]
+      listeners: [local]
       hostnames: [media.local]
       rules:
         - filters:

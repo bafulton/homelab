@@ -52,28 +52,10 @@ traefik:
         protocol: HTTP
         namespacePolicy:
           from: All
-      games-local:
+      local:
         port: 443
         protocol: HTTPS
-        hostname: games.local
-        namespacePolicy:
-          from: All
-        certificateRefs:
-          - name: household-local-tls
-        mode: Terminate
-      home-local:
-        port: 443
-        protocol: HTTPS
-        hostname: home.local
-        namespacePolicy:
-          from: All
-        certificateRefs:
-          - name: household-local-tls
-        mode: Terminate
-      media-local:
-        port: 443
-        protocol: HTTPS
-        hostname: media.local
+        hostname: '*.local'
         namespacePolicy:
           from: All
         certificateRefs:

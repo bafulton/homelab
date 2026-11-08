@@ -86,7 +86,7 @@ kubectl -n bottleship get pods -o wide
 ```
 
 Check the LAN Service exposes 80/443, the Tailscale Service still exposes only
-80/8443, all three exact-host LAN listeners are Programmed/Accepted, and all
+80/8443, the shared `local` listener is Programmed/Accepted, and all
 routes have Accepted/ResolvedRefs. Check the local certificate is Ready and
 matches the enrolled CA.
 

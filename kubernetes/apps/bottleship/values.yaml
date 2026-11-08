@@ -163,7 +163,7 @@ gateway-route:
                 statusCode: 302
     - name: local-https
       access: apps
-      listeners: [games-local]
+      listeners: [local]
       hostnames: [games.local]
       mdns:
         name: BottleShip
