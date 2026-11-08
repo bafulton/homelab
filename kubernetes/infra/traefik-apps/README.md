@@ -8,13 +8,13 @@ this controller's own dashboard at `https://traefik-apps.catfish-mountain.com`.
 
 | Entrance | Destination | Listeners |
 | --- | --- | --- |
-| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80 |
+| Household LAN/mDNS | MetalLB `192.168.1.200` | `web` 80; exact-host LAN HTTPS 443 |
 | Cloudflare Tunnel | `traefik-apps.traefik-apps.svc.cluster.local:80` | `web` |
 | Tailnet household clients | `cluster-apps.catfish-mountain.ts.net` | 80 |
 | OCI edge forwarder (`tag:edge`) | `cluster-apps.catfish-mountain.ts.net:8443` | `edge` |
 
 Both LoadBalancers explicitly disable NodePort allocation. Port 8443 is published
-only on the Tailscale Service. The shared OCI listener is restricted to `*.fultonhuffman.com`, and the forwarder
+only on the Tailscale Service. LAN HTTPS 443 is published only on the MetalLB Service. The shared OCI listener is restricted to `*.fultonhuffman.com`, and the forwarder
 retains an exact media/games SNI allowlist; a public SNI plus an
 administrative Host header must not reach any dashboard.
 
@@ -42,6 +42,14 @@ special entrances specify `listeners`. Admission rejects admin attachment to thi
 including routes in administrative backend namespaces. The two dashboards use
 ClusterIP backend Services and admin-class routes.
 
+The `games-local`, `home-local`, and `media-local` listeners on 443 terminate a
+shared private-CA certificate with three explicit SANs. They accept only their
+matching hostname; admission rejects broadened or mismatched LAN routes.
+`games.local` serves BottleShip, while home/media HTTPS redirect to their existing
+HTTP URLs. These listeners do not change the OCI edge's SNI boundary. No HSTS or
+global HTTP-to-HTTPS redirect is configured. Setup, staged rollout, and rollback
+are in [household access](../../../docs/local-household-access.md).
+
 Certificates are owned here for `media.fultonhuffman.com` and
 `games.fultonhuffman.com`, used only by the shared OCI listener. Public TLS for
 other application hostnames terminates at Cloudflare; private admin TLS belongs
@@ -57,9 +65,8 @@ both existing replicas available and allow one surge pod. The existing
 
 The household application path must stay on the home LAN: mDNS advertisement →
 MetalLB `192.168.1.200` → this controller → Home Assistant, Jellyfin, or BottleShip.
-BottleShip's oauth2-proxy also requires home placement for session checks. Any
-separate local-session proxy added for `games.local` (CAT-23) must carry the same
-selector and toleration. Public Pocket ID login remains an accepted internet
+BottleShip's public and local oauth2-proxy instances also require home placement
+for session checks, with the same selector and toleration. Public Pocket ID login remains an accepted internet
 dependency; this does not promise fully local authentication or whole-cluster
 WAN-outage survival.
 
@@ -118,10 +125,4 @@ and public routes use this Gateway; administrative routes do not.
 Use `helm dependency update` before trusting a local render. First render with `--include-crds` to audit bundled CRDs. To mirror Argo's
 `skipCrds: true`, omit `--include-crds` (it overrides `--skip-crds` in template).
 
-## Prepared LAN TLS certificate
-
-`Certificate/household-local` uses the existing `homelab-ca` issuer with explicit
-SANs games.local, home.local, and media.local. This foundation does not enable
-LAN HTTPS listeners or expose 443 yet. Wait for the certificate to be Ready
-before merging the dependent application-routing PR. See [LAN HTTPS foundation](../../../docs/lan-https-foundation.md)
-for root trust, renewal/rotation, and foundation rollout/rollback.
+The certificate and policy prerequisites are described in [LAN HTTPS foundation](../../../docs/lan-https-foundation.md); merge and sync that foundation before enabling these listeners.

@@ -130,7 +130,7 @@ func TestIngressBoundary(t *testing.T) {
 			if meta(o)["namespace"] == "longhorn" {
 				route = o
 			}
-			if labels, ok := meta(o)["labels"].(map[string]any); ok && labels["homelab.io/access"] == "apps" && meta(o)["namespace"] == "bottleship" {
+			if labels, ok := meta(o)["labels"].(map[string]any); ok && labels["homelab.io/access"] == "apps" && meta(o)["name"] == "bottleship-public" {
 				appsRoute = o
 			}
 			if meta(o)["name"] == "argocd-webhook" {
