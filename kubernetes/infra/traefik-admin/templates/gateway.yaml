@@ -1,0 +1,22 @@
+# Explicit template avoids Helm merging the upstream default HTTP listener back in.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: traefik-admin
+  namespace: {{ .Release.Namespace }}
+spec:
+  gatewayClassName: traefik-admin
+  listeners:
+    - name: admin
+      port: 443
+      protocol: HTTPS
+      allowedRoutes:
+        kinds:
+          - group: gateway.networking.k8s.io
+            kind: HTTPRoute
+        namespaces:
+          from: All
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: wildcard-catfish-mountain-com-tls

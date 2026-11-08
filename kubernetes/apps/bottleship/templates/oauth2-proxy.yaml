@@ -1,3 +1,8 @@
+{{- $root := . -}}
+{{- range $instance := list
+      (dict "name" "oauth2-proxy" "middleware" "pocket-id-auth" "host" "games.fultonhuffman.com" "cookie" "_games_auth")
+      (dict "name" "oauth2-proxy-local" "middleware" "pocket-id-auth-local" "host" "games.local" "cookie" "_games_local_auth") }}
+---
 # oauth2-proxy turns Pocket ID's OIDC into a yes/no answer Traefik can ask.
 #
 # The pocket-id-auth Middleware sends every request's headers here first. A
@@ -8,17 +13,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: oauth2-proxy
+  name: {{ $instance.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: oauth2-proxy
+      app.kubernetes.io/name: {{ $instance.name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: oauth2-proxy
+        app.kubernetes.io/name: {{ $instance.name }}
     spec:
+      # Keep bottleship traffic local to avoid unnecessary hops across the internet
+      nodeSelector:
+        homelab.io/location: local
+      tolerations:
+        - key: homelab.io/prefer-off
+          operator: Exists
+          effect: PreferNoSchedule
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -27,16 +39,16 @@ spec:
         seccompProfile:
           type: RuntimeDefault
       containers:
-        - name: oauth2-proxy
-          image: {{ .Values.oauth2Proxy.image.repository }}:{{ .Values.oauth2Proxy.image.tag }}
+        - name: {{ $instance.name }}
+          image: {{ $root.Values.oauth2Proxy.image.repository }}:{{ $root.Values.oauth2Proxy.image.tag }}
           args:
             - --http-address=0.0.0.0:4180
             - --provider=oidc
-            - --oidc-issuer-url={{ .Values.oauth2Proxy.issuerUrl }}
-            - --client-id={{ .Values.oauth2Proxy.clientId }}
+            - --oidc-issuer-url={{ $root.Values.oauth2Proxy.issuerUrl }}
+            - --client-id={{ $root.Values.oauth2Proxy.clientId }}
             - --code-challenge-method=S256
             - --scope=openid email profile
-            - --redirect-url=https://games.fultonhuffman.com/oauth2/callback
+            - --redirect-url=https://{{ $instance.host }}/oauth2/callback
             # Answer forward-auth checks instead of proxying: 202 when signed
             # in, a redirect to Pocket ID when not.
             - --upstream=static://202
@@ -48,9 +60,9 @@ spec:
             # Pocket ID marks emails unverified when it sends no mail, and
             # nothing here relies on the address being real.
             - --insecure-oidc-allow-unverified-email=true
-            - --cookie-name=_games_auth
+            - --cookie-name={{ $instance.cookie }}
             - --cookie-secure=true
-            - --cookie-expire={{ .Values.oauth2Proxy.cookieExpire }}
+            - --cookie-expire={{ $root.Values.oauth2Proxy.cookieExpire }}
             - --silence-ping-logging=true
           envFrom:
             - secretRef:
@@ -75,7 +87,7 @@ spec:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 30
-          {{- with .Values.oauth2Proxy.resources }}
+          {{- with $root.Values.oauth2Proxy.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -83,10 +95,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: oauth2-proxy
+  name: {{ $instance.name }}
 spec:
   selector:
-    app.kubernetes.io/name: oauth2-proxy
+    app.kubernetes.io/name: {{ $instance.name }}
   ports:
     - name: http
       port: 4180
@@ -95,13 +107,19 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: pocket-id-auth
+  name: {{ $instance.middleware }}
+  labels:
+    homelab.io/ingress: apps
+  annotations:
+    kubernetes.io/ingress.class: traefik-apps
 spec:
   forwardAuth:
     # The root path, not /oauth2/auth: /oauth2/auth answers a bare 401, while
     # the root answers with the redirect a browser needs to reach sign-in.
-    address: http://oauth2-proxy.{{ .Release.Namespace }}.svc.cluster.local:4180/
+    address: http://{{ $instance.name }}.{{ $root.Release.Namespace }}.svc.cluster.local:4180/
     trustForwardHeader: true
     authResponseHeaders:
       - X-Auth-Request-User
       - X-Auth-Request-Email
+
+{{- end }}

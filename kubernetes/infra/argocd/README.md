@@ -4,7 +4,8 @@ GitOps continuous delivery for Kubernetes. Watches this repo and automatically s
 
 ## Access
 
-`https://argocd.catfish-mountain.com` (requires Tailscale connection)
+`https://argocd.catfish-mountain.com` (requires the Tailscale `group:homelab-admins` grant through
+[traefik-admin](../traefik-admin/README.md))
 
 ## Credentials
 

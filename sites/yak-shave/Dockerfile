@@ -8,7 +8,7 @@
 #
 # Build it by hand with:
 #   npm ci && npm run build && docker build -t yak-shave .
-FROM caddy:2.11.8-alpine
+FROM caddy:2.11.9-alpine
 
 # The upstream binary ships cap_net_bind_service as a *file* capability so it
 # can bind :80. We serve :8080 behind Traefik and never need it - and the pod

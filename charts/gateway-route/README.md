@@ -1,151 +1,104 @@
-# gateway-route
+# Gateway routes
 
-Shared Helm chart for creating HTTPRoute resources for Gateway API routing. Supports unified routing for both public access (via Cloudflare Tunnel) and LAN access (via MetalLB) through a single HTTPRoute.
-
-## Overview
-
-This chart replaces the deprecated `traefik-ingress` chart and uses Kubernetes Gateway API instead of Traefik-specific IngressRoute CRDs. The Gateway API provides:
-- Vendor-neutral, standardized routing
-- Single HTTPRoute for both public (Cloudflare Tunnel) and LAN (MetalLB) traffic
-- Better multi-tenant support with explicit Gateway references
-
-## Migration from traefik-ingress
-
-Replace in your `Chart.yaml`:
-```yaml
-# Old
-- name: traefik-ingress
-  version: 1.0.0
-  repository: file://../../../charts/traefik-ingress
-
-# New
-- name: gateway-route
-  version: 1.0.0
-  repository: file://../../../charts/gateway-route
-```
-
-Update your `values.yaml`:
-```yaml
-# Old traefik-ingress format
-traefik-ingress:
-  ingresses:
-    - name: lan
-      hostname: myapp.local
-      service:
-        name: myapp-service
-        port: 80
-
-# New gateway-route format
-gateway-route:
-  routes:
-    - name: lan
-      hostnames:              # Note: array instead of single hostname
-        - myapp.fultonhuffman.com  # Public via Cloudflare Tunnel
-        - myapp.local              # LAN via mDNS
-      service:
-        name: myapp-service
-        port: 80
-```
-
-## Usage
-
-Add as a dependency in your app's `Chart.yaml`:
-
-```yaml
-dependencies:
-  - name: gateway-route
-    version: 1.0.0
-    repository: file://../../../charts/gateway-route
-```
-
-Configure routes in your `values.yaml`:
+Shared Helm chart for HTTPRoutes and optional mDNS advertisements. Applications
+choose an access class; the chart generates explicit Kubernetes Gateway references.
+See the [admin gateway](../../kubernetes/infra/traefik-admin/README.md) and
+[apps gateway](../../kubernetes/infra/traefik-apps/README.md) for their current
+listeners and access boundaries.
 
 ```yaml
 gateway-route:
   routes:
-    - name: myapp
-      hostnames:
-        - myapp.catfish-mountain.com
+    - name: ui
+      access: admin
+      hostnames: [myapp.catfish-mountain.com]
       service:
-        name: myapp-service
+        name: myapp-server
         port: 80
 ```
 
-## Configuration
+`access: admin` selects the administrative entrance. `access: apps` selects the
+household/public entrance and normally uses the `web` listener. The apps Gateway
+can terminate LAN HTTPS through a shared `local` listener once the dependent
+application change enables its listeners. Cloudflare terminates
+most public TLS, while the OCI forwarder has its own shared TLS listener.
+Gateway names, namespaces, and default listeners live centrally in this chart's
+`gateways` mapping. Ordinary app values do not repeat them.
 
-### Gateway Configuration
+## Listener overrides
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `gateway.name` | Name of the Gateway resource | `traefik` |
-| `gateway.namespace` | Namespace of the Gateway | `traefik` |
+Apps that need a different set of entrances can specify `listeners`. This replaces
+the default list. The existing OCI services use:
 
-### Route Configuration
+```yaml
+# Jellyfin and BottleShip: household HTTP plus the shared OCI TLS entrance.
+access: apps
+listeners: [web, edge]
+```
 
-Each route supports the following parameters:
+| Listener | Port | Purpose |
+| --- | --- | --- |
+| `web` | 80 | LAN HTTP and Cloudflare Tunnel upstream |
+| `local` | 443 | LAN HTTPS scoped to `*.local`; private CA, no tailnet Service exposure |
+| `edge` | 8443 | OCI TLS passthrough; shared listener restricted to `*.fultonhuffman.com` |
 
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `name` | Name suffix for the HTTPRoute | Yes |
-| `hostnames` | List of hostnames for this route | Yes |
-| `service.name` | Name of the backend Service | Yes |
-| `service.port` | Port number of the Service | No (default: 80) |
-| `rules` | Custom HTTPRoute rules (overrides default catch-all) | No |
+The shared `edge` listener is one entrance for OCI-forwarded public traffic. Only
+routes selecting `edge` can use it; the forwarder still accepts only media/games
+SNI. Both existing certificates must be Ready; a bad reference can affect both
+apps. Public SNI and Host may select different public apps within this shared
+listener; application authentication still applies.
 
-## Important Notes
+The shared `local` listener accepts `.local` names; attached HTTPRoutes must
+list explicit `.local` hostnames. The routing wildcard does not require a
+wildcard certificate: the server certificate lists its supported names as SANs. The dependent application PR adds
+games HTTPS and home/media HTTPS-to-HTTP redirects. See [household access](../../docs/lan-https-foundation.md).
 
-- **Same namespace requirement**: The HTTPRoute and backend Service must be in the same namespace (the release namespace). Cross-namespace routing requires manual ReferenceGrant creation, which is outside the scope of this chart.
-- **Gateway access**: The Gateway (in the `traefik` namespace) can route to HTTPRoutes in any namespace because the Gateway is configured with `namespacePolicy.from: All`.
+Admin listeners are controlled by the central mapping, with no per-route override.
+The chart rejects missing/unknown access classes, raw `parentRefs`, invalid/empty
+listener overrides, duplicate listeners, and administrative mDNS advertisements.
 
-## mDNS Support
-
-Routes can optionally advertise services via mDNS (Bonjour/Zeroconf) for LAN service discovery. This is useful when you have `.local` hostnames for LAN access.
-
-The mDNS configuration creates a ConfigMap with the label `mdns.homelab.io/advertise: "true"` that is picked up by the mdns-advertiser service.
-
-Example with mDNS:
+## Household discovery and custom rules
 
 ```yaml
 gateway-route:
   routes:
-    - name: media
-      hostnames:
-        - media.local                  # LAN access (add to /etc/hosts)
-        - media.catfish-mountain.com   # Remote access (DNS)
+    - name: household
+      access: apps
+      hostnames: [myapp.fultonhuffman.com, myapp.local]
       service:
-        name: jellyfin
-        port: 8096
+        name: myapp-server
+        port: 80
       mdns:
-        name: Media Server
-        ip: 192.168.1.200              # Gateway MetalLB IP
-        port: 8096
-        types:
-          - type: _http._tcp
+        name: My App
+        ip: 192.168.1.200
 ```
 
-This allows devices on the LAN to discover the service as `media.local` via Bonjour.
+`rules` supplies Gateway API HTTPRoute rules instead of the default `/` backend.
+BottleShip uses this for ForwardAuth; the Argo public webhook uses an exact
+`POST /api/webhook` match. Existing application authentication remains required.
 
-**When to use this vs. direct mdns-config**: Use gateway-route's integrated mDNS support for HTTP/HTTPS services that need both Gateway API routing AND mDNS discovery. For non-HTTP services (MQTT, SMB, etc.) that only need mDNS discovery, use the `mdns-config` chart directly. See `/charts/README.md` for detailed pattern comparison.
+The generated HTTPRoute uses the Gateway API's standard `parentRefs` fields:
+`name` is the referenced Gateway object's name, `namespace` tells Kubernetes
+where to find that object, and `sectionName` names one of its
+`spec.listeners[].name` values. The name and namespace often match by convention,
+as they do for these Gateways, but identify different parts of the reference.
+`sectionName` is the API field name; it selects a Gateway listener, rather than
+an arbitrary application-defined label. These fields are generated output, not
+part of the app-facing values interface.
 
-## Example
+## Gateway mapping
 
-Full example for an app with multiple routes:
+`admin` maps to `traefik-admin/traefik-admin` on its `admin` listener. Its Tailscale
+Service is tagged `tag:k8s-admin`; only `group:homelab-admins` can connect on TCP
+443. `apps` maps to `traefik-apps/traefik-apps` on `web`. The apps Gateway serves
+the LAN VIP and Cloudflare Tunnel upstream; its shared `edge` listener is reserved
+for OCI-forwarded public hostnames. `gateway-route` generates each HTTPRoute's
+explicit parent references from this mapping.
 
-```yaml
-gateway-route:
-  routes:
-    - name: web
-      hostnames:
-        - myapp.catfish-mountain.com
-        - www.myapp.catfish-mountain.com
-      service:
-        name: myapp-web
-        port: 8080
+Cluster-wide admission policies enforce the route and Service boundaries. They are
+owned by the policy Application documented at
+[`kubernetes/infra/gateway-policies`](../../kubernetes/infra/gateway-policies/README.md).
 
-    - name: api
-      hostnames:
-        - api.myapp.catfish-mountain.com
-      service:
-        name: myapp-api
-        port: 3000
-```
+Keep the `file://../../../charts/gateway-route` dependency at version `1.0.0`.
+Run `helm dependency update` whenever this shared chart changes; old local archives
+can hide updated defaults/templates. See [validation](../../scripts/tests/ingress/README.md).

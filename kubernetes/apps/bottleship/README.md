@@ -15,7 +15,11 @@ that puts players' browsers on one virtual LAN for multiplayer.
   (`/var/mnt/usb/bottleship`), backed up weekly to Garage by VolSync
 - **Library**: `games` in `values.yaml`, served as `/games-catalog.json`
 - **Sign-in**: oauth2-proxy answers Traefik's `forwardAuth` for every request;
-  Pocket ID only signs in members of the client's allowed groups
+  Pocket ID only signs in members of the client's allowed groups. The proxy
+  requires `homelab.io/location=local` so session handling stays at home;
+  any separate `games.local` session deployment must use the same placement.
+  Public Pocket ID login remains an internet dependency. See the
+  [household rollout and rollback](../../infra/traefik-apps/README.md#household-placement-and-rollout).
 - **Ingress**: OCI edge forwarder → Traefik's edge listener for
   `games.fultonhuffman.com`. Bundles are multi-GB, which keeps them off
   Cloudflare's CDN for the same reason as Jellyfin's video
@@ -24,13 +28,28 @@ that puts players' browsers on one virtual LAN for multiplayer.
 
 In Pocket ID, **OIDC Clients → Add**:
 
-- **Callback URL**: `https://games.fultonhuffman.com/oauth2/callback`
+- **Callback URLs**: `https://games.fultonhuffman.com/oauth2/callback` and
+  `https://games.local/oauth2/callback` (add the local callback to the existing
+  client before testing LAN login; keep the public one)
 - **Public Client**: off. oauth2-proxy needs a client secret
 - **PKCE**: on
 - **Allowed User Groups**: `games` (create the group first)
 
 Put the client ID in `oauth2Proxy.clientId` and the client secret in Bitwarden,
 referenced as `OAUTH2_PROXY_CLIENT_SECRET`.
+
+## Local HTTPS
+
+On an enrolled personal Mac, use `https://games.local`. mDNS resolves it to the
+LAN gateway, and HTTP games.local redirects there with a temporary 302. BottleShip
+requires a trusted secure context plus cross-origin isolation for its browser
+APIs. A separate local oauth2-proxy uses its own fixed callback and host-only
+Secure cookie, while retaining the existing Pocket ID client/group policy.
+Local application/download/WebSocket traffic stays on the LAN; Pocket ID login
+still uses its public HTTPS URL. Other devices can use the existing public URL.
+
+See [household access](../../../docs/local-household-access.md) for CA enrollment,
+origin-specific saves, rollout/rollback, and browser/network verification.
 
 ## Adding a Game
 

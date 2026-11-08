@@ -14,6 +14,8 @@ namespace: jellyfin
 gateway-route:
   routes:
     - name: public-lan
+      access: apps
+      listeners: [web, edge]
       hostnames:
         # Still required: the edge forwarder passes TLS through with this
         # SNI, and this route is what matches it here.
@@ -25,6 +27,19 @@ gateway-route:
       mdns:
         name: Jellyfin
         ip: 192.168.1.200
+
+    # HTTPS is accepted for browser upgrades, then returns to the existing HTTP URL.
+    - name: local-https-to-http
+      access: apps
+      listeners: [local]
+      hostnames: [media.local]
+      rules:
+        - filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: http
+                port: 80
+                statusCode: 302
 
 # Local storage - media PVC directly on USB drive (hostPath, not Longhorn)
 # VolSync backs up to Garage weekly via restic
