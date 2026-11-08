@@ -1,0 +1,115 @@
+[
+  {
+    "namespace": "argocd",
+    "policy": "argocd-application-controller",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {
+      "metrics": [
+        8082
+      ]
+    }
+  },
+  {
+    "namespace": "argocd",
+    "policy": "argocd-dex-server",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {
+      "grpc": [
+        5557
+      ],
+      "http": [
+        5556
+      ],
+      "metrics": [
+        5558
+      ]
+    }
+  },
+  {
+    "namespace": "argocd",
+    "policy": "argocd-notifications-controller",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {
+      "metrics": [
+        9001
+      ]
+    }
+  },
+  {
+    "namespace": "argocd",
+    "policy": "argocd-redis",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {
+      "redis": [
+        6379
+      ]
+    }
+  },
+  {
+    "namespace": "argocd",
+    "policy": "argocd-repo-server",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {
+      "metrics": [
+        8084
+      ],
+      "repo-server": [
+        8081
+      ]
+    }
+  },
+  {
+    "namespace": "argocd",
+    "policy": "argocd-server",
+    "selectedPods": 1,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "backing-image-data-source",
+    "selectedPods": 0,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "backing-image-manager",
+    "selectedPods": 0,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "instance-manager",
+    "selectedPods": 3,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "longhorn-manager",
+    "selectedPods": 3,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "longhorn-recovery-backend",
+    "selectedPods": 3,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  },
+  {
+    "namespace": "longhorn",
+    "policy": "longhorn-webhook",
+    "selectedPods": 3,
+    "hostNetworkPods": 0,
+    "namedPorts": {}
+  }
+]

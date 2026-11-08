@@ -1,0 +1,305 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-application-controller
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - port: metrics
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-application-controller
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-dex-server
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-server
+    ports:
+    - port: http
+      protocol: TCP
+    - port: grpc
+      protocol: TCP
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - port: metrics
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-dex-server
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-notifications-controller
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - port: metrics
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-notifications-controller
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-redis
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-server
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-repo-server
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-application-controller
+    ports:
+    - port: redis
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-redis
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-server
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-application-controller
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-notifications-controller
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/instance: argocd
+          app.kubernetes.io/name: argocd-applicationset-controller
+    ports:
+    - port: repo-server
+      protocol: TCP
+  - from:
+    - namespaceSelector: {}
+    ports:
+    - port: metrics
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-repo-server
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: argocd-server
+  namespace: argocd
+spec:
+  ingress:
+  - {}
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: argocd
+      app.kubernetes.io/name: argocd-server
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backing-image-data-source
+  namespace: longhorn
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: longhorn-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: instance-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-data-source
+  podSelector:
+    matchLabels:
+      longhorn.io/component: backing-image-data-source
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backing-image-manager
+  namespace: longhorn
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: longhorn-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: instance-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-data-source
+  podSelector:
+    matchLabels:
+      longhorn.io/component: backing-image-manager
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: instance-manager
+  namespace: longhorn
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: longhorn-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: instance-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-manager
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: backing-image-data-source
+  - ports:
+    - port: 3260
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      longhorn.io/component: instance-manager
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: longhorn-manager
+  namespace: longhorn
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: longhorn-manager
+    - podSelector:
+        matchLabels:
+          app: longhorn-ui
+    - podSelector:
+        matchLabels:
+          app: longhorn-csi-plugin
+    - podSelector:
+        matchExpressions:
+        - key: recurring-job.longhorn.io
+          operator: Exists
+        matchLabels:
+          longhorn.io/managed-by: longhorn-manager
+    - podSelector:
+        matchExpressions:
+        - key: longhorn.io/job-task
+          operator: Exists
+    - podSelector:
+        matchLabels:
+          app: longhorn-driver-deployer
+  podSelector:
+    matchLabels:
+      app: longhorn-manager
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: longhorn-recovery-backend
+  namespace: longhorn
+spec:
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          longhorn.io/component: share-manager
+    ports:
+    - port: 9503
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      longhorn.io/recovery-backend: longhorn-recovery-backend
+  policyTypes:
+  - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: longhorn-webhook
+  namespace: longhorn
+spec:
+  ingress:
+  - ports:
+    - port: 9501
+      protocol: TCP
+    - port: 9502
+      protocol: TCP
+  podSelector:
+    matchLabels:
+      longhorn.io/admission-webhook: longhorn-admission-webhook
+  policyTypes:
+  - Ingress

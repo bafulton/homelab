@@ -62,3 +62,5 @@ the root Application wait for the generated Application's health.
        └── templates/
    ```
 2. Commit and push - ArgoCD will automatically detect and deploy it
+
+Workload NetworkPolicy activation preparation, dependency inventory, and test/rollback procedures are in [the CAT-6 preflight](../docs/network-isolation/README.md).

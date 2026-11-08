@@ -1,0 +1,591 @@
+{
+  "timestamp": "2026-11-08T03:55:25.041765+00:00",
+  "context": "homelab",
+  "nodes": [
+    "beelink",
+    "rpi5",
+    "ocifree"
+  ],
+  "namespace": "cat6-probe-8eeca0ea",
+  "image": "python:3.13.11-alpine3.23",
+  "enforcementRequested": false,
+  "error": null,
+  "results": [
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-0",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-1",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "pod:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "service:0",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "pod:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "service:1",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "allow-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "pod:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "service:2",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:TCP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    },
+    {
+      "phase": "baseline",
+      "source": "deny-2",
+      "target": "dns:UDP",
+      "expected": "allow",
+      "observed": "allow",
+      "passed": true
+    }
+  ]
+}

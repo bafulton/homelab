@@ -1,0 +1,249 @@
+{
+  "collectedAt": "2026-11-08T03:57:47.528484+00:00",
+  "revision": "2b9120b26b36957437fcba5010da14503dd7f173",
+  "context": "homelab",
+  "charts": [
+    {
+      "path": "kubernetes/apps/bottleship",
+      "release": "bottleship",
+      "namespace": "bottleship",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/apps/home-assistant",
+      "release": "home-assistant",
+      "namespace": "home-assistant",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/apps/jellyfin",
+      "release": "jellyfin",
+      "namespace": "jellyfin",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/apps/yak-shave",
+      "release": "yak-shave",
+      "namespace": "yak-shave",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/argocd",
+      "release": "argocd",
+      "namespace": "argocd",
+      "policies": [
+        "argocd-application-controller",
+        "argocd-notifications-controller",
+        "argocd-repo-server",
+        "argocd-server",
+        "argocd-dex-server",
+        "argocd-redis"
+      ]
+    },
+    {
+      "path": "kubernetes/infra/cert-manager",
+      "release": "cert-manager",
+      "namespace": "cert-manager",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/cloudflared",
+      "release": "cloudflared",
+      "namespace": "cloudflared",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/cluster-maintenance",
+      "release": "cluster-maintenance",
+      "namespace": "kube-system",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/coredns",
+      "release": "coredns",
+      "namespace": "coredns",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/descheduler",
+      "release": "descheduler",
+      "namespace": "descheduler",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/external-secrets",
+      "release": "external-secrets",
+      "namespace": "external-secrets",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/garage",
+      "release": "garage",
+      "namespace": "garage",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/gateway-policies",
+      "release": "gateway-policies",
+      "namespace": "traefik",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/goldpinger",
+      "release": "goldpinger",
+      "namespace": "goldpinger",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/intel-device-plugins",
+      "release": "intel-device-plugins",
+      "namespace": "intel-device-plugins",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/kube-state-metrics",
+      "release": "kube-state-metrics",
+      "namespace": "kube-state-metrics",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/longhorn",
+      "release": "longhorn",
+      "namespace": "longhorn",
+      "policies": [
+        "backing-image-data-source",
+        "backing-image-manager",
+        "instance-manager",
+        "longhorn-manager",
+        "longhorn-recovery-backend",
+        "longhorn-webhook"
+      ]
+    },
+    {
+      "path": "kubernetes/infra/mdns-advertiser",
+      "release": "mdns-advertiser",
+      "namespace": "mdns-advertiser",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/metallb",
+      "release": "metallb",
+      "namespace": "metallb",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/metrics-server",
+      "release": "metrics-server",
+      "namespace": "kube-system",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/mosquitto",
+      "release": "mosquitto",
+      "namespace": "mosquitto",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/node-exporter",
+      "release": "node-exporter",
+      "namespace": "node-exporter",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/node-health",
+      "release": "node-health",
+      "namespace": "node-health",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/pocket-id",
+      "release": "pocket-id",
+      "namespace": "pocket-id",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/reloader",
+      "release": "reloader",
+      "namespace": "reloader",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/signoz",
+      "release": "signoz",
+      "namespace": "signoz",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/signoz-k8s-infra",
+      "release": "signoz-k8s-infra",
+      "namespace": "signoz",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/smartctl-exporter",
+      "release": "smartctl-exporter",
+      "namespace": "smartctl-exporter",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/snapshot-crds",
+      "release": "snapshot-crds",
+      "namespace": "snapshot-crds",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/subnet-route-steering",
+      "release": "subnet-route-steering",
+      "namespace": "kube-system",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/tailscale-operator",
+      "release": "tailscale-operator",
+      "namespace": "tailscale",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/time-machine",
+      "release": "time-machine",
+      "namespace": "time-machine",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/traefik-admin",
+      "release": "traefik-admin",
+      "namespace": "traefik-admin",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/traefik-apps",
+      "release": "traefik-apps",
+      "namespace": "traefik-apps",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/traefik-crds",
+      "release": "traefik-crds",
+      "namespace": "traefik-crds",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/tuppr",
+      "release": "tuppr",
+      "namespace": "tuppr",
+      "policies": []
+    },
+    {
+      "path": "kubernetes/infra/volsync",
+      "release": "volsync",
+      "namespace": "volsync-system",
+      "policies": []
+    }
+  ],
+  "policyDrift": [],
+  "rawSpecDifferences": [
+    "argocd/argocd-application-controller",
+    "argocd/argocd-notifications-controller",
+    "argocd/argocd-repo-server"
+  ]
+}
