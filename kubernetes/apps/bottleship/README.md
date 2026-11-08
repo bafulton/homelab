@@ -15,7 +15,11 @@ that puts players' browsers on one virtual LAN for multiplayer.
   (`/var/mnt/usb/bottleship`), backed up weekly to Garage by VolSync
 - **Library**: `games` in `values.yaml`, served as `/games-catalog.json`
 - **Sign-in**: oauth2-proxy answers Traefik's `forwardAuth` for every request;
-  Pocket ID only signs in members of the client's allowed groups
+  Pocket ID only signs in members of the client's allowed groups. The proxy
+  requires `homelab.io/location=local` so session handling stays at home;
+  any separate `games.local` session deployment must use the same placement.
+  Public Pocket ID login remains an internet dependency. See the
+  [household rollout and rollback](../../infra/traefik-apps/README.md#household-placement-and-rollout).
 - **Ingress**: OCI edge forwarder → Traefik's edge listener for
   `games.fultonhuffman.com`. Bundles are multi-GB, which keeps them off
   Cloudflare's CDN for the same reason as Jellyfin's video
