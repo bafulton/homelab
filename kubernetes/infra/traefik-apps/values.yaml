@@ -26,10 +26,11 @@ traefik:
       expose:
         default: true
         tailscale: true
+    # LAN only. The OCI edge keeps its separate :8443 entrance.
     websecure:
       port: 443
       expose:
-        default: false
+        default: true
         tailscale: false
     edge:
       port: 8443
@@ -51,6 +52,15 @@ traefik:
         protocol: HTTP
         namespacePolicy:
           from: All
+      local:
+        port: 443
+        protocol: HTTPS
+        hostname: '*.local'
+        namespacePolicy:
+          from: All
+        certificateRefs:
+          - name: household-local-tls
+        mode: Terminate
       edge:
         port: 8443
         protocol: HTTPS
