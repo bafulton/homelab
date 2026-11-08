@@ -120,6 +120,8 @@ oauth2Proxy:
 gateway-route:
   routes:
     - name: public
+      access: apps
+      listeners: [web, edge]
       hostnames:
         # The edge forwarder passes TLS through with this SNI, and the edge
         # listener with this hostname is the only one this route can bind to.
@@ -144,6 +146,49 @@ gateway-route:
                 group: traefik.io
                 kind: Middleware
                 name: pocket-id-auth
+          backendRefs:
+            - name: bottleship
+              port: 80
+
+    - name: local-http
+      access: apps
+      listeners: [web]
+      hostnames: [games.local]
+      rules:
+        - filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: https
+                port: 443
+                statusCode: 302
+    - name: local-https
+      access: apps
+      listeners: [local]
+      hostnames: [games.local]
+      mdns:
+        name: BottleShip
+        ip: 192.168.1.200
+        port: 443
+        types:
+          - type: _https._tcp
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /oauth2/
+          backendRefs:
+            - name: oauth2-proxy-local
+              port: 4180
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: pocket-id-auth-local
           backendRefs:
             - name: bottleship
               port: 80

@@ -40,7 +40,7 @@ variable "vcn_cidr" {
 }
 
 variable "public_hostnames" {
-  description = "The only SNIs this forwarder will accept and pass through. Each needs its own hostname-restricted edge listener and certificate in the cluster (kubernetes/infra/traefik) and its own A record in opentofu/cloudflare."
+  description = "The only SNIs this forwarder will accept and pass through. Each needs its own hostname-restricted edge listener and certificate in the apps gateway (kubernetes/infra/traefik-apps) and its own A record in opentofu/cloudflare."
   type        = list(string)
   default     = ["media.fultonhuffman.com", "games.fultonhuffman.com"]
 }
@@ -60,7 +60,7 @@ variable "exposure_canary_host" {
 variable "upstream" {
   description = "Where passed-through TLS goes: the Traefik gateway published on the tailnet by the Tailscale operator."
   type        = string
-  default     = "cluster-gateway.catfish-mountain.ts.net:8443"
+  default     = "cluster-apps.catfish-mountain.ts.net:8443"
 }
 
 variable "tailnet_tag" {

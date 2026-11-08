@@ -5,8 +5,8 @@ on:
     branches: [main]
     paths:
       - 'tailscale/policy.hujson'
+  # Validate stacked PRs before they are retargeted to main.
   pull_request:
-    branches: [main]
     paths:
       - 'tailscale/policy.hujson'
 

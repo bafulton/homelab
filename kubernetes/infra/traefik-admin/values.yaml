@@ -1,0 +1,106 @@
+namespace: traefik-admin
+skipCrds: true
+
+# Controller discovery is restricted to this app's Gateway and GatewayClass.
+traefik:
+  priorityClassName: system-cluster-critical
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  providers:
+    kubernetesGateway:
+      enabled: true
+      labelSelector: homelab.io/ingress=admin
+      gateways:
+        - name: traefik-admin
+          namespace: traefik-admin
+    kubernetesIngress:
+      enabled: false
+    kubernetesCRD:
+      enabled: false
+      ingressClass: traefik-admin
+      labelSelector: homelab.io/ingress=admin
+  ports:
+    web:
+      expose:
+        default: false
+    websecure:
+      port: 443
+      expose:
+        default: true
+    traefik:
+      expose:
+        default: false
+  # The wrapper template defines a single HTTPS-only listener and an explicit
+  # HTTPRoute allowlist; do not also generate the upstream chart's Gateway.
+  gateway:
+    enabled: false
+
+  # Spread replicas and prefer local nodes while retaining fallback placement.
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+          app.kubernetes.io/instance: traefik-admin-traefik-admin
+      matchLabelKeys:
+        - pod-template-hash
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: homelab.io/location
+            operator: In
+            values:
+            - local
+  tolerations:
+  - key: homelab.io/prefer-off
+    operator: Exists
+    effect: PreferNoSchedule
+  deployment:
+    replicas: 2
+    podAnnotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '9100'
+  service:
+    # This is the only external admin entrance: operator creates cluster-admin.
+    annotations:
+      tailscale.com/hostname: cluster-admin
+      tailscale.com/tags: tag:k8s-admin
+    spec:
+      type: LoadBalancer
+      loadBalancerClass: tailscale
+      allocateLoadBalancerNodePorts: false
+  metrics:
+    prometheus:
+      service:
+        enabled: true
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+  fullnameOverride: traefik-admin
+  ingressClass:
+    enabled: false
+  gatewayClass:
+    name: traefik-admin
+    labels:
+      homelab.io/ingress: admin
+  api:
+    dashboard: true
+    insecure: true
+gateway-route:
+  routes:
+  - name: dashboard
+    access: admin
+    hostnames:
+    - traefik-admin.catfish-mountain.com
+    service:
+      name: traefik-admin-dashboard
+      port: 8080

@@ -44,6 +44,7 @@ resources:
 gateway-route:
   routes:
     - name: apex
+      access: apps
       hostnames:
         - yak-shave.com
       service:
@@ -53,6 +54,7 @@ gateway-route:
     # its own Traefik would 404. Redirect rather than serve, so there is one
     # canonical host.
     - name: www
+      access: apps
       hostnames:
         - www.yak-shave.com
       rules:

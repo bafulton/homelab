@@ -33,6 +33,7 @@ resources:
 gateway-route:
   routes:
     - name: public
+      access: apps
       hostnames:
         - auth.fultonhuffman.com  # Public via Cloudflare Tunnel
       service:
