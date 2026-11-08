@@ -31,6 +31,9 @@ spec:
            l.allowedRoutes.kinds.all(k,
              k.group == 'gateway.networking.k8s.io' && k.kind == 'HTTPRoute') &&
            ((l.name == 'web' && l.port == 80 && l.protocol == 'HTTP') ||
+            (l.name == 'local' &&
+             l.port == 443 && l.protocol == 'HTTPS' &&
+             has(l.hostname) && l.hostname == '*.local') ||
             (l.name == 'edge' && l.port == 8443 && l.protocol == 'HTTPS' &&
              has(l.hostname) && l.hostname == '*.fultonhuffman.com'))))
       message: Gateways must use the dedicated admin or apps identity and approved listeners.
@@ -71,8 +74,14 @@ spec:
           has(p.namespace) && has(p.sectionName) &&
           ((variables.admin && p.name == 'traefik-admin' && p.namespace == 'traefik-admin' && p.sectionName == 'admin') ||
            (variables.apps && p.name == 'traefik-apps' && p.namespace == 'traefik-apps' &&
-            p.sectionName in ['web', 'edge'])))
+            p.sectionName in ['web', 'edge', 'local'])))
       message: Routes must explicitly attach only to listeners matching their access class.
+    - expression: >-
+        object.spec.parentRefs.all(p,
+          p.sectionName != 'local' ||
+          (has(object.spec.hostnames) && size(object.spec.hostnames) > 0 &&
+           object.spec.hostnames.all(h, h.endsWith('.local') && !h.contains('*'))))
+      message: LAN HTTPS routes must use explicit .local hostnames.
     - expression: >-
         has(object.spec.hostnames) && size(object.spec.hostnames) > 0 &&
         object.spec.hostnames.all(h, !h.contains('*') &&

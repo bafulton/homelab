@@ -52,7 +52,7 @@ Output: native HTTPRoute parentRefs as YAML.
 {{- end }}
 {{- $parents := list }}
 {{- range $listeners }}
-{{- if and (eq $access "apps") (not (has . (list "web" "edge"))) }}
+{{- if and (eq $access "apps") (not (has . (list "web" "edge" "local"))) }}
 {{- fail "gateway-route: invalid apps listener" }}
 {{- end }}
 {{- if and (eq $access "admin") (ne . "admin") }}
