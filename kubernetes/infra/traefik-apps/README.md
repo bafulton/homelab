@@ -117,3 +117,11 @@ and public routes use this Gateway; administrative routes do not.
 
 Use `helm dependency update` before trusting a local render. First render with `--include-crds` to audit bundled CRDs. To mirror Argo's
 `skipCrds: true`, omit `--include-crds` (it overrides `--skip-crds` in template).
+
+## Prepared LAN TLS certificate
+
+`Certificate/household-local` uses the existing `homelab-ca` issuer with explicit
+SANs games.local, home.local, and media.local. This foundation does not enable
+LAN HTTPS listeners or expose 443 yet. Wait for the certificate to be Ready
+before merging the dependent application-routing PR. See [LAN HTTPS foundation](../../../docs/lan-https-foundation.md)
+for root trust, renewal/rotation, and foundation rollout/rollback.
