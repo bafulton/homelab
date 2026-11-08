@@ -111,6 +111,13 @@
       "automerge": false
     },
     {
+      "description": "BottleShip by hand, never automerge: the rollout restarts the server and ends every game in progress",
+      "matchPackageNames": [
+        "ghcr.io/ievans/bottleship"
+      ],
+      "automerge": false
+    },
+    {
       "description": "Hold the python kubernetes client below v36 - auth_settings() regression: https://github.com/kubernetes-client/python/issues/2582",
       "matchDatasources": [
         "pypi"

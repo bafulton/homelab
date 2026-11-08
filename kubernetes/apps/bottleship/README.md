@@ -9,8 +9,8 @@ that puts players' browsers on one virtual LAN for multiplayer.
 
 ## Architecture
 
-- **Image**: `ghcr.io/bafulton/bottleship`, built from a pinned commit of
-  `ievans/bottleship` (`images/bottleship/`)
+- **Image**: `ghcr.io/ievans/bottleship`, published by `ievans/bottleship` for
+  each release
 - **Bundles**: `bottleship-apps`, a hostPath on beelink's USB disk
   (`/var/mnt/usb/bottleship`), backed up weekly to Garage by VolSync
 - **Library**: `games` in `values.yaml`, served as `/games-catalog.json`
@@ -116,26 +116,10 @@ catalog change) ends any game in progress.
 
 ## Updating BottleShip
 
-Updates don't happen on their own: the image is pinned to one commit of
-`ievans/bottleship`, so new commits on its `main` stay undeployed until you bump
-it.
+Each `ievans/bottleship` release publishes `ghcr.io/ievans/bottleship:X.Y.Z`
+(its `CONTRIBUTING.md`, "Releases"), and Renovate opens a pull request bumping
+`image.tag`. It is never automerged, because the rollout restarts the server and
+ends any game in progress.
 
-1. Run the **Bump BottleShip** workflow, from the Actions tab or with
-   `gh workflow run bump-bottleship.yaml`. It uses the latest `main` unless you
-   give it a `commit`.
-2. Open the pull request from the link in the run's summary. It changes
-   `BOTTLESHIP_COMMIT`, `images/bottleship/VERSION` and `image.tag` together, and
-   lists the new commits.
-3. Merge it when nobody is playing. The restart ends any game in progress.
-
-The image downloads its `.wasm` files from the release the fork's CI publishes
-for that commit's `wasm.lock.json`. If a bump changes the lock, wait for the
-fork's CI on that commit to finish first, or the image build fails. A failed
-build leaves the site on its current version.
-
-Several people may be bumping at once: if another bump already includes your
-change, you're done. Running the workflow again replaces the open bump.
-
-This is an interim process. The fork will eventually have a formal version
-release process, and then we can track its releases directly, with a more
-straightforward update regime.
+1. Read the release notes linked in the Renovate pull request.
+2. Merge it when nobody is playing.
