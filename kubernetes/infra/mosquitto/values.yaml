@@ -82,3 +82,6 @@ signoz-alerts:
       query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="mosquitto",pvc="mosquitto-data"}) or vector(0))'
       op: ">"
       threshold: 129600
+      # The hold-down rides out scrape gaps: while the metric is missing, `or
+      # vector(0)` reads as "never backed up", and a 36h check needs no urgency.
+      for: 1h0m0s
