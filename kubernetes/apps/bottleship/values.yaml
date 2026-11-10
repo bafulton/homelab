@@ -1,8 +1,9 @@
 # BottleShip - classic Windows games run in the visitor's browser.
 #
-# The emulator runs entirely client-side. This app only serves the frontend,
-# the game bundles (.wgb) and the WebSocket relay that puts players' browsers
-# on one virtual LAN for multiplayer. See README.md for adding a game.
+# The emulator runs entirely client-side. This app serves the frontend and the
+# game bundles (.wgb); a second Deployment, the LAN relay (templates/lan-relay.yaml),
+# puts players' browsers on one virtual LAN for multiplayer. See README.md for
+# adding a game.
 #
 # Access:
 #   - Public: https://games.fultonhuffman.com (via the OCI edge forwarder),
@@ -21,6 +22,27 @@ image:
   tag: "0.8.0"
   pullPolicy: IfNotPresent
 
+# The virtual-LAN relay: ievans/bottleship's Dockerfile.lan, published as
+# ghcr.io/ievans/bottleship-lan with the same version as the app image. Renovate
+# opens the bump PR, never automerged: a restart ends every game in progress.
+lanRelay:
+  image:
+    repository: ghcr.io/ievans/bottleship-lan
+    tag: "0.8.1"
+    pullPolicy: IfNotPresent
+  # Browsers reach the relay on the games hostnames (a /socket.io/ path rule on
+  # each route, behind the same Pocket ID sign-in as the site), so these are the
+  # only Origins it accepts.
+  allowedOrigins:
+    - https://games.fultonhuffman.com
+    - https://games.local
+  resources:
+    requests:
+      memory: 32Mi
+      cpu: 10m
+    limits:
+      memory: 128Mi
+
 resources:
   requests:
     memory: 64Mi
@@ -28,7 +50,8 @@ resources:
   limits:
     memory: 256Mi
 
-# Every player arrives from the edge forwarder's one tailnet address (TLS
+# Read only by app images up to 0.8.0, which still carry the fork's own relay;
+# drop it with the bump to the synced image. Every player arrives from the edge forwarder's one tailnet address (TLS
 # passthrough hides the real client), so the relay's per-address connection
 # cap is shared by everyone. Each player holds one relay connection per room;
 # 64 leaves room for a few friends across a few rooms.
@@ -139,6 +162,22 @@ gateway-route:
           backendRefs:
             - name: oauth2-proxy
               port: 4180
+        # The LAN relay's Socket.IO endpoint. Same host, so the browser sends its sign-in
+        # cookie with both the long-polling and the WebSocket requests, and the same
+        # filter checks it.
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /socket.io/
+          filters:
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: pocket-id-auth
+          backendRefs:
+            - name: bottleship-lan
+              port: 9001
         - matches:
             - path:
                 type: PathPrefix
@@ -182,6 +221,22 @@ gateway-route:
           backendRefs:
             - name: oauth2-proxy-local
               port: 4180
+        # The LAN relay's Socket.IO endpoint. Same host, so the browser sends its sign-in
+        # cookie with both the long-polling and the WebSocket requests, and the same
+        # filter checks it.
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /socket.io/
+          filters:
+            - type: ExtensionRef
+              extensionRef:
+                group: traefik.io
+                kind: Middleware
+                name: pocket-id-auth-local
+          backendRefs:
+            - name: bottleship-lan
+              port: 9001
         - matches:
             - path:
                 type: PathPrefix

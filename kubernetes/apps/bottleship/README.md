@@ -4,13 +4,19 @@ Classic Windows games in the browser at `https://games.fultonhuffman.com`,
 for friends signed in through Pocket ID (group `games`).
 
 The emulator runs entirely in each visitor's browser (WebGPU, so Chrome or
-Edge). This app serves the frontend, the game bundles, and a WebSocket relay
-that puts players' browsers on one virtual LAN for multiplayer.
+Edge). This app serves the frontend and the game bundles; a separate relay puts
+players' browsers on one virtual LAN for multiplayer.
 
 ## Architecture
 
 - **Image**: `ghcr.io/ievans/bottleship`, published by `ievans/bottleship` for
   each release
+- **LAN relay**: `ghcr.io/ievans/bottleship-lan`, the Rust relay from
+  `ievans/bottleship` (`Dockerfile.lan`), published for each release with the
+  app's version. Its own Deployment (`templates/lan-relay.yaml`), ClusterIP only:
+  browsers reach it at `/socket.io/` on the games hostnames, behind the same
+  sign-in as the site. The relay has no accounts, so that path rule is its only
+  access control. Never give it a route of its own
 - **Bundles**: `bottleship-apps`, a hostPath on beelink's USB disk
   (`/var/mnt/usb/bottleship`), backed up weekly to Garage by VolSync
 - **Library**: `games` in `values.yaml`, served as `/games-catalog.json`
@@ -105,21 +111,25 @@ storage key, so two bundles with one id share their saves.
 
 ## Multiplayer
 
-Players in the same room share a virtual LAN (`192.168.77.0/24`), relayed
-by the server. In a game, the 🌐 button creates a room and copies an invite
-link; friends who open it join the same room, then use the game's own LAN
-menu. Only games that network over Winsock work this way. DirectPlay is still
-local-only.
+Players in the same room share a virtual LAN (`10.0.0.0/8`), relayed by the
+LAN relay. A room is admitted by its name alone, so use an unguessable one for
+a private game. Each player sets Settings → Network to
+`https://games.fultonhuffman.com` (or `https://games.local` at home), or opens an
+invite link (`?lanServer=<url-encoded server>&room=<room>`), then uses the
+game's own LAN menu. Winsock games and DirectPlay (1 to 4 and 8) work between
+BottleShip players; see the upstream `docs/multiplayer.md` for what does not.
 
-Rooms live in the server's memory, so restarting the pod (a new image or a
-catalog change) ends any game in progress.
+Rooms live in the relay's memory, so restarting its pod (a new relay image or an
+`allowedOrigins` change) ends any game in progress. Restarting the app pod does
+not.
 
 ## Updating BottleShip
 
 Each `ievans/bottleship` release publishes `ghcr.io/ievans/bottleship:X.Y.Z`
-(its `CONTRIBUTING.md`, "Releases"), and Renovate opens a pull request bumping
-`image.tag`. It is never automerged, because the rollout restarts the server and
-ends any game in progress.
+(its `CONTRIBUTING.md`, "Releases") and `ghcr.io/ievans/bottleship-lan:X.Y.Z`,
+and Renovate opens a pull request bumping each `image.tag`. Neither is
+automerged, because a rollout of the app restarts its server and one of the relay
+ends any game in progress. Keep the two on the same version.
 
 1. Read the release notes linked in the Renovate pull request.
 2. Merge it when nobody is playing.
