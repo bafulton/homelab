@@ -1,0 +1,95 @@
+# The virtual-LAN relay (ievans/bottleship Dockerfile.lan). Browsers reach it
+# through the games routes' /socket.io/ rule, never directly: it has no
+# accounts of its own, and a room's name is all it asks for. It serves no game
+# files and keeps rooms in memory, so there is one pod and a restart ends every
+# game in progress (the same trade-off as the app's own Deployment).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bottleship-lan
+  labels:
+    reloader.stakater.com/match: "true"
+data:
+  server.json: |
+    {{- dict "host" "0.0.0.0" "port" 9001 "allowedOrigins" .Values.lanRelay.allowedOrigins | toPrettyJson | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bottleship-lan
+spec:
+  selector:
+    app.kubernetes.io/name: bottleship-lan
+  ports:
+    - name: http
+      port: 9001
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bottleship-lan
+  annotations:
+    reloader.stakater.com/search: "true"
+spec:
+  replicas: 1
+  # Recreate: two pods would split players who joined the same room, and unlike
+  # the app there is no page to keep serving while a new pod starts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: bottleship-lan
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: bottleship-lan
+    spec:
+      automountServiceAccountToken: false
+      # Real-time traffic: keep it on the LAN nodes, not the remote one
+      # (charts/README.md, "Placement").
+      nodeSelector:
+        homelab.io/location: local
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: bottleship-lan
+          image: {{ .Values.lanRelay.image.repository }}:{{ .Values.lanRelay.image.tag }}
+          imagePullPolicy: {{ .Values.lanRelay.image.pullPolicy }}
+          args: ["--config", "/etc/bottleship-lan/server.json"]
+          ports:
+            - name: http
+              containerPort: 9001
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 30
+          volumeMounts:
+            - name: config
+              mountPath: /etc/bottleship-lan
+              readOnly: true
+          {{- with .Values.lanRelay.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: bottleship-lan

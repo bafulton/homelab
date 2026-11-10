@@ -114,9 +114,10 @@
       "automerge": false
     },
     {
-      "description": "BottleShip by hand, never automerge: the rollout restarts the server and ends every game in progress",
+      "description": "BottleShip and its LAN relay by hand, never automerge: the rollout restarts the server and ends every game in progress",
       "matchPackageNames": [
-        "ghcr.io/ievans/bottleship"
+        "ghcr.io/ievans/bottleship",
+        "ghcr.io/ievans/bottleship-lan"
       ],
       "automerge": false
     }
