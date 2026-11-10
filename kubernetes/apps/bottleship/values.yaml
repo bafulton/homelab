@@ -19,7 +19,7 @@ namespace: bottleship
 # "Updating BottleShip").
 image:
   repository: ghcr.io/ievans/bottleship
-  tag: "0.8.1"
+  tag: "0.8.2"
   pullPolicy: IfNotPresent
 
 # The virtual-LAN relay: ievans/bottleship's Dockerfile.lan, published as
