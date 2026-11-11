@@ -50,13 +50,6 @@ resources:
   limits:
     memory: 256Mi
 
-# Read only by app images up to 0.8.0, which still carry the fork's own relay;
-# drop it with the bump to the synced image. Every player arrives from the edge forwarder's one tailnet address (TLS
-# passthrough hides the real client), so the relay's per-address connection
-# cap is shared by everyone. Each player holds one relay connection per room;
-# 64 leaves room for a few friends across a few rooms.
-lanMaxConnPerIp: 64
-
 # The library. Served as /games-catalog.json in place of the image's own,
 # which lists the upstream demos whose bundles are not hosted here.
 # wgbUrl is /apps/<file>, served from the bottleship-apps volume.
