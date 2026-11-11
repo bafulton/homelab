@@ -28,7 +28,7 @@ image:
 lanRelay:
   image:
     repository: ghcr.io/ievans/bottleship-lan
-    tag: "0.8.1"
+    tag: "0.8.2"
     pullPolicy: IfNotPresent
   # Browsers reach the relay on the games hostnames (a /socket.io/ path rule on
   # each route, behind the same Pocket ID sign-in as the site), so these are the
