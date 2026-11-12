@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "v2alpha1",
+  "alert": "Time Machine Drive Almost Full",
+  "alertType": "METRIC_BASED_ALERT",
+  "ruleType": "promql_rule",
+  "disabled": false,
+  "description": "Time Machine drive is above 95%. Per-Mac quotas (900 GB each) should cap two Macs at ~90% of the 2 TB drive, so this means the quotas are not holding",
+  "summary": "Time Machine drive almost full",
+  "labels": {
+    "source": "gitops",
+    "severity": "warning"
+  },
+  "evaluation": {
+    "kind": "rolling",
+    "spec": {
+      "evalWindow": "15m0s",
+      "frequency": "5m0s"
+    }
+  },
+  "notificationSettings": {
+    "renotify": {
+      "enabled": false
+    },
+    "usePolicy": false
+  },
+  "condition": {
+    "compositeQuery": {
+      "queries": [
+        {
+          "type": "promql",
+          "spec": {
+            "name": "A",
+            "query": "sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=\"/var/mnt/tm\"}) / (sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=\"/var/mnt/tm\"}) + sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"free\", mountpoint=\"/var/mnt/tm\"})) * 100",
+            "disabled": false,
+            "step": 0,
+            "stats": false,
+            "legend": "{{k8s.node.name}} {{mountpoint}}"
+          }
+        }
+      ],
+      "panelType": "graph",
+      "queryType": "promql"
+    },
+    "selectedQueryName": "A",
+    "thresholds": {
+      "kind": "basic",
+      "spec": [
+        {
+          "name": "warning",
+          "target": 95,
+          "op": "above",
+          "matchType": "all_the_times",
+          "channels": [
+            "Email"
+          ]
+        }
+      ]
+    }
+  }
+}
