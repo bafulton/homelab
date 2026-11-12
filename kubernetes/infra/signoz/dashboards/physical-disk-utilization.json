@@ -9,7 +9,7 @@
   ],
   "spec": {
     "display": {
-      "description": "Physical storage utilization and NVMe drive health across homelab nodes — USB data drives, node system drives (/var), Longhorn managed storage, all non-virtual filesystems, and smartctl SMART health metrics.",
+      "description": "Physical storage utilization and SMART health across the homelab's physical nodes (ocifree's virtual cloud volume is excluded) — data drives (/var/mnt/*), node system drives (/var), Longhorn managed storage, all non-virtual filesystems, and smartctl SMART health. The Time Machine USB drive (beelink /var/mnt/tm) has no SMART data: its SanDisk 55DD bridge does not pass SMART through.",
       "name": "Physical Disk Health"
     },
     "duration": "",
@@ -21,7 +21,7 @@
             "collapse": {
               "open": true
             },
-            "title": "USB Data Drives (/var/mnt/usb)"
+            "title": "Data Drives (/var/mnt/*)"
           },
           "items": [
             {
@@ -136,7 +136,7 @@
             "collapse": {
               "open": true
             },
-            "title": "NVMe SMART Health"
+            "title": "SMART Health"
           },
           "items": [
             {
@@ -185,7 +185,7 @@
         "kind": "Panel",
         "spec": {
           "display": {
-            "description": "Used bytes for all non-virtual filesystems (excludes tmpfs, devtmpfs, overlay) across all nodes",
+            "description": "Used bytes for all non-virtual filesystems (excludes tmpfs, devtmpfs, overlay) across the physical nodes",
             "name": "All Physical Filesystem Usage"
           },
           "links": [],
@@ -234,7 +234,7 @@
                     "disabled": false,
                     "legend": "{{k8s.node.name}} {{mountpoint}} ({{type}})",
                     "name": "A",
-                    "query": "sum by (\"k8s.node.name\", mountpoint, type) ({\"system.filesystem.usage\", state=\"used\", type!=\"tmpfs\", type!=\"devtmpfs\", type!=\"overlay\"})",
+                    "query": "sum by (\"k8s.node.name\", mountpoint, type) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", type!=\"tmpfs\", type!=\"devtmpfs\", type!=\"overlay\"})",
                     "stats": false,
                     "step": 0
                   }
@@ -297,7 +297,7 @@
                     "disabled": false,
                     "legend": "{{node}} / {{disk}}",
                     "name": "A",
-                    "query": "sum by (node, disk) (longhorn_disk_usage_bytes)",
+                    "query": "sum by (node, disk) (longhorn_disk_usage_bytes{node!=\"ocifree\"})",
                     "stats": false,
                     "step": 0
                   }
@@ -373,7 +373,7 @@
                     "disabled": false,
                     "legend": "{{node}} / {{disk}}",
                     "name": "A",
-                    "query": "sum by (node, disk) (longhorn_disk_usage_bytes) / sum by (node, disk) (longhorn_disk_capacity_bytes) * 100",
+                    "query": "sum by (node, disk) (longhorn_disk_usage_bytes{node!=\"ocifree\"}) / sum by (node, disk) (longhorn_disk_capacity_bytes{node!=\"ocifree\"}) * 100",
                     "stats": false,
                     "step": 0
                   }
@@ -707,7 +707,7 @@
         "kind": "Panel",
         "spec": {
           "display": {
-            "description": "Bytes used on /var (the main Talos data partition on the internal drive) per node",
+            "description": "Bytes used on /var (the Talos EPHEMERAL partition: beelink NVMe, rpi5 SD card) per node",
             "name": "System Drive Used Space"
           },
           "links": [],
@@ -756,7 +756,7 @@
                     "disabled": false,
                     "legend": "{{k8s.node.name}}",
                     "name": "A",
-                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"})",
+                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=\"/var\"})",
                     "stats": false,
                     "step": 0
                   }
@@ -832,7 +832,7 @@
                     "disabled": false,
                     "legend": "{{k8s.node.name}}",
                     "name": "A",
-                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"}) / (sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var\"}) + sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"free\", mountpoint=\"/var\"})) * 100",
+                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=\"/var\"}) / (sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=\"/var\"}) + sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"free\", mountpoint=\"/var\"})) * 100",
                     "stats": false,
                     "step": 0
                   }
@@ -846,7 +846,7 @@
         "kind": "Panel",
         "spec": {
           "display": {
-            "description": "Bytes used on /var/mnt/usb per node (beelink=jellyfin-media XFS, rpi5=Garage object store)",
+            "description": "Bytes used on each data drive under /var/mnt per node (beelink: usb=jellyfin-media + bottleship, tm=Time Machine, nvme=Longhorn; rpi5: usb=Garage + Longhorn)",
             "name": "USB Drive Used Space"
           },
           "links": [],
@@ -893,9 +893,9 @@
                   "kind": "signoz/PromQLQuery",
                   "spec": {
                     "disabled": false,
-                    "legend": "{{k8s.node.name}}",
+                    "legend": "{{k8s.node.name}} {{mountpoint}}",
                     "name": "A",
-                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"})",
+                    "query": "sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=~\"/var/mnt/.+\"})",
                     "stats": false,
                     "step": 0
                   }
@@ -909,7 +909,7 @@
         "kind": "Panel",
         "spec": {
           "display": {
-            "description": "Percentage of /var/mnt/usb used per node",
+            "description": "Percentage of each data drive under /var/mnt used per node",
             "name": "USB Drive Usage %"
           },
           "links": [],
@@ -969,9 +969,9 @@
                   "kind": "signoz/PromQLQuery",
                   "spec": {
                     "disabled": false,
-                    "legend": "{{k8s.node.name}}",
+                    "legend": "{{k8s.node.name}} {{mountpoint}}",
                     "name": "A",
-                    "query": "sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"}) / (sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"used\", mountpoint=\"/var/mnt/usb\"}) + sum by (\"k8s.node.name\") ({\"system.filesystem.usage\", state=\"free\", mountpoint=\"/var/mnt/usb\"})) * 100",
+                    "query": "sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=~\"/var/mnt/.+\"}) / (sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"used\", mountpoint=~\"/var/mnt/.+\"}) + sum by (\"k8s.node.name\", mountpoint) ({\"system.filesystem.usage\", \"k8s.node.name\"!=\"ocifree\", state=\"free\", mountpoint=~\"/var/mnt/.+\"})) * 100",
                     "stats": false,
                     "step": 0
                   }
