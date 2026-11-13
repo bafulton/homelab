@@ -80,6 +80,31 @@ resource "oci_core_security_list" "fwd" {
     }
   }
 
+  # Game ports (games.tf). TCP is protocol 6, UDP 17.
+  dynamic "ingress_security_rules" {
+    for_each = { for p in local.game_ports : p.name => p }
+    content {
+      source   = "0.0.0.0/0"
+      protocol = ingress_security_rules.value.protocol == "tcp" ? "6" : "17"
+
+      dynamic "tcp_options" {
+        for_each = ingress_security_rules.value.protocol == "tcp" ? [ingress_security_rules.value.port] : []
+        content {
+          min = tcp_options.value
+          max = tcp_options.value
+        }
+      }
+
+      dynamic "udp_options" {
+        for_each = ingress_security_rules.value.protocol == "udp" ? [ingress_security_rules.value.port] : []
+        content {
+          min = udp_options.value
+          max = udp_options.value
+        }
+      }
+    }
+  }
+
   # Break-glass SSH, shut unless ssh_ingress_cidr is set.
   dynamic "ingress_security_rules" {
     for_each = var.ssh_ingress_cidr == null ? [] : [var.ssh_ingress_cidr]

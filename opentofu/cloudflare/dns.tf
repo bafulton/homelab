@@ -70,6 +70,20 @@ resource "cloudflare_dns_record" "games_direct" {
   ttl     = 300
 }
 
+# Game servers (opentofu/oci-forwarder var.games) take the same path, because
+# the tunnel carries only HTTP: game traffic is plain TCP and UDP. One record
+# per game, named in the forwarder's config so the two cannot drift.
+resource "cloudflare_dns_record" "game_direct" {
+  for_each = toset(try(data.terraform_remote_state.oci_forwarder.outputs.game_subdomains, []))
+
+  zone_id = data.cloudflare_zone.zones["fultonhuffman-com"].id
+  name    = each.key
+  type    = "A"
+  content = data.terraform_remote_state.oci_forwarder.outputs.public_ip
+  proxied = false
+  ttl     = 300
+}
+
 data "terraform_remote_state" "oci_forwarder" {
   backend = "local"
 

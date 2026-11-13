@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: game-echo
+  template:
+    metadata:
+      labels:
+        app: game-echo
+    spec:
+      terminationGracePeriodSeconds: 5
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        {{- range $protocol := list "TCP" "UDP" }}
+        - name: echo-{{ lower $protocol }}
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          args:
+            - "{{ $protocol }}-LISTEN:{{ $.Values.port }},fork,reuseaddr"
+            - EXEC:cat
+          ports:
+            - name: echo-{{ lower $protocol }}
+              containerPort: {{ $.Values.port }}
+              protocol: {{ $protocol }}
+          resources:
+            {{- toYaml $.Values.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+        {{- end }}

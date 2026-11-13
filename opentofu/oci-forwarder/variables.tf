@@ -51,6 +51,55 @@ variable "uptime_probe_hostname" {
   default     = "media.fultonhuffman.com"
 }
 
+variable "games" {
+  description = <<-EOT
+    Game servers reachable from the internet, keyed by public name: "minecraft"
+    is minecraft.fultonhuffman.com. Each port is forwarded as-is, TCP or UDP,
+    to the game's Tailscale Service, whose tailnet name defaults to
+    game-<key>.catfish-mountain.ts.net. opentofu/cloudflare
+    reads game_subdomains from this state for the A records, and every port
+    also needs the tag:edge grant in tailscale/policy.hujson. See README.md,
+    "Game servers".
+  EOT
+  type = map(object({
+    upstream = optional(string)
+    ports = list(object({
+      port     = number
+      protocol = string
+    }))
+  }))
+  default = {}
+
+  validation {
+    condition = alltrue(flatten([
+      for g in values(var.games) : [for p in g.ports : contains(["tcp", "udp"], p.protocol)]
+    ]))
+    error_message = "Each game port's protocol must be \"tcp\" or \"udp\"."
+  }
+
+  validation {
+    condition     = alltrue([for k in keys(var.games) : can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", k)) && !contains(["media", "games"], k)])
+    error_message = "Game keys become DNS labels under fultonhuffman.com: lowercase letters, digits and hyphens, and not media or games, which are taken."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for g in values(var.games) : [
+        for p in g.ports : !contains(["tcp:80", "tcp:443", "udp:41641"], "${p.protocol}:${p.port}")
+      ]
+    ]))
+    error_message = "tcp:80, tcp:443 and udp:41641 are the forwarder's own ports."
+  }
+
+  validation {
+    condition = (
+      length(flatten([for g in values(var.games) : [for p in g.ports : "${p.protocol}:${p.port}"]])) ==
+      length(distinct(flatten([for g in values(var.games) : [for p in g.ports : "${p.protocol}:${p.port}"]])))
+    )
+    error_message = "Two games cannot share a public port: the forwarder routes plain TCP and UDP by port alone."
+  }
+}
+
 variable "exposure_canary_host" {
   description = "A private hostname the health check sends as the Host header behind the public SNI. It must get a 404; anything else fails the check, because private routes would then be reachable from the internet. Longhorn, as the most damaging if exposed (no auth)."
   type        = string

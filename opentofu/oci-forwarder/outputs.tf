@@ -12,3 +12,26 @@ output "image_name" {
   description = "Ubuntu image actually selected, so a surprise rebuild is traceable."
   value       = data.oci_core_images.ubuntu.images[0].display_name
 }
+
+output "game_subdomains" {
+  description = "Public game names under fultonhuffman.com (var.games keys). opentofu/cloudflare reads this for their DNS-only A records."
+  value       = sort(keys(var.games))
+}
+
+# What push-config.sh writes to the running VM. cloud-init only runs on first
+# boot, so these are how a change to var.games reaches the edge without a
+# rebuild (and a new public IP). Neither holds a secret.
+output "traefik_static" {
+  description = "Rendered /etc/traefik/traefik.yml."
+  value       = local.traefik_static
+}
+
+output "traefik_dynamic" {
+  description = "Rendered /etc/traefik/dynamic.yml."
+  value       = local.traefik_dynamic
+}
+
+output "game_firewall_rules" {
+  description = "Host iptables ACCEPT rules for the game ports, as \"<protocol> <port>\"."
+  value       = [for p in local.game_ports : "${p.protocol} ${p.port}"]
+}

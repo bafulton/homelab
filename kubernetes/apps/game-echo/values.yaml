@@ -1,0 +1,26 @@
+# A stand-in game server: echoes whatever it receives on 7007, over TCP and
+# over UDP. It proves the whole public path for game traffic - DNS, the OCI
+# security list, the edge's Traefik entrypoints, the tag:edge grant, and the
+# Tailscale Service - before a real game depends on it. See README.md.
+#
+# Remove it once games-manager serves real games (CAT-94).
+
+image:
+  repository: alpine/socat
+  tag: "1.8.1.1"
+
+port: 7007
+
+# The edge forwarder's default upstream for its `games` key "echo":
+# game-echo.catfish-mountain.ts.net. The tag is the one the edge's grant in
+# tailscale/policy.hujson targets.
+tailscale:
+  hostname: game-echo
+  tags: tag:k8s-games
+
+resources:
+  requests:
+    cpu: 5m
+    memory: 8Mi
+  limits:
+    memory: 32Mi

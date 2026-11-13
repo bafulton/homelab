@@ -1,0 +1,22 @@
+# Reached by the OCI edge forwarder over the tailnet. The Tailscale proxy
+# forwards to the ClusterIP, so the pod can run on any node.
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-echo
+  annotations:
+    tailscale.com/hostname: {{ .Values.tailscale.hostname }}
+    tailscale.com/tags: {{ .Values.tailscale.tags }}
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  allocateLoadBalancerNodePorts: false
+  selector:
+    app: game-echo
+  ports:
+    - name: echo-tcp
+      port: {{ .Values.port }}
+      protocol: TCP
+    - name: echo-udp
+      port: {{ .Values.port }}
+      protocol: UDP

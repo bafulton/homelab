@@ -21,6 +21,9 @@ viewer ──TLS──> this VM (public IP)
 Viewers need no Tailscale account or client. The tailnet hop is strictly
 between the two machines above, both ours.
 
+It also forwards game servers' plain TCP and UDP, by port, to each game's own
+Tailscale Service. See [Game servers](#game-servers).
+
 ## Applying
 
 ```sh
@@ -106,11 +109,72 @@ The edge pings with its check's UUID URL, never the project ping key - a ping
 key can ping every check, so leaking it from this host would let someone fake
 "up" for the nodes too.
 
+## Game servers
+
+Friends connect to `<game>.fultonhuffman.com` on the game's usual port. There
+is no TLS and no SNI, so the forwarder routes by port alone: each port in
+`var.games` gets its own Traefik entrypoint, forwarding to one game server's
+Tailscale Service (tagged `tag:k8s-games`, created by games-manager), and
+nothing else.
+
+```
+player ──TCP/UDP :2456──> this VM ──Traefik entrypoint valheim-udp-2456──>
+       Tailscale ──> game-valheim.catfish-mountain.ts.net:2456 ──> game pod
+```
+
+To make a game public, all in one change:
+
+1. **This module.** Add the game to `games` in `variables.tf`, keyed by its
+   public name. The upstream defaults to `game-<key>.catfish-mountain.ts.net`;
+   set `upstream` when the game's Tailscale Service has another name:
+   ```hcl
+   valheim = {
+     ports = [
+       { port = 2456, protocol = "udp" },
+       { port = 2457, protocol = "udp" },
+     ]
+   }
+   ```
+2. **The tailnet grant.** Add the same ports, protocol included, to the
+   `tag:edge` → `tag:k8s-games` grant in `tailscale/policy.hujson`.
+3. **The game.** Turn on its own access control - a whitelist or server
+   password. These ports are open to the whole internet.
+
+After merging, apply both modules, then push the config to the running VM:
+
+```sh
+source ./env.sh && tofu apply      # security list, outputs
+./push-config.sh                   # Traefik config and host firewall
+cd ../cloudflare && source ./env.sh && tofu apply   # the A record
+```
+
+`tofu apply` alone is not enough, because the instance ignores `user_data`
+(see [Rebuilding](#rebuilding)). `push-config.sh` writes the rendered
+`traefik.yml` and `dynamic.yml` from this state, replaces the host firewall's
+game rules (tagged `edge-game`), and restarts Traefik when the entrypoints
+changed. It backs up `/etc/traefik` first. The restart drops connections in
+flight, Jellyfin included, for a second or two.
+
+Then test from outside the tailnet. For a TCP port:
+
+```sh
+nc -vz <game>.fultonhuffman.com <port>
+```
+
+UDP has no handshake, so `nc -u` reports success whether or not anything is
+listening. Test UDP with `kubernetes/apps/game-echo`, which echoes back what
+it receives, or by joining the game.
+
+Every player reaches the game from the forwarder's tailnet address, so a
+game's own IP bans and per-IP limits see one client. Use account whitelists.
+
 ## Rebuilding
 
 cloud-init only runs on first boot, and the instance ignores `user_data`
 changes, so **editing a template changes nothing on the running VM** - a plain
-`tofu plan` reports "No changes". Push template changes with a rebuild:
+`tofu plan` reports "No changes". `push-config.sh` pushes the rendered Traefik
+config and game firewall rules to the running VM; anything else in the
+templates needs a rebuild:
 
 ```sh
 tofu apply -replace=oci_core_instance.fwd
