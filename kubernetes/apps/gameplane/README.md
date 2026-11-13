@@ -70,6 +70,16 @@ device). Gameplane has one sign-in callback, on the public hostname, so
 signing in with Pocket ID from `server-admin.local` finishes on
 `server-admin.fultonhuffman.com`.
 
+## Game templates
+
+Install game templates from the dashboard's module catalog. Before
+installing one, check its image's architectures: Gameplane doesn't place
+pods by architecture, so add an amd64-only game to `amd64OnlyGames` in
+values.yaml, and `templates/amd64-placement.yaml` pins its pods to amd64
+nodes. Valheim and Terraria are amd64 only; Minecraft and Factorio run
+anywhere. Game servers keep their templates' CPU limits; only Gameplane's
+own pods have theirs removed.
+
 ## Storage and backups
 
 - **Worlds** are `config` Longhorn volumes, replicated, so servers can run on
