@@ -7,6 +7,17 @@ entryPoints:
     address: ":80"
   websecure:
     address: ":443"
+%{ for p in game_ports ~}
+  # Game server (games.tf): forwarded by port, no TLS and no SNI.
+  ${p.name}:
+    address: ":${p.port}/${p.protocol}"
+%{ if p.protocol == "udp" ~}
+    # Traefik forgets a UDP client after this long without a packet. Its 3s
+    # default would split a player who pauses into a new session.
+    udp:
+      timeout: 60s
+%{ endif ~}
+%{ endfor ~}
 
 providers:
   file:

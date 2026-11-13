@@ -21,7 +21,7 @@
     // Human operations for cluster nodes, the operator, CoreDNS, and the edge.
     {
       "src": ["group:homelab-admins"],
-      "dst": ["tag:k8s-node", "tag:k8s-operator", "tag:k8s", "tag:edge"],
+      "dst": ["tag:k8s-node", "tag:k8s-operator", "tag:k8s", "tag:edge", "tag:k8s-games"],
       "ip": ["*"],
     },
     // Household app ingress and split DNS are available to tailnet members.
@@ -75,6 +75,19 @@
       "dst": ["tag:k8s-apps"],
       "ip": ["tcp:8443"],
     },
+    // OCI edge forwarder: game servers (opentofu/oci-forwarder var.games).
+    //
+    // The edge forwards plain TCP and UDP by port to tag:k8s-games
+    // Tailscale Services. List exactly the ports in var.games, protocol
+    // included, so this grant opens nothing the forwarder does not forward.
+    {
+      "src": ["tag:edge"],
+      "dst": ["tag:k8s-games"],
+      "ip": [
+        // minecraft: mc-router (kubernetes/apps/mc-router), every Minecraft server
+        "tcp:25565",
+      ],
+    },
   ],
 
   // Guard the new network boundary. No grants are inferred from DNS/Host names.
@@ -86,8 +99,8 @@
     },
     {
       "src": "tag:edge",
-      "accept": ["tag:k8s-apps:8443"],
-      "deny": ["tag:k8s:8443", "tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443"],
+      "accept": ["tag:k8s-apps:8443", "tag:k8s-games:25565"],
+      "deny": ["tag:k8s:8443", "tag:k8s-admin:443", "tag:k8s-apps:443", "tag:k8s-node:6443", "tag:k8s-games:22", "tag:k8s-games:8443"],
     },
     {
       "src": "tag:k8s-node",
@@ -142,6 +155,7 @@
     "tag:k8s": ["tag:k8s-operator"],
     "tag:k8s-admin": ["tag:k8s-operator"],
     "tag:k8s-apps": ["tag:k8s-operator"],
+    "tag:k8s-games": ["tag:k8s-operator"],
     // Applied to cluster nodes during bootstrap
     "tag:k8s-node": [],
     // OCI edge forwarder for public hostnames outside cloudflare (eg, jellyfin)
