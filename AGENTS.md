@@ -37,6 +37,11 @@ syncPolicy:
   serverSideApply: true
   autoSync: false
 
+# Optional (apps only): needed when values.yaml sets a subchart value to null,
+# eg `cpu: null` to drop an upstream chart's CPU limit. Helm otherwise ignores
+# nulls in a chart's own values.yaml for its subcharts.
+honorNulls: true
+
 # Gateway API routing (for public, LAN, or private access)
 gateway-route:
   routes:
