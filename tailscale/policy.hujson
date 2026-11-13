@@ -84,8 +84,12 @@
       "src": ["tag:edge"],
       "dst": ["tag:k8s-games"],
       "ip": [
-        // minecraft: mc-router (kubernetes/apps/mc-router), every Minecraft server
+        // minecraft: the minecraft-gateway (kubernetes/apps/minecraft-gateway),
+        // every Minecraft server. Java; Bedrock signaling, RakNet, NetherNet.
         "tcp:25565",
+        "tcp:19132",
+        "udp:19132",
+        "udp:19133",
       ],
     },
   ],

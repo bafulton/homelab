@@ -70,13 +70,20 @@ variable "games" {
       protocol = string
     }))
   }))
-  # Minecraft Java sends the hostname it connects to, so one port serves
-  # every server: mc-router (kubernetes/apps/mc-router) routes
-  # <server>.minecraft.fultonhuffman.com to that server.
+  # Minecraft clients send the hostname they connect to, so these ports serve
+  # every server: the minecraft-gateway (kubernetes/apps/minecraft-gateway)
+  # routes <server>.minecraft.fultonhuffman.com to that server. Java on TCP
+  # 25565; Bedrock signaling on TCP 19132, RakNet on UDP 19132 and NetherNet
+  # on UDP 19133.
   default = {
     minecraft = {
       subdomains = true
-      ports      = [{ port = 25565, protocol = "tcp" }]
+      ports = [
+        { port = 25565, protocol = "tcp" },
+        { port = 19132, protocol = "tcp" },
+        { port = 19132, protocol = "udp" },
+        { port = 19133, protocol = "udp" },
+      ]
     }
   }
 

@@ -117,15 +117,16 @@ Game traffic is plain TCP and UDP: no TLS and no SNI, so the forwarder routes
 by port alone. Each port in `var.games` gets its own Traefik entrypoint,
 forwarding to one Tailscale Service tagged `tag:k8s-games`, and nothing else.
 
-**Minecraft** shares one port across every server. Minecraft clients send the
-hostname they connect to, so mc-router (`kubernetes/apps/mc-router`) routes
+**Minecraft** shares its ports across every server, Java and Bedrock alike.
+Minecraft clients send the hostname they connect to, so the minecraft-gateway
+(`kubernetes/apps/minecraft-gateway`) routes
 `<server>.minecraft.fultonhuffman.com` to that Gameplane server. Gameplane
 gives each Minecraft server its name automatically
 (`kubernetes/apps/gameplane`, `templates/minecraft-names.yaml`).
 
 ```
-player ──TCP :25565──> this VM ──Traefik entrypoint minecraft-tcp-25565──>
-       Tailscale ──> game-minecraft.catfish-mountain.ts.net:25565 (mc-router)
+player ──Java TCP 25565, Bedrock TCP+UDP 19132 and UDP 19133──> this VM
+       ──Traefik entrypoints──> Tailscale ──> game-minecraft.catfish-mountain.ts.net
        ──hostname──> fulton-fun ──> game pod
 ```
 
@@ -141,7 +142,12 @@ To make a game public, all in one change:
    ```hcl
    minecraft = {
      subdomains = true
-     ports      = [{ port = 25565, protocol = "tcp" }]
+     ports = [
+       { port = 25565, protocol = "tcp" },
+       { port = 19132, protocol = "tcp" },
+       { port = 19132, protocol = "udp" },
+       { port = 19133, protocol = "udp" },
+     ]
    }
    ```
 2. **The tailnet grant.** Add the same ports, protocol included, to the
