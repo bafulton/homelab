@@ -1,0 +1,100 @@
+# Bedrock players join Minecraft servers through Geyser, in the
+# minecraft-gateway, without a Java account: each server's Floodgate plugin
+# trusts Geyser's word for who they are, checked with a key both share. This
+# policy gives every Paper Minecraft pod the plugin and the key as it's
+# created:
+#
+#   - PLUGINS: the itzg image downloads Floodgate into /data/plugins on
+#     start. A server that sets PLUGINS itself keeps its own list.
+#   - an init container copies the key into /data/plugins/floodgate/key.pem,
+#     as the server's own user, so Floodgate can still write its config
+#     beside it. (Mounting the key there directly would leave a root-owned
+#     floodgate directory Floodgate couldn't write to.)
+#
+# Fabric and Forge servers need other Floodgate builds and are left alone:
+# their Bedrock players are refused, Java players are unaffected.
+{{- with .Values.floodgate }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: gameplane-minecraft-floodgate
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  variables:
+    - name: game
+      expression: object.spec.containers.filter(c, c.name == 'game')[0]
+    - name: pluginsVolume
+      expression: variables.game.volumeMounts.filter(m, m.mountPath == '/data/plugins')[0].name
+    - name: hasPlugins
+      expression: has(variables.game.env) && variables.game.env.exists(e, e.name == 'PLUGINS')
+  matchConditions:
+    - name: paper-minecraft
+      expression: >-
+        has(object.metadata.labels) &&
+        object.metadata.labels[?'gameplane.local/template'].orValue('') in {{ toJson $.Values.minecraftNames.templates | replace "\"" "'" }} &&
+        object.spec.containers.exists(c, c.name == 'game' &&
+          has(c.env) && c.env.exists(e, e.name == 'TYPE' && has(e.value) && e.value == 'PAPER') &&
+          has(c.volumeMounts) && c.volumeMounts.exists(m, m.mountPath == '/data/plugins'))
+  # A server without Floodgate still works for Java players, so an error
+  # here mustn't block it starting.
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+  # Apply configurations, because volumes, init containers and env are all
+  # lists Kubernetes merges by name.
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              volumes: [Object.spec.volumes{
+                name: "floodgate-key",
+                secret: Object.spec.volumes.secret{secretName: "floodgate-key"}
+              }],
+              initContainers: [Object.spec.initContainers{
+                name: "floodgate-key",
+                image: {{ .initImage | squote }},
+                command: ["sh", "-c", "mkdir -p /data/plugins/floodgate && cp /floodgate/key.pem /data/plugins/floodgate/key.pem"],
+                securityContext: Object.spec.initContainers.securityContext{
+                  runAsUser: 1000,
+                  runAsGroup: 1000,
+                  runAsNonRoot: true,
+                  allowPrivilegeEscalation: false,
+                  capabilities: Object.spec.initContainers.securityContext.capabilities{drop: ["ALL"]}
+                },
+                volumeMounts: [
+                  Object.spec.initContainers.volumeMounts{name: variables.pluginsVolume, mountPath: "/data/plugins"},
+                  Object.spec.initContainers.volumeMounts{name: "floodgate-key", mountPath: "/floodgate", readOnly: true}
+                ]
+              }]
+            }
+          }
+    # The itzg image downloads PLUGINS into /data/plugins on start. A server
+    # that sets PLUGINS itself keeps its own list.
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          variables.hasPlugins ? Object{} : Object{
+            spec: Object.spec{
+              containers: [Object.spec.containers{
+                name: "game",
+                env: [Object.spec.containers.env{name: "PLUGINS", value: {{ .pluginUrl | squote }}}]
+              }]
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: gameplane-minecraft-floodgate
+spec:
+  policyName: gameplane-minecraft-floodgate
+{{- end }}

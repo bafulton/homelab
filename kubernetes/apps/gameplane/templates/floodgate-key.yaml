@@ -1,0 +1,29 @@
+# Floodgate's key, in the games namespace, for the Paper servers' plugin
+# (templates/minecraft-floodgate.yaml). The same Bitwarden secret as the
+# minecraft-gateway's, which Geyser vouches for Bedrock players with.
+{{- with .Values.floodgate }}
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: floodgate-key
+  namespace: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: bitwarden-secretsmanager
+    kind: ClusterSecretStore
+  target:
+    name: floodgate-key
+    creationPolicy: Owner
+    deletionPolicy: Retain
+  # The defaults are spelled out because ESO's webhook adds them, and Argo
+  # CD would otherwise always see a difference.
+  data:
+    - secretKey: key.pem
+      remoteRef:
+        key: {{ .keySecretId }}
+        conversionStrategy: Default
+        decodingStrategy: Base64
+        metadataPolicy: None
+        nullBytePolicy: Ignore
+{{- end }}

@@ -40,6 +40,15 @@ minecraftNames:
   templates:
     - minecraft
 
+# Bedrock players join Paper Minecraft servers through Floodgate
+# (templates/minecraft-floodgate.yaml). The key must match the
+# minecraft-gateway's: the same Bitwarden secret.
+floodgate:
+  # The latest Floodgate for Paper/Spigot, downloaded on each server start.
+  pluginUrl: https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
+  initImage: busybox:1.37.0
+  keySecretId: "REPLACE_WITH_BITWARDEN_SECRET_ID"
+
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
   # otherwise generate. This profile has it use the mTLS Secrets in

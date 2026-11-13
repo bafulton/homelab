@@ -83,11 +83,30 @@ own pods have theirs removed.
 ## Public Minecraft
 
 Every Minecraft server is public at `<server>.minecraft.fultonhuffman.com`,
-on the usual port. `templates/minecraft-names.yaml` gives each server that
-name as it's created, mc-router (`kubernetes/apps/mc-router`) routes players
-to it by the hostname their client sends, and the OCI edge forwarder
-(`opentofu/oci-forwarder`) carries port 25565 to mc-router. Anyone on the
-internet can reach the port, so turn on each server's whitelist.
+for Java players (no port) and Bedrock players (port 19132). The
+minecraft-gateway (`kubernetes/apps/minecraft-gateway`) routes players by
+the hostname their client sends, and the OCI edge forwarder
+(`opentofu/oci-forwarder`) carries its ports there. Two policies here set up
+each server for it:
+
+- **`templates/minecraft-names.yaml`** gives each Minecraft server its name,
+  as the Service annotation the gateway routes by and as the hostname the
+  dashboard shows. A server that sets its own keeps it.
+- **`templates/minecraft-floodgate.yaml`** gives each Paper server the
+  Floodgate plugin and the key it shares with the gateway's Geyser
+  (`floodgate-key`, from Bitwarden), so Bedrock players can join without a
+  Java account. Fabric and Forge servers get no Floodgate; only Java players
+  can join those.
+
+Anyone on the internet can reach the ports, so turn on each server's
+whitelist, and add Bedrock players with `fwhitelist add <gamertag>` in its
+console.
+
+These policies depend on how Gameplane builds servers: the
+`gameplane.local/template` pod label, a container named `game` with the
+image's `TYPE` setting, and the plugins volume at `/data/plugins`. After a
+Gameplane upgrade, check that a new Minecraft server still gets its name and
+Floodgate.
 
 ## Storage and backups
 
