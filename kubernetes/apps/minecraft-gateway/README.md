@@ -4,14 +4,18 @@ The front door to every Gameplane Minecraft server, for Java and Bedrock
 players alike. Players join `<server>.minecraft.fultonhuffman.com`, and the
 gateway sends them to that server.
 
-```
-Java player    ──TCP 25565──────────────┐
-                                        ├─> OCI edge ──Tailscale──> game-minecraft
-Bedrock player ──TCP+UDP 19132, UDP 19133┘
-
-  game-minecraft (this pod):
-    Java ─────────────────────────────> mc-router ──hostname──> fulton-fun
-    Bedrock ──> Geyser ──Java, with the hostname──┘
+```mermaid
+flowchart LR
+    subgraph pod ["minecraft-gateway pod (Tailscale: game-minecraft)"]
+        geyser[Geyser]
+        router[mc-router]
+    end
+    java[Java player] -- "TCP 25565" --> edge[OCI edge forwarder]
+    bedrock[Bedrock player] -- "TCP+UDP 19132, UDP 19133" --> edge
+    edge -- Java --> router
+    edge -- Bedrock --> geyser
+    geyser -- "Java, with the hostname" --> router
+    router -- "by hostname" --> server[fulton-fun game pod]
 ```
 
 One pod runs both:
