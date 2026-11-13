@@ -53,7 +53,10 @@ green, image PRs automerge like any other minor or patch update.
 Pinned versions in `ARG <NAME>_VERSION=` lines are tracked by a `customManager`
 in `renovate.json`, keyed off the `# renovate: datasource=... depName=...`
 comment directly above each one. Keep that comment attached or the pin silently
-stops receiving updates.
+stops receiving updates. `geyser-standalone` is the exception: Geyser isn't in
+any registry Renovate knows, so its own customManager and a custom datasource
+read GeyserMC's build API, and update `GEYSER_RELEASE` and its `GEYSER_SHA256`
+together.
 
 The images are built for `linux/amd64` and `linux/arm64` (beelink is amd64;
 rpi5 and ocifree are arm64).
