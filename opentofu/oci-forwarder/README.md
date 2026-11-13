@@ -5,21 +5,22 @@ hostnames (`public_hostnames`) and passes the TLS, unterminated, over Tailscale 
 
 It exists so Jellyfin can be publicly reachable without routing video through
 Cloudflare's CDN (outside their Service-Specific Terms), without opening a port
-at home, and without depending on a stable home IP.
+at home, and without depending on a stable home IP. It also forwards game
+servers' plain TCP and UDP, which the Cloudflare Tunnel can't carry: see
+[Game servers](#game-servers).
 
-```
-viewer ──TLS──> this VM (public IP)
-                  │  Traefik TCP router: HostSNI match, tls.passthrough
-                  ▼  (terminates nothing, reads nothing)
-                Tailscale, outbound-dialed
-                  ▼
-                cluster-apps.catfish-mountain.ts.net:8443
-                  ▼
-                home Traefik, edge listener ──> HTTPRoute ──> jellyfin:8096
+```mermaid
+flowchart TD
+    viewer[Viewer] -- TLS --> vm["This VM (public IP)<br>Traefik TCP router: HostSNI match, tls.passthrough<br>terminates nothing, reads nothing"]
+    vm -- "Tailscale, outbound-dialed" --> gw["cluster-apps.catfish-mountain.ts.net:8443<br>home Traefik, edge listener"]
+    gw -- HTTPRoute --> jellyfin["jellyfin:8096"]
 ```
 
 Viewers need no Tailscale account or client. The tailnet hop is strictly
 between the two machines above, both ours.
+
+It also forwards game servers' plain TCP and UDP, by port, to each game's own
+Tailscale Service. See [Game servers](#game-servers).
 
 ## Applying
 
@@ -106,11 +107,86 @@ The edge pings with its check's UUID URL, never the project ping key - a ping
 key can ping every check, so leaking it from this host would let someone fake
 "up" for the nodes too.
 
+## Game servers
+
+Game traffic is plain TCP and UDP: no TLS and no SNI, so the forwarder routes
+by port alone. Each port in `var.games` gets its own Traefik entrypoint,
+forwarding to one Tailscale Service tagged `tag:k8s-games`, and nothing else.
+
+**Minecraft** shares its ports across every server, Java and Bedrock alike.
+Minecraft clients send the hostname they connect to, so the minecraft-gateway
+(`kubernetes/apps/minecraft-gateway`) routes
+`<server>.minecraft.fultonhuffman.com` to that Gameplane server. Gameplane
+gives each Minecraft server its name automatically
+(`kubernetes/apps/gameplane`, `templates/minecraft-names.yaml`).
+
+```mermaid
+flowchart TD
+    player[Player] -- "Java TCP 25565<br>Bedrock TCP+UDP 19132, UDP 19133" --> vm[This VM]
+    vm -- "Traefik entrypoints, over Tailscale" --> gateway["game-minecraft.catfish-mountain.ts.net<br>(minecraft-gateway)"]
+    gateway -- "by hostname" --> server[fulton-fun game pod]
+```
+
+Other games send no hostname, so each of their servers would need its own
+public port. Those aren't public yet.
+
+To make a game public, all in one change:
+
+1. **This module.** Add the game to `games` in `variables.tf`, keyed by its
+   public name. The upstream defaults to `game-<key>.catfish-mountain.ts.net`;
+   set `upstream` when its Tailscale Service has another name, and
+   `subdomains = true` when a router picks the server by hostname:
+   ```hcl
+   minecraft = {
+     subdomains = true
+     ports = [
+       { port = 25565, protocol = "tcp" },
+       { port = 19132, protocol = "tcp" },
+       { port = 19132, protocol = "udp" },
+       { port = 19133, protocol = "udp" },
+     ]
+   }
+   ```
+2. **The tailnet grant.** Add the same ports, protocol included, to the
+   `tag:edge` → `tag:k8s-games` grant in `tailscale/policy.hujson`.
+3. **The game.** Turn on its own access control - a whitelist or server
+   password. These ports are open to the whole internet.
+
+After merging, apply both modules, then push the config to the running VM:
+
+```sh
+source ./env.sh && tofu apply      # security list, outputs
+./push-config.sh                   # Traefik config and host firewall
+cd ../cloudflare && source ./env.sh && tofu apply   # the A records
+```
+
+`tofu apply` alone is not enough, because the instance ignores `user_data`
+(see [Rebuilding](#rebuilding)). `push-config.sh` writes the rendered
+`traefik.yml` and `dynamic.yml` from this state, replaces the host firewall's
+game rules (tagged `edge-game`), and restarts Traefik when the entrypoints
+changed. It backs up `/etc/traefik` first. The restart drops connections in
+flight, Jellyfin included, for a second or two.
+
+Then test from outside the tailnet. For a TCP port:
+
+```sh
+nc -vz <game>.fultonhuffman.com <port>
+nc -vz fulton-fun.minecraft.fultonhuffman.com 25565    # any name resolves
+```
+
+UDP has no handshake, so `nc -u` reports success whether or not anything is
+listening. Test UDP by joining the game.
+
+Every player reaches the game from the forwarder's tailnet address, so a
+game's own IP bans and per-IP limits see one client. Use account whitelists.
+
 ## Rebuilding
 
 cloud-init only runs on first boot, and the instance ignores `user_data`
 changes, so **editing a template changes nothing on the running VM** - a plain
-`tofu plan` reports "No changes". Push template changes with a rebuild:
+`tofu plan` reports "No changes". `push-config.sh` pushes the rendered Traefik
+config and game firewall rules to the running VM; anything else in the
+templates needs a rebuild:
 
 ```sh
 tofu apply -replace=oci_core_instance.fwd

@@ -130,6 +130,11 @@ runcmd:
   - iptables -I INPUT 1 -p tcp --dport 443 -j ACCEPT
   - iptables -I INPUT 1 -p tcp --dport 80 -j ACCEPT
   - iptables -I INPUT 1 -p udp --dport 41641 -j ACCEPT
+  # Game ports (games.tf). The edge-game comment lets push-config.sh replace
+  # exactly these rules when the list of games changes.
+%{ for p in game_ports ~}
+  - iptables -I INPUT 1 -p ${p.protocol} --dport ${p.port} -m comment --comment edge-game -j ACCEPT
+%{ endfor ~}
   - netfilter-persistent save
 
   # Tailscale. --accept-dns is what makes the MagicDNS upstream resolvable;

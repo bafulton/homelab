@@ -10,12 +10,57 @@ tcp:
       tls:
         passthrough: true
       service: home-gateway
+%{ for p in game_ports ~}
+%{ if p.protocol == "tcp" ~}
+
+    # Game server (games.tf). Plain TCP has no SNI, so HostSNI(`*`) is the
+    # only rule there is: whatever arrives on this port goes to this game.
+    ${p.name}:
+      entryPoints:
+        - ${p.name}
+      rule: "HostSNI(`*`)"
+      service: ${p.name}
+%{ endif ~}
+%{ endfor ~}
 
   services:
     home-gateway:
       loadBalancer:
         servers:
           - address: "${upstream}"
+%{ for p in game_ports ~}
+%{ if p.protocol == "tcp" ~}
+
+    ${p.name}:
+      loadBalancer:
+        servers:
+          - address: "${p.upstream}"
+%{ endif ~}
+%{ endfor ~}
+%{ if length([for p in game_ports : p if p.protocol == "udp"]) > 0 ~}
+
+udp:
+  routers:
+%{ for p in game_ports ~}
+%{ if p.protocol == "udp" ~}
+    # Game server (games.tf). UDP routers have no rule: the entrypoint is it.
+    ${p.name}:
+      entryPoints:
+        - ${p.name}
+      service: ${p.name}
+%{ endif ~}
+%{ endfor ~}
+
+  services:
+%{ for p in game_ports ~}
+%{ if p.protocol == "udp" ~}
+    ${p.name}:
+      loadBalancer:
+        servers:
+          - address: "${p.upstream}"
+%{ endif ~}
+%{ endfor ~}
+%{ endif ~}
 
 http:
   routers:
