@@ -1,0 +1,46 @@
+# Some game images are built for amd64 only, and Gameplane doesn't place pods
+# by architecture, so their servers could land on an arm64 node (ocifree,
+# rpi5) and fail to start. This policy pins those games' pods to amd64 nodes
+# as they are created, so nobody has to remember to set the placement when
+# creating a server. The list is amd64OnlyGames in values.yaml; the operator
+# labels each game pod with its template's name.
+{{- with .Values.amd64OnlyGames }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: gameplane-amd64-only-games
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: [v1]
+        operations: [CREATE]
+        resources: [pods]
+  matchConditions:
+    - name: amd64-only-game
+      expression: >-
+        has(object.metadata.labels) &&
+        'gameplane.local/template' in object.metadata.labels &&
+        object.metadata.labels['gameplane.local/template'] in {{ toJson . | replace "\"" "'" }}
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            spec: Object.spec{
+              nodeSelector: {"kubernetes.io/arch": "amd64"}
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: gameplane-amd64-only-games
+spec:
+  policyName: gameplane-amd64-only-games
+{{- end }}

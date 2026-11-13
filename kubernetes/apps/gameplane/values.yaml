@@ -22,6 +22,13 @@ syncPolicy:
   # owns its world volume.
   prune: false
 
+# Game templates whose images are amd64 only. Their pods are pinned to amd64
+# nodes (templates/amd64-placement.yaml). Check a new template's image before
+# installing it: Minecraft and Factorio are multi-arch.
+amd64OnlyGames:
+  - valheim
+  - terraria
+
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
   # otherwise generate. This profile has it use the mTLS Secrets in
