@@ -43,6 +43,16 @@ kubectl -n gameplane-system exec -it deploy/gameplane-api -- \
 Keep the password in Bitwarden. Sign in with Pocket ID once, so your account
 exists, then as `admin` open **Users** and make it an admin.
 
+## Local access
+
+On the LAN, <https://server-admin.local> serves the same dashboard over the
+`local` listener, with the homelab CA (see
+[household access](../../../docs/local-household-access.md) for enrolling a
+device). Gameplane has one sign-in callback, on the public hostname, so
+signing in with Pocket ID from `server-admin.local` finishes on
+`server-admin.fultonhuffman.com`. Local accounts, like the first admin, sign
+in on `server-admin.local` directly.
+
 ## Storage and backups
 
 - **Worlds** are `config` Longhorn volumes, replicated, so servers can run on

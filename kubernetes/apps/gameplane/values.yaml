@@ -6,6 +6,8 @@
 # Access:
 #   - Public: https://server-admin.fultonhuffman.com (via Cloudflare Tunnel),
 #     signed in through Pocket ID (group `game-servers`)
+#   - LAN: https://server-admin.local (mDNS, the homelab CA). Pocket ID
+#     sign-in returns to the public hostname; see README.md, "Local access".
 
 namespace: gameplane-system
 
@@ -53,7 +55,7 @@ gameplane:
     oidc:
       enabled: true
       issuer: https://auth.fultonhuffman.com
-      clientID: "REPLACE_WITH_POCKET_ID_CLIENT_ID"
+      clientID: "25ababfd-3f02-44fa-bc06-e351c7727316"
       clientSecretRef:
         name: gameplane-oidc
         key: clientSecret
@@ -92,6 +94,30 @@ gateway-route:
       service:
         name: gameplane-web
         port: 80
+    - name: local-http
+      access: apps
+      listeners: [web]
+      hostnames: [server-admin.local]
+      rules:
+        - filters:
+            - type: RequestRedirect
+              requestRedirect:
+                scheme: https
+                port: 443
+                statusCode: 302
+    - name: local-https
+      access: apps
+      listeners: [local]
+      hostnames: [server-admin.local]
+      mdns:
+        name: Game Servers
+        ip: 192.168.1.200
+        port: 443
+        types:
+          - type: _https._tcp
+      service:
+        name: gameplane-web
+        port: 80
 
 # The API's database. Every account and setting lives here, so it is a
 # replicated `config` volume with nightly snapshots and an off-node backup.
@@ -119,4 +145,4 @@ bitwarden-secret:
     - name: gameplane-oidc
       data:
         # The Pocket ID client's secret (README.md, "Pocket ID client").
-        clientSecret: "REPLACE_WITH_BITWARDEN_SECRET_ID"
+        clientSecret: "fd500808-4db3-4e05-98b3-b50100fab35a"
