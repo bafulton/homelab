@@ -84,6 +84,7 @@ In this example, `AWS_ACCESS_KEY_ID` is stored directly in the Secret as a liter
 | `secrets[].name` | ExternalSecret name (and default target name) | Required |
 | `secrets[].refreshInterval` | Override refresh interval | - |
 | `secrets[].creationPolicy` | `Owner` or `Merge` | - |
+| `secrets[].namespace` | Namespace for the ExternalSecret and its Secret, for an app whose workloads run outside its own namespace | release namespace |
 | `secrets[].annotations` | Annotations on ExternalSecret | - |
 | `secrets[].labels` | Labels on ExternalSecret | - |
 | `secrets[].target.name` | Override target Secret name | - |

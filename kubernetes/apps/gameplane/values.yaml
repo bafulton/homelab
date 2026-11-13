@@ -41,13 +41,11 @@ minecraftNames:
     - minecraft
 
 # Bedrock players join Paper Minecraft servers through Floodgate
-# (templates/minecraft-floodgate.yaml). The key must match the
-# minecraft-gateway's: the same Bitwarden secret.
+# (templates/minecraft-floodgate.yaml), with the floodgate-key secret below.
 floodgate:
   # The latest Floodgate for Paper/Spigot, downloaded on each server start.
   pluginUrl: https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
   initImage: busybox:1.37.0
-  keySecretId: "c86f4a8d-6e40-41d2-af7f-b5010158c59e"
 
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
@@ -173,3 +171,11 @@ bitwarden-secret:
       data:
         # The Pocket ID client's secret (README.md, "Pocket ID client").
         clientSecret: "fd500808-4db3-4e05-98b3-b50100fab35a"
+    # Floodgate's key, for the Paper servers' Floodgate plugin, in the games
+    # namespace where they run. The same Bitwarden secret as the
+    # minecraft-gateway's, whose Geyser vouches for Bedrock players with it.
+    - name: floodgate-key
+      namespace: gameplane-games
+      decodingStrategy: Base64
+      data:
+        key.pem: "c86f4a8d-6e40-41d2-af7f-b5010158c59e"

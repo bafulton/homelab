@@ -6,6 +6,7 @@ defaults:
 # List of ExternalSecrets to create
 secrets: []
   # - name: my-secret              # ExternalSecret name (and target secret name by default)
+  #   namespace: other-namespace   # Optional: create it in another namespace (defaults to the release's)
   #   refreshInterval: 1h          # Override global default
   #   creationPolicy: Owner        # Owner (default) or Merge
   #   annotations: {}              # Annotations on the ExternalSecret resource
