@@ -1,0 +1,19 @@
+apiVersion: v2
+name: gameplane
+description: Gameplane - self-service game servers (Minecraft, Valheim, ...) for friends, behind Pocket ID
+type: application
+version: 1.0.0
+appVersion: "0.4.0"
+dependencies:
+  - name: gameplane
+    version: 0.4.0
+    repository: oci://ghcr.io/gameplanepanel/charts
+  - name: gateway-route
+    version: 1.0.0
+    repository: file://../../../charts/gateway-route
+  - name: bitwarden-secret
+    version: 1.0.0
+    repository: file://../../../charts/bitwarden-secret
+  - name: longhorn-storage
+    version: 1.0.0
+    repository: file://../../../charts/longhorn-storage

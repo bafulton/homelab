@@ -42,15 +42,25 @@ spec:
           {{- if and (get . "syncPolicy") (index .syncPolicy "serverSideApply") }}
           - ServerSideApply=true
           {{- end }}
-      {{- if (get . "skipCrds") }}
+      {{- if or (get . "skipCrds") (get . "honorNulls") }}
       source:
-        # Do not apply the chart's crds/ directory. Helm's `helm template`
-        # omits crds/ unless --include-crds is passed, but ArgoCD always
-        # includes it - so a chart can be shipping CRDs that a local render
-        # never shows. Use this where a companion chart owns the CRDs, so two
-        # apps do not both claim them and fight over the schema.
         helm:
+          {{- if (get . "skipCrds") }}
+          # Do not apply the chart's crds/ directory. Helm's `helm template`
+          # omits crds/ unless --include-crds is passed, but ArgoCD always
+          # includes it - so a chart can be shipping CRDs that a local render
+          # never shows. Use this where a companion chart owns the CRDs, so two
+          # apps do not both claim them and fight over the schema.
           skipCrds: true
+          {{- end }}
+          {{- if (get . "honorNulls") }}
+          # Helm ignores a null that a chart's own values.yaml sets for a
+          # subchart, so `cpu: null` can't remove an upstream chart's default
+          # CPU limit. Passing values.yaml as a values file as well makes Helm
+          # apply it.
+          valueFiles:
+            - values.yaml
+          {{- end }}
       {{- end }}
       {{- if (get . "ignoreDifferences") }}
       ignoreDifferences:

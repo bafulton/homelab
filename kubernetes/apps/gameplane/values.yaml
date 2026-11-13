@@ -1,0 +1,122 @@
+# Gameplane - a game server panel. Friends sign in with Pocket ID, then
+# create, start, stop and manage their own servers from game templates.
+# Servers are GameServer resources in gameplane-games, created at runtime,
+# not kept in git. See README.md for the one-time setup and the trial plan.
+#
+# Access:
+#   - Public: https://server-admin.fultonhuffman.com (via Cloudflare Tunnel),
+#     signed in through Pocket ID (group `game-servers`)
+
+namespace: gameplane-system
+
+# The upstream chart sets CPU limits; the `cpu: null`s below remove them,
+# which needs values.yaml passed as a values file (kubernetes/appsets/apps.yaml).
+honorNulls: true
+
+syncPolicy:
+  # The CRDs are large.
+  serverSideApply: true
+  # Never prune: removing a CRD deletes every GameServer, and a GameServer
+  # owns its world volume.
+  prune: false
+
+gameplane:
+  # Argo CD renders offline, so the chart can't look up the Secrets it would
+  # otherwise generate. This profile has it use the mTLS Secrets in
+  # templates/agent-mtls.yaml instead, and marks the games namespace and the
+  # database volume to survive pruning and Application deletion.
+  argoCD:
+    enabled: true
+  crds:
+    autoApply:
+      enabled: false
+
+  # Served by gateway-route below.
+  ingress:
+    enabled: false
+
+  api:
+    # No CPU limits in this cluster.
+    resources:
+      requests: { cpu: 100m, memory: 64Mi }
+      limits: { cpu: null, memory: 256Mi }
+    # Users, roles and settings live in this SQLite database.
+    storage:
+      existingClaim: gameplane-api-data
+    telemetry:
+      enabled: false
+    # Pocket ID decides who may sign in: the client only admits the
+    # `game-servers` group. Gameplane's Helm-configured provider doesn't
+    # request the `groups` scope, so it can't map groups to roles; everyone
+    # who signs in is an operator, who can create and run servers. Admins
+    # are promoted in the dashboard (README.md, "First admin").
+    oidc:
+      enabled: true
+      issuer: https://auth.fultonhuffman.com
+      clientID: "REPLACE_WITH_POCKET_ID_CLIENT_ID"
+      clientSecretRef:
+        name: gameplane-oidc
+        key: clientSecret
+      redirectURL: https://server-admin.fultonhuffman.com/auth/oidc/helm/callback
+      displayName: Pocket ID
+      defaultRole: operator
+    agentMTLS:
+      caSecretRef:
+        name: gameplane-external-ca-v1
+      clientCertRef:
+        name: gameplane-external-client-v1
+
+  operator:
+    resources:
+      requests: { cpu: 100m, memory: 64Mi }
+      limits: { cpu: null, memory: 256Mi }
+    # Worlds are replicated Longhorn volumes, so game servers can run on any
+    # node, ocifree included.
+    gameDataStorage:
+      storageClassName: config
+    # LAN servers can ask for a LoadBalancer address from MetalLB.
+    addressManager: metallb
+    metalLBNamespace: metallb
+
+  web:
+    resources:
+      requests: { cpu: 10m, memory: 16Mi }
+      limits: { cpu: null, memory: 128Mi }
+
+gateway-route:
+  routes:
+    - name: public
+      access: apps
+      hostnames:
+        - server-admin.fultonhuffman.com  # Public via Cloudflare Tunnel
+      service:
+        name: gameplane-web
+        port: 80
+
+# The API's database. Every account and setting lives here, so it is a
+# replicated `config` volume with nightly snapshots and an off-node backup.
+longhorn-storage:
+  pvcs:
+    - name: gameplane-api-data
+      size: 2Gi
+      storageClass: config
+      backupGroup: gameplane
+  jobs:
+    - name: gameplane-daily
+      cron: "20 3 * * *"
+      groups:
+        - gameplane
+      retain: 7
+    - name: gameplane-backup
+      task: backup
+      cron: "50 3 * * *"
+      groups:
+        - gameplane
+      retain: 7
+
+bitwarden-secret:
+  secrets:
+    - name: gameplane-oidc
+      data:
+        # The Pocket ID client's secret (README.md, "Pocket ID client").
+        clientSecret: "REPLACE_WITH_BITWARDEN_SECRET_ID"

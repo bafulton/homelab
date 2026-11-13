@@ -1,0 +1,166 @@
+# The mTLS material Gameplane's API and operator use with the agent sidecar
+# in each game pod. The chart would generate it itself, but only with a Helm
+# lookup, which Argo CD's offline render can't do; it would issue a new CA on
+# every sync. So cert-manager issues it here, under a CA of its own: Gameplane
+# signs each game's serving certificate with this CA, so it must not be the
+# homelab CA.
+#
+# Gameplane reads fixed key names: ca.crt and ca.key for the CA, tls.crt and
+# tls.key for the client. cert-manager writes the client's directly, but
+# writes the CA's key as tls.key, so an ExternalSecret copies the CA into
+# gameplane-external-ca-v1 under Gameplane's names. Keys are RSA in PKCS#1,
+# the form the chart itself generates.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: gameplane-selfsigned
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gameplane-agent-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  isCA: true
+  commonName: gameplane-agent-ca
+  secretName: gameplane-agent-ca-issued
+  # Ten years, like the chart's own CA. Renewing it rolls the API and
+  # operator and reissues every agent's certificate.
+  duration: 87600h
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  issuerRef:
+    name: gameplane-selfsigned
+    kind: Issuer
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: gameplane-agent-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  ca:
+    secretName: gameplane-agent-ca-issued
+---
+# Agents accept any certificate this CA signed; the names are informational.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: gameplane-api-client
+  namespace: {{ .Release.Namespace }}
+spec:
+  commonName: gameplane-api-client
+  dnsNames:
+    - gameplane-api
+    - gameplane-api.{{ .Release.Namespace }}.svc
+    - gameplane-api.{{ .Release.Namespace }}.svc.cluster.local
+  secretName: gameplane-external-client-v1
+  duration: 87600h
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+    - server auth
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  issuerRef:
+    name: gameplane-agent-ca
+    kind: Issuer
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gameplane-ca-reader
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gameplane-ca-reader
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [secrets]
+    resourceNames: [gameplane-agent-ca-issued]
+    verbs: [get]
+  # ESO checks the store by asking whether it may read Secrets.
+  - apiGroups: [authorization.k8s.io]
+    resources: [selfsubjectrulesreviews]
+    verbs: [create]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gameplane-ca-reader
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: gameplane-ca-reader
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gameplane-ca-reader
+---
+apiVersion: external-secrets.io/v1
+kind: SecretStore
+metadata:
+  name: gameplane-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  provider:
+    kubernetes:
+      remoteNamespace: {{ .Release.Namespace }}
+      server:
+        caProvider:
+          type: ConfigMap
+          name: kube-root-ca.crt
+          key: ca.crt
+      auth:
+        serviceAccount:
+          name: gameplane-ca-reader
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: gameplane-external-ca-v1
+  namespace: {{ .Release.Namespace }}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: gameplane-ca
+    kind: SecretStore
+  target:
+    name: gameplane-external-ca-v1
+    creationPolicy: Owner
+    deletionPolicy: Retain
+    template:
+      data:
+        ca.crt: "{{ `{{ .cert | toString }}` }}"
+        ca.key: "{{ `{{ .key | toString }}` }}"
+  # The defaults are spelled out because ESO's webhook adds them, and Argo
+  # CD would otherwise always see a difference.
+  data:
+    - secretKey: cert
+      remoteRef:
+        key: gameplane-agent-ca-issued
+        property: tls.crt
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        nullBytePolicy: Ignore
+    - secretKey: key
+      remoteRef:
+        key: gameplane-agent-ca-issued
+        property: tls.key
+        conversionStrategy: Default
+        decodingStrategy: None
+        metadataPolicy: None
+        nullBytePolicy: Ignore
