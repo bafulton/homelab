@@ -10,7 +10,9 @@ Valheim). Expect the values interface to change before 1.0.0.
 
 What stays in each game's wrapper: the image, game configuration, mods, the
 save-and-stop command, the game's own access control (whitelist or password -
-its ports are public), and the companion charts below.
+its ports are public), and the companion charts below - storage and backups
+(`longhorn-storage`), secrets (`bitwarden-secret`) and alerts
+(`signoz-alerts`).
 
 ## A new game
 
@@ -105,6 +107,75 @@ Set `workload.fixPermissions.enabled` when the image writes as a different
 user than the volume's files belong to, for example after restoring a world
 copied from elsewhere. It chowns each mount to `runAsUser:runAsGroup` before
 the game starts.
+
+## Backups
+
+Back up a game's volumes the way other apps back up their `config` volumes:
+Longhorn recurring jobs from the `longhorn-storage` chart. A snapshot job keeps
+quick local restore points, and a backup job copies the volume to the Longhorn
+backup target (Garage). Add to the wrapper's `longhorn-storage` values:
+
+```yaml
+longhorn-storage:
+  pvcs:
+    - name: valheim-config
+      size: 10Gi
+      backupGroup: valheim
+  jobs:
+    - name: valheim-daily
+      cron: "0 9 * * *"              # 4am EST (9am UTC), when nobody plays
+      groups: [valheim]
+      retain: 5
+    - name: valheim-backup
+      task: backup
+      cron: "30 9 * * *"
+      groups: [valheim]
+      retain: 7
+```
+
+A Longhorn backup copies the volume as it is at that moment, like pulling the
+plug, so it can catch a world file mid-write. Make each game also keep its own
+save files on the same volume, which every game here does: the Valheim image's
+`BACKUPS`, Crafty's backups, Factorio's autosaves. Those are written whole by
+the game, and the Longhorn backup carries them offsite.
+
+Restoring is checked with the first game on this chart: CAT-83 and CAT-91
+each require a verified backup and restore.
+
+## Monitoring
+
+Give each instance two alerts with the `signoz-alerts` chart, the same pattern
+as Time Machine and Home Assistant:
+
+```yaml
+signoz-alerts:
+  alerts:
+    - name: Valheim Down
+      description: The Valheim server is meant to be running but is not ready
+      severity: warning
+      type: promql
+      # Desired minus ready: 0 while stopped on purpose (replicas 0), so a
+      # stopped server never alerts.
+      query: >-
+        max by (namespace, statefulset) (kube_statefulset_replicas{namespace="valheim",statefulset="valheim"})
+        - max by (namespace, statefulset) (kube_statefulset_status_replicas_ready{namespace="valheim",statefulset="valheim"})
+      op: ">"
+      threshold: 0
+      # Generous: a first start downloads the game server.
+      for: 15m0s
+
+    - name: Valheim Longhorn Backup Stale
+      description: The Valheim world has no successful Longhorn backup in the last 36 hours
+      severity: warning
+      type: promql
+      query: 'time() - (max(longhorn_volume_last_backup_at{pvc_namespace="valheim",pvc="valheim-config"}) or vector(0))'
+      op: ">"
+      threshold: 129600
+      for: 1h0m0s
+```
+
+Logs need nothing extra: the cluster's OpenTelemetry collectors already
+collect every pod's output.
 
 ## Ports and Services
 
