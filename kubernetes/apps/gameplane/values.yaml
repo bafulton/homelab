@@ -30,8 +30,11 @@ amd64OnlyGames:
   - terraria
 
 # Minecraft servers get public names, <server>.<domain>, routed by mc-router
-# (templates/minecraft-names.yaml). templates lists the Minecraft Java game
-# templates.
+# (templates/minecraft-names.yaml). Only Minecraft gets this: a Minecraft
+# Java client sends the hostname it's connecting to, so one public port can
+# serve every server. Valheim, Factorio and Terraria clients don't, so each of
+# their servers needs a public port of its own instead. templates lists the
+# Minecraft Java game templates.
 minecraftNames:
   domain: minecraft.fultonhuffman.com
   templates:
