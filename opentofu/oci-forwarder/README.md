@@ -9,15 +9,11 @@ at home, and without depending on a stable home IP. It also forwards game
 servers' plain TCP and UDP, which the Cloudflare Tunnel can't carry: see
 [Game servers](#game-servers).
 
-```
-viewer ──TLS──> this VM (public IP)
-                  │  Traefik TCP router: HostSNI match, tls.passthrough
-                  ▼  (terminates nothing, reads nothing)
-                Tailscale, outbound-dialed
-                  ▼
-                cluster-apps.catfish-mountain.ts.net:8443
-                  ▼
-                home Traefik, edge listener ──> HTTPRoute ──> jellyfin:8096
+```mermaid
+flowchart TD
+    viewer[Viewer] -- TLS --> vm["This VM (public IP)<br>Traefik TCP router: HostSNI match, tls.passthrough<br>terminates nothing, reads nothing"]
+    vm -- "Tailscale, outbound-dialed" --> gw["cluster-apps.catfish-mountain.ts.net:8443<br>home Traefik, edge listener"]
+    gw -- HTTPRoute --> jellyfin["jellyfin:8096"]
 ```
 
 Viewers need no Tailscale account or client. The tailnet hop is strictly
@@ -124,10 +120,11 @@ Minecraft clients send the hostname they connect to, so the minecraft-gateway
 gives each Minecraft server its name automatically
 (`kubernetes/apps/gameplane`, `templates/minecraft-names.yaml`).
 
-```
-player ──Java TCP 25565, Bedrock TCP+UDP 19132 and UDP 19133──> this VM
-       ──Traefik entrypoints──> Tailscale ──> game-minecraft.catfish-mountain.ts.net
-       ──hostname──> fulton-fun ──> game pod
+```mermaid
+flowchart TD
+    player[Player] -- "Java TCP 25565<br>Bedrock TCP+UDP 19132, UDP 19133" --> vm[This VM]
+    vm -- "Traefik entrypoints, over Tailscale" --> gateway["game-minecraft.catfish-mountain.ts.net<br>(minecraft-gateway)"]
+    gateway -- "by hostname" --> server[fulton-fun game pod]
 ```
 
 Other games send no hostname, so each of their servers would need its own
