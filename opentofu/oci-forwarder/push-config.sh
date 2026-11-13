@@ -40,9 +40,11 @@ done
 # Replace exactly the rules this module owns: drop every edge-game rule, then
 # add one per current game port. The forwarder's own ports are not touched.
 remote "sudo iptables -S INPUT | grep -- '--comment edge-game' | sed 's/^-A /-D /' | xargs -r -L1 sudo iptables" || true
+# ssh reads stdin, so inside this loop it would swallow the remaining rules:
+# give it /dev/null.
 while read -r protocol port; do
   [ -n "$protocol" ] || continue
-  remote "sudo iptables -I INPUT 1 -p $protocol --dport $port -m comment --comment edge-game -j ACCEPT"
+  remote "sudo iptables -I INPUT 1 -p $protocol --dport $port -m comment --comment edge-game -j ACCEPT" </dev/null
 done <<<"$rules"
 remote 'sudo netfilter-persistent save >/dev/null'
 
