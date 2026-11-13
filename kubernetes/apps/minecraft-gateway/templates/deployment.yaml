@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minecraft-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: minecraft-gateway
+spec:
+  replicas: 1
+  # Geyser binds fixed ports; two pods would only compete for them.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: minecraft-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: minecraft-gateway
+      annotations:
+        checksum/geyser-config: {{ include (print $.Template.BasePath "/geyser-config.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: minecraft-gateway
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Geyser rewrites config.yml on start, which a ConfigMap mount can't
+        # take, so it gets a writable copy, with Floodgate's key beside it.
+        - name: geyser-config
+          image: "{{ .Values.geyser.image.repository }}:{{ .Values.geyser.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          command: [sh, -c, "cp /config/config.yml /floodgate/key.pem /geyser/"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - { name: geyser, mountPath: /geyser }
+            - { name: geyser-config, mountPath: /config }
+            - { name: floodgate-key, mountPath: /floodgate }
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits: { memory: 32Mi }
+      containers:
+        - name: mc-router
+          image: "{{ .Values.mcRouter.image.repository }}:{{ .Values.mcRouter.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: IN_KUBE_CLUSTER
+              value: "true"
+          ports:
+            - { name: java, containerPort: 25565, protocol: TCP }
+          readinessProbe:
+            tcpSocket: { port: java }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources: {{- toYaml .Values.mcRouter.resources | nindent 12 }}
+        - name: geyser
+          image: "{{ .Values.geyser.image.repository }}:{{ .Values.geyser.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - { name: signaling, containerPort: 19132, protocol: TCP }
+            - { name: raknet, containerPort: 19132, protocol: UDP }
+            - { name: nethernet, containerPort: 19133, protocol: UDP }
+          readinessProbe:
+            tcpSocket: { port: signaling }
+            initialDelaySeconds: 10
+          securityContext:
+            allowPrivilegeEscalation: false
+            # Geyser writes caches and logs into its working directory, the
+            # geyser volume, and the JVM writes to /tmp.
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - { name: geyser, mountPath: /geyser }
+            - { name: tmp, mountPath: /tmp }
+          resources: {{- toYaml .Values.geyser.resources | nindent 12 }}
+      volumes:
+        - name: geyser
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: geyser-config
+          configMap:
+            name: geyser-config
+        - name: floodgate-key
+          secret:
+            secretName: floodgate-key
