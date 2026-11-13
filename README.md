@@ -74,6 +74,7 @@ Access through the shared [admin gateway](kubernetes/infra/traefik-admin/README.
 - [SigNoz](https://signoz.catfish-mountain.com) - Observability (metrics, logs, traces)
 - [Traefik apps](https://traefik-apps.catfish-mountain.com) - Household/public gateway dashboard
 - [Traefik admin](https://traefik-admin.catfish-mountain.com) - Administrative gateway dashboard
+- [Gameplane](https://server-admin.fultonhuffman.com) - Game servers for friends (public, Pocket ID sign-in)
 
 ## Getting Started
 
