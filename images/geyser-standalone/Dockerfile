@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # Geyser Standalone: lets Minecraft Bedrock players join Java servers.
 #
 # GeyserMC publishes no container image, so this one pins a Geyser build and
@@ -15,10 +16,13 @@ ARG GEYSER_VERSION=2.12.1
 ARG GEYSER_BUILD=1302
 ARG GEYSER_SHA256=ccafefeb8f5447396bfc8e5411e5476c59fb84de3b99196b8d1b7de3306e92c8
 
-RUN curl -fsSL -o /opt/Geyser.jar \
-      "https://download.geysermc.org/v2/projects/geyser/versions/${GEYSER_VERSION}/builds/${GEYSER_BUILD}/downloads/standalone" \
-    && echo "${GEYSER_SHA256}  /opt/Geyser.jar" | sha256sum -c - \
-    && mkdir /geyser && chown 1000:1000 /geyser
+# ADD checks the download against the pinned checksum, and the base image
+# has no curl.
+ADD --checksum=sha256:${GEYSER_SHA256} --chmod=644 \
+    "https://download.geysermc.org/v2/projects/geyser/versions/${GEYSER_VERSION}/builds/${GEYSER_BUILD}/downloads/standalone" \
+    /opt/Geyser.jar
+
+RUN mkdir /geyser && chown 1000:1000 /geyser
 
 USER 1000:1000
 WORKDIR /geyser
