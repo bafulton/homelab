@@ -73,8 +73,10 @@ kubectl -n minecraft-gateway logs deploy/minecraft-gateway -c geyser
   hostname:** the server's Service has no annotation, or a different name.
   Check it with
   `kubectl -n gameplane-games get svc <server> -o jsonpath='{.metadata.annotations}'`.
-  A server created before the naming policy gets its name on its next
-  update in the dashboard.
+  A server created before the naming policy gets its name when it's
+  stopped and started in the dashboard. Gameplane's **restart** isn't
+  enough: it restarts the game inside the same pod and doesn't update the
+  server.
 - **Java works but Bedrock doesn't:** check Geyser's log for signaling, and
   that `geyser.publicHost` resolves to the edge. A Bedrock player who
   connects but is refused by the server usually means the server has no

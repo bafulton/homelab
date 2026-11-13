@@ -102,6 +102,11 @@ Anyone on the internet can reach the ports, so turn on each server's
 whitelist, and add Bedrock players with `fwhitelist add <gamertag>` in its
 console.
 
+The policies apply when a server is created, updated or given a new pod. To
+bring an existing server up to date, **stop and start** it in the dashboard:
+stopping updates the server, and starting creates a new pod. **Restart**
+isn't enough, since it restarts the game inside the same pod.
+
 These policies depend on how Gameplane builds servers: the
 `gameplane.local/template` pod label, a container named `game` with the
 image's `TYPE` setting, and the plugins volume at `/data/plugins`. After a
