@@ -47,7 +47,7 @@ floodgate:
   # The latest Floodgate for Paper/Spigot, downloaded on each server start.
   pluginUrl: https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
   initImage: busybox:1.37.0
-  keySecretId: "REPLACE_WITH_BITWARDEN_SECRET_ID"
+  keySecretId: "c86f4a8d-6e40-41d2-af7f-b5010158c59e"
 
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
