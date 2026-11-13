@@ -80,6 +80,15 @@ nodes. Valheim and Terraria are amd64 only; Minecraft and Factorio run
 anywhere. Game servers keep their templates' CPU limits; only Gameplane's
 own pods have theirs removed.
 
+## Public Minecraft
+
+Every Minecraft server is public at `<server>.minecraft.fultonhuffman.com`,
+on the usual port. `templates/minecraft-names.yaml` gives each server that
+name as it's created, mc-router (`kubernetes/apps/mc-router`) routes players
+to it by the hostname their client sends, and the OCI edge forwarder
+(`opentofu/oci-forwarder`) carries port 25565 to mc-router. Anyone on the
+internet can reach the port, so turn on each server's whitelist.
+
 ## Storage and backups
 
 - **Worlds** are `config` Longhorn volumes, replicated, so servers can run on

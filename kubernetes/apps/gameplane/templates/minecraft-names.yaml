@@ -1,0 +1,67 @@
+# Gives each Minecraft server a public name, <server>.<domain>, as it is
+# created or updated: mc-router (kubernetes/apps/mc-router) routes players by
+# the hostname their client sends, using the annotation on the server's
+# Service, and the dashboard shows the name as the server's hostname. A
+# server that already sets either keeps its own. The edge forwards port 25565
+# for *.<domain> to mc-router (opentofu/oci-forwarder, var.games).
+{{- with .Values.minecraftNames }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: gameplane-minecraft-names
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+    resourceRules:
+      - apiGroups: [gameplane.local]
+        apiVersions: [v1alpha1]
+        operations: [CREATE, UPDATE]
+        resources: [gameservers]
+  variables:
+    - name: host
+      expression: object.metadata.name + {{ printf ".%s" .domain | squote }}
+    - name: hasNetworking
+      expression: has(object.spec.networking)
+    - name: hasAnnotations
+      expression: variables.hasNetworking && has(object.spec.networking.serviceAnnotations)
+    - name: hasRoute
+      expression: >-
+        variables.hasAnnotations &&
+        'mc-router.itzg.me/externalServerName' in object.spec.networking.serviceAnnotations
+    - name: hasHostname
+      expression: variables.hasNetworking && has(object.spec.networking.hostname)
+  matchConditions:
+    - name: minecraft-without-a-name
+      expression: >-
+        object.spec.templateRef.name in {{ toJson .templates | replace "\"" "'" }} &&
+        !(has(object.spec.networking) && has(object.spec.networking.serviceAnnotations) &&
+          'mc-router.itzg.me/externalServerName' in object.spec.networking.serviceAnnotations &&
+          has(object.spec.networking.hostname))
+  # A server without a name is still a working server, reachable on the LAN,
+  # so an error here mustn't block creating one.
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+  # JSON patch operations apply in order, so each one can add to what the
+  # one before it created. "~1" escapes the "/" in the annotation key.
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          (variables.hasNetworking ? [] :
+            [JSONPatch{op: "add", path: "/spec/networking", value: {}}]) +
+          (variables.hasAnnotations || variables.hasRoute ? [] :
+            [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations", value: {}}]) +
+          (variables.hasRoute ? [] :
+            [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mc-router.itzg.me~1externalServerName", value: variables.host}]) +
+          (variables.hasHostname ? [] :
+            [JSONPatch{op: "add", path: "/spec/networking/hostname", value: variables.host}])
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: gameplane-minecraft-names
+spec:
+  policyName: gameplane-minecraft-names
+{{- end }}

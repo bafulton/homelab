@@ -29,6 +29,14 @@ amd64OnlyGames:
   - valheim
   - terraria
 
+# Minecraft servers get public names, <server>.<domain>, routed by mc-router
+# (templates/minecraft-names.yaml). templates lists the Minecraft Java game
+# templates.
+minecraftNames:
+  domain: minecraft.fultonhuffman.com
+  templates:
+    - minecraft
+
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
   # otherwise generate. This profile has it use the mTLS Secrets in
