@@ -1,0 +1,28 @@
+# mc-router finds servers by watching Services in every namespace.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: minecraft-gateway
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: minecraft-gateway
+rules:
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [list, watch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: minecraft-gateway
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: minecraft-gateway
+subjects:
+  - kind: ServiceAccount
+    name: minecraft-gateway
+    namespace: {{ .Release.Namespace }}

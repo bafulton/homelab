@@ -1,0 +1,20 @@
+# The edge forwarder's upstream on the tailnet, game-minecraft: Java,
+# Bedrock signaling, RakNet and NetherNet, all to this one pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: minecraft-gateway
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    tailscale.com/hostname: {{ .Values.tailscale.hostname }}
+    tailscale.com/tags: {{ .Values.tailscale.tags }}
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  selector:
+    app.kubernetes.io/name: minecraft-gateway
+  ports:
+    - { name: java, port: 25565, targetPort: java, protocol: TCP }
+    - { name: signaling, port: 19132, targetPort: signaling, protocol: TCP }
+    - { name: raknet, port: 19132, targetPort: raknet, protocol: UDP }
+    - { name: nethernet, port: 19133, targetPort: nethernet, protocol: UDP }

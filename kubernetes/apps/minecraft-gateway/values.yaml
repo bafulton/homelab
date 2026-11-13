@@ -1,0 +1,61 @@
+# Minecraft gateway - the front door to every Gameplane Minecraft server, for
+# Java and Bedrock players alike. One pod, two containers:
+#
+#   - mc-router: Java players. Minecraft Java clients send the hostname they
+#     connect to, and mc-router passes each connection to the server whose
+#     Service carries that name in its mc-router.itzg.me/externalServerName
+#     annotation. Gameplane adds the annotation to every Minecraft server.
+#   - Geyser: Bedrock players (iPad, phone, Windows). It translates Bedrock to
+#     Java and connects to mc-router with the hostname the player used, so
+#     Bedrock players reach the same servers by the same names.
+#
+# Access:
+#   - Public: <server>.minecraft.fultonhuffman.com, via the OCI edge forwarder
+#     (opentofu/oci-forwarder, var.games "minecraft"), which reaches this
+#     pod's Tailscale Service, game-minecraft. Java on TCP 25565; Bedrock on
+#     19132 (TCP signaling and UDP RakNet) and UDP 19133 (NetherNet).
+
+namespace: minecraft-gateway
+
+# The edge forwarder's upstream, game-<key> in its var.games. The tag is the
+# target of tailscale/policy.hujson's tag:edge grant.
+tailscale:
+  hostname: game-minecraft
+  tags: tag:k8s-games
+
+mcRouter:
+  image:
+    repository: itzg/mc-router
+    tag: "1.56.1"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+geyser:
+  image:
+    repository: ghcr.io/bafulton/geyser-standalone
+    tag: "1.0.0"
+  # Where Bedrock clients send NetherNet (WebRTC) traffic, told to them
+  # during signaling: the edge's public name. Geyser looks it up when
+  # signaling starts, and signaling doesn't start if it doesn't resolve.
+  publicHost: minecraft.fultonhuffman.com
+  resources:
+    requests:
+      cpu: 100m
+      memory: 384Mi
+    limits:
+      memory: 768Mi
+
+bitwarden-secret:
+  secrets:
+    # Floodgate's key, which Geyser uses to vouch for Bedrock players to each
+    # server's Floodgate plugin. Every server must have the same key
+    # (kubernetes/apps/gameplane). 16 random bytes, base64 in Bitwarden:
+    #   openssl rand 16 | base64
+    - name: floodgate-key
+      decodingStrategy: Base64
+      data:
+        key.pem: "c86f4a8d-6e40-41d2-af7f-b5010158c59e"
