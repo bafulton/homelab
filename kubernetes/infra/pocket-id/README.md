@@ -42,10 +42,14 @@ service's group, so Pocket ID refuses to sign anyone else in to that service.
 | Group | Service | Client |
 |---|---|---|
 | `games` | `games.fultonhuffman.com` | `bottleship` (oauth2-proxy) |
+| `game-servers` | `server-admin.fultonhuffman.com` | `gameplane` (its own OIDC sign-in) |
 
 Removing someone from a group stops their next sign-in. Each service keeps
 its own session, which lasts until that session expires (for games, the
-oauth2-proxy cookie lifetime in `apps/bottleship/values.yaml`).
+oauth2-proxy cookie lifetime in `apps/bottleship/values.yaml`; for
+`gameplane`, Gameplane's session). Removing a friend from `game-servers`
+doesn't remove their Gameplane account or servers: delete those in the
+dashboard's **Users**.
 
 ## Adding a Service
 
