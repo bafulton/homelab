@@ -47,36 +47,37 @@ spec:
   # here mustn't block it starting.
   failurePolicy: Ignore
   reinvocationPolicy: Never
-  # Apply configurations, because volumes, init containers and env are all
-  # lists Kubernetes merges by name.
   mutations:
-    - patchType: ApplyConfiguration
-      applyConfiguration:
+    # A JSON patch, because an apply configuration may not set atomic lists
+    # such as the init container's command. Typed objects keep the values
+    # well-formed.
+    - patchType: JSONPatch
+      jsonPatch:
         expression: >-
-          Object{
-            spec: Object.spec{
-              volumes: [Object.spec.volumes{
-                name: "floodgate-key",
-                secret: Object.spec.volumes.secret{secretName: "floodgate-key"}
-              }],
-              initContainers: [Object.spec.initContainers{
-                name: "floodgate-key",
-                image: {{ .initImage | squote }},
-                command: ["sh", "-c", "mkdir -p /data/plugins/floodgate && cp /floodgate/key.pem /data/plugins/floodgate/key.pem"],
-                securityContext: Object.spec.initContainers.securityContext{
-                  runAsUser: 1000,
-                  runAsGroup: 1000,
-                  runAsNonRoot: true,
-                  allowPrivilegeEscalation: false,
-                  capabilities: Object.spec.initContainers.securityContext.capabilities{drop: ["ALL"]}
-                },
-                volumeMounts: [
-                  Object.spec.initContainers.volumeMounts{name: variables.pluginsVolume, mountPath: "/data/plugins"},
-                  Object.spec.initContainers.volumeMounts{name: "floodgate-key", mountPath: "/floodgate", readOnly: true}
-                ]
-              }]
-            }
-          }
+          [JSONPatch{op: "add", path: "/spec/volumes/-", value: Object.spec.volumes{
+            name: "floodgate-key",
+            secret: Object.spec.volumes.secret{secretName: "floodgate-key"}
+          }}] +
+          (has(object.spec.initContainers) ? [] :
+            [JSONPatch{op: "add", path: "/spec/initContainers", value: []}]) +
+          [JSONPatch{op: "add", path: "/spec/initContainers/-", value: Object.spec.initContainers{
+            name: "floodgate-key",
+            image: {{ .initImage | squote }},
+            command: ["sh", "-c", "mkdir -p /data/plugins/floodgate && cp /floodgate/key.pem /data/plugins/floodgate/key.pem"],
+            securityContext: Object.spec.initContainers.securityContext{
+              runAsUser: 1000,
+              runAsGroup: 1000,
+              runAsNonRoot: true,
+              allowPrivilegeEscalation: false,
+              capabilities: Object.spec.initContainers.securityContext.capabilities{drop: ["ALL"]}
+            },
+            volumeMounts: [
+              Object.spec.initContainers.volumeMounts{name: variables.pluginsVolume, mountPath: "/data/plugins"},
+              Object.spec.initContainers.volumeMounts{name: "floodgate-key", mountPath: "/floodgate", readOnly: true}
+            ]
+          }}]
+    # An apply configuration here: env merges by name, and has no atomic
+    # fields to set.
     # The itzg image downloads PLUGINS into /data/plugins on start. A server
     # that sets PLUGINS itself keeps its own list.
     - patchType: ApplyConfiguration
