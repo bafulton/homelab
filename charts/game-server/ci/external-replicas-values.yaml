@@ -1,0 +1,6 @@
+# Started and stopped by something other than git.
+workload:
+  replicasManagedExternally: true
+  image: {repository: busybox, tag: "1.37.0"}
+ports:
+  - {name: game, port: 7777}

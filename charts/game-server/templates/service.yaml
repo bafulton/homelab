@@ -1,0 +1,53 @@
+{{- $name := include "game-server.name" . }}
+{{- if and .Values.service.enabled .Values.ports }}
+---
+# Reached by the OCI edge forwarder over the tailnet. The Tailscale proxy
+# forwards to the ClusterIP, so the game pod can run on any node.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "game-server.labels" . | nindent 4 }}
+  annotations:
+    tailscale.com/hostname: {{ .Values.service.tailscaleHostname | default (printf "game-%s" $name) }}
+    tailscale.com/tags: {{ .Values.service.tailscaleTags }}
+    {{- with include "game-server.annotations" . | trim }}
+    {{- . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: LoadBalancer
+  loadBalancerClass: tailscale
+  allocateLoadBalancerNodePorts: false
+  selector:
+    {{- include "game-server.serviceSelector" . | nindent 4 }}
+  ports:
+    {{- include "game-server.servicePorts" . | trim | nindent 4 }}
+{{- end }}
+{{- if and .Values.lan.enabled .Values.ports }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}-lan
+  labels:
+    {{- include "game-server.labels" . | nindent 4 }}
+  annotations:
+    metallb.io/loadBalancerIPs: {{ .Values.lan.loadBalancerIP }}
+    {{- with include "game-server.annotations" . | trim }}
+    {{- . | nindent 4 }}
+    {{- end }}
+    {{- with .Values.lan.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: LoadBalancer
+  allocateLoadBalancerNodePorts: false
+  selector:
+    {{- include "game-server.serviceSelector" . | nindent 4 }}
+  ports:
+    {{- include "game-server.servicePorts" . | trim | nindent 4 }}
+{{- end }}

@@ -1,0 +1,32 @@
+# Direct mode: the chart runs the game server itself (Valheim-shaped).
+game: valheim
+arch: amd64
+workload:
+  image:
+    repository: ghcr.io/community-valheim-tools/valheim-server
+    tag: pinned-tag
+  envFrom:
+    - secretRef:
+        name: valheim-server
+  resources:
+    requests: {cpu: 500m, memory: 3Gi}
+    limits: {memory: 6Gi}
+  lifecycle:
+    preStop:
+      exec:
+        command: [supervisorctl, stop, valheim-server]
+  fixPermissions:
+    enabled: true
+persistence:
+  config:
+    claimName: valheim-config
+    mountPath: /config
+ports:
+  - {name: game, port: 2456, protocol: UDP}
+  - {name: query, port: 2457, protocol: UDP}
+lan:
+  enabled: true
+  loadBalancerIP: 192.168.1.203
+portal:
+  subjects:
+    - {kind: ServiceAccount, name: game-portal, namespace: game-portal}

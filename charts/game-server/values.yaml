@@ -1,0 +1,150 @@
+# One game server (or one game manager, such as Crafty) per release. Run a
+# second instance with a second wrapper app, not a second entry here. See
+# README.md.
+
+# Base name for every resource. Defaults to the release name, which the apps
+# ApplicationSet sets from the wrapper's directory.
+nameOverride: ""
+
+# The game this instance runs, eg "minecraft" or "valheim". Becomes the
+# games.homelab.io/game label, so a portal can group instances by game.
+game: ""
+
+# CPU architecture the image is built for: amd64, arm64, or "" for a
+# multi-arch image. Becomes a kubernetes.io/arch nodeSelector. Nothing else
+# pins placement: a game floats between nodes, data included, because its
+# volumes are Longhorn `config` PVCs (README.md, "Storage").
+arch: ""
+
+# The game's own management UI, if it has one. Recorded as the
+# games.homelab.io/ui-url annotation so a portal can link to it. Routing the UI
+# is the gateway-route chart's job, not this one's.
+uiUrl: ""
+
+workload:
+  # false renders no workload, only the Services (and RBAC): for a manager or
+  # an upstream chart that brings its own pods. Set service.selector to match
+  # those pods.
+  enabled: true
+
+  # 0 stops the server and frees its memory request; 1 runs it. A game server
+  # has one writer, so never more than 1.
+  replicas: 1
+
+  # true leaves spec.replicas out of the StatefulSet, so something other than
+  # git (the game portal, mc-router) can scale it without ArgoCD reverting
+  # the change. When switching an existing instance over, also add top-level
+  # ignoreDifferences for /spec/replicas in the wrapper's values.yaml, since
+  # the previously applied manifest still carries replicas (README.md,
+  # "Start and stop").
+  replicasManagedExternally: false
+
+  image:
+    repository: ""
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  command: []
+  args: []
+  env: []
+  envFrom: []
+
+  # Memory request and limit only. Never a CPU limit: a game server's CPU use
+  # is bursty, and throttling shows up as lag.
+  resources: {}
+
+  startupProbe: {}
+  readinessProbe: {}
+  livenessProbe: {}
+
+  # Where each game puts its save-and-stop command, eg
+  #   preStop:
+  #     exec:
+  #       command: [rcon-cli, stop]
+  lifecycle: {}
+
+  # Long enough for the preStop hook to finish saving the world. Kubernetes
+  # sends SIGKILL when it runs out.
+  terminationGracePeriodSeconds: 120
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ALL]
+
+  # Runs as root before the game starts and chowns each persistence mount to
+  # podSecurityContext's runAsUser:runAsGroup, for images that write as a
+  # different user than the volume's existing files belong to.
+  fixPermissions:
+    enabled: false
+    image: busybox:1.37.0
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  podAnnotations: {}
+  podLabels: {}
+
+  initContainers: []
+  extraContainers: []
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# Volumes the game mounts, by name. The PVCs themselves come from the
+# longhorn-storage chart (or local-storage) in the wrapper, so each keeps a
+# stable name for backups and restores.
+persistence: {}
+  # world:
+  #   claimName: valheim-world     # PVC name (required)
+  #   mountPath: /config           # Path in the game container (required)
+  #   subPath: ""                  # Optional
+  #   readOnly: false              # Optional
+
+# The game's ports. Each becomes a containerPort on the game container and a
+# port on every Service below. Names must be unique and at most 15 characters.
+ports: []
+  # - name: game
+  #   port: 2456
+  #   protocol: UDP                # TCP (default) or UDP
+  #   targetPort: 2456             # Defaults to port
+
+# The tailnet Service: how the OCI edge forwarder reaches the game, from
+# whichever node it runs on. Making the game public is separate,
+# explicit OpenTofu (README.md, "Making a game public").
+service:
+  enabled: true
+  # The device name on the tailnet, eg "game-valheim" for
+  # game-valheim.catfish-mountain.ts.net. Defaults to "game-<name>".
+  tailscaleHostname: ""
+  # The edge forwarder's grant in tailscale/policy.hujson targets this tag.
+  tailscaleTags: tag:k8s-games
+  annotations: {}
+  # Only for workload.enabled: false. Defaults to this chart's own pods.
+  selector: {}
+
+# An optional MetalLB Service for playing from home without going through the
+# edge. MetalLB announces from the home nodes only, which is fine: kube-proxy
+# forwards to the pod wherever it runs, ocifree included.
+lan:
+  enabled: false
+  # A free address in the MetalLB pool (192.168.1.200-250).
+  loadBalancerIP: ""
+  annotations: {}
+
+# Lets a future game portal start and stop this instance through the
+# StatefulSet scale subresource. Nothing is rendered while subjects is empty.
+portal:
+  subjects: []
+    # - kind: ServiceAccount
+    #   name: game-portal
+    #   namespace: game-portal

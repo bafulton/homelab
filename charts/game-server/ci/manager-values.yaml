@@ -1,0 +1,11 @@
+# Helpers-only mode: another chart runs the pods; this one adds the Services.
+game: minecraft
+uiUrl: https://crafty.catfish-mountain.com
+workload:
+  enabled: false
+service:
+  selector:
+    app.kubernetes.io/name: crafty
+ports:
+  - {name: java, port: 25565}
+  - {name: bedrock, port: 19132, protocol: UDP}

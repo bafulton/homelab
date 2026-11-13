@@ -7,6 +7,7 @@ Reusable Helm charts used as dependencies by apps in `kubernetes/infra/` and `ku
 | Chart | Type | Description |
 |-------|------|-------------|
 | [bitwarden-secret](./bitwarden-secret/) | Template | Creates ExternalSecrets that pull from Bitwarden Secrets Manager |
+| [game-server](./game-server/) | Workload | StatefulSet and Services for a dedicated game server or game manager |
 | [gateway-route](./gateway-route/) | Gateway API | Creates HTTPRoutes for Gateway API with optional mDNS advertisement |
 | [local-storage](./local-storage/) | Storage | Creates static hostPath PVs/PVCs with optional VolSync backups |
 | [longhorn-storage](./longhorn-storage/) | Storage | Creates Longhorn PVCs with optional recurring snapshot jobs |
@@ -175,10 +176,12 @@ Pin `location: local` when a workload:
 - is **hostNetwork** and needs the LAN (Home Assistant, mDNS advertiser,
   Matter/Chromecast bridges),
 - does **L2/ARP** for the LAN (MetalLB speaker/controller/frr-k8s),
-- is backed by **Longhorn** storage and **latency-sensitive** — a `config`
-  volume can attach on a remote node (the replicas stay on the local nodes and
-  the node reaches them over Tailscale), but every read and write then crosses
-  the WAN, or
+- is backed by **Longhorn** storage and has **measured** trouble with the WAN
+  — a `config` volume attaches fine on a remote node (the replicas stay on the
+  local nodes and the node reaches them over Tailscale), and that is the
+  default: the remote node joined the cluster on the bet that this is fast
+  enough. Game servers rely on it (see [game-server](./game-server/)). Pin
+  only once a workload shows I/O stalls or replica errors there, or
 - has strong **data gravity** to a local store (SigNoz OTel collector → local
   ClickHouse).
 

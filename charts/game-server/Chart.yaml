@@ -1,0 +1,8 @@
+apiVersion: v2
+name: game-server
+description: Reusable StatefulSet and Services for a dedicated game server or game manager
+type: application
+# 0.x until two games (CAT-83 Minecraft, CAT-91 Valheim) run on it; the values
+# interface may still change before 1.0.0.
+version: 0.1.0
+appVersion: "0.1.0"

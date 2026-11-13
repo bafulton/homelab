@@ -1,0 +1,177 @@
+{{- include "game-server.validate" . }}
+{{- if .Values.workload.enabled }}
+{{- $w := .Values.workload }}
+{{- $name := include "game-server.name" . }}
+{{- if not (and $w.image.repository $w.image.tag) }}
+{{- fail "workload.image.repository and workload.image.tag are required" }}
+{{- end }}
+---
+# A StatefulSet rather than a Deployment: it never runs an old and a new pod
+# at once during a rollout, which two writers on one world would corrupt.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "game-server.labels" . | nindent 4 }}
+  {{- with include "game-server.annotations" . | trim }}
+  annotations:
+    {{- . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- if not $w.replicasManagedExternally }}
+  replicas: {{ $w.replicas }}
+  {{- end }}
+  serviceName: {{ $name }}
+  selector:
+    matchLabels:
+      {{- include "game-server.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "game-server.labels" . | nindent 8 }}
+        {{- with $w.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with $w.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ $w.terminationGracePeriodSeconds }}
+      {{- with $w.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- $nodeSelector := deepCopy ($w.nodeSelector | default dict) }}
+      {{- with .Values.arch }}
+      {{- $_ := set $nodeSelector "kubernetes.io/arch" . }}
+      {{- end }}
+      {{- with $nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $w.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $w.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or $w.initContainers (and $w.fixPermissions.enabled .Values.persistence) }}
+      initContainers:
+        {{- if and $w.fixPermissions.enabled .Values.persistence }}
+        - name: fix-permissions
+          image: {{ $w.fixPermissions.image }}
+          command:
+            - chown
+            - -R
+            - {{ printf "%v:%v" $w.podSecurityContext.runAsUser $w.podSecurityContext.runAsGroup | quote }}
+            {{- range $volume, $p := .Values.persistence }}
+            - {{ $p.mountPath }}
+            {{- end }}
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+            runAsGroup: 0
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+              add: [CHOWN, DAC_OVERRIDE, FOWNER]
+          volumeMounts:
+            {{- range $volume, $p := .Values.persistence }}
+            - name: {{ $volume }}
+              mountPath: {{ $p.mountPath }}
+              {{- with $p.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- with $w.initContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.game | default "game" }}
+          image: "{{ $w.image.repository }}:{{ $w.image.tag }}"
+          imagePullPolicy: {{ $w.image.pullPolicy }}
+          {{- with $w.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.ports }}
+          ports:
+            {{- range . }}
+            - name: {{ .name }}
+              containerPort: {{ .targetPort | default .port }}
+              protocol: {{ .protocol | default "TCP" }}
+            {{- end }}
+          {{- end }}
+          {{- with $w.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $w.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if or .Values.persistence $w.extraVolumeMounts }}
+          volumeMounts:
+            {{- range $volume, $p := .Values.persistence }}
+            - name: {{ $volume }}
+              mountPath: {{ required (printf "persistence.%s.mountPath is required" $volume) $p.mountPath }}
+              {{- with $p.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+              {{- if $p.readOnly }}
+              readOnly: true
+              {{- end }}
+            {{- end }}
+            {{- with $w.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+        {{- with $w.extraContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- if or .Values.persistence $w.extraVolumes }}
+      volumes:
+        {{- range $volume, $p := .Values.persistence }}
+        - name: {{ $volume }}
+          persistentVolumeClaim:
+            claimName: {{ required (printf "persistence.%s.claimName is required" $volume) $p.claimName }}
+        {{- end }}
+        {{- with $w.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+{{- end }}
