@@ -20,7 +20,9 @@ In Pocket ID, create the `game-servers` group, then **OIDC Clients → Add**:
 
 - **Callback URL**: `https://server-admin.fultonhuffman.com/auth/oidc/helm/callback`
 - **Public Client**: off
-- **PKCE**: on
+- **PKCE**: off. Gameplane doesn't send a PKCE verifier, so Pocket ID would
+  reject its sign-ins ("oauth exchange failed"). The client secret still
+  authenticates the token exchange.
 - **Allowed User Groups**: `game-servers`
 
 Put the client ID in `gameplane.api.oidc.clientID` and the client secret in
@@ -30,18 +32,34 @@ Pocket ID decides who can sign in. Gameplane's Helm-configured sign-in
 doesn't request the `groups` scope, so it can't give roles by group:
 everyone who signs in is an **operator**, who can create and run servers.
 
-### First admin
+### First admin and Pocket ID only
 
-Admins manage users, roles and settings. Create a local admin once, then use
-it to promote your own Pocket ID account:
+Everyone signs in with Pocket ID; local password accounts are turned off.
+Gameplane can't make anyone an admin from their Pocket ID groups, so a local
+admin is needed once, to promote the first Pocket ID account:
+
+1. Create a local admin:
+
+   ```sh
+   kubectl -n gameplane-system exec -it deploy/gameplane-api -- \
+     /api bootstrap-admin --username admin --password-stdin
+   ```
+
+2. Sign in with Pocket ID once, so your account exists. Sign out, sign in as
+   `admin`, and in **Users** make your Pocket ID account an admin.
+3. Sign in with Pocket ID again, and in **Admin Settings → Authentication**
+   turn off local login. Then delete the `admin` account in **Users**.
+
+This setting lives in Gameplane's database, not in git; the database's
+nightly backups keep it. If Pocket ID ever stops working, turn local login
+back on, and create an admin again, from the cluster:
 
 ```sh
+kubectl -n gameplane-system exec deploy/gameplane-api -- \
+  /api bootstrap-admin --enable-local-login
 kubectl -n gameplane-system exec -it deploy/gameplane-api -- \
-  /api bootstrap-admin --username admin --password-stdin
+  /api bootstrap-admin --username admin --password-stdin --force
 ```
-
-Keep the password in Bitwarden. Sign in with Pocket ID once, so your account
-exists, then as `admin` open **Users** and make it an admin.
 
 ## Local access
 
@@ -50,8 +68,7 @@ On the LAN, <https://server-admin.local> serves the same dashboard over the
 [household access](../../../docs/local-household-access.md) for enrolling a
 device). Gameplane has one sign-in callback, on the public hostname, so
 signing in with Pocket ID from `server-admin.local` finishes on
-`server-admin.fultonhuffman.com`. Local accounts, like the first admin, sign
-in on `server-admin.local` directly.
+`server-admin.fultonhuffman.com`.
 
 ## Storage and backups
 
