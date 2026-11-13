@@ -58,4 +58,4 @@ bitwarden-secret:
     - name: floodgate-key
       decodingStrategy: Base64
       data:
-        key.pem: "REPLACE_WITH_BITWARDEN_SECRET_ID"
+        key.pem: "c86f4a8d-6e40-41d2-af7f-b5010158c59e"
