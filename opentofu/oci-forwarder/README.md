@@ -5,7 +5,9 @@ hostnames (`public_hostnames`) and passes the TLS, unterminated, over Tailscale 
 
 It exists so Jellyfin can be publicly reachable without routing video through
 Cloudflare's CDN (outside their Service-Specific Terms), without opening a port
-at home, and without depending on a stable home IP.
+at home, and without depending on a stable home IP. It also forwards game
+servers' plain TCP and UDP, which the Cloudflare Tunnel can't carry: see
+[Game servers](#game-servers).
 
 ```
 viewer ──TLS──> this VM (public IP)
