@@ -12,7 +12,7 @@
 # The download is split out because the Java image has no curl or wget, and
 # this stage's shell takes the version and build apart for the URL.
 # renovate: datasource=docker depName=alpine versioning=docker
-FROM alpine:3.23 AS download
+FROM alpine:3.24 AS download
 
 ARG GEYSER_RELEASE=2.12.1-1302
 ARG GEYSER_SHA256=ccafefeb8f5447396bfc8e5411e5476c59fb84de3b99196b8d1b7de3306e92c8
