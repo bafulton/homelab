@@ -7,6 +7,7 @@ Images built from this repo and published to GHCR by
 |-------|----------|---------|
 | `homelab-toolbox` | alpine + `curl`, `jq`, `git`, `kubectl`, `iproute2` | node-health, signoz dashboard-sync, cluster-maintenance, subnet-route-steering |
 | `mdns-advertiser` | python + `zeroconf`, `kubernetes` + `advertiser.py` | mdns-advertiser |
+| `geyser-standalone` | Java 25 JRE + a pinned Geyser Standalone build | minecraft-gateway |
 
 ## Why These Exist
 
@@ -52,14 +53,17 @@ green, image PRs automerge like any other minor or patch update.
 Pinned versions in `ARG <NAME>_VERSION=` lines are tracked by a `customManager`
 in `renovate.json`, keyed off the `# renovate: datasource=... depName=...`
 comment directly above each one. Keep that comment attached or the pin silently
-stops receiving updates.
+stops receiving updates. `geyser-standalone` is the exception: Geyser isn't in
+any registry Renovate knows, so its own customManager and a custom datasource
+read GeyserMC's build API, and update `GEYSER_RELEASE` and its `GEYSER_SHA256`
+together.
 
-Both images are built for `linux/amd64` and `linux/arm64` (beelink is amd64;
+The images are built for `linux/amd64` and `linux/arm64` (beelink is amd64;
 rpi5 and ocifree are arm64).
 
 ## Package Visibility
 
-Both packages must be **public** in GHCR. New packages default to private even
+Every package must be **public** in GHCR. New packages default to private even
 from a public repo, so this is a manual step in each package's settings after
 the first build; the symptom of missing it is `ImagePullBackOff` everywhere.
 

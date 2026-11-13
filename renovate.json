@@ -77,6 +77,19 @@
         "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+?)(?: versioning=(?<versioning>\\S+))?\\s+ARG \\w+_VERSION=(?<currentValue>\\S+)"
       ],
       "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Geyser build, and its SHA-256, in images/geyser-standalone/Dockerfile. Bedrock clients update themselves, and an old Geyser stops letting them in",
+      "fileMatch": [
+        "^images/geyser-standalone/Dockerfile$"
+      ],
+      "matchStrings": [
+        "ARG GEYSER_RELEASE=(?<currentValue>\\S+)\\s+ARG GEYSER_SHA256=(?<currentDigest>[a-f0-9]{64})"
+      ],
+      "depNameTemplate": "geyser",
+      "datasourceTemplate": "custom.geyser",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$"
     }
   ],
   "packageRules": [
@@ -122,5 +135,13 @@
       "groupName": "bottleship",
       "automerge": false
     }
-  ]
+  ],
+  "customDatasources": {
+    "geyser": {
+      "defaultRegistryUrlTemplate": "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds",
+      "transformTemplates": [
+        "{\"releases\": [builds.{\"version\": $$.version & \"-\" & $string(build), \"digest\": downloads.standalone.sha256}]}"
+      ]
+    }
+  }
 }
