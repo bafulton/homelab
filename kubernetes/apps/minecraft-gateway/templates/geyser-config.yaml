@@ -32,6 +32,14 @@ data:
       # Send the hostname the Bedrock player used, so mc-router picks the
       # server by name, the same as for Java players.
       forward-hostname: true
+    # The Bedrock server list shows these. Geyser would otherwise copy them
+    # from its Java server, but mc-router routes by hostname and has no
+    # server of its own to answer a ping, so Geyser warns every few seconds.
+    motd:
+      primary-motd: Fulton Minecraft
+      secondary-motd: fultonhuffman.com
+      passthrough-motd: false
+      passthrough-player-counts: false
     advanced:
       floodgate-key-file: key.pem
     config-version: 12
