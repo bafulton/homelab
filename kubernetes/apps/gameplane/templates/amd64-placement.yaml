@@ -27,15 +27,16 @@ spec:
         object.metadata.labels['gameplane.local/template'] in {{ toJson . | replace "\"" "'" }}
   failurePolicy: Fail
   reinvocationPolicy: Never
+  # A JSON patch, not an apply configuration: nodeSelector is an atomic map,
+  # which an apply configuration may not change. "~1" escapes the "/" in the
+  # label key.
   mutations:
-    - patchType: ApplyConfiguration
-      applyConfiguration:
+    - patchType: JSONPatch
+      jsonPatch:
         expression: >-
-          Object{
-            spec: Object.spec{
-              nodeSelector: {"kubernetes.io/arch": "amd64"}
-            }
-          }
+          has(object.spec.nodeSelector) ?
+            [JSONPatch{op: "add", path: "/spec/nodeSelector/kubernetes.io~1arch", value: "amd64"}] :
+            [JSONPatch{op: "add", path: "/spec/nodeSelector", value: {"kubernetes.io/arch": "amd64"}}]
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicyBinding
