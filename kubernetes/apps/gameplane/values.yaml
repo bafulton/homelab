@@ -45,7 +45,7 @@ minecraftNames:
 floodgate:
   # The latest Floodgate for Paper/Spigot, downloaded on each server start.
   pluginUrl: https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot
-  initImage: busybox:1.37.0
+  initImage: busybox:1.38.0
 
 gameplane:
   # Argo CD renders offline, so the chart can't look up the Secrets it would
