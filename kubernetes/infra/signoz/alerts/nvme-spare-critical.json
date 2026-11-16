@@ -87,6 +87,6 @@
   },
   "annotations": {
     "description": "NVMe available spare capacity is below 10% — drive has exhausted most spare blocks and may fail soon",
-    "summary": "NVMe spare capacity critical on {{k8s.node.name}} ({{device}})"
+    "summary": "NVMe spare capacity critical on $k8s.node.name ($device)"
   }
 }

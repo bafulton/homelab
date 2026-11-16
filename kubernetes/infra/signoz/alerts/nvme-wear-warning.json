@@ -87,6 +87,6 @@
   },
   "annotations": {
     "description": "NVMe drive percentage_used is above 70% — drive is approaching end of rated write endurance",
-    "summary": "NVMe wear indicator high on {{k8s.node.name}} ({{device}})"
+    "summary": "NVMe wear indicator high on $k8s.node.name ($device)"
   }
 }
