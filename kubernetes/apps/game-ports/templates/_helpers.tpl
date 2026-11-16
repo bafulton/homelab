@@ -12,5 +12,6 @@ entrypoints and the Tailscale Service's ports both come from this.
 
 {{/* The controller's configuration (images/game-ports/game_ports.py). */}}
 {{- define "game-ports.config" -}}
-{{- dict "namespace" .Values.gamesNamespace "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "loadBalancerClass" .Values.loadBalancerClass "games" .Values.games | toJson }}
+{{- $canary := dict "name" .Values.canary.name "game" "game-ports-canary" "maxAgeHours" .Values.canary.maxAgeHours "settleSeconds" .Values.canary.settleSeconds }}
+{{- dict "namespace" .Values.gamesNamespace "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "loadBalancerClass" .Values.loadBalancerClass "metricsPort" .Values.controller.metricsPort "canary" $canary "games" .Values.games | toJson }}
 {{- end }}

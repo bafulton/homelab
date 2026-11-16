@@ -124,7 +124,9 @@ These policies depend on how Gameplane builds servers: the
 `gameplane.local/template` pod label, a container named `game` with the
 image's `TYPE` setting, and the plugins volume at `/data/plugins`. After a
 Gameplane upgrade, check that a new Minecraft server still gets its name and
-Floodgate.
+Floodgate. Valheim and Factorio's public addresses depend on Gameplane too; game-ports
+checks those itself and alerts when they break (its README, "Checks and the
+canary").
 
 ## Public Valheim and Factorio
 

@@ -1,5 +1,5 @@
 # The controller (images/game-ports): gives each server its slot and ports,
-# publishes its address, and writes the gateway's routes.
+# publishes its address, writes the gateway's routes, and runs the checks.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -19,6 +19,9 @@ spec:
     metadata:
       labels:
         app.kubernetes.io/name: game-ports-controller
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.controller.metricsPort }}"
     spec:
       serviceAccountName: game-ports-controller
       securityContext:
@@ -34,6 +37,8 @@ spec:
           env:
             - name: GAME_PORTS_CONFIG
               value: {{ include "game-ports.config" . | quote }}
+          ports:
+            - { name: metrics, containerPort: {{ .Values.controller.metricsPort }}, protocol: TCP }
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

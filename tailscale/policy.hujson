@@ -80,6 +80,7 @@
     // The edge forwards plain TCP and UDP by port to tag:k8s-games
     // Tailscale Services. List exactly the ports in var.games, protocol
     // included, so this grant opens nothing the forwarder does not forward.
+    // CI checks that they match (.github/scripts/check_game_ports.py).
     {
       "src": ["tag:edge"],
       "dst": ["tag:k8s-games"],
@@ -90,10 +91,11 @@
         "tcp:19132",
         "udp:19132",
         "udp:19133",
-        // valheim and factorio: the game-ports gateway
+        // valheim, factorio and game-ports-canary: the game-ports gateway
         // (kubernetes/apps/game-ports), each game's range of server ports.
         "udp:2456-2467",
         "udp:34197-34202",
+        "udp:39999",
       ],
     },
   ],

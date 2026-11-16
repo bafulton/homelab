@@ -30,6 +30,12 @@ games:
     basePort: 34197
     portsPerServer: 1
     servers: 6
+  # The canary (below): a game of its own, so it never takes a friend's port.
+  game-ports-canary:
+    hostname: game-ports-canary.fultonhuffman.com
+    basePort: 39999
+    portsPerServer: 1
+    servers: 1
 
 # The game servers' namespace, and the loadBalancerClass the gameplane app's
 # policy gives their Services, which makes the controller their load
@@ -57,7 +63,23 @@ gateway:
     limits:
       memory: 128Mi
 
+# The canary: a tiny UDP echo server the controller runs as a GameServer and
+# recreates daily. Every pass, the controller checks the Gameplane behaviors
+# this app depends on (see the README), and sends a packet to the canary's
+# public address, out through the edge and back. The alert below fires when
+# the checks haven't all passed for a while. Its template is
+# templates/canary.yaml; its game is game-ports-canary above.
+canary:
+  name: game-ports-canary
+  maxAgeHours: 24
+  # How long a server, or the canary, runs before it is checked.
+  settleSeconds: 180
+  image:
+    repository: python
+    tag: 3.15-alpine
+
 controller:
+  metricsPort: 9100
   image:
     repository: ghcr.io/bafulton/game-ports
     tag: "1.0.0"
@@ -67,3 +89,18 @@ controller:
       memory: 64Mi
     limits:
       memory: 128Mi
+
+signoz-alerts:
+  alerts:
+    # Every check passes on every pass when all is well, so a gap means
+    # something broke: most likely a Gameplane upgrade changed a behavior the
+    # controller depends on, or the edge, DNS or tailnet grant lost a port.
+    # The controller's log names each failed check.
+    - name: Game Ports Checks Failing
+      description: "Public Valheim and Factorio servers may be unreachable or show the wrong address: game-ports' checks haven't passed in 15 minutes. See `kubectl -n game-ports logs deploy/game-ports-controller`."
+      severity: warning
+      type: promql
+      query: 'time() - (max(game_ports_checks_last_success_timestamp_seconds) or vector(0))'
+      op: ">"
+      threshold: 900
+      for: 10m0s

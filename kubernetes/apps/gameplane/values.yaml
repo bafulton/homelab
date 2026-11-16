@@ -61,6 +61,7 @@ gamePorts:
   templates:
     - valheim
     - factorio
+    - game-ports-canary
 
 # Bedrock players join Paper Minecraft servers through Floodgate
 # (templates/minecraft-floodgate.yaml), with the floodgate-key secret below.

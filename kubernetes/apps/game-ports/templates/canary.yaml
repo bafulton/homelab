@@ -1,0 +1,40 @@
+# The canary's game: a UDP echo server, for the controller's end-to-end check
+# (values.yaml, canary). It shows in the dashboard's catalog, since Gameplane
+# can't hide a template, so its name says not to use it. A server made from
+# it by hand just echoes, with no public ports.
+apiVersion: gameplane.local/v1alpha1
+kind: GameTemplate
+metadata:
+  name: game-ports-canary
+spec:
+  displayName: "Health check (don't use)"
+  game: game-ports-canary
+  version: "1"
+  description: The game-ports app's health check, which it runs itself. Not a game.
+  image: "{{ .Values.canary.image.repository }}:{{ .Values.canary.image.tag }}"
+  consoleMode: none
+  rcon:
+    protocol: none
+    authentication: false
+  command: [python, -u, -c]
+  args:
+    - |
+      import socket
+      s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      s.bind(("0.0.0.0", {{ (index .Values.games "game-ports-canary").basePort }}))
+      while True:
+          data, addr = s.recvfrom(2048)
+          s.sendto(b"game-ports-canary:" + data, addr)
+  ports:
+    - name: echo
+      containerPort: {{ (index .Values.games "game-ports-canary").basePort }}
+      protocol: UDP
+      advertise: true
+  # Gameplane gives every server a world volume; the canary needs none, so
+  # it gets the smallest, recreated daily with the canary.
+  storage:
+    size: 128Mi
+    mountPath: /data
+  resources:
+    requests: { cpu: 5m, memory: 16Mi }
+    limits: { memory: 32Mi }
