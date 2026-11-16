@@ -6,8 +6,6 @@
 # Access:
 #   - Public: https://server-admin.fultonhuffman.com (via Cloudflare Tunnel),
 #     signed in through Pocket ID (group `game-servers`)
-#   - LAN: https://server-admin.local (mDNS, the homelab CA). Pocket ID
-#     sign-in returns to the public hostname; see README.md, "Local access".
 
 namespace: gameplane-system
 
@@ -116,30 +114,6 @@ gateway-route:
       access: apps
       hostnames:
         - server-admin.fultonhuffman.com  # Public via Cloudflare Tunnel
-      service:
-        name: gameplane-web
-        port: 80
-    - name: local-http
-      access: apps
-      listeners: [web]
-      hostnames: [server-admin.local]
-      rules:
-        - filters:
-            - type: RequestRedirect
-              requestRedirect:
-                scheme: https
-                port: 443
-                statusCode: 302
-    - name: local-https
-      access: apps
-      listeners: [local]
-      hostnames: [server-admin.local]
-      mdns:
-        name: Game Servers
-        ip: 192.168.1.200
-        port: 443
-        types:
-          - type: _https._tcp
       service:
         name: gameplane-web
         port: 80
