@@ -10,8 +10,9 @@
 #
 # Both go in mc-router's annotation on the server's Service, through
 # Gameplane's serviceAnnotations. A server that sets its own annotation or
-# hostname keeps it; one named before the .local names existed (its
-# annotation is just the public name) gets both.
+# hostname keeps it, and gets the .local name only if its own route includes
+# it; one named before the .local names existed (its annotation is just the
+# public name) gets both.
 {{- with .Values.minecraftNames }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicy
@@ -44,8 +45,15 @@ spec:
       expression: >-
         !('mc-router.itzg.me/externalServerName' in variables.annotations) ||
         variables.annotations['mc-router.itzg.me/externalServerName'] == variables.host
+    # Publish the .local name only where mc-router routes it: when this
+    # policy writes the route, or a custom route already includes it.
+    # Otherwise the name would resolve, then fail to connect.
     - name: setLocal
-      expression: "!('mdns.homelab.io/hostname' in variables.annotations)"
+      expression: >-
+        !('mdns.homelab.io/hostname' in variables.annotations) &&
+        (variables.setRoute ||
+          variables.annotations['mc-router.itzg.me/externalServerName'].split(',')
+            .exists(n, n.trim() == variables.localName + '.local'))
     - name: setHostname
       expression: "!(has(object.spec.networking) && has(object.spec.networking.hostname))"
   matchConditions:
