@@ -90,18 +90,6 @@
       "depNameTemplate": "geyser",
       "datasourceTemplate": "custom.geyser",
       "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<build>\\d+)$"
-    },
-    {
-      "customType": "regex",
-      "description": "Track the Gameplane release tag the gameplane-crds app reads its CRDs from",
-      "fileMatch": [
-        "^kubernetes/appsets/gameplane-crds\\.yaml$"
-      ],
-      "matchStrings": [
-        "targetRevision: (?<currentValue>v\\S+)"
-      ],
-      "depNameTemplate": "GameplanePanel/Gameplane",
-      "datasourceTemplate": "github-tags"
     }
   ],
   "packageRules": [
@@ -148,12 +136,10 @@
       "automerge": false
     },
     {
-      "description": "Gameplane's chart and its CRDs' release tag in one PR, never automerged: CRD changes and pre-1.0 upgrades need a look, and the two must match (kubernetes/appsets/gameplane-crds.yaml)",
+      "description": "Gameplane's chart, never automerged: CRD changes and pre-1.0 upgrades need a look",
       "matchDepNames": [
-        "gameplane",
-        "GameplanePanel/Gameplane"
+        "gameplane"
       ],
-      "groupName": "gameplane",
       "automerge": false
     }
   ],

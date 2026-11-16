@@ -125,9 +125,8 @@ Floodgate.
   turns it on by default.
 - **CPU limits:** the upstream chart sets them; `cpu: null` removes them, with
   `honorNulls: true` so Argo CD applies those nulls.
-- **CRDs and pruning:** the CRDs are their own app,
-  `kubernetes/appsets/gameplane-crds.yaml`, which reads them from
-  Gameplane's repository at the release tag and never prunes them: removing a
-  CRD would delete every `GameServer` of that kind, and with it every world.
-  This app skips them (`skipCrds: true`). Renovate bumps the chart and the
-  CRDs' tag together.
+- **CRDs and pruning:** pruning is off for this app, since it owns the CRDs:
+  removing a CRD would delete every `GameServer` of that kind, and with it
+  every world. The CRDs move to their own `gameplane-crds` app, letting this
+  one prune, once Gameplane publishes them as a chart
+  ([Gameplane#989](https://github.com/GameplanePanel/Gameplane/issues/989)).
