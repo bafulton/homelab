@@ -10,7 +10,6 @@ Reusable Helm charts used as dependencies by apps in `kubernetes/infra/` and `ku
 | [gateway-route](./gateway-route/) | Gateway API | Creates HTTPRoutes for Gateway API with optional mDNS advertisement |
 | [local-storage](./local-storage/) | Storage | Creates static hostPath PVs/PVCs with optional VolSync backups |
 | [longhorn-storage](./longhorn-storage/) | Storage | Creates Longhorn PVCs with optional recurring snapshot jobs |
-| [mdns-config](./mdns-config/) | Library | Advertises services via mDNS (Bonjour/Zeroconf) for LAN discovery |
 | [signoz-alerts](./signoz-alerts/) | Library | Declarative SigNoz alert configuration via labeled ConfigMaps |
 
 ## Usage
@@ -26,33 +25,19 @@ dependencies:
 
 See each chart's README for configuration details.
 
-## mDNS Advertisement Patterns
+## mDNS Advertisement
 
-There are **two patterns** for advertising services via mDNS (Bonjour/Zeroconf) depending on your service type:
+The central [mdns-advertiser](../kubernetes/infra/mdns-advertiser/README.md)
+publishes `.local` names from annotations on the objects being advertised, so
+records follow those objects and no IP is copied into values. There are two
+ways to opt in, depending on how the app is reached.
 
-### Pattern 1: Via gateway-route (HTTP services with Gateway API routing)
+### Web apps: `mdns` on a gateway-route route
 
-Use this when your app has a web UI and uses Gateway API HTTPRoutes for routing.
+For an app behind the apps Gateway, set `mdns` on the route that serves its
+`.local` hostname. gateway-route annotates the HTTPRoute, and the advertiser
+publishes each `.local` hostname at the Gateway's address (the LAN VIP):
 
-**Benefits**:
-- Combines routing + mDNS in one chart dependency
-- Automatically advertises both public and LAN hostnames
-- Simplifies configuration
-
-**When to use**:
-- HTTP/HTTPS services with web UIs
-- Services that need both Gateway API routing AND mDNS discovery
-- Examples: jellyfin, home-assistant
-
-**Chart.yaml**:
-```yaml
-dependencies:
-  - name: gateway-route
-    version: 1.0.0
-    repository: file://../../../charts/gateway-route
-```
-
-**values.yaml**:
 ```yaml
 gateway-route:
   routes:
@@ -64,90 +49,37 @@ gateway-route:
       service:
         name: myapp-server
         port: 8080
-      mdns:                        # Optional mDNS advertisement
-        name: My App               # Display name in Finder/network browsers
+      mdns:
+        name: My App               # Display name in Finder and network browsers
+        port: 443                  # Optional, default 80
+        types:                     # Optional, default _http._tcp
+          - type: _https._tcp
 ```
 
-**How it works**:
-1. When you set `.routes[].mdns`, gateway-route annotates the HTTPRoute with
-   `mdns.homelab.io/*` annotations
-2. The central mdns-advertiser publishes each `.local` hostname in the route
-   at its Gateway's address, read from the Gateway's status, so no IP is
-   copied into values
+Examples: Jellyfin, Home Assistant, BottleShip.
 
-### Pattern 2: Direct mdns-config (Non-HTTP services)
+### Anything with its own LoadBalancer: Service annotations
 
-Use this when your app uses a MetalLB LoadBalancer for non-HTTP protocols and only needs mDNS discovery (no Gateway API routing).
-
-**Benefits**:
-- Lighter weight (no HTTPRoute resources created)
-- Direct control over mDNS configuration
-- Can advertise multiple service types
-
-**When to use**:
-- Non-HTTP protocols (MQTT, SMB, custom TCP/UDP services)
-- Services that have their own LoadBalancer but need LAN discovery
-- Services that need custom mDNS service types or TXT records
-- Examples: time-machine (SMB), mosquitto (MQTT)
-
-**Chart.yaml**:
-```yaml
-dependencies:
-  - name: mdns-config
-    version: 1.0.0
-    repository: file://../../../charts/mdns-config
-```
-
-**values.yaml**:
-```yaml
-mdnsServices:
-  - name: My App                   # Display name
-    hostname: myapp                # Becomes myapp.local
-    ip: 192.168.1.201              # Service's MetalLB LoadBalancer IP
-    port: 8080
-    types:                         # Optional: Service types (defaults to _http._tcp)
-      - type: _http._tcp
-      - type: _myapp._tcp
-    txt:                           # Optional: TXT records for service metadata
-      key: value
-```
-
-**How it works**:
-1. Your Chart.yaml lists mdns-config directly
-2. mdns-config creates a labeled ConfigMap with your service details
-3. The central mdns-advertiser discovers the ConfigMap and advertises the service
-
-### Why Two Patterns?
-
-The distinction exists because:
-- **HTTP services** typically need both routing (Gateway API) AND discovery (mDNS), so combining them reduces duplication
-- **Non-HTTP services** only need discovery (mDNS) and don't benefit from HTTPRoutes
-
-Both patterns use the same underlying mdns-config library chart and create ConfigMaps that are discovered by the central `mdns-advertiser` deployment.
-
-### Choosing a Pattern
-
-```
-Does your service use Gateway API HTTPRoutes?
-├─ Yes → Use Pattern 1 (gateway-route with .mdns field)
-└─ No  → Use Pattern 2 (direct mdns-config)
-```
-
-### Important: ArgoCD Dependency Resolution
-
-When using Pattern 1 (gateway-route with mDNS), you **must explicitly list mdns-config** in your Chart.yaml for ArgoCD to resolve dependencies correctly:
+For a non-HTTP service with its own MetalLB address (MQTT, SMB, game servers),
+annotate the Service. The advertiser publishes it at the Service's load
+balancer address:
 
 ```yaml
-dependencies:
-  - name: gateway-route
-    version: 1.0.0
-    repository: file://../../../charts/gateway-route
-  - name: mdns-config        # Required when using .routes[].mdns
-    version: 1.0.0
-    repository: file://../../../charts/mdns-config
+service:
+  annotations:
+    metallb.io/loadBalancerIPs: "192.168.1.202"
+    mdns.homelab.io/hostname: mosquitto      # mosquitto.local
+    mdns.homelab.io/name: Mosquitto
+    mdns.homelab.io/types: _mqtt._tcp
 ```
 
-**Important**: Only include `mdns-config` if you're actually using the `.routes[].mdns` field in your values.yaml. If you're only using gateway-route for routing without mDNS advertisement (like traefik-admin), you don't need to list mdns-config.
+For types with TXT records, `mdns.homelab.io/types` takes a JSON list of
+`{"type": ..., "txtRecords": [...]}` instead of a comma list, and
+`mdns.homelab.io/ip` publishes a name at another address. Examples: Mosquitto,
+Time Machine, and Gameplane's Minecraft servers, whose annotations come from
+an admission policy. See the
+[advertiser's README](../kubernetes/infra/mdns-advertiser/README.md#annotations)
+for every annotation.
 
 ## Placement (node location)
 

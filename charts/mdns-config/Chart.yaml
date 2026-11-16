@@ -1,5 +1,0 @@
-apiVersion: v2
-name: mdns-config
-description: Library chart for mDNS advertisement ConfigMap templates
-type: library
-version: 1.0.0
