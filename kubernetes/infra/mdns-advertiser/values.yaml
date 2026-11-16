@@ -6,11 +6,14 @@ image:
   # OOM-looping the advertiser and taking every .local record down with it.
   repository: ghcr.io/bafulton/mdns-advertiser
   # renovate: datasource=docker depName=ghcr.io/bafulton/mdns-advertiser
-  tag: 1.0.4
+  tag: 1.1.0
   pullPolicy: IfNotPresent
 
-# Services are configured in individual apps using the mdns-config library
-# chart. The advertiser discovers ConfigMaps labeled mdns.homelab.io/advertise=true.
+# Records come from annotations on the objects being advertised: Services
+# annotated mdns.homelab.io/hostname, and HTTPRoutes annotated
+# mdns.homelab.io/advertise (see the image's advertiser.py and this app's
+# README). ConfigMaps labeled mdns.homelab.io/advertise=true, the older form,
+# still work until every app has moved.
 
 resources:
   requests:
