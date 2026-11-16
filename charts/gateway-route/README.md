@@ -73,8 +73,8 @@ gateway-route:
 ```
 
 `mdns` publishes the route's `.local` hostnames over mDNS. The chart annotates
-the HTTPRoute (`mdns.homelab.io/advertise`, `name`, `port`, `types`, and
-`txt.<type>` for TXT records), and the mDNS advertiser publishes each `.local`
+the HTTPRoute (`mdns.homelab.io/advertise`, `name`, `port` and `types`, a
+JSON list when any type has `txtRecords`), and the mDNS advertiser publishes each `.local`
 hostname at the address of the route's Gateway: the LAN VIP for `apps`. `port`
 defaults to 80 and `types` to `_http._tcp`; `ip` overrides the Gateway's
 address. Put `mdns` on the route that serves the LAN hostname.

@@ -19,14 +19,16 @@ metadata:
     mdns.homelab.io/port: {{ .port | default 80 | quote }}
     {{- $types := .types | default (list (dict "type" "_http._tcp")) }}
     {{- $typeNames := list }}
+    {{- $hasTxt := false }}
     {{- range $t := $types }}
     {{- $typeNames = append $typeNames $t.type }}
+    {{- if $t.txtRecords }}{{ $hasTxt = true }}{{ end }}
     {{- end }}
+    {{- if $hasTxt }}
+    {{- /* Types with TXT records go as a JSON list, which carries them. */}}
+    mdns.homelab.io/types: {{ $types | toJson | quote }}
+    {{- else }}
     mdns.homelab.io/types: {{ join "," $typeNames | quote }}
-    {{- range $t := $types }}
-    {{- with $t.txtRecords }}
-    mdns.homelab.io/txt.{{ $t.type }}: {{ join "\n" . | quote }}
-    {{- end }}
     {{- end }}
     {{- with .ip }}
     mdns.homelab.io/ip: {{ . | quote }}
