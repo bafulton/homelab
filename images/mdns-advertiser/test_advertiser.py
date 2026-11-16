@@ -28,6 +28,8 @@ class FakeZeroconf:
 
     def register_service(self, info, **kwargs):
         self.calls.append(("register", info))
+        if any(active.name == info.name for active in self.active):
+            raise RuntimeError(f"{info.name} is already registered")
         if self.fail_always_on == info.type:
             raise RuntimeError("registration failed")
         if self.fail_on == info.type:
@@ -72,12 +74,40 @@ class AdvertiserTests(unittest.TestCase):
             ],
         }
         self.items = []
+        self.services = []
+        self.routes = []
+        self.gateways = {}
         self.advertiser.v1 = types.SimpleNamespace(
-            list_config_map_for_all_namespaces=self.list_configmaps
+            list_config_map_for_all_namespaces=self.list_configmaps,
+            list_service_for_all_namespaces=lambda **kwargs: types.SimpleNamespace(items=self.services),
+        )
+        self.advertiser.custom = types.SimpleNamespace(
+            list_cluster_custom_object=lambda *args, **kwargs: {"items": self.routes},
+            get_namespaced_custom_object=lambda group, version, ns, plural, name: self.gateways[(ns, name)],
         )
 
     def list_configmaps(self, **kwargs):
         return types.SimpleNamespace(items=self.items)
+
+    def service(self, annotations, ip="192.168.1.201", port=445, name="time-machine"):
+        ingress = [types.SimpleNamespace(ip=ip)] if ip else []
+        return types.SimpleNamespace(
+            metadata=types.SimpleNamespace(namespace="test", name=name, annotations=annotations),
+            spec=types.SimpleNamespace(ports=[types.SimpleNamespace(port=port)]),
+            status=types.SimpleNamespace(load_balancer=types.SimpleNamespace(ingress=ingress)),
+        )
+
+    def route(self, annotations, hostnames, section="local"):
+        return {
+            "metadata": {"namespace": "app", "name": "app-local", "annotations": annotations},
+            "spec": {
+                "hostnames": hostnames,
+                "parentRefs": [{"name": "traefik-apps", "namespace": "traefik-apps", "sectionName": section}],
+            },
+        }
+
+    def published(self):
+        return {(i.type, i.name, i.server, i.port, i.addresses[0]) for i in self.advertiser.zc.active}
 
     def set_config(self, value):
         self.items = [types.SimpleNamespace(
@@ -155,7 +185,7 @@ class AdvertiserTests(unittest.TestCase):
         self.assertFalse(self.advertiser.sync_services())
         self.assertEqual(self.advertiser.zc.active, original)
         self.assertEqual(
-            self.advertiser.registered_services["test/example"].port, 80
+            self.advertiser.registered_services["configmap:test/example"].port, 80
         )
 
     def test_partial_initial_registration_failure_leaves_no_records(self):
@@ -177,6 +207,95 @@ class AdvertiserTests(unittest.TestCase):
         self.advertiser.zc.fail_always_on = None
         self.assertTrue(self.advertiser.sync_services())
         self.assertEqual(len(self.advertiser.zc.active), 2)
+
+    def test_service_annotations_publish_at_the_load_balancer_address(self):
+        self.services = [self.service({
+            "mdns.homelab.io/hostname": "timemachine",
+            "mdns.homelab.io/name": "Time Machine",
+            "mdns.homelab.io/types": "_smb._tcp, _adisk._tcp",
+            "mdns.homelab.io/txt._adisk._tcp": "sys=adVF=0x100\ndk0=adVN=Family,adVF=0x82\n",
+        })]
+        self.assertTrue(self.advertiser.sync_services())
+        address = self.advertiser.socket.inet_aton("192.168.1.201")
+        self.assertEqual(self.published(), {
+            ("_smb._tcp.local.", "Time Machine._smb._tcp.local.", "timemachine.local.", 445, address),
+            ("_adisk._tcp.local.", "Time Machine._adisk._tcp.local.", "timemachine.local.", 445, address),
+        })
+        adisk = [i for i in self.advertiser.zc.active if i.type == "_adisk._tcp.local."][0]
+        self.assertEqual(adisk.properties, {"sys": "adVF=0x100", "dk0": "adVN=Family,adVF=0x82"})
+
+    def test_service_without_an_address_waits_and_ip_annotation_overrides(self):
+        self.services = [self.service({"mdns.homelab.io/hostname": "pending"}, ip=None)]
+        self.assertFalse(self.advertiser.sync_services())
+        self.assertFalse(self.advertiser.zc.active)
+
+        self.services = [self.service({
+            "mdns.homelab.io/hostname": "fulton-fun-minecraft",
+            "mdns.homelab.io/ip": "192.168.1.210",
+            "mdns.homelab.io/port": "25565",
+        }, ip=None, name="fulton-fun")]
+        self.assertTrue(self.advertiser.sync_services())
+        info = next(iter(self.advertiser.zc.active))
+        self.assertEqual((info.type, info.server, info.port, info.addresses[0]), (
+            "_http._tcp.local.", "fulton-fun-minecraft.local.", 25565,
+            self.advertiser.socket.inet_aton("192.168.1.210")))
+
+    def test_unannotated_services_and_routes_are_ignored(self):
+        self.services = [self.service({"other": "annotation"})]
+        self.routes = [self.route({}, ["app.local"])]
+        self.assertFalse(self.advertiser.sync_services())
+        self.assertFalse(self.advertiser.zc.active)
+
+    def test_route_local_hostnames_publish_at_the_gateway_address(self):
+        self.gateways[("traefik-apps", "traefik-apps")] = {
+            "spec": {"listeners": [{"name": "web", "port": 80}, {"name": "local", "port": 443}]},
+            "status": {"addresses": [{"type": "IPAddress", "value": "192.168.1.200"}]},
+        }
+        self.routes = [self.route({
+            "mdns.homelab.io/advertise": "true",
+            "mdns.homelab.io/name": "BottleShip",
+            "mdns.homelab.io/types": "_https._tcp",
+        }, ["games.fultonhuffman.com", "games.local"])]
+        self.assertTrue(self.advertiser.sync_services())
+        self.assertEqual(self.published(), {(
+            "_https._tcp.local.", "BottleShip._https._tcp.local.", "games.local.", 443,
+            self.advertiser.socket.inet_aton("192.168.1.200"))})
+
+        # The port annotation wins over the listener's.
+        self.routes[0]["metadata"]["annotations"]["mdns.homelab.io/port"] = "80"
+        self.assertTrue(self.advertiser.sync_services())
+        self.assertEqual({i.port for i in self.advertiser.zc.active}, {80})
+
+    def test_moving_from_a_configmap_to_an_annotation_hands_the_name_over(self):
+        self.config.update(name="Time Machine", hostname="timemachine", ip="192.168.1.201",
+                           port=445, types=[{"type": "_smb._tcp"}])
+        self.set_config(self.config)
+        self.advertiser.sync_services()
+
+        # Both exist for a moment: the annotation's records wait for the name.
+        self.services = [self.service({
+            "mdns.homelab.io/hostname": "timemachine",
+            "mdns.homelab.io/name": "Time Machine",
+            "mdns.homelab.io/types": "_smb._tcp",
+        })]
+        self.advertiser.sync_services()
+        self.assertEqual(set(self.advertiser.registered_services), {"configmap:test/example"})
+
+        # Once the ConfigMap is gone, the annotation takes the name in the same sync.
+        self.items = []
+        self.assertTrue(self.advertiser.sync_services())
+        self.assertEqual(set(self.advertiser.registered_services), {"service:test/time-machine"})
+        self.assertEqual(len(self.advertiser.zc.active), 1)
+
+    def test_a_failed_service_or_route_list_changes_nothing(self):
+        self.set_config(self.config)
+        self.advertiser.sync_services()
+        original = set(self.advertiser.zc.active)
+        self.advertiser.v1.list_service_for_all_namespaces = (
+            lambda **kwargs: (_ for _ in ()).throw(RuntimeError("API unavailable")))
+        with self.assertRaisesRegex(RuntimeError, "API unavailable"):
+            self.advertiser.sync_services()
+        self.assertEqual(self.advertiser.zc.active, original)
 
 
 if __name__ == "__main__":

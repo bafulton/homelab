@@ -1,5 +1,26 @@
 #!/usr/bin/env python3
-"""Advertise LAN services over mDNS from labeled Kubernetes ConfigMaps."""
+"""Advertise LAN services over mDNS from annotated Kubernetes objects.
+
+Records come from three sources:
+
+- Services annotated with mdns.homelab.io/hostname. The address is the
+  Service's load balancer IP, so it is never copied by hand.
+- HTTPRoutes annotated with mdns.homelab.io/advertise: "true". Each of the
+  route's .local hostnames is published at its Gateway's address.
+- ConfigMaps labeled mdns.homelab.io/advertise=true, the older form, read
+  until every app has moved to annotations.
+
+On Services and HTTPRoutes, these annotations describe the records:
+
+  mdns.homelab.io/name           display name (default: the hostname)
+  mdns.homelab.io/types          comma-separated service types
+                                 (default: _http._tcp)
+  mdns.homelab.io/txt.<type>     TXT records for one type, one per line
+  mdns.homelab.io/port           port (default: the Service's first port,
+                                 or the route's Gateway listener)
+  mdns.homelab.io/ip             address override, eg to publish a name at
+                                 another Service's address
+"""
 
 import json
 import signal
@@ -11,13 +32,17 @@ from dataclasses import dataclass
 from kubernetes import client, config
 from zeroconf import ServiceInfo, Zeroconf
 
+PREFIX = "mdns.homelab.io/"
 LABEL_SELECTOR = "mdns.homelab.io/advertise=true"
 CONFIG_KEY = "config.json"
+GATEWAY_GROUP = "gateway.networking.k8s.io"
+GATEWAY_VERSION = "v1"
 POLL_INTERVAL = 30
 
 v1 = None
+custom = None
 zc = None
-registered_services = {}  # namespace/name -> Registration
+registered_services = {}  # source key -> Registration
 
 
 @dataclass
@@ -77,6 +102,94 @@ def prepare_service(svc_config):
     return Registration(configuration, name, ip, port, infos)
 
 
+def config_from_annotations(annotations, hostname, ip, port):
+    """Build a record config from mdns.homelab.io/* annotations."""
+    types = []
+    for type_str in annotations.get(PREFIX + "types", "_http._tcp").split(","):
+        type_str = type_str.strip()
+        if not type_str:
+            continue
+        txt = annotations.get(f"{PREFIX}txt.{type_str}", "")
+        records = [line.strip() for line in txt.splitlines() if line.strip()]
+        types.append({"type": type_str, "txtRecords": records})
+    return {
+        "name": annotations.get(PREFIX + "name", hostname),
+        "hostname": hostname,
+        "ip": annotations.get(PREFIX + "ip", ip),
+        "port": int(annotations.get(PREFIX + "port", port)),
+        "types": types,
+    }
+
+
+def configmap_configs():
+    """The older form: labeled ConfigMaps holding a config.json."""
+    configs = {}
+    for cm in v1.list_config_map_for_all_namespaces(label_selector=LABEL_SELECTOR).items:
+        key = f"configmap:{cm.metadata.namespace}/{cm.metadata.name}"
+        raw_config = (cm.data or {}).get(CONFIG_KEY, '')
+        if not raw_config:
+            print(f"Warning: ConfigMap {key} has no {CONFIG_KEY}")
+            continue
+        configs[key] = lambda raw=raw_config: json.loads(raw)
+    return configs
+
+
+def service_configs():
+    """Services annotated with mdns.homelab.io/hostname."""
+    configs = {}
+    for svc in v1.list_service_for_all_namespaces().items:
+        annotations = svc.metadata.annotations or {}
+        hostname = annotations.get(PREFIX + "hostname")
+        if not hostname:
+            continue
+        key = f"service:{svc.metadata.namespace}/{svc.metadata.name}"
+        ingress = (svc.status.load_balancer.ingress or []) if svc.status.load_balancer else []
+        ip = next((i.ip for i in ingress if i.ip), None)
+        if not ip and PREFIX + "ip" not in annotations:
+            # Not published until the load balancer has an address.
+            continue
+        port = svc.spec.ports[0].port if svc.spec.ports else 0
+        configs[key] = lambda a=annotations, h=hostname, ip=ip, p=port: (
+            config_from_annotations(a, h, ip, p))
+    return configs
+
+
+def route_configs():
+    """HTTPRoutes annotated mdns.homelab.io/advertise, at their Gateway's address."""
+    configs = {}
+    gateways = {}
+    routes = custom.list_cluster_custom_object(GATEWAY_GROUP, GATEWAY_VERSION, "httproutes")
+    for route in routes.get("items", []):
+        meta = route["metadata"]
+        annotations = meta.get("annotations") or {}
+        if annotations.get(PREFIX + "advertise") != "true":
+            continue
+        hostnames = [h for h in route["spec"].get("hostnames", []) if h.endswith(".local")]
+        parents = route["spec"].get("parentRefs", [])
+        if not hostnames or not parents:
+            continue
+        parent = parents[0]
+        gw_ns = parent.get("namespace", meta["namespace"])
+        gw_key = (gw_ns, parent["name"])
+        if gw_key not in gateways:
+            gateways[gw_key] = custom.get_namespaced_custom_object(
+                GATEWAY_GROUP, GATEWAY_VERSION, gw_ns, "gateways", parent["name"])
+        gateway = gateways[gw_key]
+        ip = next((a["value"] for a in gateway.get("status", {}).get("addresses", [])
+                   if a.get("type", "IPAddress") == "IPAddress"), None)
+        listeners = gateway["spec"].get("listeners", [])
+        listener = next((l for l in listeners if l["name"] == parent.get("sectionName")),
+                        listeners[0] if listeners else {})
+        if not ip and PREFIX + "ip" not in annotations:
+            continue
+        for host in hostnames:
+            hostname = host[:-len(".local")]
+            key = f"route:{meta['namespace']}/{meta['name']}/{hostname}"
+            configs[key] = lambda a=annotations, h=hostname, ip=ip, p=listener.get("port", 80): (
+                config_from_annotations(a, h, ip, p))
+    return configs
+
+
 def register_service(registration):
     """Register all records, cleaning up those already added on failure."""
     added = []
@@ -98,22 +211,30 @@ def unregister_service(registration):
 
 
 def sync_services():
-    """Sync records with labeled ConfigMaps; return whether anything changed."""
-    # A failed list must not be interpreted as an empty list (and delete records).
-    cms = v1.list_config_map_for_all_namespaces(label_selector=LABEL_SELECTOR)
-    current_keys = set()
+    """Sync records with every source; return whether anything changed."""
+    # A failed list must not be interpreted as an empty list (and delete
+    # records), so every source is listed before anything changes.
+    desired = {}
+    desired.update(configmap_configs())
+    desired.update(service_configs())
+    desired.update(route_configs())
     changed = False
 
-    for cm in cms.items:
-        key = f"{cm.metadata.namespace}/{cm.metadata.name}"
-        current_keys.add(key)
-        raw_config = (cm.data or {}).get(CONFIG_KEY, '')
-        if not raw_config:
-            print(f"Warning: ConfigMap {key} has no {CONFIG_KEY}")
-            continue
-
+    # Remove first, so a record moving from one source to another (a
+    # ConfigMap to an annotation) frees its name before it's published again.
+    for key in set(registered_services) - set(desired):
+        registration = registered_services[key]
         try:
-            replacement = prepare_service(json.loads(raw_config))
+            unregister_service(registration)
+        except Exception as e:
+            print(f"Error removing {key}: {e}")
+            continue
+        del registered_services[key]
+        changed = True
+
+    for key, build_config in desired.items():
+        try:
+            replacement = prepare_service(build_config())
             previous = registered_services.get(key)
             if previous and previous.configuration == replacement.configuration:
                 continue
@@ -130,30 +251,21 @@ def sync_services():
                     except Exception as rollback_error:
                         # Do not keep a stale entry that would suppress retries.
                         del registered_services[key]
-                        print(f"Error restoring ConfigMap {key}: {rollback_error}")
+                        print(f"Error restoring {key}: {rollback_error}")
                 raise
             registered_services[key] = replacement
             changed = True
         except Exception as e:
-            print(f"Error processing ConfigMap {key}: {e}")
-
-    for key in set(registered_services) - current_keys:
-        registration = registered_services[key]
-        try:
-            unregister_service(registration)
-        except Exception as e:
-            print(f"Error removing ConfigMap {key}: {e}")
-            continue
-        del registered_services[key]
-        changed = True
+            print(f"Error processing {key}: {e}")
 
     return changed
 
 
 def main():
-    global v1, zc
+    global v1, custom, zc
     config.load_incluster_config()
     v1 = client.CoreV1Api()
+    custom = client.CustomObjectsApi()
     zc = Zeroconf()
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGINT, shutdown)
