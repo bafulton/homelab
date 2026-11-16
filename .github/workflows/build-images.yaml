@@ -20,6 +20,7 @@ on:
           - homelab-toolbox
           - mdns-advertiser
           - geyser-standalone
+          - game-ports
 
 concurrency:
   # Serialize releases across refs so two manual/push runs cannot both pass
@@ -62,7 +63,7 @@ jobs:
           fi
 
           selected=()
-          for image in homelab-toolbox mdns-advertiser geyser-standalone; do
+          for image in homelab-toolbox mdns-advertiser geyser-standalone game-ports; do
             if [ -z "$(git diff --name-only "$BASE" "$HEAD_SHA" -- "images/$image/")" ]; then
               continue
             fi

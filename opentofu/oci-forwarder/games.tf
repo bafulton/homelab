@@ -5,13 +5,17 @@
 locals {
   game_ports = flatten([
     for name, game in var.games : [
-      for p in game.ports : {
-        # Traefik entrypoint, router and service name.
-        name     = "${name}-${p.protocol}-${p.port}"
-        protocol = p.protocol
-        port     = p.port
-        upstream = "${coalesce(game.upstream, "game-${name}.catfish-mountain.ts.net")}:${p.port}"
-      }
+      # A range is every port in it, each forwarded on its own: Traefik's
+      # entrypoints take one port each.
+      for p in game.ports : [
+        for port in range(p.port, coalesce(p.to, p.port) + 1) : {
+          # Traefik entrypoint, router and service name.
+          name     = "${name}-${p.protocol}-${port}"
+          protocol = p.protocol
+          port     = port
+          upstream = "${coalesce(game.upstream, "game-${name}.catfish-mountain.ts.net")}:${port}"
+        }
+      ]
     ]
   ])
 }

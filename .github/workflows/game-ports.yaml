@@ -1,0 +1,32 @@
+name: Game Ports
+
+# The public game ports are listed in three places: the edge, the tailnet
+# grant and the game-ports app. A port missing from one fails quietly, so
+# check they agree.
+on:
+  pull_request:
+    paths:
+      - 'opentofu/oci-forwarder/variables.tf'
+      - 'tailscale/policy.hujson'
+      - 'kubernetes/apps/game-ports/values.yaml'
+      - '.github/scripts/check_game_ports.py'
+      - '.github/workflows/game-ports.yaml'
+  push:
+    branches: [main]
+    paths:
+      - 'opentofu/oci-forwarder/variables.tf'
+      - 'tailscale/policy.hujson'
+      - 'kubernetes/apps/game-ports/values.yaml'
+      - '.github/scripts/check_game_ports.py'
+      - '.github/workflows/game-ports.yaml'
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.15'
+      - run: python -m pip install 'python-hcl2==8.2.0' 'PyYAML==6.0.3'
+      - run: python .github/scripts/check_game_ports.py

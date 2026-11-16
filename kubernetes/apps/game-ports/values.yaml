@@ -1,0 +1,106 @@
+# Public addresses for Gameplane servers of games whose clients don't send
+# the hostname they connect to (Valheim, Factorio), so the OCI edge can only
+# tell their servers apart by port. Each game has a range of public ports,
+# forwarded by the edge to this app's gateway. The controller gives each new
+# server its own ports from its game's range, routes them to it, and makes
+# the dashboard show the server's public address. See README.md.
+#
+# Access:
+#   - Public: <game>.fultonhuffman.com:<port>, via the OCI edge forwarder
+#     (opentofu/oci-forwarder, var.games "valheim" and "factorio"), which
+#     reaches the gateway's Tailscale Service, game-ports. A game's first
+#     server has the game's default port, so it needs none.
+
+# Each game, keyed by its Gameplane template name. Servers get slots in
+# order: slot 0 is basePort (the game's default port, and the template's
+# first advertised port), slot 1 starts portsPerServer above it, and so on,
+# for `servers` slots. A slot holds every port the template advertises.
+#
+# The ports here must match var.games in opentofu/oci-forwarder and the
+# tag:edge grant in tailscale/policy.hujson.
+games:
+  valheim:
+    hostname: valheim.fultonhuffman.com
+    # The game port, its Steam query port, and the port after it.
+    basePort: 2456
+    portsPerServer: 3
+    servers: 4
+  factorio:
+    hostname: factorio.fultonhuffman.com
+    basePort: 34197
+    portsPerServer: 1
+    servers: 6
+  # The canary (below): a game of its own, so it never takes a friend's port.
+  game-ports-canary:
+    hostname: game-ports-canary.fultonhuffman.com
+    basePort: 39999
+    portsPerServer: 1
+    servers: 1
+
+# The game servers' namespace, and the loadBalancerClass the gameplane app's
+# policy gives their Services, which makes the controller their load
+# balancer (kubernetes/apps/gameplane, templates/game-ports.yaml).
+gamesNamespace: gameplane-games
+loadBalancerClass: homelab.io/game-ports
+
+# The edge forwarder's upstream on the tailnet. The tag is the target of
+# tailscale/policy.hujson's tag:edge grant.
+tailscale:
+  hostname: game-ports
+  tags: tag:k8s-games
+
+gateway:
+  image:
+    repository: traefik
+    tag: v3.7.18
+  # How long Traefik keeps a player's UDP session with no packets. Games send
+  # many packets a second, so this only needs to cover a stall.
+  udpTimeout: 60s
+  resources:
+    requests:
+      cpu: 20m
+      memory: 48Mi
+    limits:
+      memory: 128Mi
+
+# The canary: a tiny UDP echo server the controller runs as a GameServer and
+# recreates daily. Every pass, the controller checks the Gameplane behaviors
+# this app depends on (see the README), and sends a packet to the canary's
+# public address, out through the edge and back. The alert below fires when
+# the checks haven't all passed for a while. Its template is
+# templates/canary.yaml; its game is game-ports-canary above.
+canary:
+  name: game-ports-canary
+  maxAgeHours: 24
+  # How long a server, or the canary, runs before it is checked.
+  settleSeconds: 180
+  image:
+    repository: python
+    tag: 3.15-alpine
+
+controller:
+  metricsPort: 9100
+  image:
+    repository: ghcr.io/bafulton/game-ports
+    tag: "1.0.0"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+signoz-alerts:
+  alerts:
+    # Every check passes on every pass when all is well, so a gap means
+    # something broke: most likely a Gameplane upgrade changed a behavior the
+    # controller depends on, or the edge, DNS or tailnet grant lost a port.
+    # The controller's log names each failed check.
+    - name: Game Ports Checks Failing
+      description: "Public Valheim and Factorio servers may be unreachable or show the wrong address: game-ports' checks haven't passed in 15 minutes. See `kubectl -n game-ports logs deploy/game-ports-controller`."
+      severity: warning
+      type: promql
+      query: 'time() - (max(game_ports_checks_last_success_timestamp_seconds) or vector(0))'
+      op: ">"
+      threshold: 900
+      for: 10m0s

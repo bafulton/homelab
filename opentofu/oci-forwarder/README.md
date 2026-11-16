@@ -127,15 +127,22 @@ flowchart TD
     gateway -- "by hostname" --> server[fulton-fun game pod]
 ```
 
-Other games send no hostname, so each of their servers would need its own
-public port. Those aren't public yet.
+**Valheim and Factorio** send no hostname, so each of their servers has
+public ports of its own, from its game's range: `valheim` is 2456-2467 and
+`factorio` 34197-34202, both to the game-ports gateway
+(`kubernetes/apps/game-ports`), which hands the ports out as servers are
+created. `game-ports-canary`, UDP 39999, is that app's health check. Their
+ranges must match that app's `values.yaml`; CI checks them
+(`.github/scripts/check_game_ports.py`).
 
 To make a game public, all in one change:
 
 1. **This module.** Add the game to `games` in `variables.tf`, keyed by its
    public name. The upstream defaults to `game-<key>.catfish-mountain.ts.net`;
    set `upstream` when its Tailscale Service has another name, and
-   `subdomains = true` when a router picks the server by hostname:
+   `subdomains = true` when a router picks the server by hostname. A port
+   entry with `to` is a range, such as
+   `{ port = 2456, to = 2467, protocol = "udp" }`:
    ```hcl
    minecraft = {
      subdomains = true

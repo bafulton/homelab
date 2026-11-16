@@ -57,7 +57,8 @@ variable "games" {
     minecraft.fultonhuffman.com, and with subdomains = true every name under
     it too (*.minecraft.fultonhuffman.com), for a router that picks the
     server by hostname. Each port is forwarded as-is, TCP or UDP, to the
-    Tailscale Service game-<key>.catfish-mountain.ts.net, or upstream.
+    Tailscale Service game-<key>.catfish-mountain.ts.net, or upstream. An
+    entry with `to` is the range of ports from port to to, inclusive.
     opentofu/cloudflare reads game_subdomains from this state for the A
     records, and every port also needs the tag:edge grant in
     tailscale/policy.hujson. See README.md, "Game servers".
@@ -67,6 +68,7 @@ variable "games" {
     subdomains = optional(bool, false)
     ports = list(object({
       port     = number
+      to       = optional(number)
       protocol = string
     }))
   }))
@@ -85,6 +87,28 @@ variable "games" {
         { port = 19133, protocol = "udp" },
       ]
     }
+    # Valheim and Factorio clients send no hostname, so each server gets public
+    # ports of its own, from its game's range: the game-ports app
+    # (kubernetes/apps/game-ports) hands them out and routes them, behind its
+    # Tailscale Service game-ports. A game's first server has the game's
+    # default port. These ranges must match game-ports' values.yaml.
+    #
+    # Valheim: 4 servers, 3 ports each (game, Steam query, and the next).
+    valheim = {
+      upstream = "game-ports.catfish-mountain.ts.net"
+      ports    = [{ port = 2456, to = 2467, protocol = "udp" }]
+    }
+    # Factorio: 6 servers, 1 port each.
+    factorio = {
+      upstream = "game-ports.catfish-mountain.ts.net"
+      ports    = [{ port = 34197, to = 34202, protocol = "udp" }]
+    }
+    # game-ports' canary, its health check, which sends a packet here from
+    # inside the cluster and expects it back through the edge.
+    game-ports-canary = {
+      upstream = "game-ports.catfish-mountain.ts.net"
+      ports    = [{ port = 39999, protocol = "udp" }]
+    }
   }
 
   validation {
@@ -95,23 +119,26 @@ variable "games" {
   }
 
   validation {
+    condition = alltrue(flatten([
+      for g in values(var.games) : [for p in g.ports : p.to == null || p.to >= p.port]
+    ]))
+    error_message = "A game port range's to must not be below its port."
+  }
+
+  validation {
     condition     = alltrue([for k in keys(var.games) : can(regex("^[a-z0-9]([a-z0-9-]*[a-z0-9])?$", k)) && !contains(["media", "games"], k)])
     error_message = "Game keys become DNS labels under fultonhuffman.com: lowercase letters, digits and hyphens, and not media or games, which are taken."
   }
 
   validation {
-    condition = alltrue(flatten([
-      for g in values(var.games) : [
-        for p in g.ports : !contains(["tcp:80", "tcp:443", "udp:41641"], "${p.protocol}:${p.port}")
-      ]
-    ]))
+    condition     = length(setintersection(toset(flatten([for g in values(var.games) : [for p in g.ports : [for n in range(p.port, coalesce(p.to, p.port) + 1) : "${p.protocol}:${n}"]]])), ["tcp:80", "tcp:443", "udp:41641"])) == 0
     error_message = "tcp:80, tcp:443 and udp:41641 are the forwarder's own ports."
   }
 
   validation {
     condition = (
-      length(flatten([for g in values(var.games) : [for p in g.ports : "${p.protocol}:${p.port}"]])) ==
-      length(distinct(flatten([for g in values(var.games) : [for p in g.ports : "${p.protocol}:${p.port}"]])))
+      length(flatten([for g in values(var.games) : [for p in g.ports : [for n in range(p.port, coalesce(p.to, p.port) + 1) : "${p.protocol}:${n}"]]])) ==
+      length(distinct(flatten([for g in values(var.games) : [for p in g.ports : [for n in range(p.port, coalesce(p.to, p.port) + 1) : "${p.protocol}:${n}"]]])))
     )
     error_message = "Two games cannot share a public port: the forwarder routes plain TCP and UDP by port alone."
   }

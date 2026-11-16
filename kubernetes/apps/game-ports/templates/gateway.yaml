@@ -1,0 +1,65 @@
+# The gateway: Traefik with one UDP entrypoint per public port. Its routes
+# come from the game-ports-routes ConfigMap, which the controller writes and
+# Traefik watches, so Traefik has no Kubernetes access of its own.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-ports-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: game-ports-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: game-ports-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: game-ports-gateway
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: traefik
+          image: "{{ .Values.gateway.image.repository }}:{{ .Values.gateway.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          args:
+            - --global.checkNewVersion=false
+            - --global.sendAnonymousUsage=false
+            - --log.level=INFO
+            - --ping=true
+            - --entryPoints.traefik.address=:8080/tcp
+            - --providers.file.directory=/routes
+            - --providers.file.watch=true
+            {{- range $line := include "game-ports.ports" . | trim | splitList "\n" }}
+            {{- $port := index (splitList " " $line) 1 }}
+            - --entryPoints.udp-{{ $port }}.address=:{{ $port }}/udp
+            - --entryPoints.udp-{{ $port }}.udp.timeout={{ $.Values.gateway.udpTimeout }}
+            {{- end }}
+          ports:
+            - { name: ping, containerPort: 8080, protocol: TCP }
+          readinessProbe:
+            httpGet: { path: /ping, port: ping }
+          livenessProbe:
+            httpGet: { path: /ping, port: ping }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - { name: routes, mountPath: /routes, readOnly: true }
+          resources: {{- toYaml .Values.gateway.resources | nindent 12 }}
+      volumes:
+        # Optional: the controller creates it on its first pass. Until then
+        # the gateway runs with no routes.
+        - name: routes
+          configMap:
+            name: game-ports-routes
+            optional: true

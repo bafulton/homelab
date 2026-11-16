@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Release.Namespace }}
+---
+# Templates, to read which ports each game advertises.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: game-ports-controller
+rules:
+  - apiGroups: [gameplane.local]
+    resources: [gametemplates]
+    verbs: [get]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: game-ports-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: game-ports-controller
+subjects:
+  - kind: ServiceAccount
+    name: game-ports-controller
+    namespace: {{ .Release.Namespace }}
+---
+# In the games namespace: set each server's ports, publish its address as
+# its Service's load-balancer status, and keep the canary.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Values.gamesNamespace }}
+rules:
+  - apiGroups: [gameplane.local]
+    resources: [gameservers]
+    verbs: [get, list, patch, create]
+  - apiGroups: [gameplane.local]
+    resources: [gameservers]
+    resourceNames: [{{ .Values.canary.name }}]
+    verbs: [delete]
+  - apiGroups: [""]
+    resources: [services]
+    verbs: [get]
+  - apiGroups: [""]
+    resources: [services/status]
+    verbs: [patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Values.gamesNamespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: game-ports-controller
+subjects:
+  - kind: ServiceAccount
+    name: game-ports-controller
+    namespace: {{ .Release.Namespace }}
+---
+# Here: the gateway's routes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: [create]
+  - apiGroups: [""]
+    resources: [configmaps]
+    resourceNames: [game-ports-routes]
+    verbs: [get, patch]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: game-ports-controller
+subjects:
+  - kind: ServiceAccount
+    name: game-ports-controller
+    namespace: {{ .Release.Namespace }}
