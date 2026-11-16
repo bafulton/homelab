@@ -8,9 +8,19 @@ kind: ClusterRole
 metadata:
   name: mdns-advertiser
 rules:
+  # Services annotated mdns.homelab.io/hostname, and labeled ConfigMaps (the
+  # older form, until every app has moved).
   - apiGroups: [""]
-    resources: ["configmaps"]
+    resources: ["configmaps", "services"]
     verbs: ["list", "watch"]
+  # HTTPRoutes annotated mdns.homelab.io/advertise, published at their
+  # Gateway's address.
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["httproutes"]
+    verbs: ["list", "watch"]
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
+    verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
