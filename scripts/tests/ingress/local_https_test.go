@@ -1,7 +1,6 @@
 package ingress
 
 import (
-	"encoding/json"
 	"path/filepath"
 	"reflect"
 	"slices"
@@ -120,12 +119,12 @@ func TestLocalRedirectsAndAuth(t *testing.T) {
 	if auth["name"] != "pocket-id-auth-local" {
 		t.Fatal("local application lacks local authentication")
 	}
-	mdns := findResource(t, docs, "ConfigMap", "bottleship-mdns-games")
-	var config map[string]any
-	if err := json.Unmarshal([]byte(mdns["data"].(map[string]any)["config.json"].(string)), &config); err != nil {
-		t.Fatal(err)
-	}
-	if config["hostname"] != "games" || config["ip"] != "192.168.1.200" || config["port"] != float64(443) {
-		t.Fatalf("wrong games discovery: %v", config)
+	// The mDNS advertiser publishes the route's games.local at its Gateway's
+	// address, so no IP is copied into the annotations.
+	mdns, _ := meta(local)["annotations"].(map[string]any)
+	if mdns["mdns.homelab.io/advertise"] != "true" || mdns["mdns.homelab.io/port"] != "443" ||
+		mdns["mdns.homelab.io/types"] != "_https._tcp" || mdns["mdns.homelab.io/ip"] != nil ||
+		!slices.Contains(spec(local)["hostnames"].([]any), any("games.local")) {
+		t.Fatalf("wrong games discovery: %v", mdns)
 	}
 }
