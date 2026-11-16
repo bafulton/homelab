@@ -54,6 +54,8 @@ func TestBottleShipCleanDependencies(t *testing.T) {
 		t.Fatalf("clean dependency update: %v\n%s", err, out)
 	}
 	docs := renderChart(t, chart, "bottleship")
-	findResource(t, docs, "ConfigMap", "bottleship-mdns-games")
-	findResource(t, docs, "HTTPRoute", "bottleship-local-https")
+	local := findResource(t, docs, "HTTPRoute", "bottleship-local-https")
+	if meta(local)["annotations"].(map[string]any)["mdns.homelab.io/advertise"] != "true" {
+		t.Fatal("games.local is not advertised")
+	}
 }

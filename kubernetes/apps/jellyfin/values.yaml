@@ -26,7 +26,6 @@ gateway-route:
         port: 8096
       mdns:
         name: Jellyfin
-        ip: 192.168.1.200
 
     # HTTPS is accepted for browser upgrades, then returns to the existing HTTP URL.
     - name: local-https-to-http
