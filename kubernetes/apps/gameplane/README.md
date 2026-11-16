@@ -61,15 +61,6 @@ kubectl -n gameplane-system exec -it deploy/gameplane-api -- \
   /api bootstrap-admin --username admin --password-stdin --force
 ```
 
-## Local access
-
-On the LAN, <https://server-admin.local> serves the same dashboard over the
-`local` listener, with the homelab CA (see
-[household access](../../../docs/local-household-access.md) for enrolling a
-device). Gameplane has one sign-in callback, on the public hostname, so
-signing in with Pocket ID from `server-admin.local` finishes on
-`server-admin.fultonhuffman.com`.
-
 ## Game templates
 
 Install game templates from the dashboard's module catalog. Before
