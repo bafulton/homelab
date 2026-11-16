@@ -1,0 +1,30 @@
+# Gameplane's CRDs, apart from the gameplane app, which skips them
+# (kubernetes/apps/gameplane, skipCrds). Removing a Gameplane CRD would delete
+# every GameServer of that kind, and each GameServer owns its world volume,
+# so this app never prunes, and the gameplane app can prune freely.
+#
+# Gameplane publishes its CRDs only inside its chart, so this reads them from
+# Gameplane's repository at the release tag, as its Argo CD guide describes
+# (docs/argocd.md). The tag must match the gameplane chart version in
+# kubernetes/apps/gameplane/Chart.yaml; Renovate bumps both in one PR.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gameplane-crds
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/GameplanePanel/Gameplane
+    targetRevision: v0.4.0
+    path: charts/gameplane/charts/gameplane-crds/crds
+  destination:
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: false
+      selfHeal: true
+    syncOptions:
+      # The CRDs are too large for client-side apply's annotation.
+      - ServerSideApply=true

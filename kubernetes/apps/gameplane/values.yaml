@@ -13,11 +13,15 @@ namespace: gameplane-system
 # which needs values.yaml passed as a values file (kubernetes/appsets/apps.yaml).
 honorNulls: true
 
+# The CRDs are their own app, kubernetes/appsets/gameplane-crds.yaml, which
+# never prunes them: removing a CRD would delete every GameServer of that
+# kind, and each GameServer owns its world volume.
+skipCrds: true
+
 syncPolicy:
-  # The CRDs are large.
   serverSideApply: true
-  # Never prune: removing a CRD deletes every GameServer, and a GameServer
-  # owns its world volume.
+  # Until the gameplane-crds app has taken over the CRDs. Turned on in a
+  # follow-up, once it has.
   prune: false
 
 # Game templates whose images are amd64 only. Their pods are pinned to amd64
