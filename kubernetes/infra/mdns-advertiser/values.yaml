@@ -6,7 +6,7 @@ image:
   # OOM-looping the advertiser and taking every .local record down with it.
   repository: ghcr.io/bafulton/mdns-advertiser
   # renovate: datasource=docker depName=ghcr.io/bafulton/mdns-advertiser
-  tag: 1.1.0
+  tag: 1.2.0
   pullPolicy: IfNotPresent
 
 # Records come from annotations on the objects being advertised: Services
