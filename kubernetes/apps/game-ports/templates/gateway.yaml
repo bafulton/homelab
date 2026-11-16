@@ -35,7 +35,10 @@ spec:
             - --log.level=INFO
             - --ping=true
             - --entryPoints.traefik.address=:8080/tcp
-            - --providers.file.directory=/routes
+            # The file, not the directory: the kubelet keeps hidden copies of
+            # a ConfigMap's files beside them (..data/ and timestamped dirs),
+            # which a directory watch reads as duplicate routes.
+            - --providers.file.filename=/routes/routes.yaml
             - --providers.file.watch=true
             {{- range $line := include "game-ports.ports" . | trim | splitList "\n" }}
             {{- $port := index (splitList " " $line) 1 }}
