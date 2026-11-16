@@ -127,8 +127,11 @@ flowchart TD
     gateway -- "by hostname" --> server[fulton-fun game pod]
 ```
 
-Other games send no hostname, so each of their servers would need its own
-public port. Those aren't public yet.
+**Valheim and Factorio** send no hostname, so each of their servers has
+public ports of its own, from its game's range: `valheim` is 2456-2467 and
+`factorio` 34197-34202, both to the game-ports gateway
+(`kubernetes/apps/game-ports`), which hands the ports out as servers are
+created. Their ranges must match that app's `values.yaml`.
 
 To make a game public, all in one change:
 

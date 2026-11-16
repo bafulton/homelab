@@ -8,6 +8,7 @@ Images built from this repo and published to GHCR by
 | `homelab-toolbox` | alpine + `curl`, `jq`, `git`, `kubectl`, `iproute2` | node-health, signoz dashboard-sync, cluster-maintenance, subnet-route-steering |
 | `mdns-advertiser` | python + `zeroconf`, `kubernetes` + `advertiser.py` | mdns-advertiser |
 | `geyser-standalone` | Java 25 JRE + a pinned Geyser Standalone build | minecraft-gateway |
+| `game-ports` | python + `kubernetes` + `game_ports.py` | game-ports |
 
 ## Why These Exist
 

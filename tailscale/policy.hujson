@@ -90,6 +90,10 @@
         "tcp:19132",
         "udp:19132",
         "udp:19133",
+        // valheim and factorio: the game-ports gateway
+        // (kubernetes/apps/game-ports), each game's range of server ports.
+        "udp:2456-2467",
+        "udp:34197-34202",
       ],
     },
   ],

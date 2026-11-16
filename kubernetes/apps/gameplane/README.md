@@ -126,6 +126,17 @@ image's `TYPE` setting, and the plugins volume at `/data/plugins`. After a
 Gameplane upgrade, check that a new Minecraft server still gets its name and
 Floodgate.
 
+## Public Valheim and Factorio
+
+Valheim and Factorio servers are public at `valheim.fultonhuffman.com` and
+`factorio.fultonhuffman.com`, each server on ports of its own: the first
+server of each game has the game's default port, and later ones add theirs,
+for example `valheim.fultonhuffman.com:2459`. The dashboard shows each
+server's address. `templates/game-ports.yaml` hands these servers to the
+game-ports app (`kubernetes/apps/game-ports`), which gives them their ports
+and routes; see its README. Set a server password on each: the ports are
+open to the internet.
+
 ## Storage and backups
 
 - **Worlds** are `config` Longhorn volumes, replicated, so servers can run on

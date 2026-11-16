@@ -1,0 +1,42 @@
+# The controller (images/game-ports): gives each server its slot and ports,
+# publishes its address, and writes the gateway's routes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: game-ports-controller
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: game-ports-controller
+spec:
+  replicas: 1
+  # Two controllers would hand out slots at the same time.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: game-ports-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: game-ports-controller
+    spec:
+      serviceAccountName: game-ports-controller
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: controller
+          image: "{{ .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GAME_PORTS_CONFIG
+              value: {{ include "game-ports.config" . | quote }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources: {{- toYaml .Values.controller.resources | nindent 12 }}

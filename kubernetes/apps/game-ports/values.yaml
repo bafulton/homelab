@@ -1,0 +1,69 @@
+# Public addresses for Gameplane servers of games whose clients don't send
+# the hostname they connect to (Valheim, Factorio), so the OCI edge can only
+# tell their servers apart by port. Each game has a range of public ports,
+# forwarded by the edge to this app's gateway. The controller gives each new
+# server its own ports from its game's range, routes them to it, and makes
+# the dashboard show the server's public address. See README.md.
+#
+# Access:
+#   - Public: <game>.fultonhuffman.com:<port>, via the OCI edge forwarder
+#     (opentofu/oci-forwarder, var.games "valheim" and "factorio"), which
+#     reaches the gateway's Tailscale Service, game-ports. A game's first
+#     server has the game's default port, so it needs none.
+
+# Each game, keyed by its Gameplane template name. Servers get slots in
+# order: slot 0 is basePort (the game's default port, and the template's
+# first advertised port), slot 1 starts portsPerServer above it, and so on,
+# for `servers` slots. A slot holds every port the template advertises.
+#
+# The ports here must match var.games in opentofu/oci-forwarder and the
+# tag:edge grant in tailscale/policy.hujson.
+games:
+  valheim:
+    hostname: valheim.fultonhuffman.com
+    # The game port, its Steam query port, and the port after it.
+    basePort: 2456
+    portsPerServer: 3
+    servers: 4
+  factorio:
+    hostname: factorio.fultonhuffman.com
+    basePort: 34197
+    portsPerServer: 1
+    servers: 6
+
+# The game servers' namespace, and the loadBalancerClass the gameplane app's
+# policy gives their Services, which makes the controller their load
+# balancer (kubernetes/apps/gameplane, templates/game-ports.yaml).
+gamesNamespace: gameplane-games
+loadBalancerClass: homelab.io/game-ports
+
+# The edge forwarder's upstream on the tailnet. The tag is the target of
+# tailscale/policy.hujson's tag:edge grant.
+tailscale:
+  hostname: game-ports
+  tags: tag:k8s-games
+
+gateway:
+  image:
+    repository: traefik
+    tag: v3.7.18
+  # How long Traefik keeps a player's UDP session with no packets. Games send
+  # many packets a second, so this only needs to cover a stall.
+  udpTimeout: 60s
+  resources:
+    requests:
+      cpu: 20m
+      memory: 48Mi
+    limits:
+      memory: 128Mi
+
+controller:
+  image:
+    repository: ghcr.io/bafulton/game-ports
+    tag: "1.0.0"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

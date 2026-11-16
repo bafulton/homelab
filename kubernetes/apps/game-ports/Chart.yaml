@@ -1,0 +1,5 @@
+apiVersion: v2
+name: game-ports
+description: Public ports for Gameplane servers of games whose clients don't send a hostname (Valheim, Factorio)
+type: application
+version: 1.0.0

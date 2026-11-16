@@ -85,6 +85,42 @@ variable "games" {
         { port = 19133, protocol = "udp" },
       ]
     }
+    # Valheim and Factorio clients send no hostname, so each server gets public
+    # ports of its own, from its game's range: the game-ports app
+    # (kubernetes/apps/game-ports) hands them out and routes them, behind its
+    # Tailscale Service game-ports. A game's first server has the game's
+    # default port. These ranges must match game-ports' values.yaml.
+    #
+    # Valheim: 4 servers, 3 ports each (game, Steam query, and the next).
+    valheim = {
+      upstream = "game-ports.catfish-mountain.ts.net"
+      ports = [
+        { port = 2456, protocol = "udp" },
+        { port = 2457, protocol = "udp" },
+        { port = 2458, protocol = "udp" },
+        { port = 2459, protocol = "udp" },
+        { port = 2460, protocol = "udp" },
+        { port = 2461, protocol = "udp" },
+        { port = 2462, protocol = "udp" },
+        { port = 2463, protocol = "udp" },
+        { port = 2464, protocol = "udp" },
+        { port = 2465, protocol = "udp" },
+        { port = 2466, protocol = "udp" },
+        { port = 2467, protocol = "udp" },
+      ]
+    }
+    # Factorio: 6 servers, 1 port each.
+    factorio = {
+      upstream = "game-ports.catfish-mountain.ts.net"
+      ports = [
+        { port = 34197, protocol = "udp" },
+        { port = 34198, protocol = "udp" },
+        { port = 34199, protocol = "udp" },
+        { port = 34200, protocol = "udp" },
+        { port = 34201, protocol = "udp" },
+        { port = 34202, protocol = "udp" },
+      ]
+    }
   }
 
   validation {
