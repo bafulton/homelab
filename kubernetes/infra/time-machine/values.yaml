@@ -5,6 +5,18 @@ service:
     # A fixed LAN address from MetalLB's pool (192.168.1.200-250), so Macs
     # that remember the share's address keep finding it.
     metallb.io/loadBalancerIPs: "192.168.1.201"
+    # mDNS: timemachine.local, published at this Service's address.
+    mdns.homelab.io/hostname: timemachine
+    mdns.homelab.io/name: Time Machine
+    mdns.homelab.io/port: "445"
+    # SMB file sharing; the Apple disk service Time Machine discovers, a
+    # single shared volume with per-machine quotas via .quota.plist; and
+    # device info, which shows it as a Time Capsule in Finder.
+    mdns.homelab.io/types: _smb._tcp,_adisk._tcp,_device-info._tcp
+    mdns.homelab.io/txt._adisk._tcp: |
+      sys=adVF=0x100
+      dk0=adVN=Family,adVF=0x82
+    mdns.homelab.io/txt._device-info._tcp: model=TimeCapsule8,119
 
 # Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
 # SMB share backed by a single RWO volume.
@@ -44,27 +56,6 @@ bitwarden-secret:
       data:
         # Reusing ben's password - can create a dedicated one later
         password: "a00db757-d2bf-495a-b33a-b3cf002ad2a3"
-
-# mDNS advertisement for Time Machine auto-discovery
-# IP must match the metallb.io/loadBalancerIPs annotation above
-mdnsServices:
-  - name: Time Machine
-    hostname: timemachine
-    ip: 192.168.1.201
-    port: 445
-    types:
-      # SMB file sharing
-      - type: _smb._tcp
-      # Apple disk service (required for Time Machine auto-discovery)
-      # Single shared volume with per-machine quotas via .quota.plist
-      - type: _adisk._tcp
-        txtRecords:
-          - "sys=adVF=0x100"
-          - "dk0=adVN=Family,adVF=0x82"
-      # Device info (shows as Time Capsule in Finder)
-      - type: _device-info._tcp
-        txtRecords:
-          - "model=TimeCapsule8,119"
 
 resources:
   requests:

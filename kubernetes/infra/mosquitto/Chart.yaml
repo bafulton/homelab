@@ -8,9 +8,6 @@ dependencies:
   - name: mosquitto
     version: 0.6.1
     repository: https://bdclark.github.io/helm-charts
-  - name: mdns-config
-    version: 1.0.0
-    repository: file://../../../charts/mdns-config
   - name: longhorn-storage
     version: 1.0.0
     repository: file://../../../charts/longhorn-storage

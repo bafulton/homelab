@@ -19,6 +19,12 @@ mosquitto:
     type: LoadBalancer
     annotations:
       metallb.io/loadBalancerIPs: "192.168.1.202"
+      # mDNS: mosquitto.local, so Theengs Gateway and other devices find the
+      # broker. The advertiser publishes it at this Service's address.
+      mdns.homelab.io/hostname: mosquitto
+      mdns.homelab.io/name: Mosquitto
+      mdns.homelab.io/port: "1883"
+      mdns.homelab.io/types: _mqtt._tcp
     ports:
       mqtt:
         enabled: true
@@ -39,16 +45,6 @@ mosquitto:
   persistence:
     enabled: true
     existingClaim: mosquitto-data
-
-# mDNS advertisement for MQTT broker discovery
-# Allows Theengs Gateway and other devices to find the broker
-mdnsServices:
-  - name: Mosquitto
-    hostname: mosquitto
-    ip: 192.168.1.202
-    port: 1883
-    types:
-      - type: _mqtt._tcp
 
 # PVC + backup schedule. mosquitto-data was previously created by the upstream
 # chart with no backup at all; moving it here puts it on the
