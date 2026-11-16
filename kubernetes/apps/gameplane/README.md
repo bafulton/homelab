@@ -71,6 +71,22 @@ nodes. Valheim and Terraria are amd64 only; Minecraft and Factorio run
 anywhere. Game servers keep their templates' CPU limits; only Gameplane's
 own pods have theirs removed.
 
+## Idle sleep
+
+New servers sleep after 30 minutes without players, and wake when a player
+joins: `templates/idle-sleep.yaml` sets `spec.idle` on each server as it is
+created, from `idleSleep` in values.yaml. While a server sleeps, Gameplane's
+sentinel pod holds its ports in place of the game, and a player joining
+wakes it. A Minecraft player is held until the server is up, or, if it takes
+longer than about 25 seconds, told to try again shortly; server-list pings
+are answered without waking it. Players of UDP games (Valheim, Factorio)
+retry until the server is up.
+
+Owners change the delay, or turn sleep off, in a server's **Settings →
+Lifecycle**; the policy only fills in servers created without idle settings,
+so their choice sticks. A server only sleeps when Gameplane can count its
+players: Valheim reports no player count, so Valheim servers never sleep.
+
 ## Public Minecraft
 
 Every Minecraft server is public at `<server>.minecraft.fultonhuffman.com`,

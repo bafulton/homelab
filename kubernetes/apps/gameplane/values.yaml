@@ -29,6 +29,13 @@ amd64OnlyGames:
   - valheim
   - terraria
 
+# New game servers sleep after this many minutes without players, and wake
+# when a player joins (templates/idle-sleep.yaml). Owners change this per
+# server in Settings -> Lifecycle.
+idleSleep:
+  afterMinutes: 30
+  wakeOnConnect: true
+
 # Minecraft servers get public names, <server>.<domain>, routed by mc-router
 # (templates/minecraft-names.yaml). Only Minecraft gets this: a Minecraft
 # Java client sends the hostname it's connecting to, so one public port can

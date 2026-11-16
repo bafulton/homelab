@@ -1,0 +1,49 @@
+# Turns on idle sleep and wake-on-connect for each new game server, so empty
+# servers free their memory without anyone remembering to set it. A server
+# that reports no players for idleSleep.afterMinutes is stopped, and while it
+# sleeps a small sentinel pod holds its ports and wakes it when a player
+# joins. Owners change or turn this off in the server's Settings → Lifecycle.
+#
+# Only on create, and only for a server created without idle settings: the
+# dashboard removes spec.idle when an owner turns sleep off, and that choice
+# must stick through later updates.
+{{- with .Values.idleSleep }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: gameplane-idle-sleep
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+    resourceRules:
+      - apiGroups: [gameplane.local]
+        apiVersions: [v1alpha1]
+        operations: [CREATE]
+        resources: [gameservers]
+  matchConditions:
+    - name: no-idle-settings
+      expression: "!has(object.spec.idle)"
+  # A server that never sleeps still works, so an error here mustn't block
+  # creating one.
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          [
+            JSONPatch{op: "add", path: "/spec/idle", value: {}},
+            JSONPatch{op: "add", path: "/spec/idle/enabled", value: true},
+            JSONPatch{op: "add", path: "/spec/idle/afterMinutes", value: {{ int .afterMinutes }}},
+            JSONPatch{op: "add", path: "/spec/idle/wakeOnConnect", value: {{ .wakeOnConnect }}}
+          ]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: gameplane-idle-sleep
+spec:
+  policyName: gameplane-idle-sleep
+{{- end }}
