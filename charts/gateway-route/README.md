@@ -70,8 +70,14 @@ gateway-route:
         port: 80
       mdns:
         name: My App
-        ip: 192.168.1.200
 ```
+
+`mdns` publishes the route's `.local` hostnames over mDNS. The chart annotates
+the HTTPRoute (`mdns.homelab.io/advertise`, `name`, `port`, `types`, and
+`txt.<type>` for TXT records), and the mDNS advertiser publishes each `.local`
+hostname at the address of the route's Gateway: the LAN VIP for `apps`. `port`
+defaults to 80 and `types` to `_http._tcp`; `ip` overrides the Gateway's
+address. Put `mdns` on the route that serves the LAN hostname.
 
 `rules` supplies Gateway API HTTPRoute rules instead of the default `/` backend.
 BottleShip uses this for ForwardAuth; the Argo public webhook uses an exact

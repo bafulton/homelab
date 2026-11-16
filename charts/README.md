@@ -50,7 +50,6 @@ dependencies:
   - name: gateway-route
     version: 1.0.0
     repository: file://../../../charts/gateway-route
-  # Note: mdns-config is NOT listed here - gateway-route includes it as its own dependency
 ```
 
 **values.yaml**:
@@ -67,14 +66,14 @@ gateway-route:
         port: 8080
       mdns:                        # Optional mDNS advertisement
         name: My App               # Display name in Finder/network browsers
-        ip: 192.168.1.200          # Gateway MetalLB IP (192.168.1.200)
 ```
 
 **How it works**:
-1. `gateway-route` includes `mdns-config` as its own dependency
-2. When you set `.routes[].mdns`, gateway-route passes the config to mdns-config
-3. mdns-config creates a labeled ConfigMap
-4. The central mdns-advertiser discovers the ConfigMap and advertises the service
+1. When you set `.routes[].mdns`, gateway-route annotates the HTTPRoute with
+   `mdns.homelab.io/*` annotations
+2. The central mdns-advertiser publishes each `.local` hostname in the route
+   at its Gateway's address, read from the Gateway's status, so no IP is
+   copied into values
 
 ### Pattern 2: Direct mdns-config (Non-HTTP services)
 

@@ -8,6 +8,30 @@ metadata:
   namespace: {{ $.Release.Namespace }}
   labels:
     homelab.io/access: {{ .access }}
+  {{- with .mdns }}
+  # The mDNS advertiser publishes this route's .local hostnames at its
+  # Gateway's address (kubernetes/infra/mdns-advertiser).
+  annotations:
+    mdns.homelab.io/advertise: "true"
+    {{- with .name }}
+    mdns.homelab.io/name: {{ . | quote }}
+    {{- end }}
+    mdns.homelab.io/port: {{ .port | default 80 | quote }}
+    {{- $types := .types | default (list (dict "type" "_http._tcp")) }}
+    {{- $typeNames := list }}
+    {{- range $t := $types }}
+    {{- $typeNames = append $typeNames $t.type }}
+    {{- end }}
+    mdns.homelab.io/types: {{ join "," $typeNames | quote }}
+    {{- range $t := $types }}
+    {{- with $t.txtRecords }}
+    mdns.homelab.io/txt.{{ $t.type }}: {{ join "\n" . | quote }}
+    {{- end }}
+    {{- end }}
+    {{- with .ip }}
+    mdns.homelab.io/ip: {{ . | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   parentRefs:
     {{- $parents | nindent 4 }}
