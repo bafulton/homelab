@@ -21,6 +21,10 @@ spec:
         checksum/geyser-config: {{ include (print $.Template.BasePath "/geyser-config.yaml") . | sha256sum }}
     spec:
       serviceAccountName: minecraft-gateway
+      # MetalLB announces the LAN address from a home node, so a pod on a
+      # remote node would send LAN players' traffic out over the WAN.
+      nodeSelector:
+        homelab.io/location: local
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

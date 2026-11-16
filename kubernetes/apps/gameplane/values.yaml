@@ -37,6 +37,10 @@ amd64OnlyGames:
 # Minecraft Java game templates.
 minecraftNames:
   domain: minecraft.fultonhuffman.com
+  # The minecraft-gateway's LAN address, where each server's
+  # <server>-minecraft.local name points. Must match lanAddress in
+  # kubernetes/apps/minecraft-gateway.
+  lanAddress: 192.168.1.250
   templates:
     - minecraft
 

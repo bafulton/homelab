@@ -17,6 +17,13 @@
 
 namespace: minecraft-gateway
 
+# The gateway's LAN address, for players at home: each Minecraft server's
+# <server>-minecraft.local name (published by the mDNS advertiser) points
+# here, skipping the trip out to the OCI edge. The top of MetalLB's pool,
+# away from the dynamic addresses game servers take from the bottom.
+# kubernetes/apps/gameplane (minecraftNames.lanAddress) must match.
+lanAddress: 192.168.1.250
+
 # The edge forwarder's upstream, game-<key> in its var.games. The tag is the
 # target of tailscale/policy.hujson's tag:edge grant.
 tailscale:
