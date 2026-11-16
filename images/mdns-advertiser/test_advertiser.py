@@ -73,21 +73,16 @@ class AdvertiserTests(unittest.TestCase):
                 {"type": "_demo._tcp", "txtRecords": ["key=value"]},
             ],
         }
-        self.items = []
         self.services = []
         self.routes = []
         self.gateways = {}
         self.advertiser.v1 = types.SimpleNamespace(
-            list_config_map_for_all_namespaces=self.list_configmaps,
             list_service_for_all_namespaces=lambda **kwargs: types.SimpleNamespace(items=self.services),
         )
         self.advertiser.custom = types.SimpleNamespace(
             list_cluster_custom_object=lambda *args, **kwargs: {"items": self.routes},
             get_namespaced_custom_object=lambda group, version, ns, plural, name: self.gateways[(ns, name)],
         )
-
-    def list_configmaps(self, **kwargs):
-        return types.SimpleNamespace(items=self.items)
 
     def service(self, annotations, ip="192.168.1.201", port=445, name="time-machine"):
         ingress = [types.SimpleNamespace(ip=ip)] if ip else []
@@ -110,10 +105,16 @@ class AdvertiserTests(unittest.TestCase):
         return {(i.type, i.name, i.server, i.port, i.addresses[0]) for i in self.advertiser.zc.active}
 
     def set_config(self, value):
-        self.items = [types.SimpleNamespace(
-            metadata=types.SimpleNamespace(namespace="test", name="example"),
-            data={"config.json": json.dumps(value)},
-        )]
+        """Publish a record config as an annotated Service, test/example."""
+        annotations = {
+            "mdns.homelab.io/hostname": value["hostname"],
+            "mdns.homelab.io/name": value["name"],
+            "mdns.homelab.io/ip": value["ip"],
+            "mdns.homelab.io/port": str(value["port"]),
+            "mdns.homelab.io/types": json.dumps(value["types"]),
+        }
+        annotations.update(value.get("extra", {}))
+        self.services = [self.service(annotations, name="example")]
 
     def test_each_published_field_updates_and_unchanged_config_does_not_churn(self):
         self.set_config(self.config)
@@ -146,15 +147,15 @@ class AdvertiserTests(unittest.TestCase):
         self.assertIn({"path": "/new"}, [i.properties for i in self.advertiser.zc.active])
 
         self.advertiser.zc.calls.clear()
-        self.config["ignored"] = "no change to published records"
+        self.config["extra"] = {"other.example.com/unrelated": "no change to published records"}
         self.set_config(self.config)
         self.assertFalse(self.advertiser.sync_services())
         self.assertEqual(self.advertiser.zc.calls, [])
 
-    def test_deleted_configmap_removes_all_records(self):
+    def test_deleted_service_removes_all_records(self):
         self.set_config(self.config)
         self.advertiser.sync_services()
-        self.items = []
+        self.services = []
         self.assertTrue(self.advertiser.sync_services())
         self.assertFalse(self.advertiser.zc.active)
         self.assertFalse(self.advertiser.registered_services)
@@ -168,8 +169,8 @@ class AdvertiserTests(unittest.TestCase):
         self.assertFalse(self.advertiser.sync_services())
         self.assertEqual(self.advertiser.zc.active, original)
 
-        self.advertiser.v1.list_config_map_for_all_namespaces = (
-            lambda **kwargs: (_ for _ in ()).throw(RuntimeError("API unavailable"))
+        self.advertiser.custom.list_cluster_custom_object = (
+            lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("API unavailable"))
         )
         with self.assertRaisesRegex(RuntimeError, "API unavailable"):
             self.advertiser.sync_services()
@@ -185,7 +186,7 @@ class AdvertiserTests(unittest.TestCase):
         self.assertFalse(self.advertiser.sync_services())
         self.assertEqual(self.advertiser.zc.active, original)
         self.assertEqual(
-            self.advertiser.registered_services["configmap:test/example"].port, 80
+            self.advertiser.registered_services["service:test/example"].port, 80
         )
 
     def test_partial_initial_registration_failure_leaves_no_records(self):
@@ -212,8 +213,10 @@ class AdvertiserTests(unittest.TestCase):
         self.services = [self.service({
             "mdns.homelab.io/hostname": "timemachine",
             "mdns.homelab.io/name": "Time Machine",
-            "mdns.homelab.io/types": "_smb._tcp, _adisk._tcp",
-            "mdns.homelab.io/txt._adisk._tcp": "sys=adVF=0x100\ndk0=adVN=Family,adVF=0x82\n",
+            "mdns.homelab.io/types": json.dumps([
+                {"type": "_smb._tcp"},
+                {"type": "_adisk._tcp", "txtRecords": ["sys=adVF=0x100", "dk0=adVN=Family,adVF=0x82"]},
+            ]),
         })]
         self.assertTrue(self.advertiser.sync_services())
         address = self.advertiser.socket.inet_aton("192.168.1.201")
@@ -224,23 +227,9 @@ class AdvertiserTests(unittest.TestCase):
         adisk = [i for i in self.advertiser.zc.active if i.type == "_adisk._tcp.local."][0]
         self.assertEqual(adisk.properties, {"sys": "adVF=0x100", "dk0": "adVN=Family,adVF=0x82"})
 
-    def test_types_as_json_carry_txt_records(self):
-        self.services = [self.service({
-            "mdns.homelab.io/hostname": "timemachine",
-            "mdns.homelab.io/name": "Time Machine",
-            "mdns.homelab.io/types": json.dumps([
-                {"type": "_smb._tcp"},
-                {"type": "_adisk._tcp", "txtRecords": ["sys=adVF=0x100", "dk0=adVN=Family,adVF=0x82"]},
-            ]),
-        })]
-        self.assertTrue(self.advertiser.sync_services())
-        props = {i.type: i.properties for i in self.advertiser.zc.active}
-        self.assertEqual(props, {
-            "_smb._tcp.local.": {},
-            "_adisk._tcp.local.": {"sys": "adVF=0x100", "dk0": "adVN=Family,adVF=0x82"},
-        })
-
-        # Malformed JSON is an invalid edit: the published records stay.
+    def test_malformed_json_types_keep_the_published_records(self):
+        self.set_config(self.config)
+        self.advertiser.sync_services()
         original = set(self.advertiser.zc.active)
         self.services[0].metadata.annotations["mdns.homelab.io/types"] = '[{"type": '
         self.assertFalse(self.advertiser.sync_services())
@@ -288,25 +277,24 @@ class AdvertiserTests(unittest.TestCase):
         self.assertTrue(self.advertiser.sync_services())
         self.assertEqual({i.port for i in self.advertiser.zc.active}, {80})
 
-    def test_moving_from_a_configmap_to_an_annotation_hands_the_name_over(self):
-        self.config.update(name="Time Machine", hostname="timemachine", ip="192.168.1.201",
-                           port=445, types=[{"type": "_smb._tcp"}])
-        self.set_config(self.config)
-        self.advertiser.sync_services()
-
-        # Both exist for a moment: the annotation's records wait for the name.
-        self.services = [self.service({
+    def test_moving_a_name_between_services_hands_it_over(self):
+        records = {
             "mdns.homelab.io/hostname": "timemachine",
             "mdns.homelab.io/name": "Time Machine",
             "mdns.homelab.io/types": "_smb._tcp",
-        })]
+        }
+        self.services = [self.service(dict(records), name="old")]
         self.advertiser.sync_services()
-        self.assertEqual(set(self.advertiser.registered_services), {"configmap:test/example"})
 
-        # Once the ConfigMap is gone, the annotation takes the name in the same sync.
-        self.items = []
+        # Both exist for a moment: the new Service's records wait for the name.
+        self.services.append(self.service(dict(records), name="new"))
+        self.advertiser.sync_services()
+        self.assertEqual(set(self.advertiser.registered_services), {"service:test/old"})
+
+        # Once the old one is gone, the new one takes the name in the same sync.
+        self.services = self.services[1:]
         self.assertTrue(self.advertiser.sync_services())
-        self.assertEqual(set(self.advertiser.registered_services), {"service:test/time-machine"})
+        self.assertEqual(set(self.advertiser.registered_services), {"service:test/new"})
         self.assertEqual(len(self.advertiser.zc.active), 1)
 
     def test_a_failed_service_or_route_list_changes_nothing(self):
