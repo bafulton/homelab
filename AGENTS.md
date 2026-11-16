@@ -122,11 +122,10 @@ gateway-route:
 
 ### mDNS Advertisement
 
-For LAN service discovery (Bonjour/Zeroconf), there are **two patterns**:
+For LAN service discovery (Bonjour/Zeroconf), the central `mdns-advertiser` publishes `.local` names from annotations on the objects being advertised, in the style of external-dns. Addresses come from the objects' status, never from values.
 
-**Pattern 1 - HTTP services with Gateway API routing** (most common):
+**Web apps** - `mdns` on the gateway-route route that serves the `.local` hostname (published at the Gateway's address):
 ```yaml
-# mDNS is included via gateway-route chart
 gateway-route:
   routes:
     - name: public-lan
@@ -137,25 +136,17 @@ gateway-route:
         name: My App
 ```
 
-**Pattern 2 - Non-HTTP services** (MQTT, SMB, etc.):
+**Anything with its own LoadBalancer** (MQTT, SMB, game servers) - annotate the Service (published at its load balancer address):
 ```yaml
-# Chart.yaml - explicit mdns-config dependency
-dependencies:
-  - name: mdns-config
-    version: 1.0.0
-    repository: file://../../../charts/mdns-config
-
-# values.yaml
-mdnsServices:
-  - name: My App
-    hostname: myapp        # becomes myapp.local
-    ip: 192.168.1.201      # Service's MetalLB LoadBalancer IP
-    port: 80
-    types:
-      - type: _http._tcp
+service:
+  annotations:
+    metallb.io/loadBalancerIPs: "192.168.1.202"
+    mdns.homelab.io/hostname: myapp        # becomes myapp.local
+    mdns.homelab.io/name: My App
+    mdns.homelab.io/types: _mqtt._tcp
 ```
 
-The central `mdns-advertiser` discovers labeled ConfigMaps and advertises them via mDNS. See `charts/README.md` for detailed pattern selection guidance.
+See `charts/README.md` ("mDNS Advertisement") and `kubernetes/infra/mdns-advertiser/README.md` for every annotation, including TXT records.
 
 ### PodSecurity
 

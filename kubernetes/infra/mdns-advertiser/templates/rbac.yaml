@@ -8,10 +8,9 @@ kind: ClusterRole
 metadata:
   name: mdns-advertiser
 rules:
-  # Services annotated mdns.homelab.io/hostname, and labeled ConfigMaps (the
-  # older form, until every app has moved).
+  # Services annotated mdns.homelab.io/hostname.
   - apiGroups: [""]
-    resources: ["configmaps", "services"]
+    resources: ["services"]
     verbs: ["list", "watch"]
   # HTTPRoutes annotated mdns.homelab.io/advertise, published at their
   # Gateway's address.

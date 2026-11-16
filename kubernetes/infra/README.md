@@ -146,7 +146,7 @@ Some services need mDNS/Bonjour for device discovery. mDNS uses multicast UDP wh
 | Public sites (blogs, portfolios) | gateway-route | `blog.fultonhuffman.com` |
 | LAN web apps (Jellyfin, media) | gateway-route with mDNS | `media.local` |
 | LAN non-HTTP (databases, SMB) | MetalLB LoadBalancer | `192.168.1.x:port` |
-| LAN discovery (Time Machine) | MetalLB + mdns-config | Auto-discovered |
+| LAN discovery (Time Machine, MQTT) | MetalLB + `mdns.homelab.io/*` Service annotations | `timemachine.local` |
 
 ### Multi-Hostname Example
 
@@ -164,10 +164,8 @@ gateway-route:
       service:
         name: jellyfin
         port: 8096
-      mdns:  # Optional: advertise via Bonjour
+      mdns:  # Optional: advertise media.local via Bonjour, at the Gateway's address
         name: Media Server
-        ip: 192.168.1.200
-        port: 80
 ```
 
 **Note:** Some services need multiple exposure methods. For example, Home Assistant might use:
