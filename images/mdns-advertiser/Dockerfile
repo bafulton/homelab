@@ -1,4 +1,4 @@
-# mDNS advertiser: publishes labeled ConfigMaps as Bonjour/Zeroconf records.
+# mDNS advertiser: publishes annotated Services and HTTPRoutes as Bonjour/Zeroconf records.
 #
 # Deps are resolved at build time, not container start. The previous runtime
 # `pip install` broke when the base image moved to python:3.15-alpine: PyYAML

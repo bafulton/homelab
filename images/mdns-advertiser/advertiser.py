@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """Advertise LAN services over mDNS from annotated Kubernetes objects.
 
-Records come from three sources:
+Records come from two sources:
 
 - Services annotated with mdns.homelab.io/hostname. The address is the
   Service's load balancer IP, so it is never copied by hand.
 - HTTPRoutes annotated with mdns.homelab.io/advertise: "true". Each of the
   route's .local hostnames is published at its Gateway's address.
-- ConfigMaps labeled mdns.homelab.io/advertise=true, the older form, read
-  until every app has moved to annotations.
 
 On Services and HTTPRoutes, these annotations describe the records:
 
@@ -17,8 +15,6 @@ On Services and HTTPRoutes, these annotations describe the records:
                                  with TXT records a JSON list of
                                  {"type": ..., "txtRecords": [...]}
                                  (default: _http._tcp)
-  mdns.homelab.io/txt.<type>     TXT records for one type, one per line; the
-                                 older form, until every app uses JSON types
   mdns.homelab.io/port           port (default: the Service's first port,
                                  or the route's Gateway listener)
   mdns.homelab.io/ip             address override, eg to publish a name at
@@ -36,8 +32,6 @@ from kubernetes import client, config
 from zeroconf import ServiceInfo, Zeroconf
 
 PREFIX = "mdns.homelab.io/"
-LABEL_SELECTOR = "mdns.homelab.io/advertise=true"
-CONFIG_KEY = "config.json"
 GATEWAY_GROUP = "gateway.networking.k8s.io"
 GATEWAY_VERSION = "v1"
 POLL_INTERVAL = 30
@@ -111,16 +105,7 @@ def parse_types(annotations):
     if raw.startswith("["):
         return [{"type": t["type"], "txtRecords": t.get("txtRecords", [])}
                 for t in json.loads(raw)]
-    types = []
-    for type_str in raw.split(","):
-        type_str = type_str.strip()
-        if not type_str:
-            continue
-        # The older form: TXT records in a per-type annotation.
-        txt = annotations.get(f"{PREFIX}txt.{type_str}", "")
-        records = [line.strip() for line in txt.splitlines() if line.strip()]
-        types.append({"type": type_str, "txtRecords": records})
-    return types
+    return [{"type": t.strip(), "txtRecords": []} for t in raw.split(",") if t.strip()]
 
 
 def config_from_annotations(annotations, hostname, ip, port):
@@ -132,19 +117,6 @@ def config_from_annotations(annotations, hostname, ip, port):
         "port": int(annotations.get(PREFIX + "port", port)),
         "types": parse_types(annotations),
     }
-
-
-def configmap_configs():
-    """The older form: labeled ConfigMaps holding a config.json."""
-    configs = {}
-    for cm in v1.list_config_map_for_all_namespaces(label_selector=LABEL_SELECTOR).items:
-        key = f"configmap:{cm.metadata.namespace}/{cm.metadata.name}"
-        raw_config = (cm.data or {}).get(CONFIG_KEY, '')
-        if not raw_config:
-            print(f"Warning: ConfigMap {key} has no {CONFIG_KEY}")
-            continue
-        configs[key] = lambda raw=raw_config: json.loads(raw)
-    return configs
 
 
 def service_configs():
@@ -228,13 +200,12 @@ def sync_services():
     # A failed list must not be interpreted as an empty list (and delete
     # records), so every source is listed before anything changes.
     desired = {}
-    desired.update(configmap_configs())
     desired.update(service_configs())
     desired.update(route_configs())
     changed = False
 
-    # Remove first, so a record moving from one source to another (a
-    # ConfigMap to an annotation) frees its name before it's published again.
+    # Remove first, so a record moving from one object to another frees its
+    # name before it's published again.
     for key in set(registered_services) - set(desired):
         registration = registered_services[key]
         try:
