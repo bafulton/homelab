@@ -13,9 +13,12 @@ Records come from three sources:
 On Services and HTTPRoutes, these annotations describe the records:
 
   mdns.homelab.io/name           display name (default: the hostname)
-  mdns.homelab.io/types          comma-separated service types
+  mdns.homelab.io/types          service types: comma-separated, or for types
+                                 with TXT records a JSON list of
+                                 {"type": ..., "txtRecords": [...]}
                                  (default: _http._tcp)
-  mdns.homelab.io/txt.<type>     TXT records for one type, one per line
+  mdns.homelab.io/txt.<type>     TXT records for one type, one per line; the
+                                 older form, until every app uses JSON types
   mdns.homelab.io/port           port (default: the Service's first port,
                                  or the route's Gateway listener)
   mdns.homelab.io/ip             address override, eg to publish a name at
@@ -102,22 +105,32 @@ def prepare_service(svc_config):
     return Registration(configuration, name, ip, port, infos)
 
 
-def config_from_annotations(annotations, hostname, ip, port):
-    """Build a record config from mdns.homelab.io/* annotations."""
+def parse_types(annotations):
+    """Service types, comma-separated or, for types with TXT records, JSON."""
+    raw = annotations.get(PREFIX + "types", "_http._tcp").strip()
+    if raw.startswith("["):
+        return [{"type": t["type"], "txtRecords": t.get("txtRecords", [])}
+                for t in json.loads(raw)]
     types = []
-    for type_str in annotations.get(PREFIX + "types", "_http._tcp").split(","):
+    for type_str in raw.split(","):
         type_str = type_str.strip()
         if not type_str:
             continue
+        # The older form: TXT records in a per-type annotation.
         txt = annotations.get(f"{PREFIX}txt.{type_str}", "")
         records = [line.strip() for line in txt.splitlines() if line.strip()]
         types.append({"type": type_str, "txtRecords": records})
+    return types
+
+
+def config_from_annotations(annotations, hostname, ip, port):
+    """Build a record config from mdns.homelab.io/* annotations."""
     return {
         "name": annotations.get(PREFIX + "name", hostname),
         "hostname": hostname,
         "ip": annotations.get(PREFIX + "ip", ip),
         "port": int(annotations.get(PREFIX + "port", port)),
-        "types": types,
+        "types": parse_types(annotations),
     }
 
 
