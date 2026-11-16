@@ -224,6 +224,28 @@ class AdvertiserTests(unittest.TestCase):
         adisk = [i for i in self.advertiser.zc.active if i.type == "_adisk._tcp.local."][0]
         self.assertEqual(adisk.properties, {"sys": "adVF=0x100", "dk0": "adVN=Family,adVF=0x82"})
 
+    def test_types_as_json_carry_txt_records(self):
+        self.services = [self.service({
+            "mdns.homelab.io/hostname": "timemachine",
+            "mdns.homelab.io/name": "Time Machine",
+            "mdns.homelab.io/types": json.dumps([
+                {"type": "_smb._tcp"},
+                {"type": "_adisk._tcp", "txtRecords": ["sys=adVF=0x100", "dk0=adVN=Family,adVF=0x82"]},
+            ]),
+        })]
+        self.assertTrue(self.advertiser.sync_services())
+        props = {i.type: i.properties for i in self.advertiser.zc.active}
+        self.assertEqual(props, {
+            "_smb._tcp.local.": {},
+            "_adisk._tcp.local.": {"sys": "adVF=0x100", "dk0": "adVN=Family,adVF=0x82"},
+        })
+
+        # Malformed JSON is an invalid edit: the published records stay.
+        original = set(self.advertiser.zc.active)
+        self.services[0].metadata.annotations["mdns.homelab.io/types"] = '[{"type": '
+        self.assertFalse(self.advertiser.sync_services())
+        self.assertEqual(self.advertiser.zc.active, original)
+
     def test_service_without_an_address_waits_and_ip_annotation_overrides(self):
         self.services = [self.service({"mdns.homelab.io/hostname": "pending"}, ip=None)]
         self.assertFalse(self.advertiser.sync_services())
