@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "NVMe drive percentage_used is above 90% — drive is near end of rated write endurance, plan replacement soon",
-  "summary": "NVMe wear indicator critical on {{k8s.node.name}} ({{device}})",
   "labels": {
     "source": "gitops",
     "severity": "critical"
@@ -85,5 +84,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "NVMe drive percentage_used is above 90% — drive is near end of rated write endurance, plan replacement soon",
+    "summary": "NVMe wear indicator critical on {{k8s.node.name}} ({{device}})"
   }
 }

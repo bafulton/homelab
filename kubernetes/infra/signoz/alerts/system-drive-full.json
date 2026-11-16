@@ -5,7 +5,6 @@
   "ruleType": "promql_rule",
   "disabled": false,
   "description": "Node /var is above 80% - kubelet starts garbage-collecting images at 85% and evicting pods near 90% (etcd, containerd and logs live here)",
-  "summary": "System drive (/var) almost full",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -56,5 +55,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Node /var is above 80% - kubelet starts garbage-collecting images at 85% and evicting pods near 90% (etcd, containerd and logs live here)",
+    "summary": "System drive (/var) almost full"
   }
 }

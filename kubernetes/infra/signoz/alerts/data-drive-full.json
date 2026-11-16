@@ -5,7 +5,6 @@
   "ruleType": "promql_rule",
   "disabled": false,
   "description": "A data drive under /var/mnt is above 90% (Time Machine's drive has its own alert)",
-  "summary": "Data drive almost full",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -56,5 +55,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "A data drive under /var/mnt is above 90% (Time Machine's drive has its own alert)",
+    "summary": "Data drive almost full"
   }
 }

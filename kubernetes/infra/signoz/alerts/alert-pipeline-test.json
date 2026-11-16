@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "No k8s.node.cpu.usage data for 10+ minutes. SigNoz metrics ingestion or the alerting pipeline is broken.",
-  "summary": "SigNoz alerting pipeline is DOWN",
   "labels": {
     "source": "gitops",
     "severity": "critical"
@@ -74,5 +73,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "No k8s.node.cpu.usage data for 10+ minutes. SigNoz metrics ingestion or the alerting pipeline is broken.",
+    "summary": "SigNoz alerting pipeline is DOWN"
   }
 }

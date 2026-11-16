@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "Node CPU usage is above 90%",
-  "summary": "High CPU usage detected",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -119,5 +118,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Node CPU usage is above 90%",
+    "summary": "High CPU usage detected"
   }
 }

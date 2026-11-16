@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "Kubernetes node is not in Ready state",
-  "summary": "Node not ready",
   "labels": {
     "source": "gitops",
     "severity": "critical"
@@ -79,5 +78,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Kubernetes node is not in Ready state",
+    "summary": "Node not ready"
   }
 }

@@ -5,7 +5,6 @@
   "ruleType": "promql_rule",
   "disabled": false,
   "description": "TLS certificate will expire within 7 days",
-  "summary": "Certificate expiring soon",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -56,5 +55,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "TLS certificate will expire within 7 days",
+    "summary": "Certificate expiring soon"
   }
 }

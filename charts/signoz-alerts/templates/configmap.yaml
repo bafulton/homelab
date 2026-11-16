@@ -31,7 +31,10 @@ data:
       "alertType": "METRIC_BASED_ALERT",
       "disabled": false,
       "description": {{ .description | quote }},
-      "summary": {{ .summary | default .description | quote }},
+      "annotations": {
+        "description": {{ .description | quote }},
+        "summary": {{ .summary | default .description | quote }}
+      },
       "labels": {
         "source": "gitops",
         "severity": {{ .severity | default $defaults.severity | quote }}

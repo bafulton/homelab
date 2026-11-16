@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "Node memory usage is above 95%",
-  "summary": "High memory usage detected",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -119,5 +118,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Node memory usage is above 95%",
+    "summary": "High memory usage detected"
   }
 }

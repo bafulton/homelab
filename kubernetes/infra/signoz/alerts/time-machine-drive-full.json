@@ -5,7 +5,6 @@
   "ruleType": "promql_rule",
   "disabled": false,
   "description": "Time Machine drive is above 95%. Per-Mac quotas (900 GB each) should cap two Macs at ~90% of the 2 TB drive, so this means the quotas are not holding",
-  "summary": "Time Machine drive almost full",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -56,5 +55,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Time Machine drive is above 95%. Per-Mac quotas (900 GB each) should cap two Macs at ~90% of the 2 TB drive, so this means the quotas are not holding",
+    "summary": "Time Machine drive almost full"
   }
 }

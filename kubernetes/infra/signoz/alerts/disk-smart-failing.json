@@ -5,7 +5,6 @@
   "ruleType": "threshold_rule",
   "disabled": false,
   "description": "Disk SMART self-assessment test is failing - disk may be dying",
-  "summary": "Disk SMART health check failed",
   "labels": {
     "source": "gitops",
     "severity": "warning"
@@ -85,5 +84,9 @@
         }
       ]
     }
+  },
+  "annotations": {
+    "description": "Disk SMART self-assessment test is failing - disk may be dying",
+    "summary": "Disk SMART health check failed"
   }
 }
