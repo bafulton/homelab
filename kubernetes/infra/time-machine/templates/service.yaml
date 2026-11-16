@@ -1,12 +1,12 @@
-# MetalLB LoadBalancer provides a stable LAN IP
-# mDNS advertiser publishes this IP for discovery
+# A LAN address from MetalLB; service.annotations in values.yaml pins it.
 apiVersion: v1
 kind: Service
 metadata:
   name: time-machine
+  {{- with .Values.service.annotations }}
   annotations:
-    # Request a specific IP from MetalLB (optional, but ensures stability)
-    metallb.io/loadBalancerIPs: "{{ .Values.service.loadBalancerIP }}"
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   type: LoadBalancer
   selector:

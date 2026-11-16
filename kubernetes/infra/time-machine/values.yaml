@@ -1,8 +1,10 @@
 namespace: time-machine
 
-# MetalLB LoadBalancer IP (from pool 192.168.1.200-250)
 service:
-  loadBalancerIP: "192.168.1.201"
+  annotations:
+    # A fixed LAN address from MetalLB's pool (192.168.1.200-250), so Macs
+    # that remember the share's address keep finding it.
+    metallb.io/loadBalancerIPs: "192.168.1.201"
 
 # Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
 # SMB share backed by a single RWO volume.
@@ -44,7 +46,7 @@ bitwarden-secret:
         password: "a00db757-d2bf-495a-b33a-b3cf002ad2a3"
 
 # mDNS advertisement for Time Machine auto-discovery
-# IP must match service.loadBalancerIP above
+# IP must match the metallb.io/loadBalancerIPs annotation above
 mdnsServices:
   - name: Time Machine
     hostname: timemachine
