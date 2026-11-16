@@ -12,11 +12,10 @@ service:
     # SMB file sharing; the Apple disk service Time Machine discovers, a
     # single shared volume with per-machine quotas via .quota.plist; and
     # device info, which shows it as a Time Capsule in Finder.
-    mdns.homelab.io/types: _smb._tcp,_adisk._tcp,_device-info._tcp
-    mdns.homelab.io/txt._adisk._tcp: |
-      sys=adVF=0x100
-      dk0=adVN=Family,adVF=0x82
-    mdns.homelab.io/txt._device-info._tcp: model=TimeCapsule8,119
+    mdns.homelab.io/types: |
+      [{"type": "_smb._tcp"},
+       {"type": "_adisk._tcp", "txtRecords": ["sys=adVF=0x100", "dk0=adVN=Family,adVF=0x82"]},
+       {"type": "_device-info._tcp", "txtRecords": ["model=TimeCapsule8,119"]}]
 
 # Set to 0 to quiesce the share for volume maintenance. Never above 1 - one
 # SMB share backed by a single RWO volume.
