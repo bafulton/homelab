@@ -81,6 +81,13 @@ gameplane:
     autoApply:
       enabled: false
 
+  # From 0.4.1 the default refuses any game whose template doesn't declare a
+  # non-root user and group. Valheim, Factorio and Terraria's don't yet
+  # (GameplanePanel/module#69), so keep the games namespace at baseline until
+  # those templates are fixed, then turn this back on.
+  podSecurity:
+    enforceRestricted: false
+
   # Served by gateway-route below.
   ingress:
     enabled: false
