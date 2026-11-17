@@ -31,6 +31,13 @@ func documents(t *testing.T, data []byte) []map[string]any {
 	return docs
 }
 
+// clusterAPIVersions are APIs the cluster serves beyond Helm's built-in set,
+// for charts that check .Capabilities.APIVersions.
+var clusterAPIVersions = []string{
+	"admissionregistration.k8s.io/v1/ValidatingAdmissionPolicy",
+	"admissionregistration.k8s.io/v1/ValidatingAdmissionPolicyBinding",
+}
+
 func renderChart(t *testing.T, chart, namespace string, extra ...string) []map[string]any {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(chart, "values.yaml"))
@@ -48,6 +55,13 @@ func renderChart(t *testing.T, chart, namespace string, extra ...string) []map[s
 		args = append(args, "--skip-crds")
 	} else {
 		args = append(args, "--include-crds")
+	}
+	// Argo CD renders with the cluster's API versions; a plain helm template
+	// has only the built-in ones. Charts that refuse to render without an API
+	// the cluster serves (Gameplane 0.4.1 requires ValidatingAdmissionPolicy)
+	// need those passed here too.
+	for _, api := range clusterAPIVersions {
+		args = append(args, "--api-versions", api)
 	}
 	args = append(args, extra...)
 	var stderr bytes.Buffer
