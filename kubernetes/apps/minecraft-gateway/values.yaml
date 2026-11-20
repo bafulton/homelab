@@ -44,7 +44,7 @@ mcRouter:
 geyser:
   image:
     repository: ghcr.io/bafulton/geyser-standalone
-    tag: "1.0.0"
+    tag: "1.0.4"
   # Where Bedrock clients send NetherNet (WebRTC) traffic, told to them
   # during signaling: the edge's public name. Geyser looks it up when
   # signaling starts, and signaling doesn't start if it doesn't resolve.
