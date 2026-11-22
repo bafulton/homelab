@@ -51,17 +51,15 @@ minecraftNames:
   templates:
     - minecraft
 
-# Valheim and Factorio servers get public ports and addresses from the
-# game-ports app (templates/game-ports.yaml, kubernetes/apps/game-ports):
-# valheim.fultonhuffman.com, factorio.fultonhuffman.com, plus a port for all
-# but each game's first server. templates must match game-ports' games, and
-# loadBalancerClass its loadBalancerClass.
-gamePorts:
-  loadBalancerClass: homelab.io/game-ports
-  templates:
-    - valheim
-    - factorio
-    - game-ports-canary
+# A pool server's Service is ClusterIP, so Gameplane shows its own cluster
+# address, not a public one; this just gives the dashboard a label
+# (templates/game-ports-hostnames.yaml). The port it shows is the real
+# public one, so the owner tells friends "<hostname>:<port>", for example
+# valheim.fultonhuffman.com:2459. A server that sets its own hostname keeps
+# it.
+gamePortsHostnames:
+  valheim: valheim.fultonhuffman.com
+  factorio: factorio.fultonhuffman.com
 
 # Bedrock players join Paper Minecraft servers through Floodgate
 # (templates/minecraft-floodgate.yaml), with the floodgate-key secret below.
@@ -134,6 +132,19 @@ gameplane:
     # LAN servers can ask for a LoadBalancer address from MetalLB.
     addressManager: metallb
     metalLBNamespace: metallb
+    # Valheim and Factorio clients send no hostname, so behind the OCI
+    # edge's one public address each server needs ports of its own: the
+    # operator hands them out from these pools (GameplanePanel/Gameplane
+    # #1001) and keeps them for the server's life. The game-ports app
+    # (kubernetes/apps/game-ports) routes each pool port to the server
+    # holding it; its ranges must match these.
+    portPools:
+      - name: valheim
+        ports: "2456-2467"
+        templates: [valheim]
+      - name: factorio
+        ports: "34197-34202"
+        templates: [factorio]
 
   web:
     resources:

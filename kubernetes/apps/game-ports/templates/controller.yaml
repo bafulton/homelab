@@ -1,5 +1,5 @@
-# The controller (images/game-ports): gives each server its slot and ports,
-# publishes its address, writes the gateway's routes, and runs the checks.
+# The controller (images/game-ports): writes the gateway's routes from
+# Gameplane's port-pool Services, and runs the canary check.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/name: game-ports-controller
 spec:
   replicas: 1
-  # Two controllers would hand out slots at the same time.
+  # Two controllers would both write the routes ConfigMap at once.
   strategy:
     type: Recreate
   selector:

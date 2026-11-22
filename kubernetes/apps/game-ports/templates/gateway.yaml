@@ -40,8 +40,7 @@ spec:
             # which a directory watch reads as duplicate routes.
             - --providers.file.filename=/routes/routes.yaml
             - --providers.file.watch=true
-            {{- range $line := include "game-ports.ports" . | trim | splitList "\n" }}
-            {{- $port := index (splitList " " $line) 1 }}
+            {{- range $port := include "game-ports.ports" . | trim | splitList "\n" }}
             - --entryPoints.udp-{{ $port }}.address=:{{ $port }}/udp
             - --entryPoints.udp-{{ $port }}.udp.timeout={{ $.Values.gateway.udpTimeout }}
             {{- end }}

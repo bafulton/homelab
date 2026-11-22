@@ -1,0 +1,46 @@
+# Gives each Valheim and Factorio server its game's public hostname
+# (gamePortsHostnames below) as it is created, so the dashboard has a label
+# for it. These servers draw public ports from a pool
+# (operator.portPools above) and are otherwise plain ClusterIP servers, so
+# Gameplane itself shows their cluster address, not a public one; a server
+# that sets its own hostname keeps it.
+{{- range $template, $host := .Values.gamePortsHostnames }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: gameplane-game-ports-hostname-{{ $template }}
+spec:
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
+    resourceRules:
+      - apiGroups: [gameplane.local]
+        apiVersions: [v1alpha1]
+        operations: [CREATE]
+        resources: [gameservers]
+  matchConditions:
+    - name: {{ $template }}-without-hostname
+      expression: >-
+        object.spec.templateRef.name == {{ $template | squote }} &&
+        !(has(object.spec.networking) && has(object.spec.networking.hostname))
+  # A server without a hostname is still a working server, so an error here
+  # mustn't block creating one.
+  failurePolicy: Ignore
+  reinvocationPolicy: Never
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          (has(object.spec.networking) ? [] :
+            [JSONPatch{op: "add", path: "/spec/networking", value: {}}]) +
+          [JSONPatch{op: "add", path: "/spec/networking/hostname", value: {{ $host | squote }}}]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: gameplane-game-ports-hostname-{{ $template }}
+spec:
+  policyName: gameplane-game-ports-hostname-{{ $template }}
+---
+{{- end }}

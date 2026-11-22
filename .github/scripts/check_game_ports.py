@@ -3,12 +3,13 @@
 A game port is forwarded by the OCI edge (opentofu/oci-forwarder, var.games),
 allowed by the tag:edge grant in tailscale/policy.hujson, and, for Valheim,
 Factorio and game-ports' canary, routed by the game-ports app
-(kubernetes/apps/game-ports, games). A port missing from any one of them
-fails quietly, as a server nobody can reach, so this checks that:
+(kubernetes/apps/game-ports, pools and canary). A port missing from any one
+of them fails quietly, as a server nobody can reach, so this checks that:
 
 - every var.games port is in the grant, and the grant has no others;
-- each game-ports game's range is exactly its var.games entry's ports, and
-  that entry forwards to game-ports' Tailscale Service.
+- each game-ports pool's range (plus the canary's port) is exactly its
+  var.games entry's ports, and that entry forwards to game-ports'
+  Tailscale Service.
 """
 
 import json
@@ -91,12 +92,10 @@ def grant_ports():
 
 
 def game_ports_ranges():
-    """game-ports' games: ({game: {"udp:2456", ...}}, its Tailscale upstream)."""
+    """game-ports' pools, plus its canary: ({name: {"udp:2456", ...}}, its Tailscale upstream)."""
     values = yaml.safe_load(GAME_PORTS.read_text())
-    ranges = {
-        name: {f"udp:{game['basePort'] + i}" for i in range(game["servers"] * game["portsPerServer"])}
-        for name, game in values["games"].items()
-    }
+    ranges = {pool["name"]: {f"udp:{n}" for n in range(pool["from"], pool["to"] + 1)} for pool in values["pools"]}
+    ranges["game-ports-canary"] = {f"udp:{values['canary']['port']}"}
     return ranges, f"{values['tailscale']['hostname']}.catfish-mountain.ts.net"
 
 
