@@ -17,13 +17,11 @@ data:
       transport: both
       signaling:
         mode: builtin
-        # Players send WebRTC traffic to the edge, or at home to the LAN
-        # address, not this pod's own addresses; STUN would find home's
-        # public address, which forwards nothing.
+        # Players send WebRTC traffic to the edge, not this pod's own
+        # addresses; STUN would find home's public address, which forwards
+        # nothing.
         advertise-addresses:
           - {{ .Values.geyser.publicHost }}
-          # Players at home reach the gateway directly on its LAN address.
-          - {{ .Values.lanAddress }}
         stun-discovery: false
     java:
       # mc-router, in the same pod.

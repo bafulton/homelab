@@ -1,18 +1,14 @@
-# Gives each Minecraft server its names as it is created or updated:
+# Gives each Minecraft server its public name as it is created or updated:
+# <server>.<domain>. The OCI edge forwarder forwards the Minecraft ports for
+# *.<domain> to the minecraft-gateway (kubernetes/apps/minecraft-gateway),
+# whose mc-router routes players by the hostname their client sends. The
+# dashboard shows this name as the server's hostname. Players at home go out
+# through the edge too, same as every other game (kubernetes/apps/game-ports)
+# - no LAN shortcut, no .local name.
 #
-#   - <server>.<domain>, public: the OCI edge forwards the Minecraft ports for
-#     *.<domain> to the minecraft-gateway (kubernetes/apps/minecraft-gateway),
-#     whose mc-router routes players by the hostname their client sends. The
-#     dashboard shows this name as the server's hostname.
-#   - <server>-minecraft.local, at home: the mDNS advertiser publishes it at
-#     the gateway's LAN address, so players at home skip the trip out to the
-#     edge. mc-router routes it the same way.
-#
-# Both go in mc-router's annotation on the server's Service, through
+# The name goes in mc-router's annotation on the server's Service, through
 # Gameplane's serviceAnnotations. A server that sets its own annotation or
-# hostname keeps it, and gets the .local name only if its own route includes
-# it; one named before the .local names existed (its annotation is just the
-# public name) gets both.
+# hostname keeps it.
 {{- with .Values.minecraftNames }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicy
@@ -31,47 +27,30 @@ spec:
   variables:
     - name: host
       expression: object.metadata.name + {{ printf ".%s" .domain | squote }}
-    - name: localName
-      expression: object.metadata.name + '-minecraft'
-    - name: routes
-      expression: variables.host + ',' + variables.localName + '.local'
     - name: annotations
       expression: >-
         has(object.spec.networking) && has(object.spec.networking.serviceAnnotations) ?
           object.spec.networking.serviceAnnotations : {}
-    # Set this policy's names: when there's no route yet, or it is the
-    # public-only name an earlier version of this policy set.
+    # Set this policy's name: when there's no route yet, or it is already
+    # just the public name this policy set.
     - name: setRoute
       expression: >-
         !('mc-router.itzg.me/externalServerName' in variables.annotations) ||
         variables.annotations['mc-router.itzg.me/externalServerName'] == variables.host
-    # Publish the .local name only where mc-router routes it: when this
-    # policy writes the route, or a custom route already includes it.
-    # Otherwise the name would resolve, then fail to connect.
-    - name: setLocal
-      expression: >-
-        !('mdns.homelab.io/hostname' in variables.annotations) &&
-        (variables.setRoute ||
-          variables.annotations['mc-router.itzg.me/externalServerName'].split(',')
-            .exists(n, n.trim() == variables.localName + '.local'))
     - name: setHostname
       expression: "!(has(object.spec.networking) && has(object.spec.networking.hostname))"
   matchConditions:
-    - name: minecraft-without-its-names
+    - name: minecraft-without-its-name
       expression: >-
         object.spec.templateRef.name in {{ toJson .templates | replace "\"" "'" }} &&
         !(has(object.spec.networking) && has(object.spec.networking.hostname) &&
           has(object.spec.networking.serviceAnnotations) &&
-          'mdns.homelab.io/hostname' in object.spec.networking.serviceAnnotations &&
           'mc-router.itzg.me/externalServerName' in object.spec.networking.serviceAnnotations &&
           object.spec.networking.serviceAnnotations['mc-router.itzg.me/externalServerName'] != object.metadata.name + {{ printf ".%s" .domain | squote }})
-  # A server without a name is still a working server, reachable on the LAN,
-  # so an error here mustn't block creating one.
+  # A server without a name is still a working server, reachable through the
+  # edge, so an error here mustn't block creating one.
   failurePolicy: Ignore
   reinvocationPolicy: Never
-  # JSON patch operations apply in order, so each one can add to what the
-  # one before it created. "~1" escapes the "/" in annotation keys, and "add"
-  # replaces a key that's already there.
   mutations:
     - patchType: JSONPatch
       jsonPatch:
@@ -81,13 +60,7 @@ spec:
           (has(object.spec.networking) && has(object.spec.networking.serviceAnnotations) ? [] :
             [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations", value: {}}]) +
           (!variables.setRoute ? [] :
-            [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mc-router.itzg.me~1externalServerName", value: variables.routes}]) +
-          (!variables.setLocal ? [] : [
-            JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mdns.homelab.io~1hostname", value: variables.localName},
-            JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mdns.homelab.io~1ip", value: {{ .lanAddress | squote }}},
-            JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mdns.homelab.io~1port", value: "25565"},
-            JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mdns.homelab.io~1types", value: "_minecraft._tcp"}
-          ]) +
+            [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/mc-router.itzg.me~1externalServerName", value: variables.host}]) +
           (!variables.setHostname ? [] :
             [JSONPatch{op: "add", path: "/spec/networking/hostname", value: variables.host}])
 ---

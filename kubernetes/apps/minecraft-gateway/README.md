@@ -52,13 +52,10 @@ starts, so after the DNS record first exists, restart the pod.
   `<server>.minecraft.fultonhuffman.com`, port `19132`. Consoles can't add
   servers.
 
-At home, `<server>-minecraft.local` reaches the same server without the trip
-out to the edge: the mDNS advertiser publishes each server's `.local` name at
-the gateway's LAN address, `lanAddress` (a second LoadBalancer Service,
-`minecraft-gateway-lan`, from MetalLB). mc-router routes it like the public
-name, and Geyser advertises the LAN address to Bedrock players alongside the
-edge's. The pod runs on a home node, since MetalLB announces the LAN address
-from one.
+Players at home join the same way, through the edge: no LAN shortcut, same
+as every other game (`kubernetes/apps/game-ports`). All games stay
+consistent until there's measured evidence that the round trip through the
+edge is actually a problem for players at home.
 
 Bedrock players join without a Java account, through Floodgate: Geyser
 vouches for them with a key, and each server's Floodgate plugin trusts it.

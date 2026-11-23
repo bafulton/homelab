@@ -13,16 +13,11 @@
 #   - Public: <server>.minecraft.fultonhuffman.com, via the OCI edge forwarder
 #     (opentofu/oci-forwarder, var.games "minecraft"), which reaches this
 #     pod's Tailscale Service, game-minecraft. Java on TCP 25565; Bedrock on
-#     19132 (TCP signaling and UDP RakNet) and UDP 19133 (NetherNet).
+#     19132 (TCP signaling and UDP RakNet) and UDP 19133 (NetherNet). Players
+#     at home go out through the edge too, same as every other game
+#     (kubernetes/apps/game-ports) - no LAN shortcut.
 
 namespace: minecraft-gateway
-
-# The gateway's LAN address, for players at home: each Minecraft server's
-# <server>-minecraft.local name (published by the mDNS advertiser) points
-# here, skipping the trip out to the OCI edge. The top of MetalLB's pool,
-# away from the dynamic addresses game servers take from the bottom.
-# kubernetes/apps/gameplane (minecraftNames.lanAddress) must match.
-lanAddress: 192.168.1.250
 
 # The edge forwarder's upstream, game-<key> in its var.games. The tag is the
 # target of tailscale/policy.hujson's tag:edge grant.
