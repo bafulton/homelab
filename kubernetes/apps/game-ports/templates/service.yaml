@@ -14,10 +14,9 @@ spec:
   selector:
     app.kubernetes.io/name: game-ports-gateway
   ports:
-    {{- range $line := include "game-ports.ports" . | trim | splitList "\n" }}
-    {{- $parts := splitList " " $line }}
-    - name: {{ index $parts 0 }}-{{ index $parts 1 }}
-      port: {{ index $parts 1 }}
-      targetPort: {{ index $parts 1 }}
+    {{- range $port := include "game-ports.ports" . | trim | splitList "\n" }}
+    - name: p-{{ $port }}
+      port: {{ $port }}
+      targetPort: {{ $port }}
       protocol: UDP
     {{- end }}

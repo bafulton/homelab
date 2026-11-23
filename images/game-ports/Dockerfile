@@ -1,5 +1,5 @@
-# game-ports: gives Gameplane servers of port-routed games (Valheim, Factorio)
-# their public ports, address and gateway routes. See game_ports.py.
+# game-ports: routes Gameplane's port-pool servers (Valheim, Factorio) to the
+# gateway, and runs the canary check. See game_ports.py.
 #
 # The kubernetes client requires PyYAML, which this image builds against
 # libyaml in a builder stage, as mdns-advertiser's does: a pip install at

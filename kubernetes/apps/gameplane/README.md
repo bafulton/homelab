@@ -124,9 +124,7 @@ These policies depend on how Gameplane builds servers: the
 `gameplane.local/template` pod label, a container named `game` with the
 image's `TYPE` setting, and the plugins volume at `/data/plugins`. After a
 Gameplane upgrade, check that a new Minecraft server still gets its name and
-Floodgate. Valheim and Factorio's public addresses depend on Gameplane too; game-ports
-checks those itself and alerts when they break (its README, "Checks and the
-canary").
+Floodgate.
 
 ## Public Valheim and Factorio
 
@@ -134,10 +132,13 @@ Valheim and Factorio servers are public at `valheim.fultonhuffman.com` and
 `factorio.fultonhuffman.com`, each server on ports of its own: the first
 server of each game has the game's default port, and later ones add theirs,
 for example `valheim.fultonhuffman.com:2459`. The dashboard shows each
-server's address. `templates/game-ports.yaml` hands these servers to the
-game-ports app (`kubernetes/apps/game-ports`), which gives them their ports
-and routes; see its README. Set a server password on each: the ports are
-open to the internet.
+server's address. `operator.portPools` above hands out the ports
+(GameplanePanel/Gameplane#1001); `templates/game-ports.yaml` gives each
+server a loadBalancerClass and hostname (GameplanePanel/Gameplane#1000 and
+#999); and the game-ports app (`kubernetes/apps/game-ports`) publishes that
+hostname as the server's address, routes each port to the server holding
+it, and runs an end-to-end canary check - see its README. Set a server
+password on each: the ports are open to the internet.
 
 ## Storage and backups
 

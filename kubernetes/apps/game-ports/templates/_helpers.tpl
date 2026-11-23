@@ -1,17 +1,23 @@
 {{/*
-Every public port, one per line: "<game> <port>", in slot order. The gateway's
-entrypoints and the Tailscale Service's ports both come from this.
+Every public port, one per line: the pools' ports plus the canary's. The
+gateway's entrypoints and the Tailscale Service's ports both come from this.
 */}}
 {{- define "game-ports.ports" -}}
-{{- range $name, $game := .Values.games }}
-{{- range $i := until (int (mul $game.servers $game.portsPerServer)) }}
-{{ $name }} {{ add $game.basePort $i }}
+{{- range .Values.pools }}
+{{- $from := int .from }}
+{{- range $i := until (int (add1 (sub (int .to) $from))) }}
+{{ add $from $i }}
 {{- end }}
 {{- end }}
+{{ int .Values.canary.port }}
 {{- end }}
 
 {{/* The controller's configuration (images/game-ports/game_ports.py). */}}
 {{- define "game-ports.config" -}}
-{{- $canary := dict "name" .Values.canary.name "game" "game-ports-canary" "maxAgeHours" .Values.canary.maxAgeHours "settleSeconds" .Values.canary.settleSeconds }}
-{{- dict "namespace" .Values.gamesNamespace "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "loadBalancerClass" .Values.loadBalancerClass "metricsPort" .Values.controller.metricsPort "canary" $canary "games" .Values.games | toJson }}
+{{- $canary := dict "hostname" .Values.canary.hostname "port" .Values.canary.port }}
+{{- $hostnames := dict }}
+{{- range .Values.pools }}
+{{- $_ := set $hostnames .name .hostname }}
+{{- end }}
+{{- dict "namespace" .Values.gamesNamespace "poolLabel" .Values.poolLabel "loadBalancerClass" .Values.loadBalancerClass "poolHostnames" $hostnames "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "metricsPort" .Values.controller.metricsPort "canary" $canary | toJson }}
 {{- end }}

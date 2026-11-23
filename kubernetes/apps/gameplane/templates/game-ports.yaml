@@ -1,20 +1,23 @@
-# Hands the servers of port-routed games (Valheim, Factorio) to the game-ports
-# app (kubernetes/apps/game-ports), which gives each its public ports and
-# address. Their clients don't send a hostname, so unlike Minecraft each
-# server needs public ports of its own.
+# Gives each Valheim and Factorio server, as it is created, everything the
+# game-ports app (kubernetes/apps/game-ports) needs to publish its address:
 #
-#   - gameplane-game-ports-servers: each such server is a LoadBalancer, and
-#     its Service carries the game-ports.homelab.io/game annotation. Kept on
-#     update too: the Service's class only allows a LoadBalancer.
-#   - gameplane-game-ports-services: that Service gets game-ports' load
-#     balancer class as it is created, so game-ports, not MetalLB, gives it
-#     its address. The class can't be added later, so a server created before
-#     this policy keeps its LAN address until it is recreated.
-{{- with .Values.gamePorts }}
+#   - spec.networking.expose: LoadBalancer and loadBalancerClass
+#     (gamePorts.loadBalancerClass), which makes game-ports' controller the
+#     Service's load balancer instead of MetalLB (GameplanePanel/
+#     Gameplane#1000). The server still draws its actual public ports from
+#     a pool (operator.portPools above), not from this Service type.
+#   - spec.networking.hostname (gamePorts.hostnames below), which the
+#     controller publishes as that load balancer's address, so the
+#     dashboard shows "<hostname>:<port>" instead of the Service's cluster
+#     address and a separate hostname label (GameplanePanel/Gameplane#999).
+#
+# A server that sets its own hostname keeps it, and gets no loadBalancerClass
+# from here either, so it is left to the cluster's default implementation.
+{{- range $template, $host := .Values.gamePorts.hostnames }}
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicy
 metadata:
-  name: gameplane-game-ports-servers
+  name: gameplane-game-ports-{{ $template }}
 spec:
   matchConstraints:
     namespaceSelector:
@@ -23,17 +26,14 @@ spec:
     resourceRules:
       - apiGroups: [gameplane.local]
         apiVersions: [v1alpha1]
-        operations: [CREATE, UPDATE]
+        operations: [CREATE]
         resources: [gameservers]
   matchConditions:
-    - name: port-routed-game
-      expression: object.spec.templateRef.name in {{ toJson .templates | replace "\"" "'" }}
-  variables:
-    - name: annotations
+    - name: {{ $template }}-without-address
       expression: >-
-        has(object.spec.networking) && has(object.spec.networking.serviceAnnotations) ?
-          object.spec.networking.serviceAnnotations : {}
-  # A server that isn't public is still a working server, so an error here
+        object.spec.templateRef.name == {{ $template | squote }} &&
+        !(has(object.spec.networking) && has(object.spec.networking.hostname))
+  # A server without an address is still a working server, so an error here
   # mustn't block creating one.
   failurePolicy: Ignore
   reinvocationPolicy: Never
@@ -43,56 +43,17 @@ spec:
         expression: >-
           (has(object.spec.networking) ? [] :
             [JSONPatch{op: "add", path: "/spec/networking", value: {}}]) +
-          [JSONPatch{op: "add", path: "/spec/networking/expose", value: "LoadBalancer"}] +
-          (has(object.spec.networking) && has(object.spec.networking.serviceAnnotations) ? [] :
-            [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations", value: {}}]) +
-          [JSONPatch{op: "add", path: "/spec/networking/serviceAnnotations/game-ports.homelab.io~1game", value: object.spec.templateRef.name}]
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingAdmissionPolicyBinding
-metadata:
-  name: gameplane-game-ports-servers
-spec:
-  policyName: gameplane-game-ports-servers
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingAdmissionPolicy
-metadata:
-  name: gameplane-game-ports-services
-spec:
-  matchConstraints:
-    namespaceSelector:
-      matchLabels:
-        kubernetes.io/metadata.name: {{ $.Values.gameplane.gamesNamespace | default "gameplane-games" }}
-    resourceRules:
-      - apiGroups: [""]
-        apiVersions: [v1]
-        operations: [CREATE]
-        resources: [services]
-  matchConditions:
-    - name: port-routed-game-service
-      expression: >-
-        has(object.metadata.annotations) &&
-        'game-ports.homelab.io/game' in object.metadata.annotations &&
-        object.spec.type == 'LoadBalancer' &&
-        !has(object.spec.loadBalancerClass)
-  failurePolicy: Ignore
-  reinvocationPolicy: Never
-  # game-ports' gateway reaches the Service by its cluster IP, so it needs no
-  # node ports.
-  mutations:
-    - patchType: JSONPatch
-      jsonPatch:
-        expression: >-
           [
-            JSONPatch{op: "add", path: "/spec/loadBalancerClass", value: {{ .loadBalancerClass | squote }}},
-            JSONPatch{op: "add", path: "/spec/allocateLoadBalancerNodePorts", value: false}
+            JSONPatch{op: "add", path: "/spec/networking/expose", value: "LoadBalancer"},
+            JSONPatch{op: "add", path: "/spec/networking/loadBalancerClass", value: {{ $.Values.gamePorts.loadBalancerClass | squote }}},
+            JSONPatch{op: "add", path: "/spec/networking/hostname", value: {{ $host | squote }}}
           ]
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingAdmissionPolicyBinding
 metadata:
-  name: gameplane-game-ports-services
+  name: gameplane-game-ports-{{ $template }}
 spec:
-  policyName: gameplane-game-ports-services
+  policyName: gameplane-game-ports-{{ $template }}
+---
 {{- end }}
