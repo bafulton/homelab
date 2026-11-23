@@ -93,18 +93,19 @@ until Gameplane can read it from the Steam query
 ## Public Minecraft
 
 Every Minecraft server is public at `<server>.minecraft.fultonhuffman.com`,
-for Java players (no port) and Bedrock players (port 19132), and at home at
-`<server>-minecraft.local`, which skips the trip out to the edge. The
+for Java players (no port) and Bedrock players (port 19132). Players at home
+go out through the edge too, same as every other game
+(`kubernetes/apps/game-ports`) - no LAN shortcut, no `.local` name; all
+games stay consistent until there's measured evidence that routing a home
+connection out through the edge and back is actually a problem. The
 minecraft-gateway (`kubernetes/apps/minecraft-gateway`) routes players by
 the hostname their client sends, and the OCI edge forwarder
 (`opentofu/oci-forwarder`) carries its ports there. Two policies here set up
 each server for it:
 
-- **`templates/minecraft-names.yaml`** gives each Minecraft server its names:
-  both in the Service annotation the gateway routes by, the `.local` one in
-  `mdns.homelab.io/*` annotations the mDNS advertiser publishes at the
-  gateway's LAN address (`minecraftNames.lanAddress`), and the public one as
-  the hostname the dashboard shows. A server that sets its own keeps it.
+- **`templates/minecraft-names.yaml`** gives each Minecraft server its public
+  name, both in the Service annotation the gateway routes by and as the
+  hostname the dashboard shows. A server that sets its own keeps it.
 - **`templates/minecraft-floodgate.yaml`** gives each Paper server the
   Floodgate plugin and the key it shares with the gateway's Geyser
   (`floodgate-key`, from Bitwarden), so Bedrock players can join without a
