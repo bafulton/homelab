@@ -7,25 +7,31 @@
 #     (opentofu/oci-forwarder, var.games "valheim" and "factorio"), which
 #     reaches the gateway's Tailscale Service, game-ports.
 
-# Must match the gameplane app's operator.portPools ranges, var.games
+# Ranges must match the gameplane app's operator.portPools, var.games
 # (opentofu/oci-forwarder) and the tag:edge grant in tailscale/policy.hujson;
-# CI checks that they all agree (.github/scripts/check_game_ports.py). Only
-# the ranges matter here: the controller routes whichever pool-labeled
-# Service actually holds a port, so adding a pool-routed game needs no
-# change to this app beyond its range here.
+# CI checks that they all agree (.github/scripts/check_game_ports.py).
+# Hostnames must match the gameplane app's gamePorts.hostnames: the
+# controller publishes them as each pool Service's load-balancer address
+# (game_ports.py, publish_address), so adding a pool-routed game needs a
+# matching entry there too, with the same loadBalancerClass below.
 pools:
   - name: valheim
+    hostname: valheim.fultonhuffman.com
     from: 2456
     to: 2467
   - name: factorio
+    hostname: factorio.fultonhuffman.com
     from: 34197
     to: 34202
 
-# The game servers' namespace, and the label Gameplane's operator puts on a
-# pool server's Service (operator/internal/controller/gameserver_portpool.go,
-# PortPoolServiceLabel).
+# The game servers' namespace, the label Gameplane's operator puts on a pool
+# server's Service (operator/internal/controller/gameserver_portpool.go,
+# PortPoolServiceLabel), and the loadBalancerClass the gameplane app's
+# policy gives that Service (GameplanePanel/Gameplane#1000), which makes
+# this controller its load balancer.
 gamesNamespace: gameplane-games
 poolLabel: gameplane.local/port-pool
+loadBalancerClass: homelab.io/game-ports
 
 # The edge forwarder's upstream on the tailnet. The tag is the target of
 # tailscale/policy.hujson's tag:edge grant.

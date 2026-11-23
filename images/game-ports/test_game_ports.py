@@ -30,9 +30,12 @@ def load_module():
 gp = load_module()
 
 
-def service(name, namespace="gameplane-games", ports=((2459, "UDP"), (2460, "UDP"))):
-    return SimpleNamespace(metadata=SimpleNamespace(name=name, namespace=namespace), spec=SimpleNamespace(
-        ports=[SimpleNamespace(port=p, protocol=proto) for p, proto in ports]))
+def service(name, namespace="gameplane-games", ports=((2459, "UDP"), (2460, "UDP")), labels=None):
+    return SimpleNamespace(
+        metadata=SimpleNamespace(name=name, namespace=namespace, labels=labels),
+        spec=SimpleNamespace(ports=[SimpleNamespace(port=p, protocol=proto) for p, proto in ports],
+                              load_balancer_class="homelab.io/game-ports"),
+        status=SimpleNamespace(load_balancer=SimpleNamespace(ingress=[])))
 
 
 class PoolRoutesTest(unittest.TestCase):
@@ -50,6 +53,38 @@ class PoolRoutesTest(unittest.TestCase):
     def test_two_services_each_get_their_own_routes(self):
         routers, _ = gp.pool_routes([service("a", ports=((2456, "UDP"),)), service("b", ports=((34197, "UDP"),))])
         self.assertEqual(sorted(routers), ["a-2456", "b-34197"])
+
+
+class FakeCore:
+    """Stands in for gp.core, recording status patches."""
+
+    def __init__(self):
+        self.patches = []
+
+    def patch_namespaced_service_status(self, name, ns, body):
+        self.patches.append((name, ns, body))
+
+
+class PublishAddressTest(unittest.TestCase):
+    def setUp(self):
+        gp.core = FakeCore()
+
+    def test_publishes_the_hostname_for_our_class(self):
+        gp.publish_address(service("frosty"), "gameplane-games", "homelab.io/game-ports", "valheim.fultonhuffman.com")
+        self.assertEqual(gp.core.patches, [("frosty", "gameplane-games", {"status": {"loadBalancer": {
+            "ingress": [{"hostname": "valheim.fultonhuffman.com"}]}}})])
+
+    def test_skips_a_service_of_another_class(self):
+        svc = service("frosty")
+        svc.spec.load_balancer_class = "example.com/other"
+        gp.publish_address(svc, "gameplane-games", "homelab.io/game-ports", "valheim.fultonhuffman.com")
+        self.assertEqual(gp.core.patches, [])
+
+    def test_skips_once_already_published(self):
+        svc = service("frosty")
+        svc.status.load_balancer.ingress = [SimpleNamespace(hostname="valheim.fultonhuffman.com", ip=None)]
+        gp.publish_address(svc, "gameplane-games", "homelab.io/game-ports", "valheim.fultonhuffman.com")
+        self.assertEqual(gp.core.patches, [])
 
 
 class CanaryRouteTest(unittest.TestCase):

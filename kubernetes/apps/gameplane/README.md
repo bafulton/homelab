@@ -131,14 +131,14 @@ Floodgate.
 Valheim and Factorio servers are public at `valheim.fultonhuffman.com` and
 `factorio.fultonhuffman.com`, each server on ports of its own: the first
 server of each game has the game's default port, and later ones add theirs,
-for example `valheim.fultonhuffman.com:2459`. `operator.portPools` above hands
-out the ports (GameplanePanel/Gameplane#1001); `templates/game-ports-hostnames.yaml`
-gives the dashboard a hostname label; and the game-ports app
-(`kubernetes/apps/game-ports`) routes each port to the server holding it and
-runs an end-to-end canary check - see its README. These servers are
-ClusterIP, so the dashboard's address field shows a cluster IP, not the
-public one: the owner combines the hostname label with the port shown there.
-Set a server password on each: the ports are open to the internet.
+for example `valheim.fultonhuffman.com:2459`. The dashboard shows each
+server's address. `operator.portPools` above hands out the ports
+(GameplanePanel/Gameplane#1001); `templates/game-ports.yaml` gives each
+server a loadBalancerClass and hostname (GameplanePanel/Gameplane#1000 and
+#999); and the game-ports app (`kubernetes/apps/game-ports`) publishes that
+hostname as the server's address, routes each port to the server holding
+it, and runs an end-to-end canary check - see its README. Set a server
+password on each: the ports are open to the internet.
 
 ## Storage and backups
 

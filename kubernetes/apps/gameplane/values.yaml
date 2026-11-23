@@ -51,15 +51,16 @@ minecraftNames:
   templates:
     - minecraft
 
-# A pool server's Service is ClusterIP, so Gameplane shows its own cluster
-# address, not a public one; this just gives the dashboard a label
-# (templates/game-ports-hostnames.yaml). The port it shows is the real
-# public one, so the owner tells friends "<hostname>:<port>", for example
-# valheim.fultonhuffman.com:2459. A server that sets its own hostname keeps
-# it.
-gamePortsHostnames:
-  valheim: valheim.fultonhuffman.com
-  factorio: factorio.fultonhuffman.com
+# Gives each pool server its game's public address (templates/game-ports.yaml):
+# a loadBalancerClass that makes the game-ports app's controller its load
+# balancer, and the hostname it publishes there. loadBalancerClass must
+# match the game-ports app's own value. A server that sets its own hostname
+# keeps it.
+gamePorts:
+  loadBalancerClass: homelab.io/game-ports
+  hostnames:
+    valheim: valheim.fultonhuffman.com
+    factorio: factorio.fultonhuffman.com
 
 # Bedrock players join Paper Minecraft servers through Floodgate
 # (templates/minecraft-floodgate.yaml), with the floodgate-key secret below.

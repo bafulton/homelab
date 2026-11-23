@@ -4,8 +4,9 @@ metadata:
   name: game-ports-controller
   namespace: {{ .Release.Namespace }}
 ---
-# In the games namespace: read pool servers' Services, to route them.
-# Gameplane's operator does the port allocation; this app only mirrors it.
+# In the games namespace: read pool servers' Services, to route them, and
+# publish their address. Gameplane's operator does the port allocation;
+# this app only mirrors it and the address.
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -15,6 +16,9 @@ rules:
   - apiGroups: [""]
     resources: [services]
     verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [services/status]
+    verbs: [patch]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

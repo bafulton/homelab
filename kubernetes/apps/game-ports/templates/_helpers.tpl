@@ -15,5 +15,9 @@ gateway's entrypoints and the Tailscale Service's ports both come from this.
 {{/* The controller's configuration (images/game-ports/game_ports.py). */}}
 {{- define "game-ports.config" -}}
 {{- $canary := dict "hostname" .Values.canary.hostname "port" .Values.canary.port }}
-{{- dict "namespace" .Values.gamesNamespace "poolLabel" .Values.poolLabel "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "metricsPort" .Values.controller.metricsPort "canary" $canary | toJson }}
+{{- $hostnames := dict }}
+{{- range .Values.pools }}
+{{- $_ := set $hostnames .name .hostname }}
+{{- end }}
+{{- dict "namespace" .Values.gamesNamespace "poolLabel" .Values.poolLabel "loadBalancerClass" .Values.loadBalancerClass "poolHostnames" $hostnames "routeNamespace" .Release.Namespace "routeConfigMap" "game-ports-routes" "metricsPort" .Values.controller.metricsPort "canary" $canary | toJson }}
 {{- end }}

@@ -5,17 +5,27 @@ Valheim and Factorio clients send no hostname, so behind the OCI edge's one
 public address each server needs ports of its own. Gameplane's own operator
 hands those out (operator.portPools in the gameplane app, GameplanePanel/
 Gameplane#1001) and labels each pool server's Service
-gameplane.local/port-pool. This controller's only job is to mirror those
-Services' ports into the gateway's Traefik config: a ConfigMap this
-controller writes and Traefik watches (templates/gateway.yaml), so Traefik
-itself needs no access to the cluster. Routes go to the Service's cluster
-name, not its pods, so they follow Gameplane's wake sentinel while a server
-sleeps.
+gameplane.local/port-pool. This controller:
 
-Because routing follows whichever Service actually holds a port, adding a
-pool-routed game needs no change here: just its range in the gameplane app's
-operator.portPools, var.games (opentofu/oci-forwarder) and the tag:edge
-grant (tailscale/policy.hujson).
+1. Mirrors those Services' ports into the gateway's Traefik config: a
+   ConfigMap this controller writes and Traefik watches
+   (templates/gateway.yaml), so Traefik itself needs no access to the
+   cluster. Routes go to the Service's cluster name, not its pods, so they
+   follow Gameplane's wake sentinel while a server sleeps.
+2. Writes each pool's public hostname into its Services' load-balancer
+   status. The gameplane app gives a pool server its own loadBalancerClass
+   (GameplanePanel/Gameplane#1000), which makes this controller its load
+   balancer; Gameplane then shows that hostname and the Service's port as
+   the server's address (GameplanePanel/Gameplane#999): without this, the
+   dashboard would show the Service's cluster address instead, and the
+   owner would have to combine a separate hostname label with the port by
+   hand.
+
+Because routing and addressing both follow whichever Service actually holds
+a port, adding a pool-routed game needs no change to the control flow here:
+just its range and hostname in values.yaml, its loadBalancerClass and
+hostname in the gameplane app's operator.portPools/gamePorts, var.games
+(opentofu/oci-forwarder) and the tag:edge grant (tailscale/policy.hujson).
 
 It also runs the canary check: every pass it sends a UDP packet to the
 canary's public address (templates/canary.yaml, a static echo Service of
@@ -28,6 +38,8 @@ watches; a miss is logged.
 The configuration (GAME_PORTS_CONFIG) is JSON:
 
   {"namespace": "gameplane-games", "poolLabel": "gameplane.local/port-pool",
+   "loadBalancerClass": "homelab.io/game-ports",
+   "poolHostnames": {"valheim": "valheim.fultonhuffman.com"},
    "routeNamespace": "game-ports", "routeConfigMap": "game-ports-routes",
    "metricsPort": 9100,
    "canary": {"hostname": "game-ports-canary.fultonhuffman.com", "port": 39999}}
@@ -124,6 +136,24 @@ def echo(hostname, port, timeout=5, attempts=3):
     return False
 
 
+def publish_address(svc, ns, lb_class, hostname):
+    """Publish hostname as the load-balancer address of a pool Service.
+
+    Only a Service of our class is ours to publish for: one created before
+    the gameplane app's policy, or with the policy not run, keeps working
+    through its route, but the dashboard shows its own cluster address
+    instead.
+    """
+    if svc.spec.load_balancer_class != lb_class:
+        return
+    ingress = (svc.status.load_balancer.ingress or []) if svc.status and svc.status.load_balancer else []
+    if [i.hostname for i in ingress] == [hostname] and not any(i.ip for i in ingress):
+        return
+    core.patch_namespaced_service_status(
+        svc.metadata.name, ns, {"status": {"loadBalancer": {"ingress": [{"hostname": hostname}]}}})
+    print(f"{svc.metadata.name}: address {hostname}")
+
+
 def write_routes(route_ns, name, content):
     """Write the gateway's routes into its ConfigMap, when they changed."""
     try:
@@ -149,6 +179,12 @@ def reconcile(cfg):
     routers.update(canary_routers)
     backends.update(canary_backends)
     write_routes(cfg["routeNamespace"], cfg["routeConfigMap"], render_routes(routers, backends))
+
+    for svc in services:
+        pool = (svc.metadata.labels or {}).get(cfg["poolLabel"])
+        hostname = cfg["poolHostnames"].get(pool)
+        if hostname:
+            publish_address(svc, cfg["namespace"], cfg["loadBalancerClass"], hostname)
 
     canary = cfg["canary"]
     if echo(canary["hostname"], canary["port"]):

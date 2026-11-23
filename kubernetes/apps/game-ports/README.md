@@ -5,7 +5,8 @@ hostname they connect to: Valheim and Factorio. Minecraft clients do, so
 every Minecraft server shares one public port
 (`kubernetes/apps/minecraft-gateway`). These games can't share a port, so each
 server gets public ports of its own. Gameplane's own operator hands them out
-(`operator.portPools` in the gameplane app); this app only routes them.
+(`operator.portPools` in the gameplane app); this app routes and addresses
+them.
 
 | Game | Address | Ports |
 |------|---------|-------|
@@ -14,8 +15,8 @@ server gets public ports of its own. Gameplane's own operator hands them out
 
 A game's first server gets the game's default port, so players need only the
 name: `factorio.fultonhuffman.com`. Later servers add their port:
-`factorio.fultonhuffman.com:34198`. The server's owner reads the port from
-the dashboard and tells friends `<hostname>:<port>`.
+`factorio.fultonhuffman.com:34198`. The dashboard shows each server's full
+address.
 
 ```mermaid
 flowchart TD
@@ -29,20 +30,26 @@ flowchart TD
 
 1. **The gameplane app's `operator.portPools`** gives every Valheim and
    Factorio server a contiguous block of its pool, kept for the server's
-   life, and publishes those ports on its (ClusterIP) Service. See
+   life, and publishes those ports on its Service. See
    GameplanePanel/Gameplane#1001 and the
    [Port Pools docs](https://github.com/GameplanePanel/Gameplane/blob/main/docs/networking.md#port-pools).
    The operator also labels the Service `gameplane.local/port-pool`.
-2. **The gameplane app's `templates/game-ports-hostnames.yaml`** gives each
-   server its game's public hostname as a dashboard label
-   (`spec.networking.hostname`); it plays no part in routing.
-3. **The controller** (`images/game-ports`) lists the labeled Services and
-   writes the gateway's routes, one per port, to the `game-ports-routes`
-   ConfigMap. The gateway's Traefik watches it, so it needs no Kubernetes
-   access of its own. Routes go to the Service's cluster name, so they
-   follow Gameplane's wake sentinel while a server sleeps. A new route
-   reaches the gateway within a minute or two, as the kubelet refreshes the
-   ConfigMap.
+2. **The gameplane app's `templates/game-ports.yaml`** makes the server's
+   Service a LoadBalancer of this app's class (`gamePorts.loadBalancerClass`,
+   GameplanePanel/Gameplane#1000), which keeps MetalLB off it, and gives it
+   the game's public hostname (`gamePorts.hostnames`,
+   `spec.networking.hostname`).
+3. **The controller** (`images/game-ports`) lists Services of our class
+   labeled `gameplane.local/port-pool` and writes the game's public
+   hostname into each one's load-balancer status, so Gameplane shows it
+   with the Service's port as the server's address
+   (GameplanePanel/Gameplane#999): `valheim.fultonhuffman.com:2459`.
+4. **The controller** also writes the gateway's routes, one per port, to
+   the `game-ports-routes` ConfigMap. The gateway's Traefik watches it, so
+   it needs no Kubernetes access of its own. Routes go to the Service's
+   cluster name, so they follow Gameplane's wake sentinel while a server
+   sleeps. A new route reaches the gateway within a minute or two, as the
+   kubelet refreshes the ConfigMap.
 
 Deleting a server frees its block within Gameplane and removes its routes
 here.
@@ -79,11 +86,12 @@ do (`.github/scripts/check_game_ports.py`):
    port ranges.
 3. The `tag:edge` → `tag:k8s-games` grant in `tailscale/policy.hujson`.
 
-A new game also needs its own `operator.portPools` entry in the gameplane
-app, naming its template; the pool's `ports` must match the range here. The
-controller needs no change: it routes whichever pool-labeled Service
-actually holds a port. Then apply the edge as its README describes ("Game
-servers").
+A new game also needs its own `operator.portPools` entry and
+`gamePorts.hostnames` entry in the gameplane app, naming its template; the
+pool's `ports` must match the range here, and the hostname must match a
+`pools[].hostname` entry here too. The controller needs no other change: it
+routes and addresses whichever pool-labeled Service actually holds a port.
+Then apply the edge as its README describes ("Game servers").
 
 ## Notes
 
