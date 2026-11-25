@@ -42,7 +42,7 @@ tailscale:
 gateway:
   image:
     repository: traefik
-    tag: v3.7.19
+    tag: v3.8.0
   # How long Traefik keeps a player's UDP session with no packets. Games send
   # many packets a second, so this only needs to cover a stall.
   udpTimeout: 60s
