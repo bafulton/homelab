@@ -1,0 +1,13 @@
+# Gameplane's CRDs, apart from the gameplane app. See README.md.
+
+# CRDs are cluster-scoped; this only stops Argo CD creating a namespace
+# named after the app.
+namespace: gameplane-system
+
+syncPolicy:
+  # Server-side apply required: the GameServer and GameTemplate CRDs exceed
+  # the client-side last-applied annotation size limit.
+  serverSideApply: true
+  # Never prune: removing a CRD deletes every resource of its kind, and a
+  # GameServer owns its world volume.
+  prune: false

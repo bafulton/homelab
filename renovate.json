@@ -136,10 +136,12 @@
       "automerge": false
     },
     {
-      "description": "Gameplane's chart, never automerged: CRD changes and pre-1.0 upgrades need a look",
+      "description": "Gameplane's chart and its CRDs in one PR (the operator expects the CRDs of its own release), never automerged: CRD changes and pre-1.0 upgrades need a look",
       "matchDepNames": [
-        "gameplane"
+        "gameplane",
+        "gameplane-crds"
       ],
+      "groupName": "gameplane",
       "automerge": false
     }
   ],
