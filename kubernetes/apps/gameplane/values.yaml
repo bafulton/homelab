@@ -18,10 +18,6 @@ skipCrds: true
 
 syncPolicy:
   serverSideApply: true
-  # Pruning stays off until the gameplane-crds app has taken over the CRDs
-  # this app used to apply: removing a CRD deletes every GameServer, and a
-  # GameServer owns its world volume.
-  prune: false
 
 # Game templates whose images are amd64 only. Their pods are pinned to amd64
 # nodes (templates/amd64-placement.yaml). Check a new template's image before
