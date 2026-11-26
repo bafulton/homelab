@@ -162,5 +162,6 @@ password on each: the ports are open to the internet.
 - **CRDs and pruning:** the `gameplane-crds` app
   (`kubernetes/apps/gameplane-crds`) owns the CRDs, and this app sets
   `skipCrds: true`. Removing a CRD would delete every `GameServer` of that
-  kind, and with it every world, so pruning stays off for this app until the
-  `gameplane-crds` app has taken the CRDs over.
+  kind, and with it every world; keeping them in their own app, which never
+  prunes, lets this one prune. The games namespace survives pruning too: the
+  chart marks it `Prune=false,Delete=false`.
