@@ -14,8 +14,8 @@
 # renovate: datasource=docker depName=alpine versioning=docker
 FROM alpine:3.24 AS download
 
-ARG GEYSER_RELEASE=2.12.1-1310
-ARG GEYSER_SHA256=b9270ec4379d1e2b59d44411e6474b2a94fc4b9eec1bdc5a83c1f498924b4e4d
+ARG GEYSER_RELEASE=2.12.1-1312
+ARG GEYSER_SHA256=8c4da36d80e9b27bc6358340465455c3b9fdcd8d4d9bce63d196af44b2f12364
 
 RUN wget -qO /Geyser.jar \
       "https://download.geysermc.org/v2/projects/geyser/versions/${GEYSER_RELEASE%-*}/builds/${GEYSER_RELEASE##*-}/downloads/standalone" \
