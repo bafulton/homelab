@@ -11,5 +11,5 @@ dependencies:
   # Keep at the gameplane dependency's version in ../gameplane/Chart.yaml;
   # Renovate bumps the two together.
   - name: gameplane-crds
-    version: 0.4.3
+    version: 0.5.0
     repository: oci://ghcr.io/gameplanepanel/charts

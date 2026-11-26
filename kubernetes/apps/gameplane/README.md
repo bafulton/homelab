@@ -85,10 +85,10 @@ retry until the server is up.
 Owners change the delay, or turn sleep off, in a server's **Settings →
 Lifecycle**; the policy only fills in servers created without idle settings,
 so their choice sticks. A server only sleeps when Gameplane can count its
-players: Valheim reports no player count, so Valheim servers never sleep,
-until Gameplane can read it from the Steam query
-([Gameplane#991](https://github.com/GameplanePanel/Gameplane/pull/991),
-[module#74](https://github.com/GameplanePanel/module/pull/74)).
+players. Valheim reports its player count from the Steam query from the
+valheim module 2.4.0 on (Gameplane 0.5.0); with an older valheim module,
+Valheim servers never sleep. An installed module keeps its version until
+it's upgraded on the dashboard's **Modules** page.
 
 ## Public Minecraft
 
