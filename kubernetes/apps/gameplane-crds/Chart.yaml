@@ -1,0 +1,15 @@
+apiVersion: v2
+name: gameplane-crds
+description: >-
+  Gameplane's CRDs (GameServer, GameTemplate, Module, Backup, ...), owned
+  independently of the gameplane app. From chart 0.5.0 the gameplane chart no
+  longer bundles them, and owning them here lets the gameplane app prune
+  without risking every GameServer and its world volume.
+type: application
+version: 1.0.0
+dependencies:
+  # Keep at the gameplane dependency's version in ../gameplane/Chart.yaml;
+  # Renovate bumps the two together.
+  - name: gameplane-crds
+    version: 0.4.3
+    repository: oci://ghcr.io/gameplanepanel/charts

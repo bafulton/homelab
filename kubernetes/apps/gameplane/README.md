@@ -159,8 +159,8 @@ password on each: the ports are open to the internet.
   turns it on by default.
 - **CPU limits:** the upstream chart sets them; `cpu: null` removes them, with
   `honorNulls: true` so Argo CD applies those nulls.
-- **CRDs and pruning:** pruning is off for this app, since it owns the CRDs:
-  removing a CRD would delete every `GameServer` of that kind, and with it
-  every world. The CRDs move to their own `gameplane-crds` app, letting this
-  one prune, once Gameplane publishes them as a chart
-  ([Gameplane#989](https://github.com/GameplanePanel/Gameplane/issues/989)).
+- **CRDs and pruning:** the `gameplane-crds` app
+  (`kubernetes/apps/gameplane-crds`) owns the CRDs, and this app sets
+  `skipCrds: true`. Removing a CRD would delete every `GameServer` of that
+  kind, and with it every world, so pruning stays off for this app until the
+  `gameplane-crds` app has taken the CRDs over.
