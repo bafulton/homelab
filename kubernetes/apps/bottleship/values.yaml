@@ -118,10 +118,11 @@ games:
     name: "Command & Conquer: Generals"
     subtitle: Zero Hour
     wgbUrl: /apps/generals-zero-hour.wgb
+    coverUrl: /covers/custom/generals-zero-hour.webp
     description: The Generals expansion with three factions and nine generals.
     year: "2003"
     genre: RTS
-    enabled: false
+    enabled: true
 
 oauth2Proxy:
   image:
