@@ -28,7 +28,7 @@ tailscale:
 mcRouter:
   image:
     repository: itzg/mc-router
-    tag: "1.57.0"
+    tag: "1.57.1"
   resources:
     requests:
       cpu: 10m
